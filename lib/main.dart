@@ -4,7 +4,6 @@ import 'package:grid_view/detail_item.dart';
 import 'package:grid_view/detail_view.dart';
 import 'package:grid_view/interactive_grid_view.dart';
 import 'package:grid_view/services/auth_service.dart';
-import 'package:grid_view/widgets/app_menu_bar.dart';
 import 'package:grid_view/widgets/app_menu.dart';
 import 'package:grid_view/screens/strains_screen.dart';
 import 'package:grid_view/screens/cages_list_screen.dart';
@@ -38,16 +37,13 @@ class MyApp extends StatelessWidget {
                 child: Scaffold(
                   appBar: AppBar(
                     title: const Center(child: Text('Moustra')),
-                    leading: GoRouter.of(context).state.path != '/'
-                        ? IconButton(
-                            icon: Icon(Icons.arrow_back_ios_rounded),
-                            onPressed: () {
-                              GoRouter.of(context).go('/');
-                            },
-                          )
-                        : null,
+                    leading: Builder(
+                      builder: (context) => IconButton(
+                        icon: const Icon(Icons.menu),
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                      ),
+                    ),
                     actions: [
-                      const AppMenuBar(),
                       ValueListenableBuilder(
                         valueListenable: _authState,
                         builder: (context, value, _) {
