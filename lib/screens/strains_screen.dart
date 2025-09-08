@@ -16,18 +16,43 @@ class _StrainsScreenState extends State<StrainsScreen> {
   final TextEditingController _filterController = TextEditingController();
   int? _sortColumnIndex;
   bool _sortAscending = true;
-  final ScrollController _horizontalController = ScrollController();
+  final ScrollController _hHeader = ScrollController();
+  final ScrollController _hBody = ScrollController();
+  bool _isSyncingScroll = false;
 
   @override
   void initState() {
     super.initState();
     _future = strainService.getStrains();
+    _hBody.addListener(() {
+      if (_isSyncingScroll) return;
+      if (_hHeader.hasClients && _hHeader.offset != _hBody.offset) {
+        _isSyncingScroll = true;
+        try {
+          _hHeader.jumpTo(_hBody.offset);
+        } finally {
+          _isSyncingScroll = false;
+        }
+      }
+    });
+    _hHeader.addListener(() {
+      if (_isSyncingScroll) return;
+      if (_hBody.hasClients && _hBody.offset != _hHeader.offset) {
+        _isSyncingScroll = true;
+        try {
+          _hBody.jumpTo(_hHeader.offset);
+        } finally {
+          _isSyncingScroll = false;
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
     _filterController.dispose();
-    _horizontalController.dispose();
+    _hHeader.dispose();
+    _hBody.dispose();
     super.dispose();
   }
 
@@ -75,7 +100,8 @@ class _StrainsScreenState extends State<StrainsScreen> {
                     // Fixed header (no rows)
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      controller: _horizontalController,
+                      controller: _hHeader,
+                      physics: const NeverScrollableScrollPhysics(),
                       child: DataTable(
                         sortColumnIndex: _sortColumnIndex,
                         sortAscending: _sortAscending,
@@ -90,7 +116,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
                         scrollDirection: Axis.vertical,
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
-                          controller: _horizontalController,
+                          controller: _hBody,
                           child: DataTable(
                             sortColumnIndex: _sortColumnIndex,
                             sortAscending: _sortAscending,
@@ -113,6 +139,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
 
   List<DataColumn> _buildColumns() {
     return [
+      const DataColumn(label: SizedBox(width: 72, child: Text('Edit'))),
       DataColumn(
         label: const SizedBox(width: 240, child: Text('Strain Name')),
         onSort: (columnIndex, ascending) {
@@ -124,7 +151,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
         },
       ),
       DataColumn(
-        label: const Text('# Animals'),
+        label: const SizedBox(width: 100, child: Text('# Animals')),
         numeric: true,
         onSort: (columnIndex, ascending) {
           _sort<num>(
@@ -134,10 +161,10 @@ class _StrainsScreenState extends State<StrainsScreen> {
           );
         },
       ),
-      const DataColumn(label: Text('Color')),
-      const DataColumn(label: Text('Owner')),
+      const DataColumn(label: SizedBox(width: 80, child: Text('Color'))),
+      const DataColumn(label: SizedBox(width: 220, child: Text('Owner'))),
       DataColumn(
-        label: const Text('Created Date'),
+        label: const SizedBox(width: 180, child: Text('Created Date')),
         onSort: (columnIndex, ascending) {
           _sortBy(
             columnIndex,
@@ -146,9 +173,9 @@ class _StrainsScreenState extends State<StrainsScreen> {
           );
         },
       ),
-      const DataColumn(label: Text('Background')),
+      const DataColumn(label: SizedBox(width: 200, child: Text('Background'))),
       DataColumn(
-        label: const Text('Active'),
+        label: const SizedBox(width: 100, child: Text('Active')),
         onSort: (columnIndex, ascending) {
           _sort<int>(
             columnIndex,
@@ -177,20 +204,44 @@ class _StrainsScreenState extends State<StrainsScreen> {
       cells: [
         DataCell(
           SizedBox(
+            width: 72,
+            child: IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Edit',
+              onPressed: () {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Edit clicked')));
+                }
+              },
+            ),
+          ),
+        ),
+        DataCell(
+          SizedBox(
             width: 240,
             child: Text(name.isEmpty ? 'Unnamed strain' : name),
           ),
         ),
-        DataCell(Text('$animals')),
-        DataCell(_ColorSwatch(hex: color)),
-        DataCell(Text(owner)),
-        DataCell(Text(_formatUsDateTime(created))),
-        DataCell(Text(background)),
+        DataCell(SizedBox(width: 100, child: Text('$animals'))),
         DataCell(
-          Icon(
-            active ? Icons.check_circle : Icons.cancel,
-            color: active ? Colors.green : Colors.red,
-            size: 18,
+          SizedBox(
+            width: 80,
+            child: Center(child: _ColorSwatch(hex: color)),
+          ),
+        ),
+        DataCell(SizedBox(width: 220, child: Text(owner))),
+        DataCell(SizedBox(width: 180, child: Text(_formatUsDateTime(created)))),
+        DataCell(SizedBox(width: 200, child: Text(background))),
+        DataCell(
+          SizedBox(
+            width: 100,
+            child: Icon(
+              active ? Icons.check_circle : Icons.cancel,
+              color: active ? Colors.green : Colors.red,
+              size: 18,
+            ),
           ),
         ),
       ],
