@@ -92,6 +92,7 @@ class _LittersScreenState extends State<LittersScreen> {
       ),
     ];
   }
+
   // header/body rendering handled by DataGrid
 }
 
