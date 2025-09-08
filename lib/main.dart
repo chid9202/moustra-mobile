@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grid_view/detail_item.dart';
 import 'package:grid_view/detail_view.dart';
-import 'package:grid_view/interactive_grid_view.dart';
+// Removed unused interactive_grid_view import
+import 'package:grid_view/screens/dashboard_screen.dart';
 import 'package:grid_view/services/auth_service.dart';
 import 'package:grid_view/widgets/app_menu.dart';
 import 'package:grid_view/screens/strains_screen.dart';
@@ -83,9 +84,8 @@ class MyApp extends StatelessWidget {
             routes: [
               GoRoute(
                 path: '/',
-                pageBuilder: (context, state) {
-                  return MaterialPage(child: InteractiveGridScreen());
-                },
+                pageBuilder: (context, state) =>
+                    const MaterialPage(child: DashboardScreen()),
               ),
               GoRoute(
                 path: '/strains',

@@ -38,6 +38,7 @@ dependencies:
   auth0_flutter: ^1.13.0
   http: ^1.2.2
   intl: ^0.19.0
+  fl_chart: ^0.68.0
 
 dev_dependencies:
   flutter_test:
