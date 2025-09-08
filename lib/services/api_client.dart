@@ -41,6 +41,14 @@ class ApiClient {
     return httpClient.get(uri, headers: await _headers());
   }
 
+  Future<http.Response> getAbsolute(
+    String url, {
+    Map<String, String>? query,
+  }) async {
+    final uri = Uri.parse(url).replace(queryParameters: query);
+    return httpClient.get(uri, headers: await _headers());
+  }
+
   Future<http.Response> post(String path, {Object? body}) async {
     final uri = _buildUri(path);
     final headers = await _headers();
