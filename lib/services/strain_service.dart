@@ -3,15 +3,31 @@ import 'dart:convert';
 import 'package:grid_view/config/api_config.dart';
 import 'package:grid_view/services/api_client.dart';
 
+class StrainPage {
+  final int count;
+  final List<dynamic> results;
+
+  StrainPage({required this.count, required this.results});
+}
+
 class StrainService {
-  Future<List<dynamic>> getStrains({Map<String, String>? query}) async {
-    final mergedQuery = {'page_size': '1000', if (query != null) ...query};
+  Future<StrainPage> getStrainsPage({
+    int page = 1,
+    int pageSize = 25,
+    Map<String, String>? query,
+  }) async {
+    final mergedQuery = <String, String>{
+      'page': page.toString(),
+      'page_size': pageSize.toString(),
+      if (query != null) ...query,
+    };
     final res = await apiClient.get(ApiConfig.strains, query: mergedQuery);
     final Map<String, dynamic> data =
         jsonDecode(res.body) as Map<String, dynamic>;
+    final int count = (data['count'] as int?) ?? 0;
     final List<dynamic> results =
         (data['results'] as List<dynamic>? ?? <dynamic>[]);
-    return results;
+    return StrainPage(count: count, results: results);
   }
 
   Future<Map<String, dynamic>> getStrain(String id) async {

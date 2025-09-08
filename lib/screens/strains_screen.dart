@@ -19,11 +19,14 @@ class _StrainsScreenState extends State<StrainsScreen> {
   final ScrollController _hHeader = ScrollController();
   final ScrollController _hBody = ScrollController();
   bool _isSyncingScroll = false;
+  int _currentPage = 0; // zero-based UI page
+  int _pageSize = 25;
+  int _totalCount = 0;
 
   @override
   void initState() {
     super.initState();
-    _future = strainService.getStrains();
+    _future = _fetchPage(0);
     _hBody.addListener(() {
       if (_isSyncingScroll) return;
       if (_hHeader.hasClients && _hHeader.offset != _hBody.offset) {
@@ -81,6 +84,23 @@ class _StrainsScreenState extends State<StrainsScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Create Strain clicked')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create Strain'),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: TextField(
                 controller: _filterController,
                 decoration: const InputDecoration(
@@ -122,13 +142,42 @@ class _StrainsScreenState extends State<StrainsScreen> {
                             sortAscending: _sortAscending,
                             headingRowHeight: 0,
                             columns: _buildColumns(),
-                            rows: _filtered.map(_buildRow).toList(),
+                            rows: _pageItems().map(_buildRow).toList(),
                           ),
                         ),
                       ),
                     ),
                   ],
                 ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left),
+                    tooltip: 'Previous',
+                    onPressed: _currentPage > 0
+                        ? () {
+                            _goToPage(_currentPage - 1);
+                          }
+                        : null,
+                  ),
+                  Text(
+                    'Page ${_currentPage + 1} of ${_pageCount()} (Total: $_totalCount)',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right),
+                    tooltip: 'Next',
+                    onPressed: (_currentPage + 1) < _pageCount()
+                        ? () {
+                            _goToPage(_currentPage + 1);
+                          }
+                        : null,
+                  ),
+                ],
               ),
             ),
           ],
@@ -253,6 +302,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
     if (query.isEmpty) {
       setState(() {
         _filtered = List<Map<String, dynamic>>.from(_all);
+        _currentPage = 0;
       });
       return;
     }
@@ -262,6 +312,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
         final uuid = (e['strainUuid'] ?? '').toString().toLowerCase();
         return name.contains(query) || uuid.contains(query);
       }).toList();
+      _currentPage = 0;
     });
   }
 
@@ -279,6 +330,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
         final int comp = av.compareTo(bv);
         return ascending ? comp : -comp;
       });
+      _currentPage = 0;
     });
   }
 
@@ -304,6 +356,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
           comp = av.compareTo(bv);
         return ascending ? comp : -comp;
       });
+      _currentPage = 0;
     });
   }
 
@@ -319,6 +372,41 @@ class _StrainsScreenState extends State<StrainsScreen> {
     if (bgs.isEmpty) return '';
     final Map<String, dynamic> first = bgs.first as Map<String, dynamic>;
     return (first['name'] ?? '').toString();
+  }
+
+  int _pageCount() {
+    if (_totalCount <= 0) return 1;
+    return (_totalCount + _pageSize - 1) ~/ _pageSize;
+  }
+
+  List<Map<String, dynamic>> _pageItems() {
+    // When server-paging, _filtered already contains current page only
+    return _filtered;
+  }
+
+  Future<List<dynamic>> _fetchPage(int zeroBasedPage) async {
+    final page = zeroBasedPage + 1;
+    final pageData = await strainService.getStrainsPage(
+      page: page,
+      pageSize: _pageSize,
+    );
+    _totalCount = pageData.count;
+    final list = pageData.results.cast<Map<String, dynamic>>();
+    _all = list;
+    _filtered = List<Map<String, dynamic>>.from(list);
+    return list;
+  }
+
+  void _goToPage(int zeroBasedPage) async {
+    setState(() {
+      _currentPage = zeroBasedPage;
+    });
+    final data = await _fetchPage(zeroBasedPage);
+    if (!mounted) return;
+    setState(() {
+      _all = data.cast<Map<String, dynamic>>();
+      _filtered = List<Map<String, dynamic>>.from(_all);
+    });
   }
 }
 
