@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:grid_view/services/litter_service.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:grid_view/shared/widgets/paginated_datagrid.dart';
 
 class LittersScreen extends StatefulWidget {
   const LittersScreen({super.key});
@@ -11,89 +12,39 @@ class LittersScreen extends StatefulWidget {
 }
 
 class _LittersScreenState extends State<LittersScreen> {
-  late Future<List<dynamic>> _future;
-  List<Map<String, dynamic>> _rows = <Map<String, dynamic>>[];
-  int _currentPage = 0; // zero-based
-  int _pageSize = 25;
-  int _totalCount = 0;
+  final PaginatedGridController _controller = PaginatedGridController();
 
   @override
   void initState() {
     super.initState();
-    _future = _fetchPage(0);
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<dynamic>>(
-      future: _future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(
-            child: Text('Failed to load litters: ${snapshot.error}'),
-          );
-        }
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Add Litter clicked')),
-                    );
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Litter'),
-                ),
-              ),
-            ),
-            Expanded(
-              child: SfDataGrid(
-                source: _LitterGridSource(records: _rows),
-                columns: _gridColumns(),
-                allowSorting: true,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    tooltip: 'Previous',
-                    onPressed: _currentPage > 0
-                        ? () => _goToPage(_currentPage - 1)
-                        : null,
-                  ),
-                  Text(
-                    'Page ${_currentPage + 1} of ${_pageCount()} (Total: $_totalCount)',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    tooltip: 'Next',
-                    onPressed: (_currentPage + 1) < _pageCount()
-                        ? () => _goToPage(_currentPage + 1)
-                        : null,
-                  ),
-                ],
-              ),
-            ),
-          ],
+    return PaginatedDataGrid<Map<String, dynamic>>(
+      controller: _controller,
+      columns: _gridColumns(),
+      sourceBuilder: (rows) => _LitterGridSource(records: rows),
+      fetchPage: (page, pageSize) async {
+        final pageData = await litterService.getLittersPage(
+          page: page,
+          pageSize: pageSize,
+        );
+        return PaginatedResult<Map<String, dynamic>>(
+          count: pageData.count,
+          results: pageData.results.cast<Map<String, dynamic>>(),
         );
       },
+      topBar: ElevatedButton.icon(
+        onPressed: () {
+          if (!mounted) return;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Add Litter clicked')));
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Add Litter'),
+      ),
     );
   }
 
@@ -142,30 +93,6 @@ class _LittersScreenState extends State<LittersScreen> {
     ];
   }
   // header/body rendering handled by DataGrid
-
-  int _pageCount() {
-    if (_totalCount <= 0) return 1;
-    return (_totalCount + _pageSize - 1) ~/ _pageSize;
-  }
-
-  Future<List<dynamic>> _fetchPage(int zeroBasedPage) async {
-    final pageData = await litterService.getLittersPage(
-      page: zeroBasedPage + 1,
-      pageSize: _pageSize,
-    );
-    _totalCount = pageData.count;
-    _rows = pageData.results.cast<Map<String, dynamic>>();
-    return _rows;
-  }
-
-  Future<void> _goToPage(int zeroBasedPage) async {
-    setState(() {
-      _currentPage = zeroBasedPage;
-    });
-    await _fetchPage(zeroBasedPage);
-    if (!mounted) return;
-    setState(() {});
-  }
 }
 
 class _LitterGridSource extends DataGridSource {

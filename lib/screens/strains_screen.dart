@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:grid_view/services/strain_service.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:grid_view/shared/widgets/paginated_datagrid.dart';
 
 class StrainsScreen extends StatefulWidget {
   const StrainsScreen({super.key});
@@ -11,21 +12,19 @@ class StrainsScreen extends StatefulWidget {
 }
 
 class _StrainsScreenState extends State<StrainsScreen> {
-  late Future<List<dynamic>> _future;
+  final PaginatedGridController _controller = PaginatedGridController();
   List<Map<String, dynamic>> _all = <Map<String, dynamic>>[];
   List<Map<String, dynamic>> _filtered = <Map<String, dynamic>>[];
   final TextEditingController _filterController = TextEditingController();
   // Sorting handled by grid; legacy fields removed
-  int _currentPage = 0; // zero-based UI page
-  int _pageSize = 25;
-  int _totalCount = 0;
+  // Paging handled by PaginatedDataGrid; keep UI page index for filter reset
+  int _currentPage = 0;
   final Set<String> _selected = <String>{};
 
   @override
   void initState() {
     super.initState();
-    _future = _fetchPage(0);
-    // No-op
+    _goToPage(0);
   }
 
   @override
@@ -37,116 +36,75 @@ class _StrainsScreenState extends State<StrainsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<dynamic>>(
-      future: _future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(
-            child: Text('Failed to load strains: ${snapshot.error}'),
-          );
-        }
-        final data = snapshot.data ?? const [];
-        if (_all.isEmpty && data.isNotEmpty) {
-          _all = data.cast<Map<String, dynamic>>();
-          _filtered = List<Map<String, dynamic>>.from(_all);
-        }
-        if (_filtered.isEmpty) {
-          return const Center(child: Text('No strains found'));
-        }
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Wrap(
-                  spacing: 12,
-                  runSpacing: 8,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Create Strain clicked'),
-                            ),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.add),
-                      label: const Text('Create Strain'),
-                    ),
-                    FilledButton.icon(
-                      onPressed: _selected.length >= 2 ? _mergeSelected : null,
-                      icon: const Icon(Icons.merge_type),
-                      label: const Text('Merge Strain'),
-                    ),
-                  ],
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Create Strain clicked')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create Strain'),
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: TextField(
-                controller: _filterController,
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  labelText: 'Filter strains',
-                  border: OutlineInputBorder(),
+                FilledButton.icon(
+                  onPressed: _selected.length >= 2 ? _mergeSelected : null,
+                  icon: const Icon(Icons.merge_type),
+                  label: const Text('Merge Strain'),
                 ),
-                onChanged: (value) {
-                  _applyFilter(value);
-                },
-              ),
+              ],
             ),
-            Expanded(
-              child: SfDataGrid(
-                source: _StrainGridSource(
-                  records: _pageItems(),
-                  selected: _selected,
-                  onToggle: _onToggleSelected,
-                ),
-                allowSorting: true,
-                columns: _gridColumns(),
-                selectionMode: SelectionMode.multiple,
-                allowTriStateSorting: false,
-              ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: TextField(
+            controller: _filterController,
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.search),
+              labelText: 'Filter strains',
+              border: OutlineInputBorder(),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    tooltip: 'Previous',
-                    onPressed: _currentPage > 0
-                        ? () {
-                            _goToPage(_currentPage - 1);
-                          }
-                        : null,
-                  ),
-                  Text(
-                    'Page ${_currentPage + 1} of ${_pageCount()} (Total: $_totalCount)',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    tooltip: 'Next',
-                    onPressed: (_currentPage + 1) < _pageCount()
-                        ? () {
-                            _goToPage(_currentPage + 1);
-                          }
-                        : null,
-                  ),
-                ],
-              ),
+            onChanged: (value) {
+              _applyFilter(value);
+              _controller.reload();
+            },
+          ),
+        ),
+        Expanded(
+          child: PaginatedDataGrid<Map<String, dynamic>>(
+            controller: _controller,
+            columns: _gridColumns(),
+            sourceBuilder: (rows) => _StrainGridSource(
+              records: rows,
+              selected: _selected,
+              onToggle: _onToggleSelected,
             ),
-          ],
-        );
-      },
+            fetchPage: (page, pageSize) async {
+              final pageData = await strainService.getStrainsPage(
+                page: page,
+                pageSize: pageSize,
+              );
+              _all = pageData.results.cast<Map<String, dynamic>>();
+              _filtered = List<Map<String, dynamic>>.from(_all);
+              return PaginatedResult<Map<String, dynamic>>(
+                count: pageData.count,
+                results: _pageItems(),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -231,39 +189,18 @@ class _StrainsScreenState extends State<StrainsScreen> {
 
   // Formatting handled in DataGrid source
 
-  int _pageCount() {
-    if (_totalCount <= 0) return 1;
-    return (_totalCount + _pageSize - 1) ~/ _pageSize;
-  }
+  // Paging handled by PaginatedDataGrid
 
   List<Map<String, dynamic>> _pageItems() {
     // When server-paging, _filtered already contains current page only
     return _filtered;
   }
 
-  Future<List<dynamic>> _fetchPage(int zeroBasedPage) async {
-    final page = zeroBasedPage + 1;
-    final pageData = await strainService.getStrainsPage(
-      page: page,
-      pageSize: _pageSize,
-    );
-    _totalCount = pageData.count;
-    final list = pageData.results.cast<Map<String, dynamic>>();
-    _all = list;
-    _filtered = List<Map<String, dynamic>>.from(list);
-    return list;
-  }
+  // Fetching is handled inside PaginatedDataGrid's fetchPage
 
   Future<void> _goToPage(int zeroBasedPage) async {
     setState(() {
       _currentPage = zeroBasedPage;
-    });
-    final data = await _fetchPage(zeroBasedPage);
-    if (!mounted) return;
-    setState(() {
-      _all = data.cast<Map<String, dynamic>>();
-      _filtered = List<Map<String, dynamic>>.from(_all);
-      _selected.clear();
     });
   }
 
@@ -276,7 +213,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
         SnackBar(content: Text('Merged ${strains.length} strains.')),
       );
       _selected.clear();
-      await _goToPage(_currentPage);
+      _controller.reload();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
