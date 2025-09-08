@@ -16,7 +16,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
   late Future<List<dynamic>> _future;
   List<Map<String, dynamic>> _rows = <Map<String, dynamic>>[];
   int _currentPage = 0; // zero-based
-  int _pageSize = 25;
+  final int _pageSize = 25;
   int _totalCount = 0;
 
   @override
@@ -105,10 +105,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
                     scrollDirection: Axis.horizontal,
                     controller: _hHeader,
                     physics: const NeverScrollableScrollPhysics(),
-                    child: DataTable(
-                      columns: _columns(),
-                      rows: const <DataRow>[],
-                    ),
+                    child: _buildHeader(),
                   ),
                   const Divider(height: 1),
                   Expanded(
@@ -117,10 +114,9 @@ class _CagesListScreenState extends State<CagesListScreen> {
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         controller: _hBody,
-                        child: DataTable(
-                          headingRowHeight: 0,
-                          columns: _columns(),
-                          rows: _rows.map(_row).toList(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: _rows.map(_buildBodyRow).toList(),
                         ),
                       ),
                     ),
@@ -180,11 +176,14 @@ class _CagesListScreenState extends State<CagesListScreen> {
     final List<dynamic> animals =
         (c['animals'] as List<dynamic>? ?? <dynamic>[]);
     final int numAnimals = animals.length;
-    final String animalTags = animals
+    final List<String> animalTagLines = animals
         .map((a) => (a['physicalTag'] ?? '').toString())
-        .where((s) => s.isNotEmpty)
-        .join(', ');
-    final String genotypes = _formatGenotypes(animals);
+        .where((t) => t.isNotEmpty)
+        .toList();
+    final List<String> animalGenotypeLines = animals
+        .map((a) => _formatGenotypesForAnimal(a['genotypes'] as List<dynamic>?))
+        .where((g) => g.isNotEmpty)
+        .toList();
     final String status = (c['status'] ?? '').toString();
     final String owner =
         (c['owner']?['user']?['email'] ??
@@ -198,11 +197,116 @@ class _CagesListScreenState extends State<CagesListScreen> {
         DataCell(SizedBox(width: 140, child: Text(cageTag))),
         DataCell(SizedBox(width: 200, child: Text(strain))),
         DataCell(SizedBox(width: 140, child: Text('$numAnimals'))),
-        DataCell(SizedBox(width: 240, child: Text(animalTags))),
-        DataCell(SizedBox(width: 260, child: Text(genotypes))),
+        DataCell(
+          SizedBox(
+            width: 240,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: animalTagLines.map((t) => Text(t)).toList(),
+            ),
+          ),
+        ),
+        DataCell(
+          SizedBox(
+            width: 260,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: animalGenotypeLines.map((g) => Text(g)).toList(),
+            ),
+          ),
+        ),
         DataCell(SizedBox(width: 120, child: Text(status))),
         DataCell(SizedBox(width: 220, child: Text(owner))),
         DataCell(SizedBox(width: 180, child: Text(_formatDateTime(created)))),
+      ],
+    );
+  }
+
+  Widget _buildHeader() {
+    return DataTable(
+      dataRowMaxHeight: double.infinity,
+      columns: _columns(),
+      rows: const <DataRow>[],
+    );
+  }
+
+  Widget _buildBodyRow(Map<String, dynamic> c) {
+    final int eid = (c['eid'] ?? 0) as int;
+    final String cageTag = (c['cageTag'] ?? '').toString();
+    final String strain = (c['strain']?['strainName'] ?? '').toString();
+    final List<dynamic> animals =
+        (c['animals'] as List<dynamic>? ?? <dynamic>[]);
+    final int numAnimals = animals.length;
+    final List<String> animalTagLines = animals
+        .map((a) => (a['physicalTag'] ?? '').toString())
+        .toList();
+    final List<String> animalGenotypeLines = animals
+        .map((a) => _formatGenotypesForAnimal(a['genotypes'] as List<dynamic>?))
+        .toList();
+    final String status = (c['status'] ?? '').toString();
+    final String owner =
+        (c['owner']?['user']?['email'] ??
+                c['owner']?['user']?['username'] ??
+                '')
+            .toString();
+    final String created = (c['createdDate'] ?? '').toString();
+
+    return DataTable(
+      headingRowHeight: 0,
+      dataRowMaxHeight: double.infinity,
+      columns: _columns(),
+      rows: [
+        DataRow(
+          cells: [
+            DataCell(SizedBox(width: 80, child: Text('$eid'))),
+            DataCell(SizedBox(width: 140, child: Text(cageTag))),
+            DataCell(SizedBox(width: 200, child: Text(strain))),
+            DataCell(SizedBox(width: 140, child: Text('$numAnimals'))),
+            DataCell(
+              SizedBox(
+                width: 240,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: animalTagLines
+                      .map(
+                        (t) => Text(
+                          t,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ),
+            DataCell(
+              SizedBox(
+                width: 260,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: animalGenotypeLines
+                      .map(
+                        (g) => Text(
+                          g,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ),
+            DataCell(SizedBox(width: 120, child: Text(status))),
+            DataCell(SizedBox(width: 220, child: Text(owner))),
+            DataCell(
+              SizedBox(width: 180, child: Text(_formatDateTime(created))),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -214,21 +318,15 @@ class _CagesListScreenState extends State<CagesListScreen> {
     return DateFormat('M/d/y, h:mm:ss a').format(dt);
   }
 
-  String _formatGenotypes(List<dynamic> animals) {
-    if (animals.isEmpty) return '';
-    // Flatten unique genotype strings across all animals in the cage
-    final Set<String> uniqueGenotypes = <String>{};
-    for (final dynamic a in animals) {
-      final List<dynamic> gs =
-          (a['genotypes'] as List<dynamic>? ?? <dynamic>[]);
-      for (final dynamic g in gs) {
-        final String gene = (g['gene']?['geneName'] ?? '').toString();
-        final String allele = (g['allele']?['alleleName'] ?? '').toString();
-        final String text = gene.isEmpty ? allele : '$gene/$allele';
-        if (text.isNotEmpty) uniqueGenotypes.add(text);
-      }
-    }
-    return uniqueGenotypes.join(', ');
+  String _formatGenotypesForAnimal(List<dynamic>? list) {
+    if (list == null || list.isEmpty) return '';
+    return list
+        .map((g) {
+          final String gene = (g['gene']?['geneName'] ?? '').toString();
+          final String allele = (g['allele']?['alleleName'] ?? '').toString();
+          return gene.isEmpty ? allele : '$gene/$allele';
+        })
+        .join(', ');
   }
 
   int _pageCount() {

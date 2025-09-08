@@ -104,10 +104,9 @@ class _MatingsScreenState extends State<MatingsScreen> {
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         controller: _hBody,
-                        child: DataTable(
-                          headingRowHeight: 0,
-                          columns: _columns(),
-                          rows: _rows.map(_row).toList(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: _rows.map(_buildBodyRow).toList(),
                         ),
                       ),
                     ),
@@ -162,6 +161,114 @@ class _MatingsScreenState extends State<MatingsScreen> {
     ];
   }
 
+  Widget _buildHeader() {
+    return DataTable(columns: _columns(), rows: const <DataRow>[]);
+  }
+
+  Widget _buildBodyRow(Map<String, dynamic> m) {
+    final int eid = (m['eid'] ?? 0) as int;
+    final String matingTag = (m['matingTag'] ?? '').toString();
+    final String cageTag = (m['cage']?['cageTag'] ?? '').toString();
+    final String litterStrain = (m['litterStrain']?['strainName'] ?? '')
+        .toString();
+    final List<dynamic> animals =
+        (m['animals'] as List<dynamic>? ?? <dynamic>[]);
+    final Map<String, dynamic>? male = animals
+        .cast<Map<String, dynamic>?>()
+        .firstWhere((a) => (a?['sex'] ?? '') == 'M', orElse: () => null);
+    final List<Map<String, dynamic>> females = animals
+        .where((a) => (a is Map && (a['sex'] ?? '') == 'F'))
+        .cast<Map<String, dynamic>>()
+        .toList();
+    final String maleTag = (male?['physicalTag'] ?? '').toString();
+    final List<String> femaleTags = females
+        .map((f) => (f['physicalTag'] ?? '').toString())
+        .where((t) => t.isNotEmpty)
+        .toList();
+    final String maleGenotypes = _formatGenotypes(
+      male?['genotypes'] as List<dynamic>?,
+    );
+    final List<String> femaleGenotypeLines = females
+        .map((f) => _formatGenotypes(f['genotypes'] as List<dynamic>?))
+        .where((g) => g.isNotEmpty)
+        .toList();
+    final String setUpDate = (m['setUpDate'] ?? '').toString();
+    final String owner =
+        (m['owner']?['user']?['email'] ??
+                m['owner']?['user']?['username'] ??
+                '')
+            .toString();
+    final String created = (m['createdDate'] ?? '').toString();
+
+    return DataTable(
+      headingRowHeight: 0,
+      dataRowMaxHeight: double.infinity,
+      columns: _columns(),
+      rows: [
+        DataRow(
+          cells: [
+            DataCell(SizedBox(width: 80, child: Text('$eid'))),
+            DataCell(SizedBox(width: 140, child: Text(matingTag))),
+            DataCell(SizedBox(width: 140, child: Text(cageTag))),
+            DataCell(SizedBox(width: 200, child: Text(litterStrain))),
+            DataCell(SizedBox(width: 140, child: Text(maleTag))),
+            DataCell(
+              SizedBox(
+                width: 260,
+                child: Text(
+                  maleGenotypes,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ),
+            DataCell(
+              SizedBox(
+                width: 140,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: femaleTags
+                      .map(
+                        (t) => Text(
+                          t,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ),
+            DataCell(
+              SizedBox(
+                width: 260,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: femaleGenotypeLines
+                      .map(
+                        (g) => Text(
+                          g,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ),
+            DataCell(SizedBox(width: 140, child: Text(_formatDate(setUpDate)))),
+            DataCell(SizedBox(width: 220, child: Text(owner))),
+            DataCell(
+              SizedBox(width: 180, child: Text(_formatDateTime(created))),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   DataRow _row(Map<String, dynamic> m) {
     final int eid = (m['eid'] ?? 0) as int;
     final String matingTag = (m['matingTag'] ?? '').toString();
@@ -173,17 +280,20 @@ class _MatingsScreenState extends State<MatingsScreen> {
     final Map<String, dynamic>? male = animals
         .cast<Map<String, dynamic>?>()
         .firstWhere((a) => (a?['sex'] ?? '') == 'M', orElse: () => null);
-    final Map<String, dynamic>? female = animals
-        .cast<Map<String, dynamic>?>()
-        .firstWhere((a) => (a?['sex'] ?? '') == 'F', orElse: () => null);
+    final List<Map<String, dynamic>> females = animals
+        .where((a) => (a is Map && (a['sex'] ?? '') == 'F'))
+        .cast<Map<String, dynamic>>()
+        .toList();
     final String maleTag = (male?['physicalTag'] ?? '').toString();
-    final String femaleTag = (female?['physicalTag'] ?? '').toString();
+    final List<String> femaleTags = females
+        .map((f) => (f['physicalTag'] ?? '').toString())
+        .toList();
     final String maleGenotypes = _formatGenotypes(
       male?['genotypes'] as List<dynamic>?,
     );
-    final String femaleGenotypes = _formatGenotypes(
-      female?['genotypes'] as List<dynamic>?,
-    );
+    final List<String> femaleGenotypeLines = females
+        .map((f) => _formatGenotypes(f['genotypes'] as List<dynamic>?))
+        .toList();
     final String setUpDate = (m['setUpDate'] ?? '').toString();
     final String owner =
         (m['owner']?['user']?['email'] ??
@@ -199,8 +309,26 @@ class _MatingsScreenState extends State<MatingsScreen> {
         DataCell(SizedBox(width: 200, child: Text(litterStrain))),
         DataCell(SizedBox(width: 140, child: Text(maleTag))),
         DataCell(SizedBox(width: 260, child: Text(maleGenotypes))),
-        DataCell(SizedBox(width: 140, child: Text(femaleTag))),
-        DataCell(SizedBox(width: 260, child: Text(femaleGenotypes))),
+        DataCell(
+          SizedBox(
+            width: 140,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: femaleTags.map((t) => Text(t)).toList(),
+            ),
+          ),
+        ),
+        DataCell(
+          SizedBox(
+            width: 260,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: femaleGenotypeLines.map((g) => Text(g)).toList(),
+            ),
+          ),
+        ),
         DataCell(SizedBox(width: 140, child: Text(_formatDate(setUpDate)))),
         DataCell(SizedBox(width: 220, child: Text(owner))),
         DataCell(SizedBox(width: 180, child: Text(_formatDateTime(created)))),
