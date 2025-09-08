@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:grid_view/services/cage_service.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class CagesListScreen extends StatefulWidget {
   const CagesListScreen({super.key});
@@ -10,9 +11,6 @@ class CagesListScreen extends StatefulWidget {
 }
 
 class _CagesListScreenState extends State<CagesListScreen> {
-  final ScrollController _hHeader = ScrollController();
-  final ScrollController _hBody = ScrollController();
-  bool _isSyncingScroll = false;
   late Future<List<dynamic>> _future;
   List<Map<String, dynamic>> _rows = <Map<String, dynamic>>[];
   int _currentPage = 0; // zero-based
@@ -23,34 +21,10 @@ class _CagesListScreenState extends State<CagesListScreen> {
   void initState() {
     super.initState();
     _future = _fetchPage(0);
-    _hBody.addListener(() {
-      if (_isSyncingScroll) return;
-      if (_hHeader.hasClients && _hHeader.offset != _hBody.offset) {
-        _isSyncingScroll = true;
-        try {
-          _hHeader.jumpTo(_hBody.offset);
-        } finally {
-          _isSyncingScroll = false;
-        }
-      }
-    });
-    _hHeader.addListener(() {
-      if (_isSyncingScroll) return;
-      if (_hBody.hasClients && _hBody.offset != _hHeader.offset) {
-        _isSyncingScroll = true;
-        try {
-          _hBody.jumpTo(_hHeader.offset);
-        } finally {
-          _isSyncingScroll = false;
-        }
-      }
-    });
   }
 
   @override
   void dispose() {
-    _hHeader.dispose();
-    _hBody.dispose();
     super.dispose();
   }
 
@@ -99,29 +73,19 @@ class _CagesListScreenState extends State<CagesListScreen> {
               ),
             ),
             Expanded(
-              child: Column(
-                children: [
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    controller: _hHeader,
-                    physics: const NeverScrollableScrollPhysics(),
-                    child: _buildHeader(),
-                  ),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        controller: _hBody,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: _rows.map(_buildBodyRow).toList(),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              child: SfDataGrid(
+                source: _CageGridSource(records: _rows),
+                columns: _gridColumns(),
+                onQueryRowHeight: (details) {
+                  const double base = 48;
+                  final int ri = details.rowIndex;
+                  if (ri <= 0 || ri > _rows.length) {
+                    return base;
+                  }
+                  final Map<String, dynamic> row = _rows[ri - 1];
+                  final int lines = _estimateLines(row);
+                  return base + (lines > 1 ? (lines - 1) * 20.0 : 0);
+                },
               ),
             ),
             Padding(
@@ -155,170 +119,73 @@ class _CagesListScreenState extends State<CagesListScreen> {
     );
   }
 
-  List<DataColumn> _columns() {
-    return const [
-      DataColumn(label: SizedBox(width: 80, child: Text('EID'))),
-      DataColumn(label: SizedBox(width: 140, child: Text('Cage Tag'))),
-      DataColumn(label: SizedBox(width: 200, child: Text('Strain'))),
-      DataColumn(label: SizedBox(width: 140, child: Text('Number of Animals'))),
-      DataColumn(label: SizedBox(width: 240, child: Text('Animal Tags'))),
-      DataColumn(label: SizedBox(width: 260, child: Text('Genotypes'))),
-      DataColumn(label: SizedBox(width: 120, child: Text('Status'))),
-      DataColumn(label: SizedBox(width: 220, child: Text('Owner'))),
-      DataColumn(label: SizedBox(width: 180, child: Text('Created Date'))),
+  List<GridColumn> _gridColumns() {
+    return [
+      GridColumn(
+        columnName: 'eid',
+        width: 80,
+        label: Center(child: Text('EID')),
+      ),
+      GridColumn(
+        columnName: 'cageTag',
+        width: 140,
+        label: Center(child: Text('Cage Tag')),
+      ),
+      GridColumn(
+        columnName: 'strain',
+        width: 200,
+        label: Center(child: Text('Strain')),
+      ),
+      GridColumn(
+        columnName: 'num',
+        width: 140,
+        label: Center(child: Text('Number of Animals')),
+      ),
+      GridColumn(
+        columnName: 'tags',
+        width: 240,
+        label: Center(child: Text('Animal Tags')),
+      ),
+      GridColumn(
+        columnName: 'genotypes',
+        width: 260,
+        label: Center(child: Text('Genotypes')),
+      ),
+      GridColumn(
+        columnName: 'status',
+        width: 120,
+        label: Center(child: Text('Status')),
+      ),
+      GridColumn(
+        columnName: 'owner',
+        width: 220,
+        label: Center(child: Text('Owner')),
+      ),
+      GridColumn(
+        columnName: 'created',
+        width: 180,
+        label: Center(child: Text('Created Date')),
+      ),
     ];
   }
 
-  DataRow _row(Map<String, dynamic> c) {
-    final int eid = (c['eid'] ?? 0) as int;
-    final String cageTag = (c['cageTag'] ?? '').toString();
-    final String strain = (c['strain']?['strainName'] ?? '').toString();
+  int _estimateLines(Map<String, dynamic> c) {
     final List<dynamic> animals =
         (c['animals'] as List<dynamic>? ?? <dynamic>[]);
-    final int numAnimals = animals.length;
-    final List<String> animalTagLines = animals
+    int tags = animals
         .map((a) => (a['physicalTag'] ?? '').toString())
         .where((t) => t.isNotEmpty)
-        .toList();
-    final List<String> animalGenotypeLines = animals
-        .map((a) => _formatGenotypesForAnimal(a['genotypes'] as List<dynamic>?))
+        .length;
+    int gens = animals
+        .map((a) => _fmtGenotypes(a['genotypes'] as List<dynamic>?))
         .where((g) => g.isNotEmpty)
-        .toList();
-    final String status = (c['status'] ?? '').toString();
-    final String owner =
-        (c['owner']?['user']?['email'] ??
-                c['owner']?['user']?['username'] ??
-                '')
-            .toString();
-    final String created = (c['createdDate'] ?? '').toString();
-    return DataRow(
-      cells: [
-        DataCell(SizedBox(width: 80, child: Text('$eid'))),
-        DataCell(SizedBox(width: 140, child: Text(cageTag))),
-        DataCell(SizedBox(width: 200, child: Text(strain))),
-        DataCell(SizedBox(width: 140, child: Text('$numAnimals'))),
-        DataCell(
-          SizedBox(
-            width: 240,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: animalTagLines.map((t) => Text(t)).toList(),
-            ),
-          ),
-        ),
-        DataCell(
-          SizedBox(
-            width: 260,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: animalGenotypeLines.map((g) => Text(g)).toList(),
-            ),
-          ),
-        ),
-        DataCell(SizedBox(width: 120, child: Text(status))),
-        DataCell(SizedBox(width: 220, child: Text(owner))),
-        DataCell(SizedBox(width: 180, child: Text(_formatDateTime(created)))),
-      ],
-    );
+        .length;
+    return (tags > gens ? tags : gens).clamp(1, 20);
   }
 
-  Widget _buildHeader() {
-    return DataTable(
-      dataRowMaxHeight: double.infinity,
-      columns: _columns(),
-      rows: const <DataRow>[],
-    );
-  }
+  // header/body rendering handled by SfDataGrid
 
-  Widget _buildBodyRow(Map<String, dynamic> c) {
-    final int eid = (c['eid'] ?? 0) as int;
-    final String cageTag = (c['cageTag'] ?? '').toString();
-    final String strain = (c['strain']?['strainName'] ?? '').toString();
-    final List<dynamic> animals =
-        (c['animals'] as List<dynamic>? ?? <dynamic>[]);
-    final int numAnimals = animals.length;
-    final List<String> animalTagLines = animals
-        .map((a) => (a['physicalTag'] ?? '').toString())
-        .toList();
-    final List<String> animalGenotypeLines = animals
-        .map((a) => _formatGenotypesForAnimal(a['genotypes'] as List<dynamic>?))
-        .toList();
-    final String status = (c['status'] ?? '').toString();
-    final String owner =
-        (c['owner']?['user']?['email'] ??
-                c['owner']?['user']?['username'] ??
-                '')
-            .toString();
-    final String created = (c['createdDate'] ?? '').toString();
-
-    return DataTable(
-      headingRowHeight: 0,
-      dataRowMaxHeight: double.infinity,
-      columns: _columns(),
-      rows: [
-        DataRow(
-          cells: [
-            DataCell(SizedBox(width: 80, child: Text('$eid'))),
-            DataCell(SizedBox(width: 140, child: Text(cageTag))),
-            DataCell(SizedBox(width: 200, child: Text(strain))),
-            DataCell(SizedBox(width: 140, child: Text('$numAnimals'))),
-            DataCell(
-              SizedBox(
-                width: 240,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: animalTagLines
-                      .map(
-                        (t) => Text(
-                          t,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            ),
-            DataCell(
-              SizedBox(
-                width: 260,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: animalGenotypeLines
-                      .map(
-                        (g) => Text(
-                          g,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            ),
-            DataCell(SizedBox(width: 120, child: Text(status))),
-            DataCell(SizedBox(width: 220, child: Text(owner))),
-            DataCell(
-              SizedBox(width: 180, child: Text(_formatDateTime(created))),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  String _formatDateTime(String iso) {
-    if (iso.isEmpty) return '';
-    final dt = DateTime.tryParse(iso)?.toLocal();
-    if (dt == null) return iso;
-    return DateFormat('M/d/y, h:mm:ss a').format(dt);
-  }
-
-  String _formatGenotypesForAnimal(List<dynamic>? list) {
+  String _fmtGenotypes(List<dynamic>? list) {
     if (list == null || list.isEmpty) return '';
     return list
         .map((g) {
@@ -351,5 +218,128 @@ class _CagesListScreenState extends State<CagesListScreen> {
     await _fetchPage(zeroBasedPage);
     if (!mounted) return;
     setState(() {});
+  }
+}
+
+class _CageGridSource extends DataGridSource {
+  final List<Map<String, dynamic>> records;
+
+  _CageGridSource({required this.records}) {
+    _rows = records.map(_toRow).toList();
+  }
+
+  late List<DataGridRow> _rows;
+
+  @override
+  List<DataGridRow> get rows => _rows;
+
+  DataGridRow _toRow(Map<String, dynamic> c) {
+    final int eid = (c['eid'] ?? 0) as int;
+    final String cageTag = (c['cageTag'] ?? '').toString();
+    final String strain = (c['strain']?['strainName'] ?? '').toString();
+    final List<dynamic> animals =
+        (c['animals'] as List<dynamic>? ?? <dynamic>[]);
+    final int numAnimals = animals.length;
+    final List<String> animalTagLines = animals
+        .map((a) => (a['physicalTag'] ?? '').toString())
+        .where((t) => t.isNotEmpty)
+        .toList();
+    final List<String> animalGenotypeLines = animals
+        .map((a) => _fmtGenotypes(a['genotypes'] as List<dynamic>?))
+        .where((g) => g.isNotEmpty)
+        .toList();
+    final String status = (c['status'] ?? '').toString();
+    final String owner =
+        (c['owner']?['user']?['email'] ??
+                c['owner']?['user']?['username'] ??
+                '')
+            .toString();
+    final String created = (c['createdDate'] ?? '').toString();
+    return DataGridRow(
+      cells: [
+        DataGridCell<int>(columnName: 'eid', value: eid),
+        DataGridCell<String>(columnName: 'cageTag', value: cageTag),
+        DataGridCell<String>(columnName: 'strain', value: strain),
+        DataGridCell<int>(columnName: 'num', value: numAnimals),
+        DataGridCell<List<String>>(columnName: 'tags', value: animalTagLines),
+        DataGridCell<List<String>>(
+          columnName: 'genotypes',
+          value: animalGenotypeLines,
+        ),
+        DataGridCell<String>(columnName: 'status', value: status),
+        DataGridCell<String>(columnName: 'owner', value: owner),
+        DataGridCell<String>(columnName: 'created', value: created),
+      ],
+    );
+  }
+
+  @override
+  DataGridRowAdapter buildRow(DataGridRow row) {
+    List<String> _asList(dynamic v) => (v as List<String>? ?? <String>[]);
+    String _fmtDateTime(String iso) {
+      if (iso.isEmpty) return '';
+      final dt = DateTime.tryParse(iso)?.toLocal();
+      if (dt == null) return iso;
+      return DateFormat('M/d/y, h:mm:ss a').format(dt);
+    }
+
+    return DataGridRowAdapter(
+      cells: [
+        Center(child: Text('${row.getCells()[0].value as int}')),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[1].value as String),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[2].value as String),
+        ),
+        Center(child: Text('${row.getCells()[3].value as int}')),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: _asList(row.getCells()[4].value)
+                .map(
+                  (t) => Text(t, overflow: TextOverflow.ellipsis, maxLines: 1),
+                )
+                .toList(),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: _asList(row.getCells()[5].value)
+                .map(
+                  (g) => Text(g, overflow: TextOverflow.ellipsis, maxLines: 1),
+                )
+                .toList(),
+          ),
+        ),
+        Center(child: Text(row.getCells()[6].value as String)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[7].value as String),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(_fmtDateTime(row.getCells()[8].value as String)),
+        ),
+      ],
+    );
+  }
+
+  String _fmtGenotypes(List<dynamic>? list) {
+    if (list == null || list.isEmpty) return '';
+    return list
+        .map((g) {
+          final String gene = (g['gene']?['geneName'] ?? '').toString();
+          final String allele = (g['allele']?['alleleName'] ?? '').toString();
+          return gene.isEmpty ? allele : '$gene/$allele';
+        })
+        .join(', ');
   }
 }

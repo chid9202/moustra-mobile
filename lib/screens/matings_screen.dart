@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:grid_view/services/mating_service.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class MatingsScreen extends StatefulWidget {
   const MatingsScreen({super.key});
@@ -10,9 +11,6 @@ class MatingsScreen extends StatefulWidget {
 }
 
 class _MatingsScreenState extends State<MatingsScreen> {
-  final ScrollController _hHeader = ScrollController();
-  final ScrollController _hBody = ScrollController();
-  bool _isSyncingScroll = false;
   late Future<List<dynamic>> _future;
   List<Map<String, dynamic>> _rows = <Map<String, dynamic>>[];
   int _currentPage = 0; // zero-based
@@ -23,34 +21,10 @@ class _MatingsScreenState extends State<MatingsScreen> {
   void initState() {
     super.initState();
     _future = _fetchPage(0);
-    _hBody.addListener(() {
-      if (_isSyncingScroll) return;
-      if (_hHeader.hasClients && _hHeader.offset != _hBody.offset) {
-        _isSyncingScroll = true;
-        try {
-          _hHeader.jumpTo(_hBody.offset);
-        } finally {
-          _isSyncingScroll = false;
-        }
-      }
-    });
-    _hHeader.addListener(() {
-      if (_isSyncingScroll) return;
-      if (_hBody.hasClients && _hBody.offset != _hHeader.offset) {
-        _isSyncingScroll = true;
-        try {
-          _hBody.jumpTo(_hHeader.offset);
-        } finally {
-          _isSyncingScroll = false;
-        }
-      }
-    });
   }
 
   @override
   void dispose() {
-    _hHeader.dispose();
-    _hBody.dispose();
     super.dispose();
   }
 
@@ -86,32 +60,19 @@ class _MatingsScreenState extends State<MatingsScreen> {
               ),
             ),
             Expanded(
-              child: Column(
-                children: [
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    controller: _hHeader,
-                    physics: const NeverScrollableScrollPhysics(),
-                    child: DataTable(
-                      columns: _columns(),
-                      rows: const <DataRow>[],
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        controller: _hBody,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: _rows.map(_buildBodyRow).toList(),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              child: SfDataGrid(
+                source: _MatingGridSource(records: _rows),
+                columns: _gridColumns(),
+                onQueryRowHeight: (details) {
+                  const double base = 48;
+                  final int ri = details.rowIndex;
+                  if (ri <= 0 || ri > _rows.length) {
+                    return base;
+                  }
+                  final Map<String, dynamic> row = _rows[ri - 1];
+                  final int lines = _estimateLines(row);
+                  return base + (lines > 1 ? (lines - 1) * 20.0 : 0);
+                },
               ),
             ),
             Padding(
@@ -145,196 +106,88 @@ class _MatingsScreenState extends State<MatingsScreen> {
     );
   }
 
-  List<DataColumn> _columns() {
-    return const [
-      DataColumn(label: SizedBox(width: 80, child: Text('EID'))),
-      DataColumn(label: SizedBox(width: 140, child: Text('Mating Tag'))),
-      DataColumn(label: SizedBox(width: 140, child: Text('Cage Tag'))),
-      DataColumn(label: SizedBox(width: 200, child: Text('Litter Strain'))),
-      DataColumn(label: SizedBox(width: 140, child: Text('Male Tag'))),
-      DataColumn(label: SizedBox(width: 260, child: Text('Male Genotypes'))),
-      DataColumn(label: SizedBox(width: 140, child: Text('Female Tag'))),
-      DataColumn(label: SizedBox(width: 260, child: Text('Female Genotypes'))),
-      DataColumn(label: SizedBox(width: 140, child: Text('Set Up Date'))),
-      DataColumn(label: SizedBox(width: 220, child: Text('Owner'))),
-      DataColumn(label: SizedBox(width: 180, child: Text('Created Date'))),
+  List<GridColumn> _gridColumns() {
+    return [
+      GridColumn(
+        columnName: 'eid',
+        width: 80,
+        label: Center(child: Text('EID')),
+      ),
+      GridColumn(
+        columnName: 'matingTag',
+        width: 140,
+        label: Center(child: Text('Mating Tag')),
+      ),
+      GridColumn(
+        columnName: 'cageTag',
+        width: 140,
+        label: Center(child: Text('Cage Tag')),
+      ),
+      GridColumn(
+        columnName: 'litterStrain',
+        width: 200,
+        label: Center(child: Text('Litter Strain')),
+      ),
+      GridColumn(
+        columnName: 'maleTag',
+        width: 140,
+        label: Center(child: Text('Male Tag')),
+      ),
+      GridColumn(
+        columnName: 'maleGenotypes',
+        width: 260,
+        label: Center(child: Text('Male Genotypes')),
+      ),
+      GridColumn(
+        columnName: 'femaleTag',
+        width: 140,
+        label: Center(child: Text('Female Tag')),
+      ),
+      GridColumn(
+        columnName: 'femaleGenotypes',
+        width: 260,
+        label: Center(child: Text('Female Genotypes')),
+      ),
+      GridColumn(
+        columnName: 'setUpDate',
+        width: 140,
+        label: Center(child: Text('Set Up Date')),
+      ),
+      GridColumn(
+        columnName: 'owner',
+        width: 220,
+        label: Center(child: Text('Owner')),
+      ),
+      GridColumn(
+        columnName: 'created',
+        width: 180,
+        label: Center(child: Text('Created Date')),
+      ),
     ];
   }
 
-  Widget _buildHeader() {
-    return DataTable(columns: _columns(), rows: const <DataRow>[]);
-  }
-
-  Widget _buildBodyRow(Map<String, dynamic> m) {
-    final int eid = (m['eid'] ?? 0) as int;
-    final String matingTag = (m['matingTag'] ?? '').toString();
-    final String cageTag = (m['cage']?['cageTag'] ?? '').toString();
-    final String litterStrain = (m['litterStrain']?['strainName'] ?? '')
-        .toString();
+  int _estimateLines(Map<String, dynamic> m) {
     final List<dynamic> animals =
         (m['animals'] as List<dynamic>? ?? <dynamic>[]);
-    final Map<String, dynamic>? male = animals
-        .cast<Map<String, dynamic>?>()
-        .firstWhere((a) => (a?['sex'] ?? '') == 'M', orElse: () => null);
     final List<Map<String, dynamic>> females = animals
         .where((a) => (a is Map && (a['sex'] ?? '') == 'F'))
         .cast<Map<String, dynamic>>()
         .toList();
-    final String maleTag = (male?['physicalTag'] ?? '').toString();
-    final List<String> femaleTags = females
+    final int femaleTagLines = females
         .map((f) => (f['physicalTag'] ?? '').toString())
         .where((t) => t.isNotEmpty)
-        .toList();
-    final String maleGenotypes = _formatGenotypes(
-      male?['genotypes'] as List<dynamic>?,
-    );
-    final List<String> femaleGenotypeLines = females
+        .length;
+    final int femaleGenotypeLines = females
         .map((f) => _formatGenotypes(f['genotypes'] as List<dynamic>?))
         .where((g) => g.isNotEmpty)
-        .toList();
-    final String setUpDate = (m['setUpDate'] ?? '').toString();
-    final String owner =
-        (m['owner']?['user']?['email'] ??
-                m['owner']?['user']?['username'] ??
-                '')
-            .toString();
-    final String created = (m['createdDate'] ?? '').toString();
-
-    return DataTable(
-      headingRowHeight: 0,
-      dataRowMaxHeight: double.infinity,
-      columns: _columns(),
-      rows: [
-        DataRow(
-          cells: [
-            DataCell(SizedBox(width: 80, child: Text('$eid'))),
-            DataCell(SizedBox(width: 140, child: Text(matingTag))),
-            DataCell(SizedBox(width: 140, child: Text(cageTag))),
-            DataCell(SizedBox(width: 200, child: Text(litterStrain))),
-            DataCell(SizedBox(width: 140, child: Text(maleTag))),
-            DataCell(
-              SizedBox(
-                width: 260,
-                child: Text(
-                  maleGenotypes,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
-            ),
-            DataCell(
-              SizedBox(
-                width: 140,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: femaleTags
-                      .map(
-                        (t) => Text(
-                          t,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            ),
-            DataCell(
-              SizedBox(
-                width: 260,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: femaleGenotypeLines
-                      .map(
-                        (g) => Text(
-                          g,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            ),
-            DataCell(SizedBox(width: 140, child: Text(_formatDate(setUpDate)))),
-            DataCell(SizedBox(width: 220, child: Text(owner))),
-            DataCell(
-              SizedBox(width: 180, child: Text(_formatDateTime(created))),
-            ),
-          ],
-        ),
-      ],
-    );
+        .length;
+    final int maxLines = femaleTagLines > femaleGenotypeLines
+        ? femaleTagLines
+        : femaleGenotypeLines;
+    return maxLines.clamp(1, 20);
   }
 
-  DataRow _row(Map<String, dynamic> m) {
-    final int eid = (m['eid'] ?? 0) as int;
-    final String matingTag = (m['matingTag'] ?? '').toString();
-    final String cageTag = (m['cage']?['cageTag'] ?? '').toString();
-    final String litterStrain = (m['litterStrain']?['strainName'] ?? '')
-        .toString();
-    final List<dynamic> animals =
-        (m['animals'] as List<dynamic>? ?? <dynamic>[]);
-    final Map<String, dynamic>? male = animals
-        .cast<Map<String, dynamic>?>()
-        .firstWhere((a) => (a?['sex'] ?? '') == 'M', orElse: () => null);
-    final List<Map<String, dynamic>> females = animals
-        .where((a) => (a is Map && (a['sex'] ?? '') == 'F'))
-        .cast<Map<String, dynamic>>()
-        .toList();
-    final String maleTag = (male?['physicalTag'] ?? '').toString();
-    final List<String> femaleTags = females
-        .map((f) => (f['physicalTag'] ?? '').toString())
-        .toList();
-    final String maleGenotypes = _formatGenotypes(
-      male?['genotypes'] as List<dynamic>?,
-    );
-    final List<String> femaleGenotypeLines = females
-        .map((f) => _formatGenotypes(f['genotypes'] as List<dynamic>?))
-        .toList();
-    final String setUpDate = (m['setUpDate'] ?? '').toString();
-    final String owner =
-        (m['owner']?['user']?['email'] ??
-                m['owner']?['user']?['username'] ??
-                '')
-            .toString();
-    final String created = (m['createdDate'] ?? '').toString();
-    return DataRow(
-      cells: [
-        DataCell(SizedBox(width: 80, child: Text('$eid'))),
-        DataCell(SizedBox(width: 140, child: Text(matingTag))),
-        DataCell(SizedBox(width: 140, child: Text(cageTag))),
-        DataCell(SizedBox(width: 200, child: Text(litterStrain))),
-        DataCell(SizedBox(width: 140, child: Text(maleTag))),
-        DataCell(SizedBox(width: 260, child: Text(maleGenotypes))),
-        DataCell(
-          SizedBox(
-            width: 140,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: femaleTags.map((t) => Text(t)).toList(),
-            ),
-          ),
-        ),
-        DataCell(
-          SizedBox(
-            width: 260,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: femaleGenotypeLines.map((g) => Text(g)).toList(),
-            ),
-          ),
-        ),
-        DataCell(SizedBox(width: 140, child: Text(_formatDate(setUpDate)))),
-        DataCell(SizedBox(width: 220, child: Text(owner))),
-        DataCell(SizedBox(width: 180, child: Text(_formatDateTime(created)))),
-      ],
-    );
-  }
+  // header/body handled by SfDataGrid
 
   String _formatGenotypes(List<dynamic>? list) {
     if (list == null || list.isEmpty) return '';
@@ -347,19 +200,7 @@ class _MatingsScreenState extends State<MatingsScreen> {
         .join(', ');
   }
 
-  String _formatDate(String iso) {
-    if (iso.isEmpty) return '';
-    final dt = DateTime.tryParse(iso)?.toLocal();
-    if (dt == null) return iso;
-    return DateFormat('M/d/y').format(dt);
-  }
-
-  String _formatDateTime(String iso) {
-    if (iso.isEmpty) return '';
-    final dt = DateTime.tryParse(iso)?.toLocal();
-    if (dt == null) return iso;
-    return DateFormat('M/d/y, h:mm:ss a').format(dt);
-  }
+  // Formatting is handled in row adapter helpers
 
   int _pageCount() {
     if (_totalCount <= 0) return 1;
@@ -383,5 +224,164 @@ class _MatingsScreenState extends State<MatingsScreen> {
     await _fetchPage(zeroBasedPage);
     if (!mounted) return;
     setState(() {});
+  }
+}
+
+class _MatingGridSource extends DataGridSource {
+  final List<Map<String, dynamic>> records;
+
+  _MatingGridSource({required this.records}) {
+    _rows = records.map(_toGridRow).toList();
+  }
+
+  late List<DataGridRow> _rows;
+
+  @override
+  List<DataGridRow> get rows => _rows;
+
+  DataGridRow _toGridRow(Map<String, dynamic> m) {
+    final int eid = (m['eid'] ?? 0) as int;
+    final String matingTag = (m['matingTag'] ?? '').toString();
+    final String cageTag = (m['cage']?['cageTag'] ?? '').toString();
+    final String litterStrain = (m['litterStrain']?['strainName'] ?? '')
+        .toString();
+    final List<dynamic> animals =
+        (m['animals'] as List<dynamic>? ?? <dynamic>[]);
+    final Map<String, dynamic>? male = animals
+        .cast<Map<String, dynamic>?>()
+        .firstWhere((a) => (a?['sex'] ?? '') == 'M', orElse: () => null);
+    final List<Map<String, dynamic>> females = animals
+        .where((a) => (a is Map && (a['sex'] ?? '') == 'F'))
+        .cast<Map<String, dynamic>>()
+        .toList();
+    final String maleTag = (male?['physicalTag'] ?? '').toString();
+    final List<String> femaleTags = females
+        .map((f) => (f['physicalTag'] ?? '').toString())
+        .where((t) => t.isNotEmpty)
+        .toList();
+    final String maleGenotypes = _fmtGenotypes(
+      male?['genotypes'] as List<dynamic>?,
+    );
+    final List<String> femaleGenotypeLines = females
+        .map((f) => _fmtGenotypes(f['genotypes'] as List<dynamic>?))
+        .where((g) => g.isNotEmpty)
+        .toList();
+    final String setUpDate = (m['setUpDate'] ?? '').toString();
+    final String owner =
+        (m['owner']?['user']?['email'] ??
+                m['owner']?['user']?['username'] ??
+                '')
+            .toString();
+    final String created = (m['createdDate'] ?? '').toString();
+    return DataGridRow(
+      cells: [
+        DataGridCell<int>(columnName: 'eid', value: eid),
+        DataGridCell<String>(columnName: 'matingTag', value: matingTag),
+        DataGridCell<String>(columnName: 'cageTag', value: cageTag),
+        DataGridCell<String>(columnName: 'litterStrain', value: litterStrain),
+        DataGridCell<String>(columnName: 'maleTag', value: maleTag),
+        DataGridCell<String>(columnName: 'maleGenotypes', value: maleGenotypes),
+        DataGridCell<List<String>>(columnName: 'femaleTag', value: femaleTags),
+        DataGridCell<List<String>>(
+          columnName: 'femaleGenotypes',
+          value: femaleGenotypeLines,
+        ),
+        DataGridCell<String>(columnName: 'setUpDate', value: setUpDate),
+        DataGridCell<String>(columnName: 'owner', value: owner),
+        DataGridCell<String>(columnName: 'created', value: created),
+      ],
+    );
+  }
+
+  @override
+  DataGridRowAdapter buildRow(DataGridRow row) {
+    List<String> _asList(dynamic v) => (v as List<String>? ?? <String>[]);
+    String _fmtDate(String iso) {
+      if (iso.isEmpty) return '';
+      final dt = DateTime.tryParse(iso)?.toLocal();
+      if (dt == null) return iso;
+      return DateFormat('M/d/y').format(dt);
+    }
+
+    String _fmtDateTime(String iso) {
+      if (iso.isEmpty) return '';
+      final dt = DateTime.tryParse(iso)?.toLocal();
+      if (dt == null) return iso;
+      return DateFormat('M/d/y, h:mm:ss a').format(dt);
+    }
+
+    return DataGridRowAdapter(
+      cells: [
+        Center(child: Text('${row.getCells()[0].value as int}')),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[1].value as String),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[2].value as String),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[3].value as String),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[4].value as String),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            row.getCells()[5].value as String,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: _asList(row.getCells()[6].value)
+                .map(
+                  (t) => Text(t, overflow: TextOverflow.ellipsis, maxLines: 1),
+                )
+                .toList(),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: _asList(row.getCells()[7].value)
+                .map(
+                  (g) => Text(g, overflow: TextOverflow.ellipsis, maxLines: 1),
+                )
+                .toList(),
+          ),
+        ),
+        Center(child: Text(_fmtDate(row.getCells()[8].value as String))),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[9].value as String),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(_fmtDateTime(row.getCells()[10].value as String)),
+        ),
+      ],
+    );
+  }
+
+  String _fmtGenotypes(List<dynamic>? list) {
+    if (list == null || list.isEmpty) return '';
+    return list
+        .map((g) {
+          final gene = (g['gene']?['geneName'] ?? '').toString();
+          final allele = (g['allele']?['alleleName'] ?? '').toString();
+          return gene.isEmpty ? allele : '$gene/$allele';
+        })
+        .join(', ');
   }
 }

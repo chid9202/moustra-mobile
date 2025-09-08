@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grid_view/services/strain_service.dart';
 import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class StrainsScreen extends StatefulWidget {
   const StrainsScreen({super.key});
@@ -14,11 +15,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
   List<Map<String, dynamic>> _all = <Map<String, dynamic>>[];
   List<Map<String, dynamic>> _filtered = <Map<String, dynamic>>[];
   final TextEditingController _filterController = TextEditingController();
-  int? _sortColumnIndex;
-  bool _sortAscending = true;
-  final ScrollController _hHeader = ScrollController();
-  final ScrollController _hBody = ScrollController();
-  bool _isSyncingScroll = false;
+  // Sorting handled by grid; legacy fields removed
   int _currentPage = 0; // zero-based UI page
   int _pageSize = 25;
   int _totalCount = 0;
@@ -28,35 +25,13 @@ class _StrainsScreenState extends State<StrainsScreen> {
   void initState() {
     super.initState();
     _future = _fetchPage(0);
-    _hBody.addListener(() {
-      if (_isSyncingScroll) return;
-      if (_hHeader.hasClients && _hHeader.offset != _hBody.offset) {
-        _isSyncingScroll = true;
-        try {
-          _hHeader.jumpTo(_hBody.offset);
-        } finally {
-          _isSyncingScroll = false;
-        }
-      }
-    });
-    _hHeader.addListener(() {
-      if (_isSyncingScroll) return;
-      if (_hBody.hasClients && _hBody.offset != _hHeader.offset) {
-        _isSyncingScroll = true;
-        try {
-          _hBody.jumpTo(_hHeader.offset);
-        } finally {
-          _isSyncingScroll = false;
-        }
-      }
-    });
+    // No-op
   }
 
   @override
   void dispose() {
     _filterController.dispose();
-    _hHeader.dispose();
-    _hBody.dispose();
+    // No controllers to dispose
     super.dispose();
   }
 
@@ -128,41 +103,16 @@ class _StrainsScreenState extends State<StrainsScreen> {
               ),
             ),
             Expanded(
-              child: Scrollbar(
-                child: Column(
-                  children: [
-                    // Fixed header (no rows)
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      controller: _hHeader,
-                      physics: const NeverScrollableScrollPhysics(),
-                      child: DataTable(
-                        sortColumnIndex: _sortColumnIndex,
-                        sortAscending: _sortAscending,
-                        columns: _buildColumns(),
-                        rows: const <DataRow>[],
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    // Scrollable body
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          controller: _hBody,
-                          child: DataTable(
-                            sortColumnIndex: _sortColumnIndex,
-                            sortAscending: _sortAscending,
-                            headingRowHeight: 0,
-                            columns: _buildColumns(),
-                            rows: _pageItems().map(_buildRow).toList(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+              child: SfDataGrid(
+                source: _StrainGridSource(
+                  records: _pageItems(),
+                  selected: _selected,
+                  onToggle: _onToggleSelected,
                 ),
+                allowSorting: true,
+                columns: _gridColumns(),
+                selectionMode: SelectionMode.multiple,
+                allowTriStateSorting: false,
               ),
             ),
             Padding(
@@ -200,135 +150,64 @@ class _StrainsScreenState extends State<StrainsScreen> {
     );
   }
 
-  List<DataColumn> _buildColumns() {
+  List<GridColumn> _gridColumns() {
     return [
-      const DataColumn(label: SizedBox(width: 56, child: Text(''))),
-      const DataColumn(label: SizedBox(width: 72, child: Text('Edit'))),
-      DataColumn(
-        label: const SizedBox(width: 240, child: Text('Strain Name')),
-        onSort: (columnIndex, ascending) {
-          _sort<String>(
-            columnIndex,
-            ascending,
-            (e) => (e['strainName'] ?? '').toString(),
-          );
-        },
+      GridColumn(
+        columnName: 'select',
+        width: 56,
+        label: const SizedBox.shrink(),
       ),
-      DataColumn(
-        label: const SizedBox(width: 100, child: Text('# Animals')),
-        numeric: true,
-        onSort: (columnIndex, ascending) {
-          _sort<num>(
-            columnIndex,
-            ascending,
-            (e) => (e['numberOfAnimals'] ?? 0) as num,
-          );
-        },
+      GridColumn(
+        columnName: 'edit',
+        width: 72,
+        label: const Center(child: Text('Edit')),
       ),
-      const DataColumn(label: SizedBox(width: 80, child: Text('Color'))),
-      const DataColumn(label: SizedBox(width: 220, child: Text('Owner'))),
-      DataColumn(
-        label: const SizedBox(width: 180, child: Text('Created Date')),
-        onSort: (columnIndex, ascending) {
-          _sortBy(
-            columnIndex,
-            ascending,
-            (e) => DateTime.tryParse((e['createdDate'] ?? '').toString()),
-          );
-        },
+      GridColumn(
+        columnName: 'name',
+        width: 240,
+        label: const Center(child: Text('Strain Name')),
       ),
-      const DataColumn(label: SizedBox(width: 200, child: Text('Background'))),
-      DataColumn(
-        label: const SizedBox(width: 100, child: Text('Active')),
-        onSort: (columnIndex, ascending) {
-          _sort<int>(
-            columnIndex,
-            ascending,
-            (e) => ((e['isActive'] ?? false) as bool) ? 1 : 0,
-          );
-        },
+      GridColumn(
+        columnName: 'animals',
+        width: 100,
+        label: const Center(child: Text('# Animals')),
+      ),
+      GridColumn(
+        columnName: 'color',
+        width: 80,
+        label: const Center(child: Text('Color')),
+      ),
+      GridColumn(
+        columnName: 'owner',
+        width: 220,
+        label: const Center(child: Text('Owner')),
+      ),
+      GridColumn(
+        columnName: 'created',
+        width: 180,
+        label: const Center(child: Text('Created Date')),
+      ),
+      GridColumn(
+        columnName: 'background',
+        width: 200,
+        label: const Center(child: Text('Background')),
+      ),
+      GridColumn(
+        columnName: 'active',
+        width: 100,
+        label: const Center(child: Text('Active')),
       ),
     ];
   }
 
-  DataRow _buildRow(Map<String, dynamic> strain) {
-    final String name = (strain['strainName'] ?? '').toString();
-    final int animals = (strain['numberOfAnimals'] ?? 0) as int;
-    final String color = (strain['color'] ?? '').toString();
-    final String owner =
-        (strain['owner']?['user']?['email'] ??
-                strain['owner']?['user']?['username'] ??
-                '')
-            .toString();
-    final String created = (strain['createdDate'] ?? '').toString();
-    final String background = _firstBackgroundName(strain);
-    final bool active = (strain['isActive'] ?? false) as bool;
-    final String uuid = (strain['strainUuid'] ?? '').toString();
-    final bool isChecked = _selected.contains(uuid);
-
-    return DataRow(
-      cells: [
-        DataCell(
-          SizedBox(
-            width: 56,
-            child: Checkbox(
-              value: isChecked,
-              onChanged: (v) {
-                setState(() {
-                  if (v == true) {
-                    _selected.add(uuid);
-                  } else {
-                    _selected.remove(uuid);
-                  }
-                });
-              },
-            ),
-          ),
-        ),
-        DataCell(
-          SizedBox(
-            width: 72,
-            child: IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit',
-              onPressed: () {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('Edit clicked')));
-                }
-              },
-            ),
-          ),
-        ),
-        DataCell(
-          SizedBox(
-            width: 240,
-            child: Text(name.isEmpty ? 'Unnamed strain' : name),
-          ),
-        ),
-        DataCell(SizedBox(width: 100, child: Text('$animals'))),
-        DataCell(
-          SizedBox(
-            width: 80,
-            child: Center(child: _ColorSwatch(hex: color)),
-          ),
-        ),
-        DataCell(SizedBox(width: 220, child: Text(owner))),
-        DataCell(SizedBox(width: 180, child: Text(_formatUsDateTime(created)))),
-        DataCell(SizedBox(width: 200, child: Text(background))),
-        DataCell(
-          SizedBox(
-            width: 100,
-            child: Icon(
-              active ? Icons.check_circle : Icons.cancel,
-              color: active ? Colors.green : Colors.red,
-              size: 18,
-            ),
-          ),
-        ),
-      ],
-    );
+  void _onToggleSelected(String uuid, bool selected) {
+    setState(() {
+      if (selected) {
+        _selected.add(uuid);
+      } else {
+        _selected.remove(uuid);
+      }
+    });
   }
 
   void _applyFilter(String term) {
@@ -350,63 +229,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
     });
   }
 
-  void _sort<T extends Comparable<Object?>>(
-    int columnIndex,
-    bool ascending,
-    T Function(Map<String, dynamic> e) selector,
-  ) {
-    setState(() {
-      _sortColumnIndex = columnIndex;
-      _sortAscending = ascending;
-      _filtered.sort((a, b) {
-        final T av = selector(a);
-        final T bv = selector(b);
-        final int comp = av.compareTo(bv);
-        return ascending ? comp : -comp;
-      });
-      _currentPage = 0;
-    });
-  }
-
-  void _sortBy(
-    int columnIndex,
-    bool ascending,
-    Comparable<Object?>? Function(Map<String, dynamic> e) selector,
-  ) {
-    setState(() {
-      _sortColumnIndex = columnIndex;
-      _sortAscending = ascending;
-      _filtered.sort((a, b) {
-        final Comparable<Object?>? av = selector(a);
-        final Comparable<Object?>? bv = selector(b);
-        int comp;
-        if (av == null && bv == null)
-          comp = 0;
-        else if (av == null)
-          comp = -1;
-        else if (bv == null)
-          comp = 1;
-        else
-          comp = av.compareTo(bv);
-        return ascending ? comp : -comp;
-      });
-      _currentPage = 0;
-    });
-  }
-
-  String _formatUsDateTime(String iso) {
-    if (iso.isEmpty) return '';
-    final dt = DateTime.tryParse(iso)?.toLocal();
-    if (dt == null) return iso;
-    return DateFormat('M/d/y, h:mm:ss a').format(dt);
-  }
-
-  String _firstBackgroundName(Map<String, dynamic> strain) {
-    final List<dynamic> bgs = (strain['backgrounds'] as List<dynamic>? ?? []);
-    if (bgs.isEmpty) return '';
-    final Map<String, dynamic> first = bgs.first as Map<String, dynamic>;
-    return (first['name'] ?? '').toString();
-  }
+  // Formatting handled in DataGrid source
 
   int _pageCount() {
     if (_totalCount <= 0) return 1;
@@ -460,6 +283,135 @@ class _StrainsScreenState extends State<StrainsScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('Merge failed: $e')));
     }
+  }
+}
+
+class _StrainGridSource extends DataGridSource {
+  final List<Map<String, dynamic>> records;
+  final Set<String> selected;
+  final void Function(String uuid, bool selected) onToggle;
+
+  _StrainGridSource({
+    required this.records,
+    required this.selected,
+    required this.onToggle,
+  }) {
+    _dataGridRows = records.map(_toGridRow).toList();
+  }
+
+  late List<DataGridRow> _dataGridRows;
+
+  @override
+  List<DataGridRow> get rows => _dataGridRows;
+
+  DataGridRow _toGridRow(Map<String, dynamic> e) {
+    final String uuid = (e['strainUuid'] ?? '').toString();
+    return DataGridRow(
+      cells: [
+        DataGridCell<String>(columnName: 'select', value: uuid),
+        DataGridCell<String>(columnName: 'edit', value: uuid),
+        DataGridCell<String>(
+          columnName: 'name',
+          value: (e['strainName'] ?? '').toString(),
+        ),
+        DataGridCell<int>(
+          columnName: 'animals',
+          value: (e['numberOfAnimals'] ?? 0) as int,
+        ),
+        DataGridCell<String>(
+          columnName: 'color',
+          value: (e['color'] ?? '').toString(),
+        ),
+        DataGridCell<String>(
+          columnName: 'owner',
+          value:
+              (e['owner']?['user']?['email'] ??
+                      e['owner']?['user']?['username'] ??
+                      '')
+                  .toString(),
+        ),
+        DataGridCell<String>(
+          columnName: 'created',
+          value: (e['createdDate'] ?? '').toString(),
+        ),
+        DataGridCell<String>(
+          columnName: 'background',
+          value: _firstBackground(e),
+        ),
+        DataGridCell<bool>(
+          columnName: 'active',
+          value: (e['isActive'] ?? false) as bool,
+        ),
+      ],
+    );
+  }
+
+  @override
+  DataGridRowAdapter buildRow(DataGridRow row) {
+    final String uuid = row.getCells()[0].value as String;
+    final bool isChecked = selected.contains(uuid);
+    return DataGridRowAdapter(
+      cells: [
+        Center(
+          child: Checkbox(
+            value: isChecked,
+            onChanged: (v) {
+              onToggle(uuid, v ?? false);
+            },
+          ),
+        ),
+        Center(
+          child: IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit',
+            onPressed: () {},
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[2].value as String),
+        ),
+        Center(child: Text('${row.getCells()[3].value as int}')),
+        Center(child: _ColorSwatch(hex: row.getCells()[4].value as String)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[5].value as String),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(_format(row.getCells()[6].value as String)),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[7].value as String),
+        ),
+        Center(
+          child: Icon(
+            (row.getCells()[8].value as bool)
+                ? Icons.check_circle
+                : Icons.cancel,
+            color: (row.getCells()[8].value as bool)
+                ? Colors.green
+                : Colors.red,
+            size: 18,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _format(String iso) {
+    if (iso.isEmpty) return '';
+    final dt = DateTime.tryParse(iso)?.toLocal();
+    if (dt == null) return iso;
+    return DateFormat('M/d/y, h:mm:ss a').format(dt);
+  }
+
+  String _firstBackground(Map<String, dynamic> strain) {
+    final List<dynamic> bgs = (strain['backgrounds'] as List<dynamic>? ?? []);
+    if (bgs.isEmpty) return '';
+    final Map<String, dynamic> first = bgs.first as Map<String, dynamic>;
+    return (first['name'] ?? '').toString();
   }
 }
 

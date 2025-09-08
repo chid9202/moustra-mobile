@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:grid_view/services/litter_service.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class LittersScreen extends StatefulWidget {
   const LittersScreen({super.key});
@@ -10,9 +11,6 @@ class LittersScreen extends StatefulWidget {
 }
 
 class _LittersScreenState extends State<LittersScreen> {
-  final ScrollController _hHeader = ScrollController();
-  final ScrollController _hBody = ScrollController();
-  bool _isSyncingScroll = false;
   late Future<List<dynamic>> _future;
   List<Map<String, dynamic>> _rows = <Map<String, dynamic>>[];
   int _currentPage = 0; // zero-based
@@ -23,34 +21,10 @@ class _LittersScreenState extends State<LittersScreen> {
   void initState() {
     super.initState();
     _future = _fetchPage(0);
-    _hBody.addListener(() {
-      if (_isSyncingScroll) return;
-      if (_hHeader.hasClients && _hHeader.offset != _hBody.offset) {
-        _isSyncingScroll = true;
-        try {
-          _hHeader.jumpTo(_hBody.offset);
-        } finally {
-          _isSyncingScroll = false;
-        }
-      }
-    });
-    _hHeader.addListener(() {
-      if (_isSyncingScroll) return;
-      if (_hBody.hasClients && _hBody.offset != _hHeader.offset) {
-        _isSyncingScroll = true;
-        try {
-          _hBody.jumpTo(_hHeader.offset);
-        } finally {
-          _isSyncingScroll = false;
-        }
-      }
-    });
   }
 
   @override
   void dispose() {
-    _hHeader.dispose();
-    _hBody.dispose();
     super.dispose();
   }
 
@@ -86,33 +60,10 @@ class _LittersScreenState extends State<LittersScreen> {
               ),
             ),
             Expanded(
-              child: Column(
-                children: [
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    controller: _hHeader,
-                    physics: const NeverScrollableScrollPhysics(),
-                    child: DataTable(
-                      columns: _columns(),
-                      rows: const <DataRow>[],
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        controller: _hBody,
-                        child: DataTable(
-                          headingRowHeight: 0,
-                          columns: _columns(),
-                          rows: _rows.map(_row).toList(),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              child: SfDataGrid(
+                source: _LitterGridSource(records: _rows),
+                columns: _gridColumns(),
+                allowSorting: true,
               ),
             ),
             Padding(
@@ -146,61 +97,51 @@ class _LittersScreenState extends State<LittersScreen> {
     );
   }
 
-  List<DataColumn> _columns() {
-    return const [
-      DataColumn(label: SizedBox(width: 80, child: Text('EID'))),
-      DataColumn(label: SizedBox(width: 140, child: Text('Litter Tag'))),
-      DataColumn(label: SizedBox(width: 200, child: Text('Litter Strain'))),
-      DataColumn(label: SizedBox(width: 160, child: Text('Number of Pups'))),
-      DataColumn(label: SizedBox(width: 140, child: Text('Wean Date'))),
-      DataColumn(label: SizedBox(width: 160, child: Text('Date of Birth'))),
-      DataColumn(label: SizedBox(width: 220, child: Text('Owner'))),
-      DataColumn(label: SizedBox(width: 180, child: Text('Created Date'))),
+  List<GridColumn> _gridColumns() {
+    return [
+      GridColumn(
+        columnName: 'eid',
+        width: 80,
+        label: Center(child: Text('EID')),
+      ),
+      GridColumn(
+        columnName: 'tag',
+        width: 140,
+        label: Center(child: Text('Litter Tag')),
+      ),
+      GridColumn(
+        columnName: 'strain',
+        width: 200,
+        label: Center(child: Text('Litter Strain')),
+      ),
+      GridColumn(
+        columnName: 'num',
+        width: 160,
+        label: Center(child: Text('Number of Pups')),
+      ),
+      GridColumn(
+        columnName: 'wean',
+        width: 140,
+        label: Center(child: Text('Wean Date')),
+      ),
+      GridColumn(
+        columnName: 'dob',
+        width: 160,
+        label: Center(child: Text('Date of Birth')),
+      ),
+      GridColumn(
+        columnName: 'owner',
+        width: 220,
+        label: Center(child: Text('Owner')),
+      ),
+      GridColumn(
+        columnName: 'created',
+        width: 180,
+        label: Center(child: Text('Created Date')),
+      ),
     ];
   }
-
-  DataRow _row(Map<String, dynamic> l) {
-    final int eid = (l['eid'] ?? 0) as int;
-    final String tag = (l['litterTag'] ?? '').toString();
-    final String strain = (l['mating']?['litterStrain']?['strainName'] ?? '')
-        .toString();
-    final List<dynamic> pups = (l['animals'] as List<dynamic>? ?? <dynamic>[]);
-    final int numPups = pups.length;
-    final String weanDate = (l['weanDate'] ?? '').toString();
-    final String dob = (l['dateOfBirth'] ?? '').toString();
-    final String owner =
-        (l['owner']?['user']?['email'] ??
-                l['owner']?['user']?['username'] ??
-                '')
-            .toString();
-    final String created = (l['createdDate'] ?? '').toString();
-    return DataRow(
-      cells: [
-        DataCell(SizedBox(width: 80, child: Text('$eid'))),
-        DataCell(SizedBox(width: 140, child: Text(tag))),
-        DataCell(SizedBox(width: 200, child: Text(strain))),
-        DataCell(SizedBox(width: 160, child: Text('$numPups'))),
-        DataCell(SizedBox(width: 140, child: Text(_formatDate(weanDate)))),
-        DataCell(SizedBox(width: 160, child: Text(_formatDate(dob)))),
-        DataCell(SizedBox(width: 220, child: Text(owner))),
-        DataCell(SizedBox(width: 180, child: Text(_formatDateTime(created)))),
-      ],
-    );
-  }
-
-  String _formatDate(String iso) {
-    if (iso.isEmpty) return '';
-    final dt = DateTime.tryParse(iso)?.toLocal();
-    if (dt == null) return iso;
-    return DateFormat('M/d/y').format(dt);
-  }
-
-  String _formatDateTime(String iso) {
-    if (iso.isEmpty) return '';
-    final dt = DateTime.tryParse(iso)?.toLocal();
-    if (dt == null) return iso;
-    return DateFormat('M/d/y, h:mm:ss a').format(dt);
-  }
+  // header/body rendering handled by DataGrid
 
   int _pageCount() {
     if (_totalCount <= 0) return 1;
@@ -224,5 +165,89 @@ class _LittersScreenState extends State<LittersScreen> {
     await _fetchPage(zeroBasedPage);
     if (!mounted) return;
     setState(() {});
+  }
+}
+
+class _LitterGridSource extends DataGridSource {
+  final List<Map<String, dynamic>> records;
+
+  _LitterGridSource({required this.records}) {
+    _rows = records.map(_toGridRow).toList();
+  }
+
+  late List<DataGridRow> _rows;
+
+  @override
+  List<DataGridRow> get rows => _rows;
+
+  DataGridRow _toGridRow(Map<String, dynamic> l) {
+    final int eid = (l['eid'] ?? 0) as int;
+    final String tag = (l['litterTag'] ?? '').toString();
+    final String strain = (l['mating']?['litterStrain']?['strainName'] ?? '')
+        .toString();
+    final List<dynamic> pups = (l['animals'] as List<dynamic>? ?? <dynamic>[]);
+    final int numPups = pups.length;
+    final String weanDate = (l['weanDate'] ?? '').toString();
+    final String dob = (l['dateOfBirth'] ?? '').toString();
+    final String owner =
+        (l['owner']?['user']?['email'] ??
+                l['owner']?['user']?['username'] ??
+                '')
+            .toString();
+    final String created = (l['createdDate'] ?? '').toString();
+    return DataGridRow(
+      cells: [
+        DataGridCell<int>(columnName: 'eid', value: eid),
+        DataGridCell<String>(columnName: 'tag', value: tag),
+        DataGridCell<String>(columnName: 'strain', value: strain),
+        DataGridCell<int>(columnName: 'num', value: numPups),
+        DataGridCell<String>(columnName: 'wean', value: weanDate),
+        DataGridCell<String>(columnName: 'dob', value: dob),
+        DataGridCell<String>(columnName: 'owner', value: owner),
+        DataGridCell<String>(columnName: 'created', value: created),
+      ],
+    );
+  }
+
+  @override
+  DataGridRowAdapter buildRow(DataGridRow row) {
+    String _fmtDate(String iso) {
+      if (iso.isEmpty) return '';
+      final dt = DateTime.tryParse(iso)?.toLocal();
+      if (dt == null) return iso;
+      return DateFormat('M/d/y').format(dt);
+    }
+
+    String _fmtDateTime(String iso) {
+      if (iso.isEmpty) return '';
+      final dt = DateTime.tryParse(iso)?.toLocal();
+      if (dt == null) return iso;
+      return DateFormat('M/d/y, h:mm:ss a').format(dt);
+    }
+
+    return DataGridRowAdapter(
+      cells: [
+        Center(child: Text('${row.getCells()[0].value as int}')),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[1].value as String),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[2].value as String),
+        ),
+        Center(child: Text('${row.getCells()[3].value as int}')),
+        Center(child: Text(_fmtDate(row.getCells()[4].value as String))),
+        Center(child: Text(_fmtDate(row.getCells()[5].value as String))),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[6].value as String),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(_fmtDateTime(row.getCells()[7].value as String)),
+        ),
+      ],
+    );
   }
 }
