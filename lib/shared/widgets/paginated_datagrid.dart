@@ -26,6 +26,7 @@ class PaginatedDataGrid<T> extends StatefulWidget {
   final PaginatedGridController? controller;
   final int pageSize;
   final RowHeightEstimator<T>? rowHeightEstimator;
+  final void Function(String columnName, bool ascending)? onSortChanged;
 
   const PaginatedDataGrid({
     super.key,
@@ -36,6 +37,7 @@ class PaginatedDataGrid<T> extends StatefulWidget {
     this.controller,
     this.pageSize = 25,
     this.rowHeightEstimator,
+    this.onSortChanged,
   });
 
   @override
@@ -48,6 +50,7 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
   late int _pageSize;
   int _totalCount = 0;
   bool _isLoading = true;
+  bool _sortAscending = true;
 
   @override
   void initState() {
@@ -107,6 +110,18 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
                 source: widget.sourceBuilder(_rows),
                 columns: widget.columns,
                 allowSorting: true,
+                onCellTap: (details) {
+                  if (details.rowColumnIndex.rowIndex == 0) {
+                    final int ci = details.rowColumnIndex.columnIndex;
+                    if (ci < 0 || ci >= widget.columns.length) return;
+                    final GridColumn col = widget.columns[ci];
+                    if (col.allowSorting != true) return;
+                    final String name = col.columnName;
+                    // Toggle order
+                    _sortAscending = !_sortAscending;
+                    widget.onSortChanged?.call(name, _sortAscending);
+                  }
+                },
                 onQueryRowHeight: widget.rowHeightEstimator == null
                     ? null
                     : (details) {

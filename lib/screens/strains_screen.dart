@@ -16,6 +16,8 @@ class _StrainsScreenState extends State<StrainsScreen> {
   List<Map<String, dynamic>> _all = <Map<String, dynamic>>[];
   List<Map<String, dynamic>> _filtered = <Map<String, dynamic>>[];
   final TextEditingController _filterController = TextEditingController();
+  String? _sortColumn; // api field, e.g., strain_name
+  String _sortOrder = 'asc';
   // Sorting handled by grid; legacy fields removed
   // Paging handled by PaginatedDataGrid; keep UI page index for filter reset
   int _currentPage = 0;
@@ -84,6 +86,22 @@ class _StrainsScreenState extends State<StrainsScreen> {
         Expanded(
           child: PaginatedDataGrid<Map<String, dynamic>>(
             controller: _controller,
+            onSortChanged: (columnName, ascending) {
+              // Map grid column names to API fields
+              if (columnName == 'name') {
+                _sortColumn = 'strain_name';
+              } else if (columnName == 'created') {
+                _sortColumn = 'created_date';
+              } else if (columnName == 'owner') {
+                _sortColumn = 'owner';
+              } else if (columnName == 'animals') {
+                _sortColumn = 'number_of_animals';
+              } else {
+                _sortColumn = null;
+              }
+              _sortOrder = ascending ? 'asc' : 'desc';
+              _controller.reload();
+            },
             columns: _gridColumns(),
             sourceBuilder: (rows) => _StrainGridSource(
               records: rows,
@@ -94,6 +112,10 @@ class _StrainsScreenState extends State<StrainsScreen> {
               final pageData = await strainService.getStrainsPage(
                 page: page,
                 pageSize: pageSize,
+                query: {
+                  if (_sortColumn != null) 'sort': _sortColumn!,
+                  if (_sortColumn != null) 'order': _sortOrder,
+                },
               );
               _all = pageData.results.cast<Map<String, dynamic>>();
               _filtered = List<Map<String, dynamic>>.from(_all);
@@ -114,41 +136,49 @@ class _StrainsScreenState extends State<StrainsScreen> {
         columnName: 'select',
         width: 56,
         label: const SizedBox.shrink(),
+        allowSorting: false,
       ),
       GridColumn(
         columnName: 'edit',
         width: 72,
         label: const Center(child: Text('Edit')),
+        allowSorting: false,
       ),
       GridColumn(
         columnName: 'name',
         width: 240,
         label: const Center(child: Text('Strain Name')),
+        allowSorting: true,
       ),
       GridColumn(
         columnName: 'animals',
         width: 100,
         label: const Center(child: Text('# Animals')),
+        allowSorting: false,
       ),
       GridColumn(
         columnName: 'color',
         width: 80,
         label: const Center(child: Text('Color')),
+        allowSorting: false,
       ),
       GridColumn(
         columnName: 'owner',
         width: 220,
         label: const Center(child: Text('Owner')),
+        allowSorting: true,
       ),
       GridColumn(
         columnName: 'created',
         width: 180,
         label: const Center(child: Text('Created Date')),
+        allowSorting: true,
       ),
       GridColumn(
         columnName: 'background',
         width: 200,
         label: const Center(child: Text('Background')),
+        allowSorting: false,
       ),
       GridColumn(
         columnName: 'active',
