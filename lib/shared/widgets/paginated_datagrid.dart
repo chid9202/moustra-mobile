@@ -43,72 +43,67 @@ class PaginatedDataGrid<T> extends StatefulWidget {
 }
 
 class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
-  late Future<List<T>> _future;
   List<T> _rows = <T>[];
   int _currentPage = 0; // zero-based
   late int _pageSize;
   int _totalCount = 0;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _pageSize = widget.pageSize;
-    _future = _loadPage(0);
+    _fetchAndSet(0);
     widget.controller?._attach(() => _reload());
   }
 
-  Future<void> _reload() async {
-    await _goToPage(_currentPage);
-  }
+  Future<void> _reload() async => _fetchAndSet(_currentPage);
 
   int _pageCount() {
     if (_totalCount <= 0) return 1;
     return (_totalCount + _pageSize - 1) ~/ _pageSize;
   }
 
-  Future<List<T>> _loadPage(int zeroBased) async {
-    final res = await widget.fetchPage(zeroBased + 1, _pageSize);
-    _totalCount = res.count;
-    _rows = res.results;
-    return _rows;
+  Future<void> _fetchAndSet(int zeroBased) async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final res = await widget.fetchPage(zeroBased + 1, _pageSize);
+      _totalCount = res.count;
+      _rows = res.results;
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _goToPage(int zeroBased) async {
     setState(() {
       _currentPage = zeroBased;
-      _future = _loadPage(zeroBased);
     });
-    await _future;
-    if (!mounted) return;
-    setState(() {});
+    await _fetchAndSet(zeroBased);
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<T>>(
-      future: _future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('Failed to load: ${snapshot.error}'));
-        }
-        return Column(
-          children: [
-            if (widget.topBar != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: widget.topBar!,
-                ),
-              ),
-            Expanded(
-              child: SfDataGrid(
+    return Column(
+      children: [
+        if (widget.topBar != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: widget.topBar!,
+            ),
+          ),
+        Expanded(
+          child: Stack(
+            children: [
+              SfDataGrid(
                 source: widget.sourceBuilder(_rows),
                 columns: widget.columns,
                 allowSorting: true,
@@ -125,35 +120,42 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
                         return base + (lines > 1 ? (lines - 1) * 20.0 : 0);
                       },
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    tooltip: 'Previous',
-                    onPressed: _currentPage > 0
-                        ? () => _goToPage(_currentPage - 1)
-                        : null,
-                  ),
-                  Text(
-                    'Page ${_currentPage + 1} of ${_pageCount()} (Total: $_totalCount)',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    tooltip: 'Next',
-                    onPressed: (_currentPage + 1) < _pageCount()
-                        ? () => _goToPage(_currentPage + 1)
-                        : null,
-                  ),
-                ],
+              if (_isLoading)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: const LinearProgressIndicator(minHeight: 3),
+                ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left),
+                tooltip: 'Previous',
+                onPressed: _currentPage > 0 && !_isLoading
+                    ? () => _goToPage(_currentPage - 1)
+                    : null,
               ),
-            ),
-          ],
-        );
-      },
+              Text(
+                'Page ${_currentPage + 1} of ${_pageCount()} (Total: $_totalCount)',
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right),
+                tooltip: 'Next',
+                onPressed: (_currentPage + 1) < _pageCount() && !_isLoading
+                    ? () => _goToPage(_currentPage + 1)
+                    : null,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
