@@ -53,6 +53,13 @@ class StrainService {
   Future<void> deleteStrain(String id) async {
     await apiClient.delete('${ApiConfig.strains}/$id');
   }
+
+  Future<void> mergeStrains(List<String> strainUuids) async {
+    await apiClient.post(
+      '${ApiConfig.strains}/merge',
+      body: <String, dynamic>{'strains': strainUuids},
+    );
+  }
 }
 
 final StrainService strainService = StrainService();

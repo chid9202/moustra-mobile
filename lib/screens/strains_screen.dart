@@ -22,6 +22,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
   int _currentPage = 0; // zero-based UI page
   int _pageSize = 25;
   int _totalCount = 0;
+  final Set<String> _selected = <String>{};
 
   @override
   void initState() {
@@ -86,16 +87,29 @@ class _StrainsScreenState extends State<StrainsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Create Strain clicked')),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create Strain'),
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Create Strain clicked'),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Create Strain'),
+                    ),
+                    FilledButton.icon(
+                      onPressed: _selected.length >= 2 ? _mergeSelected : null,
+                      icon: const Icon(Icons.merge_type),
+                      label: const Text('Merge Strain'),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -188,6 +202,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
 
   List<DataColumn> _buildColumns() {
     return [
+      const DataColumn(label: SizedBox(width: 56, child: Text(''))),
       const DataColumn(label: SizedBox(width: 72, child: Text('Edit'))),
       DataColumn(
         label: const SizedBox(width: 240, child: Text('Strain Name')),
@@ -248,9 +263,28 @@ class _StrainsScreenState extends State<StrainsScreen> {
     final String created = (strain['createdDate'] ?? '').toString();
     final String background = _firstBackgroundName(strain);
     final bool active = (strain['isActive'] ?? false) as bool;
+    final String uuid = (strain['strainUuid'] ?? '').toString();
+    final bool isChecked = _selected.contains(uuid);
 
     return DataRow(
       cells: [
+        DataCell(
+          SizedBox(
+            width: 56,
+            child: Checkbox(
+              value: isChecked,
+              onChanged: (v) {
+                setState(() {
+                  if (v == true) {
+                    _selected.add(uuid);
+                  } else {
+                    _selected.remove(uuid);
+                  }
+                });
+              },
+            ),
+          ),
+        ),
         DataCell(
           SizedBox(
             width: 72,
@@ -397,7 +431,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
     return list;
   }
 
-  void _goToPage(int zeroBasedPage) async {
+  Future<void> _goToPage(int zeroBasedPage) async {
     setState(() {
       _currentPage = zeroBasedPage;
     });
@@ -406,7 +440,26 @@ class _StrainsScreenState extends State<StrainsScreen> {
     setState(() {
       _all = data.cast<Map<String, dynamic>>();
       _filtered = List<Map<String, dynamic>>.from(_all);
+      _selected.clear();
     });
+  }
+
+  Future<void> _mergeSelected() async {
+    final strains = _selected.toList();
+    try {
+      await strainService.mergeStrains(strains);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Merged ${strains.length} strains.')),
+      );
+      _selected.clear();
+      await _goToPage(_currentPage);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Merge failed: $e')));
+    }
   }
 }
 
