@@ -65,6 +65,14 @@ class AppMenu extends StatelessWidget {
               context.go('/animals');
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.favorite),
+            title: const Text('Mating'),
+            onTap: () {
+              Navigator.of(context).pop();
+              context.go('/matings');
+            },
+          ),
         ],
       ),
     );

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:grid_view/services/cage_service.dart';
+import 'package:grid_view/services/mating_service.dart';
 
-class CagesListScreen extends StatefulWidget {
-  const CagesListScreen({super.key});
+class MatingsScreen extends StatefulWidget {
+  const MatingsScreen({super.key});
 
   @override
-  State<CagesListScreen> createState() => _CagesListScreenState();
+  State<MatingsScreen> createState() => _MatingsScreenState();
 }
 
-class _CagesListScreenState extends State<CagesListScreen> {
+class _MatingsScreenState extends State<MatingsScreen> {
   final ScrollController _hHeader = ScrollController();
   final ScrollController _hBody = ScrollController();
   bool _isSyncingScroll = false;
@@ -63,7 +63,9 @@ class _CagesListScreenState extends State<CagesListScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Center(child: Text('Failed to load cages: ${snapshot.error}'));
+          return Center(
+            child: Text('Failed to load matings: ${snapshot.error}'),
+          );
         }
         return Column(
           children: [
@@ -71,30 +73,15 @@ class _CagesListScreenState extends State<CagesListScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Wrap(
-                  spacing: 12,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Add Cage clicked')),
-                        );
-                      },
-                      icon: const Icon(Icons.add),
-                      label: const Text('Add Cage'),
-                    ),
-                    FilledButton.icon(
-                      onPressed: () {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('End Cage clicked')),
-                        );
-                      },
-                      icon: const Icon(Icons.stop_circle_outlined),
-                      label: const Text('End Cage'),
-                    ),
-                  ],
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Add Mating clicked')),
+                    );
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Mating'),
                 ),
               ),
             ),
@@ -162,49 +149,81 @@ class _CagesListScreenState extends State<CagesListScreen> {
   List<DataColumn> _columns() {
     return const [
       DataColumn(label: SizedBox(width: 80, child: Text('EID'))),
+      DataColumn(label: SizedBox(width: 140, child: Text('Mating Tag'))),
       DataColumn(label: SizedBox(width: 140, child: Text('Cage Tag'))),
-      DataColumn(label: SizedBox(width: 200, child: Text('Strain'))),
-      DataColumn(label: SizedBox(width: 140, child: Text('Number of Animals'))),
-      DataColumn(label: SizedBox(width: 240, child: Text('Animal Tags'))),
-      DataColumn(label: SizedBox(width: 260, child: Text('Genotypes'))),
-      DataColumn(label: SizedBox(width: 120, child: Text('Status'))),
+      DataColumn(label: SizedBox(width: 200, child: Text('Litter Strain'))),
+      DataColumn(label: SizedBox(width: 140, child: Text('Male Tag'))),
+      DataColumn(label: SizedBox(width: 260, child: Text('Male Genotypes'))),
+      DataColumn(label: SizedBox(width: 140, child: Text('Female Tag'))),
+      DataColumn(label: SizedBox(width: 260, child: Text('Female Genotypes'))),
+      DataColumn(label: SizedBox(width: 140, child: Text('Set Up Date'))),
       DataColumn(label: SizedBox(width: 220, child: Text('Owner'))),
       DataColumn(label: SizedBox(width: 180, child: Text('Created Date'))),
     ];
   }
 
-  DataRow _row(Map<String, dynamic> c) {
-    final int eid = (c['eid'] ?? 0) as int;
-    final String cageTag = (c['cageTag'] ?? '').toString();
-    final String strain = (c['strain']?['strainName'] ?? '').toString();
+  DataRow _row(Map<String, dynamic> m) {
+    final int eid = (m['eid'] ?? 0) as int;
+    final String matingTag = (m['matingTag'] ?? '').toString();
+    final String cageTag = (m['cage']?['cageTag'] ?? '').toString();
+    final String litterStrain = (m['litterStrain']?['strainName'] ?? '')
+        .toString();
     final List<dynamic> animals =
-        (c['animals'] as List<dynamic>? ?? <dynamic>[]);
-    final int numAnimals = animals.length;
-    final String animalTags = animals
-        .map((a) => (a['physicalTag'] ?? '').toString())
-        .where((s) => s.isNotEmpty)
-        .join(', ');
-    final String genotypes = _formatGenotypes(animals);
-    final String status = (c['status'] ?? '').toString();
+        (m['animals'] as List<dynamic>? ?? <dynamic>[]);
+    final Map<String, dynamic>? male = animals
+        .cast<Map<String, dynamic>?>()
+        .firstWhere((a) => (a?['sex'] ?? '') == 'M', orElse: () => null);
+    final Map<String, dynamic>? female = animals
+        .cast<Map<String, dynamic>?>()
+        .firstWhere((a) => (a?['sex'] ?? '') == 'F', orElse: () => null);
+    final String maleTag = (male?['physicalTag'] ?? '').toString();
+    final String femaleTag = (female?['physicalTag'] ?? '').toString();
+    final String maleGenotypes = _formatGenotypes(
+      male?['genotypes'] as List<dynamic>?,
+    );
+    final String femaleGenotypes = _formatGenotypes(
+      female?['genotypes'] as List<dynamic>?,
+    );
+    final String setUpDate = (m['setUpDate'] ?? '').toString();
     final String owner =
-        (c['owner']?['user']?['email'] ??
-                c['owner']?['user']?['username'] ??
+        (m['owner']?['user']?['email'] ??
+                m['owner']?['user']?['username'] ??
                 '')
             .toString();
-    final String created = (c['createdDate'] ?? '').toString();
+    final String created = (m['createdDate'] ?? '').toString();
     return DataRow(
       cells: [
         DataCell(SizedBox(width: 80, child: Text('$eid'))),
+        DataCell(SizedBox(width: 140, child: Text(matingTag))),
         DataCell(SizedBox(width: 140, child: Text(cageTag))),
-        DataCell(SizedBox(width: 200, child: Text(strain))),
-        DataCell(SizedBox(width: 140, child: Text('$numAnimals'))),
-        DataCell(SizedBox(width: 240, child: Text(animalTags))),
-        DataCell(SizedBox(width: 260, child: Text(genotypes))),
-        DataCell(SizedBox(width: 120, child: Text(status))),
+        DataCell(SizedBox(width: 200, child: Text(litterStrain))),
+        DataCell(SizedBox(width: 140, child: Text(maleTag))),
+        DataCell(SizedBox(width: 260, child: Text(maleGenotypes))),
+        DataCell(SizedBox(width: 140, child: Text(femaleTag))),
+        DataCell(SizedBox(width: 260, child: Text(femaleGenotypes))),
+        DataCell(SizedBox(width: 140, child: Text(_formatDate(setUpDate)))),
         DataCell(SizedBox(width: 220, child: Text(owner))),
         DataCell(SizedBox(width: 180, child: Text(_formatDateTime(created)))),
       ],
     );
+  }
+
+  String _formatGenotypes(List<dynamic>? list) {
+    if (list == null || list.isEmpty) return '';
+    return list
+        .map((g) {
+          final gene = (g['gene']?['geneName'] ?? '').toString();
+          final allele = (g['allele']?['alleleName'] ?? '').toString();
+          return gene.isEmpty ? allele : '$gene/$allele';
+        })
+        .join(', ');
+  }
+
+  String _formatDate(String iso) {
+    if (iso.isEmpty) return '';
+    final dt = DateTime.tryParse(iso)?.toLocal();
+    if (dt == null) return iso;
+    return DateFormat('M/d/y').format(dt);
   }
 
   String _formatDateTime(String iso) {
@@ -214,30 +233,13 @@ class _CagesListScreenState extends State<CagesListScreen> {
     return DateFormat('M/d/y, h:mm:ss a').format(dt);
   }
 
-  String _formatGenotypes(List<dynamic> animals) {
-    if (animals.isEmpty) return '';
-    // Flatten unique genotype strings across all animals in the cage
-    final Set<String> uniqueGenotypes = <String>{};
-    for (final dynamic a in animals) {
-      final List<dynamic> gs =
-          (a['genotypes'] as List<dynamic>? ?? <dynamic>[]);
-      for (final dynamic g in gs) {
-        final String gene = (g['gene']?['geneName'] ?? '').toString();
-        final String allele = (g['allele']?['alleleName'] ?? '').toString();
-        final String text = gene.isEmpty ? allele : '$gene/$allele';
-        if (text.isNotEmpty) uniqueGenotypes.add(text);
-      }
-    }
-    return uniqueGenotypes.join(', ');
-  }
-
   int _pageCount() {
     if (_totalCount <= 0) return 1;
     return (_totalCount + _pageSize - 1) ~/ _pageSize;
   }
 
   Future<List<dynamic>> _fetchPage(int zeroBasedPage) async {
-    final pageData = await cageService.getCagesPage(
+    final pageData = await matingService.getMatingsPage(
       page: zeroBasedPage + 1,
       pageSize: _pageSize,
     );

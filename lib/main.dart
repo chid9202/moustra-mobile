@@ -10,6 +10,7 @@ import 'package:grid_view/screens/cages_list_screen.dart';
 import 'package:grid_view/screens/cages_grid_screen.dart';
 import 'package:grid_view/screens/litters_screen.dart';
 import 'package:grid_view/screens/animals_screen.dart';
+import 'package:grid_view/screens/matings_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -110,6 +111,11 @@ class MyApp extends StatelessWidget {
                 path: '/animals',
                 pageBuilder: (context, state) =>
                     const MaterialPage(child: AnimalsScreen()),
+              ),
+              GoRoute(
+                path: '/matings',
+                pageBuilder: (context, state) =>
+                    const MaterialPage(child: MatingsScreen()),
               ),
               GoRoute(
                 path: '/rooms/:roomId',

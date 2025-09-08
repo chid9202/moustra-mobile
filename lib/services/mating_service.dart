@@ -2,17 +2,17 @@ import 'dart:convert';
 
 import 'package:grid_view/services/api_client.dart';
 
-class LitterPage {
+class MatingPage {
   final int count;
   final List<dynamic> results;
 
-  LitterPage({required this.count, required this.results});
+  MatingPage({required this.count, required this.results});
 }
 
-class LitterService {
-  static const String basePath = '/litter';
+class MatingService {
+  static const String basePath = '/mating';
 
-  Future<LitterPage> getLittersPage({
+  Future<MatingPage> getMatingsPage({
     int page = 1,
     int pageSize = 25,
     Map<String, String>? query,
@@ -25,11 +25,11 @@ class LitterService {
     final res = await apiClient.get(basePath, query: mergedQuery);
     final Map<String, dynamic> data =
         jsonDecode(res.body) as Map<String, dynamic>;
-    return LitterPage(
+    return MatingPage(
       count: (data['count'] as int?) ?? 0,
       results: (data['results'] as List<dynamic>? ?? <dynamic>[]),
     );
   }
 }
 
-final LitterService litterService = LitterService();
+final MatingService matingService = MatingService();
