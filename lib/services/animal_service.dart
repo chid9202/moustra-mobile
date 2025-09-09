@@ -23,7 +23,7 @@ class AnimalService {
       'page_size': pageSize.toString(),
       if (query != null) ...query,
     };
-    final res = await apiClient.get('$basePath', query: mergedQuery);
+    final res = await apiClient.get(basePath, query: mergedQuery);
     final Map<String, dynamic> data =
         jsonDecode(res.body) as Map<String, dynamic>;
     return AnimalPage(
