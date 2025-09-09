@@ -260,8 +260,8 @@ class _CageGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    List<String> _asList(dynamic v) => (v as List<String>? ?? <String>[]);
-    String _fmtDateTime(String iso) {
+    List<String> asList(dynamic v) => (v as List<String>? ?? <String>[]);
+    String fmtDateTime(String iso) {
       if (iso.isEmpty) return '';
       final dt = DateTime.tryParse(iso)?.toLocal();
       if (dt == null) return iso;
@@ -285,7 +285,7 @@ class _CageGridSource extends DataGridSource {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: _asList(row.getCells()[4].value)
+            children: asList(row.getCells()[4].value)
                 .map(
                   (t) => Text(t, overflow: TextOverflow.ellipsis, maxLines: 1),
                 )
@@ -297,7 +297,7 @@ class _CageGridSource extends DataGridSource {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: _asList(row.getCells()[5].value)
+            children: asList(row.getCells()[5].value)
                 .map(
                   (g) => Text(g, overflow: TextOverflow.ellipsis, maxLines: 1),
                 )
@@ -312,7 +312,7 @@ class _CageGridSource extends DataGridSource {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(_fmtDateTime(row.getCells()[9].value as String)),
+          child: Text(fmtDateTime(row.getCells()[9].value as String)),
         ),
       ],
     );

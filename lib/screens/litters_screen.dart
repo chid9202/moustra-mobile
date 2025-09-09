@@ -177,14 +177,14 @@ class _LitterGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    String _fmtDate(String iso) {
+    String fmtDate(String iso) {
       if (iso.isEmpty) return '';
       final dt = DateTime.tryParse(iso)?.toLocal();
       if (dt == null) return iso;
       return DateFormat('M/d/y').format(dt);
     }
 
-    String _fmtDateTime(String iso) {
+    String fmtDateTime(String iso) {
       if (iso.isEmpty) return '';
       final dt = DateTime.tryParse(iso)?.toLocal();
       if (dt == null) return iso;
@@ -203,15 +203,15 @@ class _LitterGridSource extends DataGridSource {
           child: Text(row.getCells()[2].value as String),
         ),
         Center(child: Text('${row.getCells()[3].value as int}')),
-        Center(child: Text(_fmtDate(row.getCells()[4].value as String))),
-        Center(child: Text(_fmtDate(row.getCells()[5].value as String))),
+        Center(child: Text(fmtDate(row.getCells()[4].value as String))),
+        Center(child: Text(fmtDate(row.getCells()[5].value as String))),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Text(row.getCells()[6].value as String),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(_fmtDateTime(row.getCells()[7].value as String)),
+          child: Text(fmtDateTime(row.getCells()[7].value as String)),
         ),
       ],
     );
