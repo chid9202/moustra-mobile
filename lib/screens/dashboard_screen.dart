@@ -239,8 +239,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   getTitlesWidget: (value, meta) {
                                     final keys = accounts.keys.toList();
                                     if (value.toInt() < 0 ||
-                                        value.toInt() >= keys.length)
+                                        value.toInt() >= keys.length) {
                                       return const SizedBox.shrink();
+                                    }
                                     final key = keys[value.toInt()];
                                     final name = (accounts[key]?['name'] ?? '')
                                         .toString();
