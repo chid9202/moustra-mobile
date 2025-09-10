@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:http/http.dart' as http;
 import 'package:grid_view/config/api_config.dart';
@@ -15,12 +13,7 @@ class ApiClient {
   Uri _buildUri(String path, [Map<String, String>? query]) {
     final Uri base = Uri.parse(ApiConfig.baseUrl);
     // Remap localhost only on Android; keep localhost for web/iOS/desktop
-    final String host =
-        (!kIsWeb &&
-            Platform.isAndroid &&
-            base.host == 'core-staging-dot-upphish.uc.r.appspot.com')
-        ? '10.0.2.2'
-        : base.host;
+    final String host = base.host;
     final String basePath = base.path.endsWith('/')
         ? base.path.substring(0, base.path.length - 1)
         : base.path;
