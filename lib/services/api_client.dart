@@ -16,7 +16,9 @@ class ApiClient {
     final Uri base = Uri.parse(ApiConfig.baseUrl);
     // Remap localhost only on Android; keep localhost for web/iOS/desktop
     final String host =
-        (!kIsWeb && Platform.isAndroid && base.host == 'localhost')
+        (!kIsWeb &&
+            Platform.isAndroid &&
+            base.host == 'core-staging-dot-upphish.uc.r.appspot.com')
         ? '10.0.2.2'
         : base.host;
     final String basePath = base.path.endsWith('/')
