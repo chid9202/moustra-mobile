@@ -9,7 +9,6 @@ class AppMenuBar extends StatelessWidget {
     return MenuBar(
       children: [
         SubmenuButton(
-          child: const Text('Dashboard'),
           menuChildren: [
             MenuItemButton(
               onPressed: () {
@@ -19,9 +18,9 @@ class AppMenuBar extends StatelessWidget {
               child: const Text('Open'),
             ),
           ],
+          child: const Text('Dashboard'),
         ),
         SubmenuButton(
-          child: const Text('Strain'),
           menuChildren: [
             MenuItemButton(
               onPressed: () {
@@ -31,9 +30,9 @@ class AppMenuBar extends StatelessWidget {
               child: const Text('Open'),
             ),
           ],
+          child: const Text('Strain'),
         ),
         SubmenuButton(
-          child: const Text('Cage'),
           menuChildren: [
             MenuItemButton(
               onPressed: () {
@@ -50,9 +49,9 @@ class AppMenuBar extends StatelessWidget {
               child: const Text('Grid View'),
             ),
           ],
+          child: const Text('Cage'),
         ),
         SubmenuButton(
-          child: const Text('Litter'),
           menuChildren: [
             MenuItemButton(
               onPressed: () {
@@ -62,9 +61,9 @@ class AppMenuBar extends StatelessWidget {
               child: const Text('Open'),
             ),
           ],
+          child: const Text('Litter'),
         ),
         SubmenuButton(
-          child: const Text('Animal'),
           menuChildren: [
             MenuItemButton(
               onPressed: () {
@@ -74,6 +73,7 @@ class AppMenuBar extends StatelessWidget {
               child: const Text('Open'),
             ),
           ],
+          child: const Text('Animal'),
         ),
       ],
     );

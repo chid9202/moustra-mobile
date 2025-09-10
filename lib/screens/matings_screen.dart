@@ -284,15 +284,15 @@ class _MatingGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    List<String> _asList(dynamic v) => (v as List<String>? ?? <String>[]);
-    String _fmtDate(String iso) {
+    List<String> asList(dynamic v) => (v as List<String>? ?? <String>[]);
+    String fmtDate(String iso) {
       if (iso.isEmpty) return '';
       final dt = DateTime.tryParse(iso)?.toLocal();
       if (dt == null) return iso;
       return DateFormat('M/d/y').format(dt);
     }
 
-    String _fmtDateTime(String iso) {
+    String fmtDateTime(String iso) {
       if (iso.isEmpty) return '';
       final dt = DateTime.tryParse(iso)?.toLocal();
       if (dt == null) return iso;
@@ -331,7 +331,7 @@ class _MatingGridSource extends DataGridSource {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: _asList(row.getCells()[6].value)
+            children: asList(row.getCells()[6].value)
                 .map(
                   (t) => Text(t, overflow: TextOverflow.ellipsis, maxLines: 1),
                 )
@@ -343,22 +343,22 @@ class _MatingGridSource extends DataGridSource {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: _asList(row.getCells()[7].value)
+            children: asList(row.getCells()[7].value)
                 .map(
                   (g) => Text(g, overflow: TextOverflow.ellipsis, maxLines: 1),
                 )
                 .toList(),
           ),
         ),
-        Center(child: Text(_fmtDate(row.getCells()[8].value as String))),
-        Center(child: Text(_fmtDate(row.getCells()[9].value as String))),
+        Center(child: Text(fmtDate(row.getCells()[8].value as String))),
+        Center(child: Text(fmtDate(row.getCells()[9].value as String))),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Text(row.getCells()[10].value as String),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(_fmtDateTime(row.getCells()[11].value as String)),
+          child: Text(fmtDateTime(row.getCells()[11].value as String)),
         ),
       ],
     );
