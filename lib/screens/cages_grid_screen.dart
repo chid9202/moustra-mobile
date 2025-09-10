@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:grid_view/detail_item.dart';
 import 'package:grid_view/detail_view.dart';
 
-class InteractiveGridScreen extends StatefulWidget {
-  const InteractiveGridScreen({super.key});
+class CagesGridScreen extends StatefulWidget {
+  const CagesGridScreen({super.key});
 
   @override
-  State<InteractiveGridScreen> createState() => _InteractiveGridScreenState();
+  State<CagesGridScreen> createState() => _CagesGridScreenState();
 }
 
-class _InteractiveGridScreenState extends State<InteractiveGridScreen> {
+class _CagesGridScreenState extends State<CagesGridScreen> {
   final TransformationController _transformationController =
       TransformationController();
   final ScrollController _scrollController = ScrollController();
@@ -42,25 +41,24 @@ class _InteractiveGridScreenState extends State<InteractiveGridScreen> {
   @override
   Widget build(BuildContext context) {
     return InteractiveViewer(
-      constrained: false, // Allows the child to be larger than the view
+      constrained: false,
       transformationController: _transformationController,
       minScale: 0.1,
       maxScale: 4.0,
       scaleEnabled: true,
       panEnabled: true,
       child: SizedBox(
-        width: 1500, // Large enough width to contain the entire grid
-        height: 1500, // Large enough height to contain the entire grid
+        width: 1500,
+        height: 1500,
         child: GridView.builder(
           controller: _scrollController,
           itemCount: _gridCount,
-          physics:
-              const NeverScrollableScrollPhysics(), // Disable internal scrolling
+          physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 5, // Number of columns
+            crossAxisCount: 5,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
-            childAspectRatio: 1.0, // Adjust as needed
+            childAspectRatio: 1.0,
           ),
           itemBuilder: (context, index) {
             return GestureDetector(
