@@ -63,8 +63,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Wrap(
                         children: [
                           const Text(
                             'Mice by Age',
@@ -74,6 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           DropdownButton<String>(
+                            isExpanded: true,
                             value: _selectedStrainUuid,
                             items: strains
                                 .map(
