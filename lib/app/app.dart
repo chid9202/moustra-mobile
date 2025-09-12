@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:grid_view/app/router.dart';
-import 'package:grid_view/app/theme.dart';
+import 'package:moustra/app/router.dart';
+import 'package:moustra/app/theme.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
