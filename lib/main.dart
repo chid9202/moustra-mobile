@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:grid_view/app/app.dart';
+import 'package:moustra/app/app.dart';
+import 'package:moustra/services/auth_service.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await authService.init();
   runApp(const MyApp());
 }
 
@@ -11,5 +14,3 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const App();
 }
-
-// Auth state handled in app/router.dart

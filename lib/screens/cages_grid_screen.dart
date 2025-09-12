@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:grid_view/detail_item.dart';
-import 'package:grid_view/detail_view.dart';
+import 'package:moustra/detail_item.dart';
+import 'package:moustra/detail_view.dart';
 
 class CagesGridScreen extends StatefulWidget {
   const CagesGridScreen({super.key});
