@@ -1,6 +1,4 @@
-# grid_view
-
-A new Flutter project.
+# Moustra
 
 ## Getting Started
 
@@ -34,3 +32,14 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+### Commands
+
+- clean everything and run
+
+```
+flutter clean
+adb uninstall com.moustra.app.dev
+flutter pub get
+flutter run -d emulator-5556
+```
