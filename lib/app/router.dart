@@ -33,30 +33,12 @@ final GoRouter appRouter = GoRouter(
               ValueListenableBuilder(
                 valueListenable: authState,
                 builder: (context, value, _) {
-                  print('authState ------> $value $context');
                   final bool loggedIn = value;
                   return IconButton(
                     icon: Icon(loggedIn ? Icons.logout : Icons.login),
                     onPressed: () async {
                       if (loggedIn) {
-                        print('aaaaaaaaaaaaaaaaaaaaaaaaa 11');
                         await authService.logout();
-                        // authState.value = false;
-                        print('aaaaaaaaaaaaaaaaaaaaaaaaa 22');
-                        // if (context.mounted) context.go('/login');
-                      } else {
-                        print('bbbbbbbbbbbbbbbbbbbbbbbbbbbb');
-                        // try {
-                        //   await authService.login();
-                        //   authState.value = authService.isLoggedIn;
-                        //   if (context.mounted) context.go('/');
-                        // } catch (e) {
-                        //   if (context.mounted) {
-                        //     ScaffoldMessenger.of(context).showSnackBar(
-                        //       SnackBar(content: Text('Login failed: $e')),
-                        //     );
-                        //   }
-                        // }
                       }
                     },
                   );
@@ -69,20 +51,6 @@ final GoRouter appRouter = GoRouter(
         ),
       ),
       routes: [
-        // Swallow native callback paths so GoRouter doesn't try to match them
-        // GoRoute(
-        //   path: '/android/:rest(.*)',
-        //   pageBuilder: (context, state) {
-        //     WidgetsBinding.instance.addPostFrameCallback((_) {
-        //       print('android callback ------> $authService.isLoggedIn');
-        //       final String next = authService.isLoggedIn
-        //           ? '/dashboard'
-        //           : '/login';
-        //       if (context.mounted) context.go(next);
-        //     });
-        //     return const MaterialPage(child: SizedBox.shrink());
-        //   },
-        // ),
         GoRoute(
           path: '/ios/:rest(.*)',
           pageBuilder: (context, state) =>
@@ -158,30 +126,4 @@ final GoRouter appRouter = GoRouter(
     if (onLogin) return '/dashboard';
     return null;
   },
-  // redirect: (context, state) {
-  //   // Implement redirect logic based on authentication status
-  //   // For example, if not authenticated, redirect to login page
-  //   print(
-  //     'redirect 11 start ------> ${authService.isLoggedIn} ${state.matchedLocation}',
-  //   );
-  //   if (authService.isLoggedIn) {
-  //     if (state.matchedLocation == '/') {
-  //       print('redirect 22 logged in / ------> /dashboard');
-  //       return '/dashboard';
-  //     }
-  //     if (state.matchedLocation == '/login') {
-  //       print('redirect 33 logged in /login ------> /login');
-  //       return '/dashboard';
-  //     }
-  //     print('redirect 44 logged in ------> null ${state.matchedLocation}');
-  //     return state.matchedLocation;
-  //   }
-
-  //   if (!authService.isLoggedIn) {
-  //     print('redirect 55 logged out ------> /login');
-  //     return '/login';
-  //   }
-  //   print('redirect 66 ------> null');
-  //   return null;
-  // },
 );

@@ -14,4 +14,19 @@ class Env {
     'AUTH0_CLIENT_ID',
     defaultValue: 'q9MiH8vXt6H5yXZ96BcW16qVuKPXXO6K',
   );
+
+  static const String auth0Scheme = String.fromEnvironment(
+    'AUTH0_SCHEME',
+    defaultValue: 'moustra',
+  );
+
+  static const String auth0Audience = String.fromEnvironment(
+    'AUTH0_AUDIENCE',
+    defaultValue: 'https://api.moustra.com',
+  );
+
+  static const String auth0Connection = String.fromEnvironment(
+    'AUTH0_CONNECTION',
+    defaultValue: 'Moustra-Dev',
+  );
 }

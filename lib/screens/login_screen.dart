@@ -20,35 +20,22 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _authListener = () {
-      print('login_screen_initState 111 ------>');
       if (!mounted) return;
-      print('login_screen_initState 222 ------>');
-      // Stop spinner on any auth state change
       setState(() {
         _loading = false;
       });
-      print('login_screen_initState 333 ------> ${authService.isLoggedIn}');
-      if (authService.isLoggedIn) context.go('/dashboard');
+      if (authService.isLoggedIn) {
+        // navigate to dashboard. Should be called when user is returned from browser login page.
+        context.go('/dashboard');
+      }
     };
     authState.addListener(_authListener!);
-
-    // If already authenticated (e.g., after deep link resume), navigate immediately
-    print('login_screen_initState 555 ------> ${authService.isLoggedIn}');
-    // if (authService.isLoggedIn) {
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     if (!mounted) return;
-    //     print('login_screen_initState 666 ------>');
-    //     context.go('/dashboard');
-    //   });
-    // }
   }
 
   @override
   void dispose() {
-    print('login_screen_dispose 111 ------>');
     WidgetsBinding.instance.removeObserver(this);
     if (_authListener != null) {
-      print('login_screen_dispose 222 ------>');
       authState.removeListener(_authListener!);
     }
     super.dispose();
@@ -57,15 +44,11 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      print('login_screen_didChangeAppLifecycleState 111 ------>');
       await authService.init();
       if (!mounted) return;
       setState(() {
         _loading = false;
       });
-      print(
-        'login_screen_didChangeAppLifecycleState 333 ------> ${authService.isLoggedIn}',
-      );
       if (authService.isLoggedIn) context.go('/dashboard');
     }
   }
