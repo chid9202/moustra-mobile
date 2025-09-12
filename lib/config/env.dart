@@ -2,7 +2,7 @@ class Env {
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue:
-        'https://core-staging-dot-upphish.uc.r.appspot.com/api/v1/account/fa15446d-f8ca-4d25-8400-14bb18b71fc8',
+        'https://core-staging-dot-upphish.uc.r.appspot.com/api/v1', // TODO: Move this to env
   );
 
   static const String auth0Domain = String.fromEnvironment(

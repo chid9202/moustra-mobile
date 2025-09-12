@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/app/router.dart';
+import 'package:moustra/services/profile_service.dart';
+import 'package:moustra/services/dtos/profile_dto.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,8 +27,18 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
         _loading = false;
       });
       if (authService.isLoggedIn) {
-        // navigate to dashboard. Should be called when user is returned from browser login page.
-        context.go('/dashboard');
+        final req = ProfileRequestDto(
+          email: authService.user?.email ?? '',
+          firstName: authService.user?.givenName ?? '',
+          lastName: authService.user?.familyName ?? '',
+        );
+        profileService
+            .getProfile(req)
+            .then((profile) {
+              profileState.value = profile;
+              context.go('/dashboard');
+            })
+            .catchError((_) {});
       }
     };
     authState.addListener(_authListener!);
@@ -49,7 +61,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
       setState(() {
         _loading = false;
       });
-      if (authService.isLoggedIn) context.go('/dashboard');
     }
   }
 
@@ -59,11 +70,8 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
       _error = null;
     });
     try {
-      final creds = await authService.login();
+      await authService.login();
       if (!mounted) return;
-      if ((creds?.accessToken ?? '').isNotEmpty) {
-        context.go('/dashboard');
-      }
     } catch (e) {
       setState(() {
         _error = e.toString();
