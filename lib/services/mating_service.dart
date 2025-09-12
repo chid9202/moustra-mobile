@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:grid_view/core/services/api_client.dart';
+import 'package:moustra/services/api_client.dart';
 
 class MatingPage {
   final int count;

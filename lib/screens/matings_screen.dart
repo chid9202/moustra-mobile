@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:grid_view/services/mating_service.dart';
+import 'package:moustra/services/mating_service.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:grid_view/shared/widgets/paginated_datagrid.dart';
+import 'package:moustra/widgets/paginated_datagrid.dart';
 
 class MatingsScreen extends StatefulWidget {
   const MatingsScreen({super.key});

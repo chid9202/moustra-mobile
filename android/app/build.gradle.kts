@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.grid_view"
+    namespace = "com.moustra.app.dev"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,18 +20,16 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.grid_view"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        manifestPlaceholders += mapOf(
-            "auth0Domain" to "login-dev.moustra.com",
-            "auth0Scheme" to "https"
-        )
+        manifestPlaceholders["auth0Domain"] = "login-dev.moustra.com"
+        manifestPlaceholders["auth0Scheme"] = "moustra"
+        applicationId = "com.moustra.app.dev"
+
     }
 
     buildTypes {

@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "grid_view" "\0"
+            VALUE "FileDescription", "moustra" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "grid_view" "\0"
+            VALUE "InternalName", "moustra" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "grid_view.exe" "\0"
-            VALUE "ProductName", "grid_view" "\0"
+            VALUE "OriginalFilename", "moustra.exe" "\0"
+            VALUE "ProductName", "moustra" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:grid_view/config/api_config.dart';
-import 'package:grid_view/services/auth_service.dart';
+import 'package:moustra/config/api_config.dart';
+import 'package:moustra/services/auth_service.dart';
 
 class ApiClient {
   final http.Client httpClient;
@@ -24,10 +24,10 @@ class ApiClient {
 
   Future<Map<String, String>> _headers() async {
     final headers = <String, String>{'Accept': 'application/json'};
-    final token = authService.accessToken;
-    if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $token';
-    }
+    // final token = authService.accessToken;
+    // if (token != null && token.isNotEmpty) {
+    //   headers['Authorization'] = 'Bearer $token';
+    // }
     return headers;
   }
 

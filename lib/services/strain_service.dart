@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:grid_view/config/api_config.dart';
-import 'package:grid_view/core/services/api_client.dart';
+import 'package:moustra/config/api_config.dart';
+import 'package:moustra/services/api_client.dart';
 
 class StrainPage {
   final int count;
