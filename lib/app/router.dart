@@ -10,10 +10,15 @@ import 'package:moustra/screens/matings_screen.dart';
 import 'package:moustra/screens/dashboard_screen.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:moustra/screens/login_screen.dart';
+import 'package:moustra/services/dtos/profile_dto.dart';
 
 final ValueNotifier<bool> authState = ValueNotifier<bool>(
   authService.isLoggedIn,
 );
+
+// TODO: move to state management later
+final ValueNotifier<ProfileResponseDto?> profileState =
+    ValueNotifier<ProfileResponseDto?>(null);
 
 final GoRouter appRouter = GoRouter(
   refreshListenable: authState,
@@ -51,26 +56,26 @@ final GoRouter appRouter = GoRouter(
         ),
       ),
       routes: [
-        GoRoute(
-          path: '/ios/:rest(.*)',
-          pageBuilder: (context, state) =>
-              const MaterialPage(child: SizedBox.shrink()),
-        ),
+        // GoRoute(
+        //   path: '/ios/:rest(.*)',
+        //   pageBuilder: (context, state) =>
+        //       const MaterialPage(child: SizedBox.shrink()),
+        // ),
         GoRoute(
           path: '/login',
           pageBuilder: (context, state) =>
               const MaterialPage(child: LoginScreen()),
         ),
-        GoRoute(
-          path: '/logout',
-          pageBuilder: (context, state) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              print('android logout callback ------> $authService.isLoggedIn');
-              if (context.mounted) context.go('/login');
-            });
-            return const MaterialPage(child: SizedBox.shrink());
-          },
-        ),
+        // GoRoute(
+        //   path: '/logout',
+        //   pageBuilder: (context, state) {
+        //     WidgetsBinding.instance.addPostFrameCallback((_) {
+        //       print('android logout callback ------> $authService.isLoggedIn');
+        //       if (context.mounted) context.go('/login');
+        //     });
+        //     return const MaterialPage(child: SizedBox.shrink());
+        //   },
+        // ),
         GoRoute(
           path: '/',
           pageBuilder: (context, state) =>
@@ -123,7 +128,11 @@ final GoRouter appRouter = GoRouter(
           ? null
           : '/login?from=${Uri.encodeComponent(state.uri.toString())}';
     }
-    if (onLogin) return '/dashboard';
+    if (onLogin) {
+      // Wait for profile to be loaded before redirecting to dashboard
+      final hasAccount = profileState.value?.accountUuid != null;
+      return hasAccount ? '/dashboard' : null;
+    }
     return null;
   },
 );
