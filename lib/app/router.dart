@@ -122,17 +122,21 @@ final GoRouter appRouter = GoRouter(
   redirect: (context, state) {
     final path = state.uri.path;
     final onLogin = path == '/login';
+    print('path $path');
 
     if (!authService.isLoggedIn) {
+      print('not logged in');
       return onLogin
           ? null
           : '/login?from=${Uri.encodeComponent(state.uri.toString())}';
     }
     if (onLogin) {
+      print('on login');
       // Wait for profile to be loaded before redirecting to dashboard
       final hasAccount = profileState.value?.accountUuid != null;
       return hasAccount ? '/dashboard' : null;
     }
+    print('logged in');
     return null;
   },
 );

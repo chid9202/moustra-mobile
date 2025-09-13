@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:moustra/services/cage_service.dart';
+import 'package:moustra/services/dtos/cage_dto.dart';
+import 'package:moustra/services/dtos/genotype_dto.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -60,7 +62,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
           ),
         ),
         Expanded(
-          child: PaginatedDataGrid<Map<String, dynamic>>(
+          child: PaginatedDataGrid<CageDto>(
             controller: _controller,
             onSortChanged: (columnName, ascending) {
               _sortField = _mapSortField(columnName);
@@ -78,9 +80,9 @@ class _CagesListScreenState extends State<CagesListScreen> {
                   if (_sortField != null) 'order': _sortOrder,
                 },
               );
-              return PaginatedResult<Map<String, dynamic>>(
+              return PaginatedResult<CageDto>(
                 count: pageData.count,
-                results: pageData.results.cast<Map<String, dynamic>>(),
+                results: pageData.results.cast<CageDto>(),
               );
             },
             rowHeightEstimator: (index, row) => _estimateLines(row),
@@ -176,36 +178,22 @@ class _CagesListScreenState extends State<CagesListScreen> {
     }
   }
 
-  int _estimateLines(Map<String, dynamic> c) {
-    final List<dynamic> animals =
-        (c['animals'] as List<dynamic>? ?? <dynamic>[]);
+  int _estimateLines(CageDto c) {
+    final List<dynamic> animals = (c.animals as List<dynamic>? ?? <dynamic>[]);
     int tags = animals
-        .map((a) => (a['physicalTag'] ?? '').toString())
+        .map((a) => (a.physicalTag ?? '').toString())
         .where((t) => t.isNotEmpty)
         .length;
     int gens = animals
-        .map((a) => _fmtGenotypes(a['genotypes'] as List<dynamic>?))
+        .map((a) => formatGenotypes(a.genotypes))
         .where((g) => g.isNotEmpty)
         .length;
     return (tags > gens ? tags : gens).clamp(1, 20);
   }
-
-  // header/body rendering handled by SfDataGrid
-
-  String _fmtGenotypes(List<dynamic>? list) {
-    if (list == null || list.isEmpty) return '';
-    return list
-        .map((g) {
-          final String gene = (g['gene']?['geneName'] ?? '').toString();
-          final String allele = (g['allele']?['alleleName'] ?? '').toString();
-          return gene.isEmpty ? allele : '$gene/$allele';
-        })
-        .join(', ');
-  }
 }
 
 class _CageGridSource extends DataGridSource {
-  final List<Map<String, dynamic>> records;
+  final List<CageDto> records;
 
   _CageGridSource({required this.records}) {
     _rows = records.map(_toRow).toList();
@@ -216,29 +204,24 @@ class _CageGridSource extends DataGridSource {
   @override
   List<DataGridRow> get rows => _rows;
 
-  DataGridRow _toRow(Map<String, dynamic> c) {
-    final int eid = (c['eid'] ?? 0) as int;
-    final String cageTag = (c['cageTag'] ?? '').toString();
-    final String strain = (c['strain']?['strainName'] ?? '').toString();
-    final List<dynamic> animals =
-        (c['animals'] as List<dynamic>? ?? <dynamic>[]);
+  DataGridRow _toRow(CageDto c) {
+    final int eid = (c.eid);
+    final String cageTag = (c.cageTag);
+    final String strain = (c.strain?.strainName).toString();
+    final List<dynamic> animals = (c.animals as List<dynamic>? ?? <dynamic>[]);
     final int numAnimals = animals.length;
     final List<String> animalTagLines = animals
-        .map((a) => (a['physicalTag'] ?? '').toString())
+        .map((a) => (a.physicalTag ?? '').toString())
         .where((t) => t.isNotEmpty)
         .toList();
     final List<String> animalGenotypeLines = animals
-        .map((a) => _fmtGenotypes(a['genotypes'] as List<dynamic>?))
+        .map((a) => formatGenotypes(a.genotypes as List<GenotypeDto>?))
         .where((g) => g.isNotEmpty)
         .toList();
-    final String status = (c['status'] ?? '').toString();
-    final String endDate = (c['endDate'] ?? '').toString();
-    final String owner =
-        (c['owner']?['user']?['email'] ??
-                c['owner']?['user']?['username'] ??
-                '')
-            .toString();
-    final String created = (c['createdDate'] ?? '').toString();
+    final String status = (c.status).toString();
+    final String endDate = (c.endDate ?? '').toString();
+    final String owner = (c.owner.user.email).toString();
+    final String created = (c.createdDate ?? '').toString();
     return DataGridRow(
       cells: [
         DataGridCell<int>(columnName: 'eid', value: eid),
@@ -317,15 +300,24 @@ class _CageGridSource extends DataGridSource {
       ],
     );
   }
+}
 
-  String _fmtGenotypes(List<dynamic>? list) {
-    if (list == null || list.isEmpty) return '';
-    return list
-        .map((g) {
-          final String gene = (g['gene']?['geneName'] ?? '').toString();
-          final String allele = (g['allele']?['alleleName'] ?? '').toString();
-          return gene.isEmpty ? allele : '$gene/$allele';
-        })
-        .join(', ');
-  }
+String formatGenotypes(List<GenotypeDto>? list) {
+  if (list == null || list.isEmpty) return '';
+  return list
+      .map((g) {
+        final String gene = (g.gene?.geneName ?? '').toString();
+        final String allele = (g.allele?.alleleName ?? '').toString();
+        if (gene.isNotEmpty && allele.isNotEmpty) {
+          return '$gene/$allele';
+        }
+        if (gene.isNotEmpty) {
+          return gene;
+        }
+        if (allele.isNotEmpty) {
+          return allele;
+        }
+        return '';
+      })
+      .join(', ');
 }

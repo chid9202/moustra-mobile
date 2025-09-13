@@ -43,3 +43,9 @@ adb uninstall com.moustra.app.dev
 flutter pub get
 flutter run -d emulator-5556
 ```
+
+- to run a build runner for json serializer
+
+```
+dart run build_runner build -d
+```
