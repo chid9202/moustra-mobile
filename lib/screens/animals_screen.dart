@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:moustra/services/animal_service.dart';
+import 'package:moustra/services/dtos/animal_dto.dart';
+import 'package:moustra/services/dtos/genotype_dto.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -50,7 +52,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
           ),
         ),
         Expanded(
-          child: PaginatedDataGrid<Map<String, dynamic>>(
+          child: PaginatedDataGrid<AnimalDto>(
             controller: _controller,
             onSortChanged: (columnName, ascending) {
               _sortField = _mapSortField(columnName);
@@ -68,9 +70,9 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   if (_sortField != null) 'order': _sortOrder,
                 },
               );
-              return PaginatedResult<Map<String, dynamic>>(
+              return PaginatedResult<AnimalDto>(
                 count: pageData.count,
-                results: pageData.results.cast<Map<String, dynamic>>(),
+                results: pageData.results.cast<AnimalDto>(),
               );
             },
           ),
@@ -204,7 +206,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
 }
 
 class _AnimalGridSource extends DataGridSource {
-  final List<Map<String, dynamic>> records;
+  final List<AnimalDto> records;
 
   _AnimalGridSource({required this.records}) {
     _rows = records.map(_toGridRow).toList();
@@ -215,25 +217,22 @@ class _AnimalGridSource extends DataGridSource {
   @override
   List<DataGridRow> get rows => _rows;
 
-  DataGridRow _toGridRow(Map<String, dynamic> a) {
-    final int eid = (a['eid'] ?? 0) as int;
-    final String physicalTag = (a['physicalTag'] ?? '').toString();
-    final String status = (a['cage']?['status'] ?? '').toString();
-    final String sex = (a['sex'] ?? '').toString();
-    final String dob = (a['dateOfBirth'] ?? '').toString();
-    final String age = _age(a['dateOfBirth']?.toString() ?? '');
-    final String weanDate = (a['weanDate'] ?? '').toString();
-    final String cageTag = (a['cage']?['cageTag'] ?? '').toString();
-    final String strain = (a['strain']?['strainName'] ?? '').toString();
-    final String genotypes = _genotypes(a['genotypes'] as List<dynamic>?);
-    final String sire = (a['sire']?['physicalTag'] ?? '').toString();
-    final String dam = _dam(a['dam'] as List<dynamic>?);
-    final String owner =
-        (a['owner']?['user']?['email'] ??
-                a['owner']?['user']?['username'] ??
-                '')
-            .toString();
-    final String created = (a['createdDate'] ?? '').toString();
+  DataGridRow _toGridRow(AnimalDto a) {
+    final int eid = (a.eid);
+    final String physicalTag = (a.physicalTag ?? '').toString();
+    final String status = (a.cage?.status ?? '').toString();
+    final String sex = (a.sex ?? '').toString();
+    final String dob = (a.dateOfBirth ?? '').toString();
+    final String age = _age(a.dateOfBirth?.toString() ?? '');
+    final String weanDate = (a.weanDate ?? '').toString();
+    final String cageTag = (a.cage?.cageTag ?? '').toString();
+    final String strain = (a.strain?.strainName ?? '').toString();
+    final String genotypes = _genotypes(a.genotypes);
+    final String sire = (a.sire?.physicalTag ?? '').toString();
+    final String dam = _dam(a.dam);
+    final String owner = (a.owner?.user?.email ?? a.owner?.user?.username ?? '')
+        .toString();
+    final String created = (a.createdDate).toString();
     return DataGridRow(
       cells: [
         DataGridCell<int>(columnName: 'eid', value: eid),
@@ -324,21 +323,21 @@ class _AnimalGridSource extends DataGridSource {
     return '${weeks}w${days}d';
   }
 
-  String _genotypes(List<dynamic>? list) {
+  String _genotypes(List<GenotypeDto>? list) {
     if (list == null || list.isEmpty) return '';
     return list
         .map((g) {
-          final gene = (g['gene']?['geneName'] ?? '').toString();
-          final allele = (g['allele']?['alleleName'] ?? '').toString();
+          final gene = (g.gene?.geneName ?? '').toString();
+          final allele = (g.allele?.alleleName ?? '').toString();
           return gene.isEmpty ? allele : '$gene/$allele';
         })
         .join(', ');
   }
 
-  String _dam(List<dynamic>? list) {
+  String _dam(List<AnimalSummaryDto>? list) {
     if (list == null || list.isEmpty) return '';
     return list
-        .map((d) => (d['physicalTag'] ?? '').toString())
+        .map((d) => (d.physicalTag ?? '').toString())
         .where((s) => s.isNotEmpty)
         .join(', ');
   }

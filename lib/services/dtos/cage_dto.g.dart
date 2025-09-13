@@ -45,3 +45,19 @@ Map<String, dynamic> _$CageDtoToJson(CageDto instance) => <String, dynamic>{
   'endDate': instance.endDate,
   'status': instance.status,
 };
+
+CageSummaryDto _$CageSummaryDtoFromJson(Map<String, dynamic> json) =>
+    CageSummaryDto(
+      cageId: (json['cageId'] as num).toInt(),
+      cageUuid: json['cageUuid'] as String,
+      cageTag: json['cageTag'] as String?,
+      status: json['status'] as String?,
+    );
+
+Map<String, dynamic> _$CageSummaryDtoToJson(CageSummaryDto instance) =>
+    <String, dynamic>{
+      'cageId': instance.cageId,
+      'cageUuid': instance.cageUuid,
+      'cageTag': instance.cageTag,
+      'status': instance.status,
+    };
