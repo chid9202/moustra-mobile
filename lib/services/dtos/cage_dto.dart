@@ -41,3 +41,22 @@ class CageDto {
       _$CageDtoFromJson(json);
   Map<String, dynamic> toJson() => _$CageDtoToJson(this);
 }
+
+@JsonSerializable(explicitToJson: true)
+class CageSummaryDto {
+  final int cageId;
+  final String cageUuid;
+  final String? cageTag;
+  final String? status;
+
+  CageSummaryDto({
+    required this.cageId,
+    required this.cageUuid,
+    this.cageTag,
+    this.status,
+  });
+
+  factory CageSummaryDto.fromJson(Map<String, dynamic> json) =>
+      _$CageSummaryDtoFromJson(json);
+  Map<String, dynamic> toJson() => _$CageSummaryDtoToJson(this);
+}
