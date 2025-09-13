@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:moustra/config/api_config.dart';
 import 'package:moustra/services/api_client.dart';
+import 'package:moustra/services/dtos/paginated_response_dto.dart';
+import 'package:moustra/services/dtos/strain_dto.dart';
 
 class StrainPage {
   final int count;
@@ -11,7 +13,7 @@ class StrainPage {
 }
 
 class StrainService {
-  Future<StrainPage> getStrainsPage({
+  Future<PaginatedResponseDto<StrainDto>> getStrainsPage({
     int page = 1,
     int pageSize = 25,
     Map<String, String>? query,
@@ -22,17 +24,11 @@ class StrainService {
       if (query != null) ...query,
     };
     final res = await apiClient.get(ApiConfig.strains, query: mergedQuery);
-    final Map<String, dynamic> data =
-        jsonDecode(res.body) as Map<String, dynamic>;
-    final int count = (data['count'] as int?) ?? 0;
-    final List<dynamic> results =
-        (data['results'] as List<dynamic>? ?? <dynamic>[]);
-    return StrainPage(count: count, results: results);
-  }
-
-  Future<Map<String, dynamic>> getStrain(String id) async {
-    final res = await apiClient.get('${ApiConfig.strains}/$id');
-    return jsonDecode(res.body) as Map<String, dynamic>;
+    final Map<String, dynamic> data = jsonDecode(res.body);
+    return PaginatedResponseDto<StrainDto>.fromJson(
+      data,
+      (j) => StrainDto.fromJson(j),
+    );
   }
 
   Future<Map<String, dynamic>> createStrain(
