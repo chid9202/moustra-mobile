@@ -7,6 +7,7 @@ import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/helpers/animal_helper.dart';
 import 'package:moustra/helpers/datetime_helper.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
+import 'package:moustra/widgets/safe_text.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -59,7 +60,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
           child: PaginatedDataGrid<AnimalDto>(
             controller: _controller,
             onSortChanged: (columnName, ascending) {
-              _sortField = mapSortField(columnName as AnimalListColumn);
+              _sortField = columnName;
               _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
               _controller.reload();
             },
@@ -150,7 +151,7 @@ class _AnimalGridSource extends DataGridSource {
         ),
         DataGridCell<String>(
           columnName: AnimalListColumn.sire.name,
-          value: a.sire?.physicalTag,
+          value: a.sire?.physicalTag ?? '',
         ),
         DataGridCell<String>(
           columnName: AnimalListColumn.dam.name,
@@ -172,40 +173,40 @@ class _AnimalGridSource extends DataGridSource {
   DataGridRowAdapter buildRow(DataGridRow row) {
     return DataGridRowAdapter(
       cells: [
-        Center(child: Text('${row.getCells()[0].value}')),
+        Center(child: SafeText('${row.getCells()[0].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[1].value),
+          child: SafeText(row.getCells()[1].value),
         ),
-        Center(child: Text(row.getCells()[2].value)),
-        Center(child: Text(row.getCells()[3].value)),
-        Center(child: Text(row.getCells()[4].value)),
-        Center(child: Text(row.getCells()[5].value)),
-        Center(child: Text(row.getCells()[6].value)),
-        Center(child: Text(row.getCells()[7].value)),
+        Center(child: SafeText(row.getCells()[2].value)),
+        Center(child: SafeText(row.getCells()[3].value)),
+        Center(child: SafeText(row.getCells()[4].value)),
+        Center(child: SafeText(row.getCells()[5].value)),
+        Center(child: SafeText(row.getCells()[6].value)),
+        Center(child: SafeText(row.getCells()[7].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[8].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[9].value),
+          child: SafeText(row.getCells()[8].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[10].value),
+          child: SafeText(row.getCells()[9].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[11].value),
+          child: SafeText(row.getCells()[10].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[12].value),
+          child: SafeText(row.getCells()[11].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[13].value),
+          child: SafeText(row.getCells()[12].value),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: SafeText(row.getCells()[13].value),
         ),
       ],
     );
