@@ -15,9 +15,11 @@ AnimalDto _$AnimalDtoFromJson(Map<String, dynamic> json) => AnimalDto(
       ? null
       : DateTime.parse(json['dateOfBirth'] as String),
   sex: json['sex'] as String?,
-  genotypes: (json['genotypes'] as List<dynamic>?)
-      ?.map((e) => GenotypeDto.fromJson(e as Map<String, dynamic>))
-      .toList(),
+  genotypes:
+      (json['genotypes'] as List<dynamic>?)
+          ?.map((e) => GenotypeDto.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   weanDate: json['weanDate'] == null
       ? null
       : DateTime.parse(json['weanDate'] as String),
@@ -36,6 +38,14 @@ AnimalDto _$AnimalDtoFromJson(Map<String, dynamic> json) => AnimalDto(
   comment: json['comment'] as String?,
   createdDate: DateTime.parse(json['createdDate'] as String),
   updatedDate: DateTime.parse(json['updatedDate'] as String),
+  sire: json['sire'] == null
+      ? null
+      : AnimalSummaryDto.fromJson(json['sire'] as Map<String, dynamic>),
+  dam:
+      (json['dam'] as List<dynamic>?)
+          ?.map((e) => AnimalSummaryDto.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$AnimalDtoToJson(AnimalDto instance) => <String, dynamic>{
@@ -54,6 +64,8 @@ Map<String, dynamic> _$AnimalDtoToJson(AnimalDto instance) => <String, dynamic>{
   'comment': instance.comment,
   'createdDate': instance.createdDate.toIso8601String(),
   'updatedDate': instance.updatedDate.toIso8601String(),
+  'sire': instance.sire?.toJson(),
+  'dam': instance.dam?.map((e) => e.toJson()).toList(),
 };
 
 AnimalSummaryDto _$AnimalSummaryDtoFromJson(Map<String, dynamic> json) =>
