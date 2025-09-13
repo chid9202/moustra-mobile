@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
 
+import 'package:grid_view/screens/dashboard/animals_to_wean.dart';
 import 'package:grid_view/screens/dashboard/mice_count_by_age.dart';
 import 'package:grid_view/services/dashboard_service.dart';
 
@@ -51,64 +51,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
-                  child: MouseCountGraph(data),
+                  child: MouseCountByAge(data),
                 ),
               ),
               const SizedBox(height: 12),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Animals To Wean',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      ...animalsToWean.take(10).map((a) {
-                        final tag = (a['physicalTag'] ?? '').toString();
-                        final wean = (a['weanDate'] ?? '').toString();
-                        final cageTag = (a['cage']?['cageTag'] ?? '')
-                            .toString();
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  tag.isEmpty ? '(no tag)' : tag,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              SizedBox(
-                                width: 12,
-                                child: Text('→', textAlign: TextAlign.center),
-                              ),
-                              SizedBox(
-                                width: 120,
-                                child: Text(
-                                  cageTag,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              SizedBox(
-                                width: 120,
-                                child: Text(
-                                  _formatDate(wean),
-                                  textAlign: TextAlign.right,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
+                  child: AnimalsToWean(animalsToWean),
                 ),
               ),
 
@@ -279,12 +229,5 @@ class _DashboardScreenState extends State<DashboardScreen> {
         titleStyle: const TextStyle(fontSize: 12, color: Colors.white),
       );
     }).toList();
-  }
-
-  String _formatDate(String iso) {
-    if (iso.isEmpty) return '';
-    final dt = DateTime.tryParse(iso)?.toLocal();
-    if (dt == null) return iso;
-    return DateFormat('M/d/y').format(dt);
   }
 }
