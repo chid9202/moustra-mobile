@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:moustra/services/cage_service.dart';
+import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/services/dtos/genotype_dto.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';

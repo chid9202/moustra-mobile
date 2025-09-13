@@ -1,18 +1,11 @@
 import 'dart:convert';
 
 import 'package:moustra/config/api_config.dart';
-import 'package:moustra/services/api_client.dart';
+import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 
-class StrainPage {
-  final int count;
-  final List<dynamic> results;
-
-  StrainPage({required this.count, required this.results});
-}
-
-class StrainService {
+class StrainApi {
   Future<PaginatedResponseDto<StrainDto>> getStrainsPage({
     int page = 1,
     int pageSize = 25,
@@ -58,4 +51,4 @@ class StrainService {
   }
 }
 
-final StrainService strainService = StrainService();
+final StrainApi strainService = StrainApi();

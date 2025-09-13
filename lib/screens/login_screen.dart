@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/app/router.dart';
-import 'package:moustra/services/profile_service.dart';
+import 'package:moustra/services/clients/profile_api.dart';
 import 'package:moustra/services/dtos/profile_dto.dart';
 
 class LoginScreen extends StatefulWidget {
