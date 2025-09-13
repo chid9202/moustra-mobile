@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:moustra/services/dtos/animal_dto.dart';
+import 'package:moustra/services/dtos/genotype_dto.dart';
 import 'package:moustra/services/mating_service.dart';
+import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -45,7 +48,7 @@ class _MatingsScreenState extends State<MatingsScreen> {
           ),
         ),
         Expanded(
-          child: PaginatedDataGrid<Map<String, dynamic>>(
+          child: PaginatedDataGrid<MatingDto>(
             controller: _controller,
             onSortChanged: (columnName, ascending) {
               _sortField = _mapSortField(columnName);
@@ -63,9 +66,9 @@ class _MatingsScreenState extends State<MatingsScreen> {
                   if (_sortField != null) 'order': _sortOrder,
                 },
               );
-              return PaginatedResult<Map<String, dynamic>>(
+              return PaginatedResult<MatingDto>(
                 count: pageData.count,
-                results: pageData.results.cast<Map<String, dynamic>>(),
+                results: pageData.results.cast<MatingDto>(),
               );
             },
             rowHeightEstimator: (index, row) => _estimateLines(row),
@@ -177,19 +180,19 @@ class _MatingsScreenState extends State<MatingsScreen> {
     }
   }
 
-  int _estimateLines(Map<String, dynamic> m) {
-    final List<dynamic> animals =
-        (m['animals'] as List<dynamic>? ?? <dynamic>[]);
-    final List<Map<String, dynamic>> females = animals
-        .where((a) => (a is Map && (a['sex'] ?? '') == 'F'))
-        .cast<Map<String, dynamic>>()
+  int _estimateLines(MatingDto m) {
+    final List<AnimalSummaryDto> animals =
+        (m.animals as List<AnimalSummaryDto>? ?? <AnimalSummaryDto>[]);
+    final List<AnimalSummaryDto> females = animals
+        .where((a) => (a.sex ?? '') == 'F')
+        .cast<AnimalSummaryDto>()
         .toList();
     final int femaleTagLines = females
-        .map((f) => (f['physicalTag'] ?? '').toString())
+        .map((f) => (f.physicalTag ?? '').toString())
         .where((t) => t.isNotEmpty)
         .length;
     final int femaleGenotypeLines = females
-        .map((f) => _formatGenotypes(f['genotypes'] as List<dynamic>?))
+        .map((f) => _formatGenotypes(f.genotypes))
         .where((g) => g.isNotEmpty)
         .length;
     final int maxLines = femaleTagLines > femaleGenotypeLines
@@ -204,8 +207,8 @@ class _MatingsScreenState extends State<MatingsScreen> {
     if (list == null || list.isEmpty) return '';
     return list
         .map((g) {
-          final gene = (g['gene']?['geneName'] ?? '').toString();
-          final allele = (g['allele']?['alleleName'] ?? '').toString();
+          final gene = (g.gene?.geneName ?? '').toString();
+          final allele = (g.allele?.alleleName ?? '').toString();
           return gene.isEmpty ? allele : '$gene/$allele';
         })
         .join(', ');
@@ -215,7 +218,7 @@ class _MatingsScreenState extends State<MatingsScreen> {
 }
 
 class _MatingGridSource extends DataGridSource {
-  final List<Map<String, dynamic>> records;
+  final List<MatingDto> records;
 
   _MatingGridSource({required this.records}) {
     _rows = records.map(_toGridRow).toList();
@@ -226,41 +229,38 @@ class _MatingGridSource extends DataGridSource {
   @override
   List<DataGridRow> get rows => _rows;
 
-  DataGridRow _toGridRow(Map<String, dynamic> m) {
-    final int eid = (m['eid'] ?? 0) as int;
-    final String matingTag = (m['matingTag'] ?? '').toString();
-    final String cageTag = (m['cage']?['cageTag'] ?? '').toString();
-    final String litterStrain = (m['litterStrain']?['strainName'] ?? '')
-        .toString();
-    final List<dynamic> animals =
-        (m['animals'] as List<dynamic>? ?? <dynamic>[]);
-    final Map<String, dynamic>? male = animals
-        .cast<Map<String, dynamic>?>()
-        .firstWhere((a) => (a?['sex'] ?? '') == 'M', orElse: () => null);
-    final List<Map<String, dynamic>> females = animals
-        .where((a) => (a is Map && (a['sex'] ?? '') == 'F'))
-        .cast<Map<String, dynamic>>()
+  DataGridRow _toGridRow(MatingDto m) {
+    final int eid = (m.eid);
+    final String matingTag = (m.matingTag ?? '').toString();
+    final String cageTag = (m.cage?.cageTag ?? '').toString();
+    final String litterStrain = (m.litterStrain?.strainName ?? '').toString();
+    final List<AnimalSummaryDto> animals = m.animals;
+    // (m.animals as List<AnimalSummaryDto>? ?? <AnimalSummaryDto>[]);
+    final AnimalSummaryDto? male = animals.cast<AnimalSummaryDto?>().firstWhere(
+      (a) => (a?.sex ?? '') == 'M',
+      orElse: () => null,
+    );
+    final List<AnimalSummaryDto> females = animals
+        .where((a) => (a.sex ?? '') == 'F')
+        .cast<AnimalSummaryDto>()
         .toList();
-    final String maleTag = (male?['physicalTag'] ?? '').toString();
+    final String maleTag = (male?.physicalTag ?? '').toString();
     final List<String> femaleTags = females
-        .map((f) => (f['physicalTag'] ?? '').toString())
+        .map((f) => (f.physicalTag ?? '').toString())
         .where((t) => t.isNotEmpty)
         .toList();
     final String maleGenotypes = _fmtGenotypes(
-      male?['genotypes'] as List<dynamic>?,
+      male?.genotypes as List<dynamic>?,
     );
     final List<String> femaleGenotypeLines = females
-        .map((f) => _fmtGenotypes(f['genotypes'] as List<dynamic>?))
+        .map((f) => _fmtGenotypes(f.genotypes as List<dynamic>?))
         .where((g) => g.isNotEmpty)
         .toList();
-    final String setUpDate = (m['setUpDate'] ?? '').toString();
-    final String disbandedDate = (m['disbandedDate'] ?? '').toString();
-    final String owner =
-        (m['owner']?['user']?['email'] ??
-                m['owner']?['user']?['username'] ??
-                '')
-            .toString();
-    final String created = (m['createdDate'] ?? '').toString();
+    final String setUpDate = (m.setUpDate ?? '').toString();
+    final String disbandedDate = (m.disbandedDate ?? '').toString();
+    final String owner = (m.owner?.user?.email ?? m.owner?.user?.username ?? '')
+        .toString();
+    final String created = (m.createdDate).toString();
     return DataGridRow(
       cells: [
         DataGridCell<int>(columnName: 'eid', value: eid),
@@ -365,11 +365,12 @@ class _MatingGridSource extends DataGridSource {
   }
 
   String _fmtGenotypes(List<dynamic>? list) {
+    // TODO: Move to helper
     if (list == null || list.isEmpty) return '';
     return list
         .map((g) {
-          final gene = (g['gene']?['geneName'] ?? '').toString();
-          final allele = (g['allele']?['alleleName'] ?? '').toString();
+          final gene = (g.gene?.geneName ?? '').toString();
+          final allele = (g.allele?.alleleName ?? '').toString();
           return gene.isEmpty ? allele : '$gene/$allele';
         })
         .join(', ');
