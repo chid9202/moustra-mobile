@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/constants/list_constants/cage_list_constants.dart';
+import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
-import 'package:moustra/services/dtos/genotype_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/helpers/datetime_helper.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
@@ -67,19 +68,22 @@ class _CagesListScreenState extends State<CagesListScreen> {
           child: PaginatedDataGrid<CageDto>(
             controller: _controller,
             onSortChanged: (columnName, ascending) {
-              _sortField = _mapSortField(columnName);
-              _sortOrder = ascending ? 'asc' : 'desc';
+              print('onSortChanged: $columnName, $ascending');
+              _sortField = columnName;
+              _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
               _controller.reload();
             },
-            columns: _gridColumns(),
+            columns: cageListColumns(),
             sourceBuilder: (rows) => _CageGridSource(records: rows),
             fetchPage: (page, pageSize) async {
               final pageData = await cageService.getCagesPage(
                 page: page,
                 pageSize: pageSize,
                 query: {
-                  if (_sortField != null) 'sort': _sortField!,
-                  if (_sortField != null) 'order': _sortOrder,
+                  if (_sortField != null)
+                    SortQueryParamKey.sort.name: _sortField!,
+                  if (_sortField != null)
+                    SortQueryParamKey.order.name: _sortOrder,
                 },
               );
               return PaginatedResult<CageDto>(
@@ -94,91 +98,8 @@ class _CagesListScreenState extends State<CagesListScreen> {
     );
   }
 
-  List<GridColumn> _gridColumns() {
-    return [
-      GridColumn(
-        columnName: 'eid',
-        width: 80,
-        label: Center(child: Text('EID')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'cageTag',
-        width: 140,
-        label: Center(child: Text('Cage Tag')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'strain',
-        width: 200,
-        label: Center(child: Text('Strain')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'num',
-        width: 140,
-        label: Center(child: Text('Number of Animals')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'tags',
-        width: 240,
-        label: Center(child: Text('Animal Tags')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'genotypes',
-        width: 260,
-        label: Center(child: Text('Genotypes')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'status',
-        width: 120,
-        label: Center(child: Text('Status')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'endDate',
-        width: 160,
-        label: Center(child: Text('End Date')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'owner',
-        width: 220,
-        label: Center(child: Text('Owner')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'created',
-        width: 180,
-        label: Center(child: Text('Created Date')),
-        allowSorting: true,
-      ),
-    ];
-  }
-
   String? _sortField;
-  String _sortOrder = 'asc';
-  String? _mapSortField(String columnName) {
-    switch (columnName) {
-      case 'cageTag':
-        return 'cage_tag';
-      case 'strain':
-        return 'strain';
-      case 'status':
-        return 'status';
-      case 'endDate':
-        return 'end_date';
-      case 'owner':
-        return 'owner';
-      case 'created':
-        return 'created_date';
-      default:
-        return null;
-    }
-  }
+  String _sortOrder = SortOrder.asc.name;
 
   int _estimateLines(CageDto c) {
     final List<dynamic> animals = (c.animals as List<dynamic>? ?? <dynamic>[]);
@@ -207,41 +128,53 @@ class _CageGridSource extends DataGridSource {
   List<DataGridRow> get rows => _rows;
 
   DataGridRow _toRow(CageDto c) {
-    final int eid = (c.eid);
-    final String cageTag = (c.cageTag);
-    final String strain = (c.strain?.strainName).toString();
     final List<dynamic> animals = (c.animals as List<dynamic>? ?? <dynamic>[]);
     final int numAnimals = animals.length;
     final List<String> animalTagLines = animals
         .map((a) => (a.physicalTag ?? '').toString())
         .where((t) => t.isNotEmpty)
         .toList();
-    final List<String> animalGenotypeLines = animals
-        .map(
-          (a) =>
-              GenotypeHelper.formatGenotypes(a.genotypes as List<GenotypeDto>?),
-        )
-        .where((g) => g.isNotEmpty)
-        .toList();
-    final String status = c.status;
-    final String endDate = DateTimeHelper.formatDate(c.endDate);
-    final String owner = AccountHelper.getOwnerName(c.owner);
-    final String created = DateTimeHelper.formatDateTime(c.createdDate);
     return DataGridRow(
       cells: [
-        DataGridCell<int>(columnName: 'eid', value: eid),
-        DataGridCell<String>(columnName: 'cageTag', value: cageTag),
-        DataGridCell<String>(columnName: 'strain', value: strain),
-        DataGridCell<int>(columnName: 'num', value: numAnimals),
-        DataGridCell<List<String>>(columnName: 'tags', value: animalTagLines),
-        DataGridCell<List<String>>(
-          columnName: 'genotypes',
-          value: animalGenotypeLines,
+        DataGridCell<int>(columnName: CageListColumn.eid.name, value: c.eid),
+        DataGridCell<String>(
+          columnName: CageListColumn.cageTag.name,
+          value: c.cageTag,
         ),
-        DataGridCell<String>(columnName: 'status', value: status),
-        DataGridCell<String>(columnName: 'endDate', value: endDate),
-        DataGridCell<String>(columnName: 'owner', value: owner),
-        DataGridCell<String>(columnName: 'created', value: created),
+        DataGridCell<String>(
+          columnName: CageListColumn.strain.name,
+          value: c.strain?.strainName ?? '',
+        ),
+        DataGridCell<int>(
+          columnName: CageListColumn.numberOfAnimals.name,
+          value: numAnimals,
+        ),
+        DataGridCell<List<String>>(
+          columnName: CageListColumn.animalTags.name,
+          value: animalTagLines,
+        ),
+        DataGridCell<List<String>>(
+          columnName: CageListColumn.genotypes.name,
+          value: c.animals
+              .map((a) => GenotypeHelper.formatGenotypes(a.genotypes))
+              .toList(),
+        ),
+        DataGridCell<String>(
+          columnName: CageListColumn.status.name,
+          value: c.status,
+        ),
+        DataGridCell<String>(
+          columnName: CageListColumn.endDate.name,
+          value: DateTimeHelper.formatDate(c.endDate),
+        ),
+        DataGridCell<String>(
+          columnName: CageListColumn.owner.name,
+          value: AccountHelper.getOwnerName(c.owner),
+        ),
+        DataGridCell<String>(
+          columnName: CageListColumn.created.name,
+          value: DateTimeHelper.formatDateTime(c.createdDate),
+        ),
       ],
     );
   }

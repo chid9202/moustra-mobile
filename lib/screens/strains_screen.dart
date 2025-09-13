@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/constants/list_constants/common.dart';
+import 'package:moustra/constants/list_constants/strain_list_constants.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/services/clients/strain_api.dart';
 import 'package:moustra/helpers/account_helper.dart';
@@ -20,8 +22,8 @@ class _StrainsScreenState extends State<StrainsScreen> {
   List<StrainDto> _all = <StrainDto>[];
   List<StrainDto> _filtered = <StrainDto>[];
   final TextEditingController _filterController = TextEditingController();
-  String? _sortColumn; // api field, e.g., strain_name
-  String _sortOrder = 'asc';
+  String? _sortField; // api field, e.g., strain_name
+  String _sortOrder = SortOrder.asc.name;
   // Sorting handled by grid; legacy fields removed
   // Paging handled by PaginatedDataGrid; keep UI page index for filter reset
   int _currentPage = 0;
@@ -91,22 +93,11 @@ class _StrainsScreenState extends State<StrainsScreen> {
           child: PaginatedDataGrid<StrainDto>(
             controller: _controller,
             onSortChanged: (columnName, ascending) {
-              // Map grid column names to API fields
-              if (columnName == 'name') {
-                _sortColumn = 'strain_name';
-              } else if (columnName == 'created') {
-                _sortColumn = 'created_date';
-              } else if (columnName == 'owner') {
-                _sortColumn = 'owner';
-              } else if (columnName == 'animals') {
-                _sortColumn = 'number_of_animals';
-              } else {
-                _sortColumn = null;
-              }
-              _sortOrder = ascending ? 'asc' : 'desc';
+              _sortField = columnName;
+              _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
               _controller.reload();
             },
-            columns: _gridColumns(),
+            columns: strainListColumns(),
             sourceBuilder: (rows) => _StrainGridSource(
               records: rows,
               selected: _selected,
@@ -117,8 +108,10 @@ class _StrainsScreenState extends State<StrainsScreen> {
                 page: page,
                 pageSize: pageSize,
                 query: {
-                  if (_sortColumn != null) 'sort': _sortColumn!,
-                  if (_sortColumn != null) 'order': _sortOrder,
+                  if (_sortField != null)
+                    SortQueryParamKey.sort.name: _sortField!,
+                  if (_sortField != null)
+                    SortQueryParamKey.order.name: _sortOrder,
                 },
               );
               _all = pageData.results.cast<StrainDto>();
@@ -132,64 +125,6 @@ class _StrainsScreenState extends State<StrainsScreen> {
         ),
       ],
     );
-  }
-
-  List<GridColumn> _gridColumns() {
-    return [
-      GridColumn(
-        columnName: 'select',
-        width: 56,
-        label: const SizedBox.shrink(),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'edit',
-        width: 72,
-        label: const Center(child: Text('Edit')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'name',
-        width: 240,
-        label: const Center(child: Text('Strain Name')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'animals',
-        width: 100,
-        label: const Center(child: Text('# Animals')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'color',
-        width: 80,
-        label: const Center(child: Text('Color')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'owner',
-        width: 220,
-        label: const Center(child: Text('Owner')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'created',
-        width: 180,
-        label: const Center(child: Text('Created Date')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'background',
-        width: 200,
-        label: const Center(child: Text('Background')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'active',
-        width: 100,
-        label: const Center(child: Text('Active')),
-      ),
-    ];
   }
 
   void _onToggleSelected(String uuid, bool selected) {
@@ -268,24 +203,42 @@ class _StrainGridSource extends DataGridSource {
     final String uuid = e.strainUuid;
     return DataGridRow(
       cells: [
-        DataGridCell<String>(columnName: 'select', value: uuid),
-        DataGridCell<String>(columnName: 'edit', value: uuid),
-        DataGridCell<String>(columnName: 'name', value: e.strainName),
-        DataGridCell<int>(columnName: 'animals', value: e.numberOfAnimals),
-        DataGridCell<String>(columnName: 'color', value: e.color ?? ''),
         DataGridCell<String>(
-          columnName: 'owner',
+          columnName: StrainListColumn.select.name,
+          value: uuid,
+        ),
+        DataGridCell<String>(
+          columnName: StrainListColumn.edit.name,
+          value: uuid,
+        ),
+        DataGridCell<String>(
+          columnName: StrainListColumn.strainName.name,
+          value: e.strainName,
+        ),
+        DataGridCell<int>(
+          columnName: StrainListColumn.animals.name,
+          value: e.numberOfAnimals,
+        ),
+        DataGridCell<String>(
+          columnName: StrainListColumn.color.name,
+          value: e.color ?? '',
+        ),
+        DataGridCell<String>(
+          columnName: StrainListColumn.owner.name,
           value: AccountHelper.getOwnerName(e.owner),
         ),
         DataGridCell<String>(
-          columnName: 'created',
+          columnName: StrainListColumn.created.name,
           value: DateTimeHelper.formatDateTime(e.createdDate),
         ),
         DataGridCell<String>(
-          columnName: 'background',
+          columnName: StrainListColumn.background.name,
           value: StrainHelper.getBackgroundNames(e.backgrounds),
         ),
-        DataGridCell<bool>(columnName: 'active', value: e.isActive),
+        DataGridCell<bool>(
+          columnName: StrainListColumn.active.name,
+          value: e.isActive,
+        ),
       ],
     );
   }

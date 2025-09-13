@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/constants/list_constants/animal_list_constants.dart';
+import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
@@ -57,19 +59,21 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
           child: PaginatedDataGrid<AnimalDto>(
             controller: _controller,
             onSortChanged: (columnName, ascending) {
-              _sortField = _mapSortField(columnName);
-              _sortOrder = ascending ? 'asc' : 'desc';
+              _sortField = mapSortField(columnName as AnimalListColumn);
+              _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
               _controller.reload();
             },
-            columns: _gridColumns(),
+            columns: animalListColumns(),
             sourceBuilder: (rows) => _AnimalGridSource(records: rows),
             fetchPage: (page, pageSize) async {
               final pageData = await animalService.getAnimalsPage(
                 page: page,
                 pageSize: pageSize,
                 query: {
-                  if (_sortField != null) 'sort': _sortField!,
-                  if (_sortField != null) 'order': _sortOrder,
+                  if (_sortField != null)
+                    SortQueryParamKey.sort.name: _sortField!,
+                  if (_sortField != null)
+                    SortQueryParamKey.order.name: _sortOrder,
                 },
               );
               return PaginatedResult<AnimalDto>(
@@ -88,123 +92,8 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     super.didUpdateWidget(oldWidget);
   }
 
-  List<GridColumn> _gridColumns() {
-    return [
-      GridColumn(
-        columnName: 'eid',
-        width: 80,
-        label: Center(child: Text('EID')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'ptag',
-        width: 120,
-        label: Center(child: Text('Physical Tag')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'status',
-        width: 100,
-        label: Center(child: Text('Status')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'sex',
-        width: 80,
-        label: Center(child: Text('Sex')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'dob',
-        width: 140,
-        label: Center(child: Text('Date of Birth')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'age',
-        width: 80,
-        label: Center(child: Text('Age')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'wean',
-        width: 140,
-        label: Center(child: Text('Wean Date')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'cage',
-        width: 120,
-        label: Center(child: Text('Cage Tag')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'strain',
-        width: 200,
-        label: Center(child: Text('Strain')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'genotypes',
-        width: 240,
-        label: Center(child: Text('Genotypes')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'sire',
-        width: 160,
-        label: Center(child: Text('Sire')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'dam',
-        width: 160,
-        label: Center(child: Text('Dam')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'owner',
-        width: 220,
-        label: Center(child: Text('Owner')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'created',
-        width: 180,
-        label: Center(child: Text('Created Date')),
-        allowSorting: true,
-      ),
-    ];
-  }
-
   String? _sortField;
-  String _sortOrder = 'asc';
-  String? _mapSortField(String columnName) {
-    switch (columnName) {
-      case 'ptag':
-        return 'physical_tag';
-      case 'cage':
-        return 'cage_tag';
-      case 'status':
-        return 'status';
-      case 'sex':
-        return 'sex';
-      case 'dob':
-        return 'date_of_birth';
-      case 'wean':
-        return 'wean_date';
-      case 'strain':
-        return 'strain';
-      case 'owner':
-        return 'owner';
-      case 'created':
-        return 'created_date';
-      default:
-        return null;
-    }
-  }
-
-  // Data formatting now handled in DataGrid source
+  String _sortOrder = SortOrder.asc.name;
 }
 
 class _AnimalGridSource extends DataGridSource {
@@ -220,36 +109,61 @@ class _AnimalGridSource extends DataGridSource {
   List<DataGridRow> get rows => _rows;
 
   DataGridRow _toGridRow(AnimalDto a) {
-    final int eid = (a.eid);
-    final String physicalTag = (a.physicalTag ?? '').toString();
-    final String status = (a.cage?.status ?? '').toString();
-    final String sex = (a.sex ?? '').toString();
-    final String dob = DateTimeHelper.formatDate(a.dateOfBirth);
-    final String age = AnimalHelper.getAge(a);
-    final String weanDate = DateTimeHelper.formatDate(a.weanDate);
-    final String cageTag = (a.cage?.cageTag ?? '').toString();
-    final String strain = (a.strain?.strainName ?? '').toString();
-    final String genotypes = GenotypeHelper.formatGenotypes(a.genotypes);
-    final String sire = (a.sire?.physicalTag ?? '').toString();
-    final String dam = GenotypeHelper.getDamNames(a.dam);
-    final String owner = AccountHelper.getOwnerName(a.owner);
-    final String created = DateTimeHelper.formatDateTime(a.createdDate);
     return DataGridRow(
       cells: [
-        DataGridCell<int>(columnName: 'eid', value: eid),
-        DataGridCell<String>(columnName: 'ptag', value: physicalTag),
-        DataGridCell<String>(columnName: 'status', value: status),
-        DataGridCell<String>(columnName: 'sex', value: sex),
-        DataGridCell<String>(columnName: 'dob', value: dob),
-        DataGridCell<String>(columnName: 'age', value: age),
-        DataGridCell<String>(columnName: 'wean', value: weanDate),
-        DataGridCell<String>(columnName: 'cage', value: cageTag),
-        DataGridCell<String>(columnName: 'strain', value: strain),
-        DataGridCell<String>(columnName: 'genotypes', value: genotypes),
-        DataGridCell<String>(columnName: 'sire', value: sire),
-        DataGridCell<String>(columnName: 'dam', value: dam),
-        DataGridCell<String>(columnName: 'owner', value: owner),
-        DataGridCell<String>(columnName: 'created', value: created),
+        DataGridCell<int>(columnName: AnimalListColumn.eid.name, value: a.eid),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.physicalTag.name,
+          value: a.physicalTag,
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.status.name,
+          value: a.cage?.status,
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.sex.name,
+          value: a.sex,
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.dob.name,
+          value: DateTimeHelper.formatDate(a.dateOfBirth),
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.age.name,
+          value: AnimalHelper.getAge(a),
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.wean.name,
+          value: DateTimeHelper.formatDate(a.weanDate),
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.cage.name,
+          value: a.cage?.cageTag,
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.strain.name,
+          value: a.strain?.strainName,
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.genotypes.name,
+          value: GenotypeHelper.formatGenotypes(a.genotypes),
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.sire.name,
+          value: a.sire?.physicalTag,
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.dam.name,
+          value: GenotypeHelper.getDamNames(a.dam),
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.owner.name,
+          value: AccountHelper.getOwnerName(a.owner),
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.created.name,
+          value: DateTimeHelper.formatDateTime(a.createdDate),
+        ),
       ],
     );
   }
