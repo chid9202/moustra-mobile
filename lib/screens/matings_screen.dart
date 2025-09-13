@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/genotype_dto.dart';
-import 'package:moustra/services/mating_service.dart';
+import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';

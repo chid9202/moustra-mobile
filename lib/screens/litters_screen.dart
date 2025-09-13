@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:moustra/services/dtos/litter_dto.dart';
-import 'package:moustra/services/litter_service.dart';
+import 'package:moustra/services/clients/litter_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 

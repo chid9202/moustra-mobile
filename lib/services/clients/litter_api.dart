@@ -1,17 +1,10 @@
 import 'dart:convert';
 
-import 'package:moustra/services/api_client.dart';
+import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/litter_dto.dart';
 
-class LitterPage {
-  final int count;
-  final List<dynamic> results;
-
-  LitterPage({required this.count, required this.results});
-}
-
-class LitterService {
+class LitterApi {
   static const String basePath = '/litter';
 
   Future<PaginatedResponseDto<LitterDto>> getLittersPage({
@@ -34,4 +27,4 @@ class LitterService {
   }
 }
 
-final LitterService litterService = LitterService();
+final LitterApi litterService = LitterApi();

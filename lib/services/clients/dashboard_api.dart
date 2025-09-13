@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:moustra/services/api_client.dart';
+import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/dashboard_dto.dart';
 
-class DashboardService {
+class DashboardApi {
   static const String basePath = '/dashboard';
 
   Future<Map<String, dynamic>> getDashboard({
@@ -23,4 +23,4 @@ class DashboardService {
   }
 }
 
-final DashboardService dashboardService = DashboardService();
+final DashboardApi dashboardService = DashboardApi();

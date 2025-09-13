@@ -1,17 +1,10 @@
 import 'dart:convert';
 
-import 'package:moustra/services/api_client.dart';
+import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 
-class MatingPage {
-  final int count;
-  final List<dynamic> results;
-
-  MatingPage({required this.count, required this.results});
-}
-
-class MatingService {
+class MatingApi {
   static const String basePath = '/mating';
 
   Future<PaginatedResponseDto<MatingDto>> getMatingsPage({
@@ -33,4 +26,4 @@ class MatingService {
   }
 }
 
-final MatingService matingService = MatingService();
+final MatingApi matingService = MatingApi();

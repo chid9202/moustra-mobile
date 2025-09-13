@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:moustra/services/api_client.dart';
+import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/profile_dto.dart';
 
-class ProfileService {
+class ProfileApi {
   Future<ProfileResponseDto> getProfile(ProfileRequestDto body) async {
     final res = await apiClient.post(
       'auth/callback',
@@ -16,4 +16,4 @@ class ProfileService {
   }
 }
 
-final ProfileService profileService = ProfileService();
+final ProfileApi profileService = ProfileApi();

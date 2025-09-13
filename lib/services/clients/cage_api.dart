@@ -1,17 +1,10 @@
 import 'dart:convert';
 
-import 'package:moustra/services/api_client.dart';
+import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 
-class CagePage {
-  final int count;
-  final List<dynamic> results;
-
-  CagePage({required this.count, required this.results});
-}
-
-class CageService {
+class CageApi {
   static const String basePath = '/cage';
 
   Future<PaginatedResponseDto<CageDto>> getCagesPage({
@@ -33,4 +26,4 @@ class CageService {
   }
 }
 
-final CageService cageService = CageService();
+final CageApi cageService = CageApi();
