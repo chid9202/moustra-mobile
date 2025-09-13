@@ -21,8 +21,8 @@ class AnimalDto {
   final CageSummaryDto? cage;
   final StrainSummaryDto? strain;
   final String? comment;
-  final DateTime createdDate;
-  final DateTime updatedDate;
+  final DateTime? createdDate;
+  final DateTime? updatedDate;
   final AnimalSummaryDto? sire;
   final List<AnimalSummaryDto>? dam;
 
@@ -40,8 +40,8 @@ class AnimalDto {
     this.cage,
     this.strain,
     this.comment,
-    required this.createdDate,
-    required this.updatedDate,
+    this.createdDate,
+    this.updatedDate,
     this.sire,
     this.dam = const [],
   });
@@ -63,8 +63,8 @@ class AnimalSummaryDto {
   final String? weanDate;
   final String? sex;
   final String? comment;
-  final DateTime createdDate;
-  final DateTime updatedDate;
+  final DateTime? createdDate;
+  final DateTime? updatedDate;
 
   AnimalSummaryDto({
     required this.animalId,
@@ -77,8 +77,8 @@ class AnimalSummaryDto {
     this.weanDate,
     this.sex,
     this.comment,
-    required this.createdDate,
-    required this.updatedDate,
+    this.createdDate,
+    this.updatedDate,
   });
 
   factory AnimalSummaryDto.fromJson(Map<String, dynamic> json) =>

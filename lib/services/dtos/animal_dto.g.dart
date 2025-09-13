@@ -36,8 +36,12 @@ AnimalDto _$AnimalDtoFromJson(Map<String, dynamic> json) => AnimalDto(
       ? null
       : StrainSummaryDto.fromJson(json['strain'] as Map<String, dynamic>),
   comment: json['comment'] as String?,
-  createdDate: DateTime.parse(json['createdDate'] as String),
-  updatedDate: DateTime.parse(json['updatedDate'] as String),
+  createdDate: json['createdDate'] == null
+      ? null
+      : DateTime.parse(json['createdDate'] as String),
+  updatedDate: json['updatedDate'] == null
+      ? null
+      : DateTime.parse(json['updatedDate'] as String),
   sire: json['sire'] == null
       ? null
       : AnimalSummaryDto.fromJson(json['sire'] as Map<String, dynamic>),
@@ -62,8 +66,8 @@ Map<String, dynamic> _$AnimalDtoToJson(AnimalDto instance) => <String, dynamic>{
   'cage': instance.cage?.toJson(),
   'strain': instance.strain?.toJson(),
   'comment': instance.comment,
-  'createdDate': instance.createdDate.toIso8601String(),
-  'updatedDate': instance.updatedDate.toIso8601String(),
+  'createdDate': instance.createdDate?.toIso8601String(),
+  'updatedDate': instance.updatedDate?.toIso8601String(),
   'sire': instance.sire?.toJson(),
   'dam': instance.dam?.map((e) => e.toJson()).toList(),
 };
@@ -88,8 +92,12 @@ AnimalSummaryDto _$AnimalSummaryDtoFromJson(Map<String, dynamic> json) =>
       weanDate: json['weanDate'] as String?,
       sex: json['sex'] as String?,
       comment: json['comment'] as String?,
-      createdDate: DateTime.parse(json['createdDate'] as String),
-      updatedDate: DateTime.parse(json['updatedDate'] as String),
+      createdDate: json['createdDate'] == null
+          ? null
+          : DateTime.parse(json['createdDate'] as String),
+      updatedDate: json['updatedDate'] == null
+          ? null
+          : DateTime.parse(json['updatedDate'] as String),
     );
 
 Map<String, dynamic> _$AnimalSummaryDtoToJson(AnimalSummaryDto instance) =>
@@ -104,6 +112,6 @@ Map<String, dynamic> _$AnimalSummaryDtoToJson(AnimalSummaryDto instance) =>
       'weanDate': instance.weanDate,
       'sex': instance.sex,
       'comment': instance.comment,
-      'createdDate': instance.createdDate.toIso8601String(),
-      'updatedDate': instance.updatedDate.toIso8601String(),
+      'createdDate': instance.createdDate?.toIso8601String(),
+      'updatedDate': instance.updatedDate?.toIso8601String(),
     };
