@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/services/strain_service.dart';
 import 'package:intl/intl.dart';
+import 'package:moustra/widgets/color_picker.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -13,8 +15,8 @@ class StrainsScreen extends StatefulWidget {
 
 class _StrainsScreenState extends State<StrainsScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
-  List<Map<String, dynamic>> _all = <Map<String, dynamic>>[];
-  List<Map<String, dynamic>> _filtered = <Map<String, dynamic>>[];
+  List<StrainDto> _all = <StrainDto>[];
+  List<StrainDto> _filtered = <StrainDto>[];
   final TextEditingController _filterController = TextEditingController();
   String? _sortColumn; // api field, e.g., strain_name
   String _sortOrder = 'asc';
@@ -84,7 +86,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
           ),
         ),
         Expanded(
-          child: PaginatedDataGrid<Map<String, dynamic>>(
+          child: PaginatedDataGrid<StrainDto>(
             controller: _controller,
             onSortChanged: (columnName, ascending) {
               // Map grid column names to API fields
@@ -117,11 +119,11 @@ class _StrainsScreenState extends State<StrainsScreen> {
                   if (_sortColumn != null) 'order': _sortOrder,
                 },
               );
-              _all = pageData.results.cast<Map<String, dynamic>>();
-              _filtered = List<Map<String, dynamic>>.from(_all);
-              return PaginatedResult<Map<String, dynamic>>(
+              _all = pageData.results.cast<StrainDto>();
+              _filtered = List<StrainDto>.from(_all);
+              return PaginatedResult<StrainDto>(
                 count: pageData.count,
-                results: _pageItems(),
+                results: pageData.results,
               );
             },
           ),
@@ -202,15 +204,15 @@ class _StrainsScreenState extends State<StrainsScreen> {
     final query = term.trim().toLowerCase();
     if (query.isEmpty) {
       setState(() {
-        _filtered = List<Map<String, dynamic>>.from(_all);
+        _filtered = List<StrainDto>.from(_all);
         _currentPage = 0;
       });
       return;
     }
     setState(() {
       _filtered = _all.where((e) {
-        final name = (e['strainName'] ?? '').toString().toLowerCase();
-        final uuid = (e['strainUuid'] ?? '').toString().toLowerCase();
+        final name = (e.strainName ?? '').toString().toLowerCase();
+        final uuid = (e.strainUuid ?? '').toString().toLowerCase();
         return name.contains(query) || uuid.contains(query);
       }).toList();
       _currentPage = 0;
@@ -221,7 +223,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
 
   // Paging handled by PaginatedDataGrid
 
-  List<Map<String, dynamic>> _pageItems() {
+  List<StrainDto> _pageItems() {
     // When server-paging, _filtered already contains current page only
     return _filtered;
   }
@@ -254,7 +256,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
 }
 
 class _StrainGridSource extends DataGridSource {
-  final List<Map<String, dynamic>> records;
+  final List<StrainDto> records;
   final Set<String> selected;
   final void Function(String uuid, bool selected) onToggle;
 
@@ -271,43 +273,39 @@ class _StrainGridSource extends DataGridSource {
   @override
   List<DataGridRow> get rows => _dataGridRows;
 
-  DataGridRow _toGridRow(Map<String, dynamic> e) {
-    final String uuid = (e['strainUuid'] ?? '').toString();
+  DataGridRow _toGridRow(StrainDto e) {
+    final String uuid = (e.strainUuid ?? '').toString();
     return DataGridRow(
       cells: [
         DataGridCell<String>(columnName: 'select', value: uuid),
         DataGridCell<String>(columnName: 'edit', value: uuid),
         DataGridCell<String>(
           columnName: 'name',
-          value: (e['strainName'] ?? '').toString(),
+          value: (e.strainName ?? '').toString(),
         ),
         DataGridCell<int>(
           columnName: 'animals',
-          value: (e['numberOfAnimals'] ?? 0) as int,
+          value: (e.numberOfAnimals ?? 0) as int,
         ),
         DataGridCell<String>(
           columnName: 'color',
-          value: (e['color'] ?? '').toString(),
+          value: (e.color ?? '').toString(),
         ),
         DataGridCell<String>(
           columnName: 'owner',
-          value:
-              (e['owner']?['user']?['email'] ??
-                      e['owner']?['user']?['username'] ??
-                      '')
-                  .toString(),
+          value: (e.owner.user.email ?? e.owner.user.username ?? '').toString(),
         ),
         DataGridCell<String>(
           columnName: 'created',
-          value: (e['createdDate'] ?? '').toString(),
+          value: (e.createdDate ?? '').toString(),
         ),
         DataGridCell<String>(
           columnName: 'background',
-          value: _firstBackground(e),
+          value: _getBackgroundNames(e.backgrounds),
         ),
         DataGridCell<bool>(
           columnName: 'active',
-          value: (e['isActive'] ?? false) as bool,
+          value: (e.isActive ?? false) as bool,
         ),
       ],
     );
@@ -339,7 +337,7 @@ class _StrainGridSource extends DataGridSource {
           child: Text(row.getCells()[2].value as String),
         ),
         Center(child: Text('${row.getCells()[3].value as int}')),
-        Center(child: _ColorSwatch(hex: row.getCells()[4].value as String)),
+        Center(child: ColorPicker(hex: row.getCells()[4].value as String)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Text(row.getCells()[5].value as String),
@@ -374,40 +372,12 @@ class _StrainGridSource extends DataGridSource {
     return DateFormat('M/d/y, h:mm:ss a').format(dt);
   }
 
-  String _firstBackground(Map<String, dynamic> strain) {
-    final List<dynamic> bgs = (strain['backgrounds'] as List<dynamic>? ?? []);
+  String _getBackgroundNames(List<StrainBackgroundDto> backgrounds) {
+    final List<dynamic> bgs = (backgrounds as List<dynamic>? ?? []);
     if (bgs.isEmpty) return '';
-    final Map<String, dynamic> first = bgs.first as Map<String, dynamic>;
-    return (first['name'] ?? '').toString();
-  }
-}
-
-class _ColorSwatch extends StatelessWidget {
-  final String hex;
-  const _ColorSwatch({required this.hex});
-
-  Color? _parseHex(String value) {
-    if (value.isEmpty) return null;
-    var v = value.trim();
-    if (v.startsWith('#')) v = v.substring(1);
-    if (v.length == 6) v = 'FF$v';
-    if (v.length != 8) return null;
-    final int? n = int.tryParse(v, radix: 16);
-    if (n == null) return null;
-    return Color(n);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = _parseHex(hex) ?? Colors.transparent;
-    return Container(
-      width: 16,
-      height: 16,
-      decoration: BoxDecoration(
-        color: c,
-        border: Border.all(color: Colors.black12),
-        borderRadius: BorderRadius.circular(2),
-      ),
-    );
+    final List<String> names = bgs
+        .map((e) => (e.name ?? '').toString())
+        .toList();
+    return names.join(', ');
   }
 }

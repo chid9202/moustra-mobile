@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:moustra/services/api_client.dart';
+import 'package:moustra/services/dtos/paginated_response_dto.dart';
 
 class AnimalPage {
   final int count;
@@ -13,7 +14,7 @@ class AnimalPage {
 class AnimalService {
   static const String basePath = '/animal';
 
-  Future<AnimalPage> getAnimalsPage({
+  Future<PaginatedResponseDto<Map<String, dynamic>>> getAnimalsPage({
     int page = 1,
     int pageSize = 25,
     Map<String, String>? query,
@@ -26,11 +27,7 @@ class AnimalService {
     final res = await apiClient.get(basePath, query: mergedQuery);
     final Map<String, dynamic> data =
         jsonDecode(res.body) as Map<String, dynamic>;
-    return AnimalPage(
-      count: (data['count'] as int?) ?? 0,
-      results: (data['results'] as List<dynamic>? ?? <dynamic>[]),
-      next: data['next'] as String?,
-    );
+    return PaginatedResponseDto<Map<String, dynamic>>.fromJson(data, (j) => j);
   }
 }
 

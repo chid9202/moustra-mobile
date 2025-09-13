@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:moustra/services/api_client.dart';
+import 'package:moustra/services/dtos/cage_dto.dart';
+import 'package:moustra/services/dtos/paginated_response_dto.dart';
 
 class CagePage {
   final int count;
@@ -12,7 +14,7 @@ class CagePage {
 class CageService {
   static const String basePath = '/cage';
 
-  Future<CagePage> getCagesPage({
+  Future<PaginatedResponseDto<CageDto>> getCagesPage({
     int page = 1,
     int pageSize = 25,
     Map<String, String>? query,
@@ -23,11 +25,10 @@ class CageService {
       if (query != null) ...query,
     };
     final res = await apiClient.get(basePath, query: mergedQuery);
-    final Map<String, dynamic> data =
-        jsonDecode(res.body) as Map<String, dynamic>;
-    return CagePage(
-      count: (data['count'] as int?) ?? 0,
-      results: (data['results'] as List<dynamic>? ?? <dynamic>[]),
+    final Map<String, dynamic> data = jsonDecode(res.body);
+    return PaginatedResponseDto<CageDto>.fromJson(
+      data,
+      (j) => CageDto.fromJson(j),
     );
   }
 }
