@@ -57,3 +57,52 @@ Map<String, dynamic> _$MatingDtoToJson(MatingDto instance) => <String, dynamic>{
   'createdDate': instance.createdDate.toIso8601String(),
   'cage': instance.cage?.toJson(),
 };
+
+MatingSummaryDto _$MatingSummaryDtoFromJson(Map<String, dynamic> json) =>
+    MatingSummaryDto(
+      matingUuid: json['matingUuid'] as String,
+      matingTag: json['matingTag'] as String?,
+      litterStrain: json['litterStrain'] == null
+          ? null
+          : StrainSummaryDto.fromJson(
+              json['litterStrain'] as Map<String, dynamic>,
+            ),
+      animals:
+          (json['animals'] as List<dynamic>?)
+              ?.map(
+                (e) =>
+                    MatingSummaryAnimalDto.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$MatingSummaryDtoToJson(MatingSummaryDto instance) =>
+    <String, dynamic>{
+      'matingUuid': instance.matingUuid,
+      'matingTag': instance.matingTag,
+      'litterStrain': instance.litterStrain?.toJson(),
+      'animals': instance.animals.map((e) => e.toJson()).toList(),
+    };
+
+MatingSummaryAnimalDto _$MatingSummaryAnimalDtoFromJson(
+  Map<String, dynamic> json,
+) => MatingSummaryAnimalDto(
+  animalId: (json['animalId'] as num).toInt(),
+  animalUuid: json['animalUuid'] as String,
+  physicalTag: json['physicalTag'] as String?,
+  sex: json['sex'] as String?,
+  dateOfBirth: json['dateOfBirth'] == null
+      ? null
+      : DateTime.parse(json['dateOfBirth'] as String),
+);
+
+Map<String, dynamic> _$MatingSummaryAnimalDtoToJson(
+  MatingSummaryAnimalDto instance,
+) => <String, dynamic>{
+  'animalId': instance.animalId,
+  'animalUuid': instance.animalUuid,
+  'physicalTag': instance.physicalTag,
+  'sex': instance.sex,
+  'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
+};
