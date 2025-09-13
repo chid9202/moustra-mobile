@@ -61,9 +61,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: AnimalsToWean(animalsToWean),
                 ),
               ),
-
               const SizedBox(height: 12),
-
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
