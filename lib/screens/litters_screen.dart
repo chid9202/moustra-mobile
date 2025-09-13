@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:moustra/services/litter_service.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
@@ -21,7 +22,7 @@ class _LittersScreenState extends State<LittersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PaginatedDataGrid<Map<String, dynamic>>(
+    return PaginatedDataGrid<LitterDto>(
       controller: _controller,
       onSortChanged: (columnName, ascending) {
         _sortField = _mapSortField(columnName);
@@ -39,9 +40,9 @@ class _LittersScreenState extends State<LittersScreen> {
             if (_sortField != null) 'order': _sortOrder,
           },
         );
-        return PaginatedResult<Map<String, dynamic>>(
+        return PaginatedResult<LitterDto>(
           count: pageData.count,
-          results: pageData.results.cast<Map<String, dynamic>>(),
+          results: pageData.results.cast<LitterDto>(),
         );
       },
       topBar: ElevatedButton.icon(
@@ -135,7 +136,7 @@ class _LittersScreenState extends State<LittersScreen> {
 }
 
 class _LitterGridSource extends DataGridSource {
-  final List<Map<String, dynamic>> records;
+  final List<LitterDto> records;
 
   _LitterGridSource({required this.records}) {
     _rows = records.map(_toGridRow).toList();
@@ -146,21 +147,18 @@ class _LitterGridSource extends DataGridSource {
   @override
   List<DataGridRow> get rows => _rows;
 
-  DataGridRow _toGridRow(Map<String, dynamic> l) {
-    final int eid = (l['eid'] ?? 0) as int;
-    final String tag = (l['litterTag'] ?? '').toString();
-    final String strain = (l['mating']?['litterStrain']?['strainName'] ?? '')
+  DataGridRow _toGridRow(LitterDto litter) {
+    final int eid = (litter.eid);
+    final String tag = (litter.litterTag).toString();
+    final String strain = (litter.mating.litterStrain?.strainName ?? '')
         .toString();
-    final List<dynamic> pups = (l['animals'] as List<dynamic>? ?? <dynamic>[]);
+    final List<dynamic> pups = (litter.animals);
     final int numPups = pups.length;
-    final String weanDate = (l['weanDate'] ?? '').toString();
-    final String dob = (l['dateOfBirth'] ?? '').toString();
+    final String weanDate = (litter.weanDate).toString();
+    final String dob = (litter.dateOfBirth).toString();
     final String owner =
-        (l['owner']?['user']?['email'] ??
-                l['owner']?['user']?['username'] ??
-                '')
-            .toString();
-    final String created = (l['createdDate'] ?? '').toString();
+        (litter.owner.user?.email ?? litter.owner.user?.username ?? '');
+    final String created = (litter.createdDate).toString();
     return DataGridRow(
       cells: [
         DataGridCell<int>(columnName: 'eid', value: eid),
@@ -178,6 +176,7 @@ class _LitterGridSource extends DataGridSource {
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
     String fmtDate(String iso) {
+      // TODO: move to helper
       if (iso.isEmpty) return '';
       final dt = DateTime.tryParse(iso)?.toLocal();
       if (dt == null) return iso;
@@ -185,6 +184,7 @@ class _LitterGridSource extends DataGridSource {
     }
 
     String fmtDateTime(String iso) {
+      // TODO: move to helper
       if (iso.isEmpty) return '';
       final dt = DateTime.tryParse(iso)?.toLocal();
       if (dt == null) return iso;

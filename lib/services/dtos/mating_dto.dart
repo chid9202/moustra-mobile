@@ -44,3 +44,43 @@ class MatingDto {
       _$MatingDtoFromJson(json);
   Map<String, dynamic> toJson() => _$MatingDtoToJson(this);
 }
+
+@JsonSerializable(explicitToJson: true)
+class MatingSummaryDto {
+  final String matingUuid;
+  final String? matingTag;
+  final StrainSummaryDto? litterStrain;
+  final List<MatingSummaryAnimalDto> animals;
+
+  MatingSummaryDto({
+    required this.matingUuid,
+    this.matingTag,
+    this.litterStrain,
+    this.animals = const [],
+  });
+
+  factory MatingSummaryDto.fromJson(Map<String, dynamic> json) =>
+      _$MatingSummaryDtoFromJson(json);
+  Map<String, dynamic> toJson() => _$MatingSummaryDtoToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class MatingSummaryAnimalDto {
+  final int animalId;
+  final String animalUuid;
+  final String? physicalTag;
+  final String? sex;
+  final DateTime? dateOfBirth;
+
+  MatingSummaryAnimalDto({
+    required this.animalId,
+    required this.animalUuid,
+    this.physicalTag,
+    this.sex,
+    this.dateOfBirth,
+  });
+
+  factory MatingSummaryAnimalDto.fromJson(Map<String, dynamic> json) =>
+      _$MatingSummaryAnimalDtoFromJson(json);
+  Map<String, dynamic> toJson() => _$MatingSummaryAnimalDtoToJson(this);
+}
