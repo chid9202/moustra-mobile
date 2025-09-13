@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/services/clients/strain_api.dart';
-import 'package:moustra/services/helpers/account_helper.dart';
-import 'package:moustra/services/helpers/datetime_helper.dart';
-import 'package:moustra/services/helpers/strain_helper.dart';
+import 'package:moustra/helpers/account_helper.dart';
+import 'package:moustra/helpers/datetime_helper.dart';
+import 'package:moustra/helpers/strain_helper.dart';
 import 'package:moustra/widgets/color_picker.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
