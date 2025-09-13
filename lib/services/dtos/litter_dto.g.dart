@@ -15,12 +15,18 @@ LitterDto _$LitterDtoFromJson(Map<String, dynamic> json) => LitterDto(
       : DateTime.parse(json['weanDate'] as String),
   mating: MatingSummaryDto.fromJson(json['mating'] as Map<String, dynamic>),
   owner: AccountDto.fromJson(json['owner'] as Map<String, dynamic>),
-  animals: (json['animals'] as List<dynamic>)
-      .map((e) => LitterAnimalDto.fromJson(e as Map<String, dynamic>))
-      .toList(),
-  createdDate: DateTime.parse(json['createdDate'] as String),
+  animals:
+      (json['animals'] as List<dynamic>?)
+          ?.map((e) => LitterAnimalDto.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  createdDate: json['createdDate'] == null
+      ? null
+      : DateTime.parse(json['createdDate'] as String),
   comment: json['comment'] as String?,
-  dateOfBirth: DateTime.parse(json['dateOfBirth'] as String),
+  dateOfBirth: json['dateOfBirth'] == null
+      ? null
+      : DateTime.parse(json['dateOfBirth'] as String),
 );
 
 Map<String, dynamic> _$LitterDtoToJson(LitterDto instance) => <String, dynamic>{
@@ -30,10 +36,10 @@ Map<String, dynamic> _$LitterDtoToJson(LitterDto instance) => <String, dynamic>{
   'weanDate': instance.weanDate?.toIso8601String(),
   'mating': instance.mating.toJson(),
   'owner': instance.owner.toJson(),
-  'animals': instance.animals.map((e) => e.toJson()).toList(),
-  'createdDate': instance.createdDate.toIso8601String(),
+  'animals': instance.animals?.map((e) => e.toJson()).toList(),
+  'createdDate': instance.createdDate?.toIso8601String(),
   'comment': instance.comment,
-  'dateOfBirth': instance.dateOfBirth.toIso8601String(),
+  'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
 };
 
 LitterAnimalDto _$LitterAnimalDtoFromJson(Map<String, dynamic> json) =>

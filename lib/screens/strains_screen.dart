@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/services/clients/strain_api.dart';
-import 'package:intl/intl.dart';
+import 'package:moustra/services/helpers/account_helper.dart';
+import 'package:moustra/services/helpers/datetime_helper.dart';
+import 'package:moustra/services/helpers/strain_helper.dart';
 import 'package:moustra/widgets/color_picker.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
@@ -211,24 +213,13 @@ class _StrainsScreenState extends State<StrainsScreen> {
     }
     setState(() {
       _filtered = _all.where((e) {
-        final name = (e.strainName ?? '').toString().toLowerCase();
-        final uuid = (e.strainUuid ?? '').toString().toLowerCase();
+        final name = e.strainName.toLowerCase();
+        final uuid = e.strainUuid.toLowerCase();
         return name.contains(query) || uuid.contains(query);
       }).toList();
       _currentPage = 0;
     });
   }
-
-  // Formatting handled in DataGrid source
-
-  // Paging handled by PaginatedDataGrid
-
-  List<StrainDto> _pageItems() {
-    // When server-paging, _filtered already contains current page only
-    return _filtered;
-  }
-
-  // Fetching is handled inside PaginatedDataGrid's fetchPage
 
   Future<void> _goToPage(int zeroBasedPage) async {
     setState(() {
@@ -274,39 +265,27 @@ class _StrainGridSource extends DataGridSource {
   List<DataGridRow> get rows => _dataGridRows;
 
   DataGridRow _toGridRow(StrainDto e) {
-    final String uuid = (e.strainUuid ?? '').toString();
+    final String uuid = e.strainUuid;
     return DataGridRow(
       cells: [
         DataGridCell<String>(columnName: 'select', value: uuid),
         DataGridCell<String>(columnName: 'edit', value: uuid),
-        DataGridCell<String>(
-          columnName: 'name',
-          value: (e.strainName ?? '').toString(),
-        ),
-        DataGridCell<int>(
-          columnName: 'animals',
-          value: (e.numberOfAnimals ?? 0) as int,
-        ),
-        DataGridCell<String>(
-          columnName: 'color',
-          value: (e.color ?? '').toString(),
-        ),
+        DataGridCell<String>(columnName: 'name', value: e.strainName),
+        DataGridCell<int>(columnName: 'animals', value: e.numberOfAnimals),
+        DataGridCell<String>(columnName: 'color', value: e.color ?? ''),
         DataGridCell<String>(
           columnName: 'owner',
-          value: (e.owner.user.email ?? e.owner.user.username ?? '').toString(),
+          value: AccountHelper.getOwnerName(e.owner),
         ),
         DataGridCell<String>(
           columnName: 'created',
-          value: (e.createdDate ?? '').toString(),
+          value: DateTimeHelper.formatDateTime(e.createdDate),
         ),
         DataGridCell<String>(
           columnName: 'background',
-          value: _getBackgroundNames(e.backgrounds),
+          value: StrainHelper.getBackgroundNames(e.backgrounds),
         ),
-        DataGridCell<bool>(
-          columnName: 'active',
-          value: (e.isActive ?? false) as bool,
-        ),
+        DataGridCell<bool>(columnName: 'active', value: e.isActive),
       ],
     );
   }
@@ -334,21 +313,21 @@ class _StrainGridSource extends DataGridSource {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[2].value as String),
+          child: Text(row.getCells()[2].value),
         ),
-        Center(child: Text('${row.getCells()[3].value as int}')),
-        Center(child: ColorPicker(hex: row.getCells()[4].value as String)),
+        Center(child: Text('${row.getCells()[3].value}')),
+        Center(child: ColorPicker(hex: row.getCells()[4].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[5].value as String),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(_format(row.getCells()[6].value as String)),
+          child: Text(row.getCells()[5].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[7].value as String),
+          child: Text(row.getCells()[6].value),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[7].value),
         ),
         Center(
           child: Icon(
@@ -363,21 +342,5 @@ class _StrainGridSource extends DataGridSource {
         ),
       ],
     );
-  }
-
-  String _format(String iso) {
-    if (iso.isEmpty) return '';
-    final dt = DateTime.tryParse(iso)?.toLocal();
-    if (dt == null) return iso;
-    return DateFormat('M/d/y, h:mm:ss a').format(dt);
-  }
-
-  String _getBackgroundNames(List<StrainBackgroundDto> backgrounds) {
-    final List<dynamic> bgs = (backgrounds as List<dynamic>? ?? []);
-    if (bgs.isEmpty) return '';
-    final List<String> names = bgs
-        .map((e) => (e.name ?? '').toString())
-        .toList();
-    return names.join(', ');
   }
 }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:moustra/services/clients/litter_api.dart';
+import 'package:moustra/services/helpers/account_helper.dart';
+import 'package:moustra/services/helpers/datetime_helper.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -115,6 +116,7 @@ class _LittersScreenState extends State<LittersScreen> {
   String _sortOrder = 'asc';
   String? _mapSortField(String columnName) {
     switch (columnName) {
+      // TODO: make them constants
       case 'tag':
         return 'litter_tag';
       case 'strain':
@@ -131,8 +133,6 @@ class _LittersScreenState extends State<LittersScreen> {
         return null;
     }
   }
-
-  // header/body rendering handled by DataGrid
 }
 
 class _LitterGridSource extends DataGridSource {
@@ -152,13 +152,12 @@ class _LitterGridSource extends DataGridSource {
     final String tag = (litter.litterTag).toString();
     final String strain = (litter.mating.litterStrain?.strainName ?? '')
         .toString();
-    final List<dynamic> pups = (litter.animals);
-    final int numPups = pups.length;
-    final String weanDate = (litter.weanDate).toString();
-    final String dob = (litter.dateOfBirth).toString();
-    final String owner =
-        (litter.owner.user?.email ?? litter.owner.user?.username ?? '');
-    final String created = (litter.createdDate).toString();
+    final List<LitterAnimalDto>? pups = (litter.animals);
+    final int numPups = pups?.length ?? 0;
+    final String weanDate = DateTimeHelper.formatDate(litter.weanDate);
+    final String dob = DateTimeHelper.formatDate(litter.dateOfBirth);
+    final String owner = AccountHelper.getOwnerName(litter.owner);
+    final String created = DateTimeHelper.formatDateTime(litter.createdDate);
     return DataGridRow(
       cells: [
         DataGridCell<int>(columnName: 'eid', value: eid),
@@ -175,43 +174,27 @@ class _LitterGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    String fmtDate(String iso) {
-      // TODO: move to helper
-      if (iso.isEmpty) return '';
-      final dt = DateTime.tryParse(iso)?.toLocal();
-      if (dt == null) return iso;
-      return DateFormat('M/d/y').format(dt);
-    }
-
-    String fmtDateTime(String iso) {
-      // TODO: move to helper
-      if (iso.isEmpty) return '';
-      final dt = DateTime.tryParse(iso)?.toLocal();
-      if (dt == null) return iso;
-      return DateFormat('M/d/y, h:mm:ss a').format(dt);
-    }
-
     return DataGridRowAdapter(
       cells: [
-        Center(child: Text('${row.getCells()[0].value as int}')),
+        Center(child: Text('${row.getCells()[0].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[1].value as String),
+          child: Text(row.getCells()[1].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[2].value as String),
+          child: Text(row.getCells()[2].value),
         ),
-        Center(child: Text('${row.getCells()[3].value as int}')),
-        Center(child: Text(fmtDate(row.getCells()[4].value as String))),
-        Center(child: Text(fmtDate(row.getCells()[5].value as String))),
+        Center(child: Text('${row.getCells()[3].value}')),
+        Center(child: Text(row.getCells()[4].value)),
+        Center(child: Text(row.getCells()[5].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[6].value as String),
+          child: Text(row.getCells()[6].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(fmtDateTime(row.getCells()[7].value as String)),
+          child: Text(row.getCells()[7].value),
         ),
       ],
     );

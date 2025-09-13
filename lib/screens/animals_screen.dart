@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
-import 'package:moustra/services/dtos/genotype_dto.dart';
+import 'package:moustra/services/helpers/account_helper.dart';
+import 'package:moustra/services/helpers/animal_helper.dart';
+import 'package:moustra/services/helpers/datetime_helper.dart';
+import 'package:moustra/services/helpers/genotype_helper.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -222,17 +224,16 @@ class _AnimalGridSource extends DataGridSource {
     final String physicalTag = (a.physicalTag ?? '').toString();
     final String status = (a.cage?.status ?? '').toString();
     final String sex = (a.sex ?? '').toString();
-    final String dob = (a.dateOfBirth ?? '').toString();
-    final String age = _age(a.dateOfBirth?.toString() ?? '');
-    final String weanDate = (a.weanDate ?? '').toString();
+    final String dob = DateTimeHelper.formatDate(a.dateOfBirth);
+    final String age = AnimalHelper.getAge(a);
+    final String weanDate = DateTimeHelper.formatDate(a.weanDate);
     final String cageTag = (a.cage?.cageTag ?? '').toString();
     final String strain = (a.strain?.strainName ?? '').toString();
-    final String genotypes = _genotypes(a.genotypes);
+    final String genotypes = GenotypeHelper.formatGenotypes(a.genotypes);
     final String sire = (a.sire?.physicalTag ?? '').toString();
-    final String dam = _dam(a.dam);
-    final String owner = (a.owner?.user?.email ?? a.owner?.user?.username ?? '')
-        .toString();
-    final String created = (a.createdDate).toString();
+    final String dam = GenotypeHelper.getDamNames(a.dam);
+    final String owner = AccountHelper.getOwnerName(a.owner);
+    final String created = DateTimeHelper.formatDateTime(a.createdDate);
     return DataGridRow(
       cells: [
         DataGridCell<int>(columnName: 'eid', value: eid),
@@ -255,90 +256,44 @@ class _AnimalGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    String fmtDate(String iso) {
-      if (iso.isEmpty) return '';
-      final dt = DateTime.tryParse(iso)?.toLocal();
-      if (dt == null) return iso;
-      return DateFormat('M/d/y').format(dt);
-    }
-
-    String fmtDateTime(String iso) {
-      if (iso.isEmpty) return '';
-      final dt = DateTime.tryParse(iso)?.toLocal();
-      if (dt == null) return iso;
-      return DateFormat('M/d/y, h:mm:ss a').format(dt);
-    }
-
     return DataGridRowAdapter(
       cells: [
-        Center(child: Text('${row.getCells()[0].value as int}')),
+        Center(child: Text('${row.getCells()[0].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[1].value as String),
+          child: Text(row.getCells()[1].value),
         ),
-        Center(child: Text(row.getCells()[2].value as String)),
-        Center(child: Text(row.getCells()[3].value as String)),
-        Center(child: Text(fmtDate(row.getCells()[4].value as String))),
-        Center(child: Text(row.getCells()[5].value as String)),
-        Center(child: Text(fmtDate(row.getCells()[6].value as String))),
-        Center(child: Text(row.getCells()[7].value as String)),
+        Center(child: Text(row.getCells()[2].value)),
+        Center(child: Text(row.getCells()[3].value)),
+        Center(child: Text(row.getCells()[4].value)),
+        Center(child: Text(row.getCells()[5].value)),
+        Center(child: Text(row.getCells()[6].value)),
+        Center(child: Text(row.getCells()[7].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[8].value as String),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[9].value as String),
+          child: Text(row.getCells()[8].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[10].value as String),
+          child: Text(row.getCells()[9].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[11].value as String),
+          child: Text(row.getCells()[10].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[12].value as String),
+          child: Text(row.getCells()[11].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(fmtDateTime(row.getCells()[13].value as String)),
+          child: Text(row.getCells()[12].value),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(row.getCells()[13].value),
         ),
       ],
     );
-  }
-
-  String _age(String dobIso) {
-    final dob = DateTime.tryParse(dobIso);
-    if (dob == null) return '';
-    final now = DateTime.now();
-    int totalDays = now.difference(dob).inDays;
-    if (totalDays < 0) totalDays = 0;
-    final int weeks = totalDays ~/ 7;
-    final int days = totalDays % 7;
-    if (weeks == 0) return '${days}d';
-    if (days == 0) return '${weeks}w';
-    return '${weeks}w${days}d';
-  }
-
-  String _genotypes(List<GenotypeDto>? list) {
-    if (list == null || list.isEmpty) return '';
-    return list
-        .map((g) {
-          final gene = (g.gene?.geneName ?? '').toString();
-          final allele = (g.allele?.alleleName ?? '').toString();
-          return gene.isEmpty ? allele : '$gene/$allele';
-        })
-        .join(', ');
-  }
-
-  String _dam(List<AnimalSummaryDto>? list) {
-    if (list == null || list.isEmpty) return '';
-    return list
-        .map((d) => (d.physicalTag ?? '').toString())
-        .where((s) => s.isNotEmpty)
-        .join(', ');
   }
 }

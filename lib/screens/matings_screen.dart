@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
-import 'package:moustra/services/dtos/genotype_dto.dart';
 import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
+import 'package:moustra/services/helpers/account_helper.dart';
+import 'package:moustra/services/helpers/datetime_helper.dart';
+import 'package:moustra/services/helpers/genotype_helper.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -201,8 +202,6 @@ class _MatingsScreenState extends State<MatingsScreen> {
     return maxLines.clamp(1, 20);
   }
 
-  // header/body handled by SfDataGrid
-
   String _formatGenotypes(List<dynamic>? list) {
     if (list == null || list.isEmpty) return '';
     return list
@@ -213,8 +212,6 @@ class _MatingsScreenState extends State<MatingsScreen> {
         })
         .join(', ');
   }
-
-  // Formatting is handled in row adapter helpers
 }
 
 class _MatingGridSource extends DataGridSource {
@@ -235,7 +232,6 @@ class _MatingGridSource extends DataGridSource {
     final String cageTag = (m.cage?.cageTag ?? '').toString();
     final String litterStrain = (m.litterStrain?.strainName ?? '').toString();
     final List<AnimalSummaryDto> animals = m.animals;
-    // (m.animals as List<AnimalSummaryDto>? ?? <AnimalSummaryDto>[]);
     final AnimalSummaryDto? male = animals.cast<AnimalSummaryDto?>().firstWhere(
       (a) => (a?.sex ?? '') == 'M',
       orElse: () => null,
@@ -249,18 +245,17 @@ class _MatingGridSource extends DataGridSource {
         .map((f) => (f.physicalTag ?? '').toString())
         .where((t) => t.isNotEmpty)
         .toList();
-    final String maleGenotypes = _fmtGenotypes(
-      male?.genotypes as List<dynamic>?,
+    final String maleGenotypes = GenotypeHelper.formatGenotypes(
+      male?.genotypes,
     );
     final List<String> femaleGenotypeLines = females
-        .map((f) => _fmtGenotypes(f.genotypes as List<dynamic>?))
+        .map((f) => GenotypeHelper.formatGenotypes(f.genotypes))
         .where((g) => g.isNotEmpty)
         .toList();
-    final String setUpDate = (m.setUpDate ?? '').toString();
-    final String disbandedDate = (m.disbandedDate ?? '').toString();
-    final String owner = (m.owner?.user?.email ?? m.owner?.user?.username ?? '')
-        .toString();
-    final String created = (m.createdDate).toString();
+    final String setUpDate = DateTimeHelper.formatDate(m.setUpDate);
+    final String disbandedDate = DateTimeHelper.formatDate(m.disbandedDate);
+    final String owner = AccountHelper.getOwnerName(m.owner);
+    final String created = DateTimeHelper.formatDateTime(m.createdDate);
     return DataGridRow(
       cells: [
         DataGridCell<int>(columnName: 'eid', value: eid),
@@ -285,43 +280,30 @@ class _MatingGridSource extends DataGridSource {
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
     List<String> asList(dynamic v) => (v as List<String>? ?? <String>[]);
-    String fmtDate(String iso) {
-      if (iso.isEmpty) return '';
-      final dt = DateTime.tryParse(iso)?.toLocal();
-      if (dt == null) return iso;
-      return DateFormat('M/d/y').format(dt);
-    }
-
-    String fmtDateTime(String iso) {
-      if (iso.isEmpty) return '';
-      final dt = DateTime.tryParse(iso)?.toLocal();
-      if (dt == null) return iso;
-      return DateFormat('M/d/y, h:mm:ss a').format(dt);
-    }
 
     return DataGridRowAdapter(
       cells: [
-        Center(child: Text('${row.getCells()[0].value as int}')),
+        Center(child: Text('${row.getCells()[0].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[1].value as String),
+          child: Text(row.getCells()[1].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[2].value as String),
+          child: Text(row.getCells()[2].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[3].value as String),
+          child: Text(row.getCells()[3].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[4].value as String),
+          child: Text(row.getCells()[4].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Text(
-            row.getCells()[5].value as String,
+            row.getCells()[5].value,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
@@ -350,29 +332,17 @@ class _MatingGridSource extends DataGridSource {
                 .toList(),
           ),
         ),
-        Center(child: Text(fmtDate(row.getCells()[8].value as String))),
-        Center(child: Text(fmtDate(row.getCells()[9].value as String))),
+        Center(child: Text(row.getCells()[8].value)),
+        Center(child: Text(row.getCells()[9].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[10].value as String),
+          child: Text(row.getCells()[10].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(fmtDateTime(row.getCells()[11].value as String)),
+          child: Text(row.getCells()[11].value),
         ),
       ],
     );
-  }
-
-  String _fmtGenotypes(List<dynamic>? list) {
-    // TODO: Move to helper
-    if (list == null || list.isEmpty) return '';
-    return list
-        .map((g) {
-          final gene = (g.gene?.geneName ?? '').toString();
-          final allele = (g.allele?.alleleName ?? '').toString();
-          return gene.isEmpty ? allele : '$gene/$allele';
-        })
-        .join(', ');
   }
 }

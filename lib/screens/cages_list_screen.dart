@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/services/dtos/genotype_dto.dart';
+import 'package:moustra/services/helpers/account_helper.dart';
+import 'package:moustra/services/helpers/datetime_helper.dart';
+import 'package:moustra/services/helpers/genotype_helper.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -185,7 +187,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
         .where((t) => t.isNotEmpty)
         .length;
     int gens = animals
-        .map((a) => formatGenotypes(a.genotypes))
+        .map((a) => GenotypeHelper.formatGenotypes(a.genotypes))
         .where((g) => g.isNotEmpty)
         .length;
     return (tags > gens ? tags : gens).clamp(1, 20);
@@ -215,13 +217,16 @@ class _CageGridSource extends DataGridSource {
         .where((t) => t.isNotEmpty)
         .toList();
     final List<String> animalGenotypeLines = animals
-        .map((a) => formatGenotypes(a.genotypes as List<GenotypeDto>?))
+        .map(
+          (a) =>
+              GenotypeHelper.formatGenotypes(a.genotypes as List<GenotypeDto>?),
+        )
         .where((g) => g.isNotEmpty)
         .toList();
-    final String status = (c.status).toString();
-    final String endDate = (c.endDate ?? '').toString();
-    final String owner = (c.owner.user.email).toString();
-    final String created = (c.createdDate ?? '').toString();
+    final String status = c.status;
+    final String endDate = DateTimeHelper.formatDate(c.endDate);
+    final String owner = AccountHelper.getOwnerName(c.owner);
+    final String created = DateTimeHelper.formatDateTime(c.createdDate);
     return DataGridRow(
       cells: [
         DataGridCell<int>(columnName: 'eid', value: eid),
@@ -244,25 +249,19 @@ class _CageGridSource extends DataGridSource {
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
     List<String> asList(dynamic v) => (v as List<String>? ?? <String>[]);
-    String fmtDateTime(String iso) {
-      if (iso.isEmpty) return '';
-      final dt = DateTime.tryParse(iso)?.toLocal();
-      if (dt == null) return iso;
-      return DateFormat('M/d/y, h:mm:ss a').format(dt);
-    }
 
     return DataGridRowAdapter(
       cells: [
-        Center(child: Text('${row.getCells()[0].value as int}')),
+        Center(child: Text('${row.getCells()[0].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[1].value as String),
+          child: Text(row.getCells()[1].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[2].value as String),
+          child: Text(row.getCells()[2].value),
         ),
-        Center(child: Text('${row.getCells()[3].value as int}')),
+        Center(child: Text('${row.getCells()[3].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Column(
@@ -287,37 +286,17 @@ class _CageGridSource extends DataGridSource {
                 .toList(),
           ),
         ),
-        Center(child: Text(row.getCells()[6].value as String)),
-        Center(child: Text(row.getCells()[7].value as String)),
+        Center(child: Text(row.getCells()[6].value)),
+        Center(child: Text(row.getCells()[7].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[8].value as String),
+          child: Text(row.getCells()[8].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(fmtDateTime(row.getCells()[9].value as String)),
+          child: Text(row.getCells()[9].value),
         ),
       ],
     );
   }
-}
-
-String formatGenotypes(List<GenotypeDto>? list) {
-  if (list == null || list.isEmpty) return '';
-  return list
-      .map((g) {
-        final String gene = (g.gene?.geneName ?? '').toString();
-        final String allele = (g.allele?.alleleName ?? '').toString();
-        if (gene.isNotEmpty && allele.isNotEmpty) {
-          return '$gene/$allele';
-        }
-        if (gene.isNotEmpty) {
-          return gene;
-        }
-        if (allele.isNotEmpty) {
-          return allele;
-        }
-        return '';
-      })
-      .join(', ');
 }

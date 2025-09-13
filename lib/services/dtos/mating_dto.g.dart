@@ -35,7 +35,9 @@ MatingDto _$MatingDtoFromJson(Map<String, dynamic> json) => MatingDto(
   disbandedBy: json['disbandedBy'] == null
       ? null
       : AccountDto.fromJson(json['disbandedBy'] as Map<String, dynamic>),
-  createdDate: DateTime.parse(json['createdDate'] as String),
+  createdDate: json['createdDate'] == null
+      ? null
+      : DateTime.parse(json['createdDate'] as String),
   cage: json['cage'] == null
       ? null
       : CageSummaryDto.fromJson(json['cage'] as Map<String, dynamic>),
@@ -54,7 +56,7 @@ Map<String, dynamic> _$MatingDtoToJson(MatingDto instance) => <String, dynamic>{
   'comment': instance.comment,
   'disbandedDate': instance.disbandedDate?.toIso8601String(),
   'disbandedBy': instance.disbandedBy?.toJson(),
-  'createdDate': instance.createdDate.toIso8601String(),
+  'createdDate': instance.createdDate?.toIso8601String(),
   'cage': instance.cage?.toJson(),
 };
 

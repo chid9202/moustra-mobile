@@ -18,7 +18,7 @@ class CageDto {
   final int order;
   final String? comment;
   final DateTime? createdDate;
-  final String? endDate;
+  final DateTime? endDate;
   final String status;
 
   CageDto({
