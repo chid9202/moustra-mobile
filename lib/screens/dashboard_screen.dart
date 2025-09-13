@@ -4,7 +4,7 @@ import 'package:moustra/screens/dashboard/animals_to_wean.dart';
 import 'package:moustra/screens/dashboard/data_by_account.dart';
 import 'package:moustra/screens/dashboard/mice_by_sex.dart';
 import 'package:moustra/screens/dashboard/mice_count_by_age.dart';
-import 'package:moustra/services/dashboard_service.dart';
+import 'package:moustra/services/clients/dashboard_api.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});

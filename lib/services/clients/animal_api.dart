@@ -1,18 +1,10 @@
 import 'dart:convert';
 
-import 'package:moustra/services/api_client.dart';
+import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 
-class AnimalPage {
-  final int count;
-  final List<dynamic> results;
-  final String? next;
-
-  AnimalPage({required this.count, required this.results, this.next});
-}
-
-class AnimalService {
+class AnimalApi {
   static const String basePath = '/animal';
 
   Future<PaginatedResponseDto<AnimalDto>> getAnimalsPage({
@@ -34,4 +26,4 @@ class AnimalService {
   }
 }
 
-final AnimalService animalService = AnimalService();
+final AnimalApi animalService = AnimalApi();

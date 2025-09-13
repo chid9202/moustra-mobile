@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
-import 'package:moustra/services/strain_service.dart';
+import 'package:moustra/services/clients/strain_api.dart';
 import 'package:intl/intl.dart';
 import 'package:moustra/widgets/color_picker.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
