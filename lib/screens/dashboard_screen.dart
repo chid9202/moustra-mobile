@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+
+import 'package:grid_view/screens/dashboard/mice_count_by_age.dart';
 import 'package:grid_view/services/dashboard_service.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -12,7 +15,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   late Future<Map<String, dynamic>> _future;
-  String _selectedStrainUuid = '00000000-0000-0000-0000-000000000000';
 
   @override
   void initState() {
@@ -36,21 +38,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final data = snapshot.data ?? <String, dynamic>{};
         final Map<String, dynamic> accounts =
             (data['accounts'] as Map<String, dynamic>? ?? <String, dynamic>{});
-        final List<dynamic> animalByAge =
-            (data['animalByAge'] as List<dynamic>? ?? <dynamic>[]);
         final List<dynamic> animalsSexRatio =
             (data['animalsSexRatio'] as List<dynamic>? ?? <dynamic>[]);
         final List<dynamic> animalsToWean =
             (data['animalsToWean'] as List<dynamic>? ?? <dynamic>[]);
-
-        final strains = animalByAge.cast<Map<String, dynamic>>();
-        final selected = strains.firstWhere(
-          (s) => (s['strainUuid'] ?? '') == _selectedStrainUuid,
-          orElse: () =>
-              strains.isNotEmpty ? strains.first : <String, dynamic>{},
-        );
-        final List<dynamic> ageData =
-            (selected['ageData'] as List<dynamic>? ?? <dynamic>[]);
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(12),
@@ -59,95 +50,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        children: [
-                          const Text(
-                            'Mice by Age',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          DropdownButton<String>(
-                            isExpanded: true,
-                            value: _selectedStrainUuid,
-                            items: strains
-                                .map(
-                                  (s) => DropdownMenuItem<String>(
-                                    value: (s['strainUuid'] ?? '').toString(),
-                                    child: Text(
-                                      (s['strainName'] ?? 'All').toString(),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (v) {
-                              if (v == null) return;
-                              setState(() => _selectedStrainUuid = v);
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 220,
-                        child: BarChart(
-                          BarChartData(
-                            gridData: const FlGridData(show: false),
-                            titlesData: FlTitlesData(
-                              leftTitles: const AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 30,
-                                ),
-                              ),
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  interval: 1,
-                                  getTitlesWidget: (value, meta) =>
-                                      Transform.rotate(
-                                        angle: -0.6,
-                                        child: Text(
-                                          value.toInt().toString(),
-                                          style: const TextStyle(fontSize: 9),
-                                        ),
-                                      ),
-                                ),
-                              ),
-                              rightTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              topTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                            ),
-                            barTouchData: BarTouchData(enabled: true),
-                            barGroups: ageData.map((e) {
-                              final int week = (e['ageInWeeks'] as int? ?? 0);
-                              final int count = (e['count'] as int? ?? 0);
-                              return BarChartGroupData(
-                                x: week,
-                                barRods: [
-                                  BarChartRodData(toY: count.toDouble()),
-                                ],
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  padding: const EdgeInsets.all(12.0),
+                  child: MouseCountGraph(data),
                 ),
               ),
-
               const SizedBox(height: 12),
-
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
