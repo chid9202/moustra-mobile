@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
-import 'package:moustra/services/helpers/account_helper.dart';
-import 'package:moustra/services/helpers/animal_helper.dart';
-import 'package:moustra/services/helpers/datetime_helper.dart';
-import 'package:moustra/services/helpers/genotype_helper.dart';
+import 'package:moustra/helpers/account_helper.dart';
+import 'package:moustra/helpers/animal_helper.dart';
+import 'package:moustra/helpers/datetime_helper.dart';
+import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
