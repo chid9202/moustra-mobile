@@ -12,10 +12,10 @@ class LitterDto {
   final DateTime? weanDate;
   final MatingSummaryDto mating;
   final AccountDto owner;
-  final List<LitterAnimalDto> animals;
-  final DateTime createdDate;
+  final List<LitterAnimalDto>? animals;
+  final DateTime? createdDate;
   final String? comment;
-  final DateTime dateOfBirth;
+  final DateTime? dateOfBirth;
 
   LitterDto({
     required this.eid,
@@ -24,10 +24,10 @@ class LitterDto {
     this.weanDate,
     required this.mating,
     required this.owner,
-    required this.animals,
-    required this.createdDate,
+    this.animals = const [],
+    this.createdDate,
     this.comment,
-    required this.dateOfBirth,
+    this.dateOfBirth,
   });
 
   factory LitterDto.fromJson(Map<String, dynamic> json) =>

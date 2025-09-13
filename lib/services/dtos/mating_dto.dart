@@ -20,7 +20,7 @@ class MatingDto {
   final String? comment;
   final DateTime? disbandedDate;
   final AccountDto? disbandedBy;
-  final DateTime createdDate;
+  final DateTime? createdDate;
   final CageSummaryDto? cage;
 
   MatingDto({
@@ -36,7 +36,7 @@ class MatingDto {
     this.comment,
     this.disbandedDate,
     this.disbandedBy,
-    required this.createdDate,
+    this.createdDate,
     this.cage,
   });
 

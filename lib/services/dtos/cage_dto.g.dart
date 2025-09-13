@@ -26,7 +26,9 @@ CageDto _$CageDtoFromJson(Map<String, dynamic> json) => CageDto(
   createdDate: json['createdDate'] == null
       ? null
       : DateTime.parse(json['createdDate'] as String),
-  endDate: json['endDate'] as String?,
+  endDate: json['endDate'] == null
+      ? null
+      : DateTime.parse(json['endDate'] as String),
   status: json['status'] as String,
 );
 
@@ -42,7 +44,7 @@ Map<String, dynamic> _$CageDtoToJson(CageDto instance) => <String, dynamic>{
   'order': instance.order,
   'comment': instance.comment,
   'createdDate': instance.createdDate?.toIso8601String(),
-  'endDate': instance.endDate,
+  'endDate': instance.endDate?.toIso8601String(),
   'status': instance.status,
 };
 
