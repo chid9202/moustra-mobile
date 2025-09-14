@@ -59,7 +59,7 @@ class _MatingsScreenState extends State<MatingsScreen> {
               _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
               _controller.reload();
             },
-            columns: matingListColumns(),
+            columns: MatingListColumn.getColumns(),
             sourceBuilder: (rows) => _MatingGridSource(records: rows),
             fetchPage: (page, pageSize) async {
               final pageData = await matingService.getMatingsPage(
@@ -113,94 +113,13 @@ class _MatingGridSource extends DataGridSource {
   final List<MatingDto> records;
 
   _MatingGridSource({required this.records}) {
-    _rows = records.map(_toGridRow).toList();
+    _rows = records.map(MatingListColumn.getDataGridRow).toList();
   }
 
   late List<DataGridRow> _rows;
 
   @override
   List<DataGridRow> get rows => _rows;
-
-  DataGridRow _toGridRow(MatingDto m) {
-    final int eid = (m.eid);
-    final String matingTag = (m.matingTag ?? '').toString();
-    final String cageTag = (m.cage?.cageTag ?? '').toString();
-    final String litterStrain = (m.litterStrain?.strainName ?? '').toString();
-    final List<AnimalSummaryDto> animals = m.animals;
-    final AnimalSummaryDto? male = animals.cast<AnimalSummaryDto?>().firstWhere(
-      (a) => (a?.sex ?? '') == 'M', // TODO: use constants
-      orElse: () => null,
-    );
-    final List<AnimalSummaryDto> females = animals
-        .where((a) => (a.sex ?? '') == 'F') // TODO: use constants
-        .cast<AnimalSummaryDto>()
-        .toList();
-    final String maleTag = (male?.physicalTag ?? '').toString();
-    final List<String> femaleTags = females
-        .map((f) => (f.physicalTag ?? '').toString())
-        .where((t) => t.isNotEmpty)
-        .toList();
-    final String maleGenotypes = GenotypeHelper.formatGenotypes(
-      male?.genotypes,
-    );
-    final List<String> femaleGenotypeLines = females
-        .map((f) => GenotypeHelper.formatGenotypes(f.genotypes))
-        .where((g) => g.isNotEmpty)
-        .toList();
-    final String setUpDate = DateTimeHelper.formatDate(m.setUpDate);
-    final String disbandedDate = DateTimeHelper.formatDate(m.disbandedDate);
-    final String owner = AccountHelper.getOwnerName(m.owner);
-    final String created = DateTimeHelper.formatDateTime(m.createdDate);
-    return DataGridRow(
-      cells: [
-        DataGridCell<int>(columnName: MatingListColumn.eid.name, value: eid),
-        DataGridCell<String>(
-          columnName: MatingListColumn.matingTag.name,
-          value: matingTag,
-        ),
-        DataGridCell<String>(
-          columnName: MatingListColumn.cageTag.name,
-          value: cageTag,
-        ),
-        DataGridCell<String>(
-          columnName: MatingListColumn.litterStrain.name,
-          value: litterStrain,
-        ),
-        DataGridCell<String>(
-          columnName: MatingListColumn.maleTag.name,
-          value: maleTag,
-        ),
-        DataGridCell<String>(
-          columnName: MatingListColumn.maleGenotypes.name,
-          value: maleGenotypes,
-        ),
-        DataGridCell<List<String>>(
-          columnName: MatingListColumn.femaleTag.name,
-          value: femaleTags,
-        ),
-        DataGridCell<List<String>>(
-          columnName: MatingListColumn.femaleGenotypes.name,
-          value: femaleGenotypeLines,
-        ),
-        DataGridCell<String>(
-          columnName: MatingListColumn.setUpDate.name,
-          value: setUpDate,
-        ),
-        DataGridCell<String>(
-          columnName: MatingListColumn.disbandedDate.name,
-          value: disbandedDate,
-        ),
-        DataGridCell<String>(
-          columnName: MatingListColumn.owner.name,
-          value: owner,
-        ),
-        DataGridCell<String>(
-          columnName: MatingListColumn.created.name,
-          value: created,
-        ),
-      ],
-    );
-  }
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
