@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/constants/list_constants/common.dart';
+import 'package:moustra/constants/list_constants/mating_list_constants.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/helpers/datetime_helper.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
+import 'package:moustra/widgets/safe_text.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -52,19 +55,21 @@ class _MatingsScreenState extends State<MatingsScreen> {
           child: PaginatedDataGrid<MatingDto>(
             controller: _controller,
             onSortChanged: (columnName, ascending) {
-              _sortField = _mapSortField(columnName);
-              _sortOrder = ascending ? 'asc' : 'desc';
+              _sortField = columnName;
+              _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
               _controller.reload();
             },
-            columns: _gridColumns(),
+            columns: matingListColumns(),
             sourceBuilder: (rows) => _MatingGridSource(records: rows),
             fetchPage: (page, pageSize) async {
               final pageData = await matingService.getMatingsPage(
                 page: page,
                 pageSize: pageSize,
                 query: {
-                  if (_sortField != null) 'sort': _sortField!,
-                  if (_sortField != null) 'order': _sortOrder,
+                  if (_sortField != null)
+                    SortQueryParamKey.sort.name: _sortField!,
+                  if (_sortField != null)
+                    SortQueryParamKey.order.name: _sortOrder,
                 },
               );
               return PaginatedResult<MatingDto>(
@@ -79,113 +84,14 @@ class _MatingsScreenState extends State<MatingsScreen> {
     );
   }
 
-  List<GridColumn> _gridColumns() {
-    return [
-      GridColumn(
-        columnName: 'eid',
-        width: 80,
-        label: Center(child: Text('EID')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'matingTag',
-        width: 140,
-        label: Center(child: Text('Mating Tag')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'cageTag',
-        width: 140,
-        label: Center(child: Text('Cage Tag')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'litterStrain',
-        width: 200,
-        label: Center(child: Text('Litter Strain')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'maleTag',
-        width: 140,
-        label: Center(child: Text('Male Tag')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'maleGenotypes',
-        width: 260,
-        label: Center(child: Text('Male Genotypes')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'femaleTag',
-        width: 140,
-        label: Center(child: Text('Female Tag')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'femaleGenotypes',
-        width: 260,
-        label: Center(child: Text('Female Genotypes')),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: 'setUpDate',
-        width: 140,
-        label: Center(child: Text('Set Up Date')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'disbandedDate',
-        width: 160,
-        label: Center(child: Text('Disbanded Date')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'owner',
-        width: 220,
-        label: Center(child: Text('Owner')),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: 'created',
-        width: 180,
-        label: Center(child: Text('Created Date')),
-        allowSorting: true,
-      ),
-    ];
-  }
-
   String? _sortField;
-  String _sortOrder = 'asc';
-  String? _mapSortField(String columnName) {
-    switch (columnName) {
-      case 'matingTag':
-        return 'mating_tag';
-      case 'cageTag':
-        return 'cage_tag';
-      case 'litterStrain':
-        return 'litter_strain';
-      case 'maleTag':
-        return 'male_tag';
-      case 'setUpDate':
-        return 'set_up_date';
-      case 'owner':
-        return 'owner';
-      case 'created':
-        return 'created_date';
-      case 'disbandedDate':
-        return 'disbanded_date';
-      default:
-        return null;
-    }
-  }
+  String _sortOrder = SortOrder.asc.name;
 
   int _estimateLines(MatingDto m) {
     final List<AnimalSummaryDto> animals =
         (m.animals as List<AnimalSummaryDto>? ?? <AnimalSummaryDto>[]);
     final List<AnimalSummaryDto> females = animals
-        .where((a) => (a.sex ?? '') == 'F')
+        .where((a) => (a.sex ?? '') == 'F') // TODO: use constants
         .cast<AnimalSummaryDto>()
         .toList();
     final int femaleTagLines = females
@@ -193,24 +99,13 @@ class _MatingsScreenState extends State<MatingsScreen> {
         .where((t) => t.isNotEmpty)
         .length;
     final int femaleGenotypeLines = females
-        .map((f) => _formatGenotypes(f.genotypes))
+        .map((f) => GenotypeHelper.formatGenotypes(f.genotypes))
         .where((g) => g.isNotEmpty)
         .length;
     final int maxLines = femaleTagLines > femaleGenotypeLines
         ? femaleTagLines
         : femaleGenotypeLines;
     return maxLines.clamp(1, 20);
-  }
-
-  String _formatGenotypes(List<dynamic>? list) {
-    if (list == null || list.isEmpty) return '';
-    return list
-        .map((g) {
-          final gene = (g.gene?.geneName ?? '').toString();
-          final allele = (g.allele?.alleleName ?? '').toString();
-          return gene.isEmpty ? allele : '$gene/$allele';
-        })
-        .join(', ');
   }
 }
 
@@ -233,11 +128,11 @@ class _MatingGridSource extends DataGridSource {
     final String litterStrain = (m.litterStrain?.strainName ?? '').toString();
     final List<AnimalSummaryDto> animals = m.animals;
     final AnimalSummaryDto? male = animals.cast<AnimalSummaryDto?>().firstWhere(
-      (a) => (a?.sex ?? '') == 'M',
+      (a) => (a?.sex ?? '') == 'M', // TODO: use constants
       orElse: () => null,
     );
     final List<AnimalSummaryDto> females = animals
-        .where((a) => (a.sex ?? '') == 'F')
+        .where((a) => (a.sex ?? '') == 'F') // TODO: use constants
         .cast<AnimalSummaryDto>()
         .toList();
     final String maleTag = (male?.physicalTag ?? '').toString();
@@ -258,21 +153,51 @@ class _MatingGridSource extends DataGridSource {
     final String created = DateTimeHelper.formatDateTime(m.createdDate);
     return DataGridRow(
       cells: [
-        DataGridCell<int>(columnName: 'eid', value: eid),
-        DataGridCell<String>(columnName: 'matingTag', value: matingTag),
-        DataGridCell<String>(columnName: 'cageTag', value: cageTag),
-        DataGridCell<String>(columnName: 'litterStrain', value: litterStrain),
-        DataGridCell<String>(columnName: 'maleTag', value: maleTag),
-        DataGridCell<String>(columnName: 'maleGenotypes', value: maleGenotypes),
-        DataGridCell<List<String>>(columnName: 'femaleTag', value: femaleTags),
+        DataGridCell<int>(columnName: MatingListColumn.eid.name, value: eid),
+        DataGridCell<String>(
+          columnName: MatingListColumn.matingTag.name,
+          value: matingTag,
+        ),
+        DataGridCell<String>(
+          columnName: MatingListColumn.cageTag.name,
+          value: cageTag,
+        ),
+        DataGridCell<String>(
+          columnName: MatingListColumn.litterStrain.name,
+          value: litterStrain,
+        ),
+        DataGridCell<String>(
+          columnName: MatingListColumn.maleTag.name,
+          value: maleTag,
+        ),
+        DataGridCell<String>(
+          columnName: MatingListColumn.maleGenotypes.name,
+          value: maleGenotypes,
+        ),
         DataGridCell<List<String>>(
-          columnName: 'femaleGenotypes',
+          columnName: MatingListColumn.femaleTag.name,
+          value: femaleTags,
+        ),
+        DataGridCell<List<String>>(
+          columnName: MatingListColumn.femaleGenotypes.name,
           value: femaleGenotypeLines,
         ),
-        DataGridCell<String>(columnName: 'setUpDate', value: setUpDate),
-        DataGridCell<String>(columnName: 'disbandedDate', value: disbandedDate),
-        DataGridCell<String>(columnName: 'owner', value: owner),
-        DataGridCell<String>(columnName: 'created', value: created),
+        DataGridCell<String>(
+          columnName: MatingListColumn.setUpDate.name,
+          value: setUpDate,
+        ),
+        DataGridCell<String>(
+          columnName: MatingListColumn.disbandedDate.name,
+          value: disbandedDate,
+        ),
+        DataGridCell<String>(
+          columnName: MatingListColumn.owner.name,
+          value: owner,
+        ),
+        DataGridCell<String>(
+          columnName: MatingListColumn.created.name,
+          value: created,
+        ),
       ],
     );
   }
@@ -283,26 +208,26 @@ class _MatingGridSource extends DataGridSource {
 
     return DataGridRowAdapter(
       cells: [
-        Center(child: Text('${row.getCells()[0].value}')),
+        Center(child: SafeText('${row.getCells()[0].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[1].value),
+          child: SafeText(row.getCells()[1].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[2].value),
+          child: SafeText(row.getCells()[2].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[3].value),
+          child: SafeText(row.getCells()[3].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[4].value),
+          child: SafeText(row.getCells()[4].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
+          child: SafeText(
             row.getCells()[5].value,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
@@ -315,7 +240,8 @@ class _MatingGridSource extends DataGridSource {
             mainAxisSize: MainAxisSize.min,
             children: asList(row.getCells()[6].value)
                 .map(
-                  (t) => Text(t, overflow: TextOverflow.ellipsis, maxLines: 1),
+                  (t) =>
+                      SafeText(t, overflow: TextOverflow.ellipsis, maxLines: 1),
                 )
                 .toList(),
           ),
@@ -327,20 +253,21 @@ class _MatingGridSource extends DataGridSource {
             mainAxisSize: MainAxisSize.min,
             children: asList(row.getCells()[7].value)
                 .map(
-                  (g) => Text(g, overflow: TextOverflow.ellipsis, maxLines: 1),
+                  (g) =>
+                      SafeText(g, overflow: TextOverflow.ellipsis, maxLines: 1),
                 )
                 .toList(),
           ),
         ),
-        Center(child: Text(row.getCells()[8].value)),
+        Center(child: SafeText(row.getCells()[8].value)),
         Center(child: Text(row.getCells()[9].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[10].value),
+          child: SafeText(row.getCells()[10].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[11].value),
+          child: SafeText(row.getCells()[11].value),
         ),
       ],
     );
