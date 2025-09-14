@@ -10,8 +10,7 @@ class ProfileApi {
       body: body,
       withoutAccountPrefix: true,
     );
-    final Map<String, dynamic> data =
-        jsonDecode(res.body) as Map<String, dynamic>;
+    final Map<String, dynamic> data = jsonDecode(res.body);
     return ProfileResponseDto.fromJson(data);
   }
 }

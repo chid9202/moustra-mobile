@@ -24,11 +24,9 @@ class StrainApi {
     );
   }
 
-  Future<Map<String, dynamic>> createStrain(
-    Map<String, dynamic> payload,
-  ) async {
+  Future<StrainDto> createStrain(PostStrainDto payload) async {
     final res = await apiClient.post(ApiConfig.strains, body: payload);
-    return jsonDecode(res.body) as Map<String, dynamic>;
+    return StrainDto.fromJson(jsonDecode(res.body));
   }
 
   Future<Map<String, dynamic>> updateStrain(

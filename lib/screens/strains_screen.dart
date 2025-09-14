@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/constants/list_constants/strain_list_constants.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
@@ -53,9 +54,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
                 ElevatedButton.icon(
                   onPressed: () {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Create Strain clicked')),
-                      );
+                      context.go('/strains/new');
                     }
                   },
                   icon: const Icon(Icons.add),
