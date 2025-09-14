@@ -10,8 +10,8 @@ AccountDto _$AccountDtoFromJson(Map<String, dynamic> json) => AccountDto(
   accountId: (json['accountId'] as num).toInt(),
   accountUuid: json['accountUuid'] as String,
   user: UserDto.fromJson(json['user'] as Map<String, dynamic>),
-  role: json['role'] as String,
-  isActive: json['isActive'] as bool,
+  role: json['role'] as String?,
+  isActive: json['isActive'] as bool?,
 );
 
 Map<String, dynamic> _$AccountDtoToJson(AccountDto instance) =>
@@ -24,17 +24,13 @@ Map<String, dynamic> _$AccountDtoToJson(AccountDto instance) =>
     };
 
 UserDto _$UserDtoFromJson(Map<String, dynamic> json) => UserDto(
-  id: (json['id'] as num).toInt(),
-  username: json['username'] as String,
   email: json['email'] as String,
   firstName: json['firstName'] as String,
   lastName: json['lastName'] as String,
-  isActive: json['isActive'] as bool,
+  isActive: json['isActive'] as bool?,
 );
 
 Map<String, dynamic> _$UserDtoToJson(UserDto instance) => <String, dynamic>{
-  'id': instance.id,
-  'username': instance.username,
   'email': instance.email,
   'firstName': instance.firstName,
   'lastName': instance.lastName,

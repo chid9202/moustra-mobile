@@ -38,15 +38,21 @@ class _SelectOwnerState extends State<SelectOwner> {
 
   @override
   Widget build(BuildContext context) {
+    // Find the matching account from accountStore by UUID
+    AccountStoreDto? matchingOwner;
+    if (widget.selectedOwner != null) {
+      try {
+        matchingOwner = accountStore.value.firstWhere(
+          (account) => account.accountUuid == widget.selectedOwner!.accountUuid,
+        );
+      } catch (e) {
+        // Account not found in store, leave as null
+        matchingOwner = null;
+      }
+    }
+
     return DropdownButtonFormField<AccountStoreDto>(
-      initialValue:
-          widget.selectedOwner != null &&
-              accountStore.value.any(
-                (account) =>
-                    account.accountUuid == widget.selectedOwner!.accountUuid,
-              )
-          ? widget.selectedOwner
-          : null,
+      initialValue: matchingOwner,
       decoration: InputDecoration(
         labelText: 'Owner',
         border: OutlineInputBorder(),

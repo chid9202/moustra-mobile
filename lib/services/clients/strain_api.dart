@@ -24,17 +24,25 @@ class StrainApi {
     );
   }
 
+  Future<StrainDto> getStrain(String uuid) async {
+    final res = await apiClient.get('${ApiConfig.strains}/$uuid');
+    print(res.body);
+    return StrainDto.fromJson(jsonDecode(res.body));
+  }
+
   Future<StrainDto> createStrain(PostStrainDto payload) async {
     final res = await apiClient.post(ApiConfig.strains, body: payload);
     return StrainDto.fromJson(jsonDecode(res.body));
   }
 
-  Future<Map<String, dynamic>> updateStrain(
-    String id,
-    Map<String, dynamic> payload,
-  ) async {
-    final res = await apiClient.put('${ApiConfig.strains}/$id', body: payload);
-    return jsonDecode(res.body) as Map<String, dynamic>;
+  Future<StrainDto> putStrain(String uuid, PutStrainDto payload) async {
+    print('Putting strain $uuid');
+    print(payload.toJson());
+    final res = await apiClient.put(
+      '${ApiConfig.strains}/$uuid',
+      body: payload,
+    );
+    return StrainDto.fromJson(jsonDecode(res.body));
   }
 
   Future<void> deleteStrain(String id) async {

@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 
 part 'account_dto.g.dart';
 
@@ -7,38 +8,41 @@ class AccountDto {
   final int accountId;
   final String accountUuid;
   final UserDto user;
-  final String role;
-  final bool isActive;
+  final String? role;
+  final bool? isActive;
 
   AccountDto({
     required this.accountId,
     required this.accountUuid,
     required this.user,
-    required this.role,
-    required this.isActive,
+    this.role,
+    this.isActive,
   });
 
   factory AccountDto.fromJson(Map<String, dynamic> json) =>
       _$AccountDtoFromJson(json);
   Map<String, dynamic> toJson() => _$AccountDtoToJson(this);
+
+  AccountStoreDto toAccountStoreDto() => AccountStoreDto(
+    accountId: accountId,
+    accountUuid: accountUuid,
+    user: user,
+    isActive: isActive,
+  );
 }
 
 @JsonSerializable(explicitToJson: true)
 class UserDto {
-  final int id;
-  final String username;
   final String email;
   final String firstName;
   final String lastName;
-  final bool isActive;
+  final bool? isActive;
 
   UserDto({
-    required this.id,
-    required this.username,
     required this.email,
     required this.firstName,
     required this.lastName,
-    required this.isActive,
+    this.isActive,
   });
 
   factory UserDto.fromJson(Map<String, dynamic> json) =>

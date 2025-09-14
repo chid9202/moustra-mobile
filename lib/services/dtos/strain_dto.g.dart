@@ -84,7 +84,7 @@ PostStrainDto _$PostStrainDtoFromJson(Map<String, dynamic> json) =>
           .toList(),
       color: json['color'] as String,
       comment: json['comment'] as String?,
-      account: AccountStoreDto.fromJson(json['account']),
+      owner: AccountStoreDto.fromJson(json['owner']),
       strainName: json['strainName'] as String,
     );
 
@@ -93,6 +93,29 @@ Map<String, dynamic> _$PostStrainDtoToJson(PostStrainDto instance) =>
       'backgrounds': instance.backgrounds.map((e) => e.toJson()).toList(),
       'color': instance.color,
       'comment': instance.comment,
-      'account': instance.account.toJson(),
+      'owner': instance.owner.toJson(),
       'strainName': instance.strainName,
+    };
+
+PutStrainDto _$PutStrainDtoFromJson(Map<String, dynamic> json) => PutStrainDto(
+  strainId: (json['strainId'] as num).toInt(),
+  strainUuid: json['strainUuid'] as String,
+  backgrounds: (json['backgrounds'] as List<dynamic>)
+      .map(BackgroundStoreDto.fromJson)
+      .toList(),
+  color: json['color'] as String,
+  comment: json['comment'] as String?,
+  owner: AccountStoreDto.fromJson(json['owner']),
+  strainName: json['strainName'] as String,
+);
+
+Map<String, dynamic> _$PutStrainDtoToJson(PutStrainDto instance) =>
+    <String, dynamic>{
+      'backgrounds': instance.backgrounds.map((e) => e.toJson()).toList(),
+      'color': instance.color,
+      'comment': instance.comment,
+      'owner': instance.owner.toJson(),
+      'strainName': instance.strainName,
+      'strainId': instance.strainId,
+      'strainUuid': instance.strainUuid,
     };

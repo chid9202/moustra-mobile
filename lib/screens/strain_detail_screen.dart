@@ -23,11 +23,27 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
   Color _selectedColor = Colors.white;
   AccountStoreDto? _selectedOwner;
   List<BackgroundStoreDto> _selectedBackgrounds = [];
+  StrainDto? _strainData;
+  bool _strainDataLoaded = false;
+
+  // Get the strain UUID from the route parameters
+  String? get _strainUuid {
+    final state = GoRouterState.of(context);
+    return state.pathParameters['strainUuid'];
+  }
 
   @override
   void initState() {
     super.initState();
     _loadDefaultOwner();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_strainDataLoaded) {
+      _loadStrainData();
+    }
   }
 
   void _loadDefaultOwner() async {
@@ -36,6 +52,50 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
       setState(() {
         _selectedOwner = owner;
       });
+    }
+  }
+
+  void _loadStrainData() async {
+    final strainUuid = _strainUuid;
+    if (strainUuid == null || strainUuid == 'new') {
+      _strainDataLoaded = true;
+      return;
+    }
+    try {
+      // Load existing strain data for editing
+      final strain = await StrainApi().getStrain(strainUuid);
+      if (mounted) {
+        setState(() {
+          _strainNameController.text = strain.strainName;
+          _commentController.text = strain.comment ?? '';
+
+          // Set color if available
+          if (strain.color != null && strain.color!.isNotEmpty) {
+            final colorValue = int.tryParse('FF${strain.color}', radix: 16);
+            if (colorValue != null) {
+              _selectedColor = Color(colorValue);
+            }
+          }
+
+          // Set owner
+          _selectedOwner = strain.owner.toAccountStoreDto();
+
+          // Set backgrounds
+          _selectedBackgrounds = strain.backgrounds
+              .map((e) => e.toBackgroundStoreDto())
+              .toList();
+          _strainData = strain;
+          _strainDataLoaded = true;
+        });
+      }
+    } catch (e) {
+      print('Error loading strain: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading strain: $e')));
+      }
+      _strainDataLoaded = true; // Mark as loaded even on error to prevent retry
     }
   }
 
@@ -125,21 +185,51 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
 
   void _saveStrain() async {
     if (_formKey.currentState!.validate()) {
-      final strain = PostStrainDto(
-        strainName: _strainNameController.text,
-        color: _selectedColor.value
-            .toRadixString(16)
-            .substring(2)
-            .toUpperCase(),
-        account: _selectedOwner ?? await AccountHelper.getDefaultOwner(),
-        backgrounds: _selectedBackgrounds,
-        comment: _commentController.text,
-      );
-      StrainApi().createStrain(strain);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Strain saved successfully!')),
-      );
-      context.go('/strains');
+      try {
+        final strainUuid = _strainUuid;
+        if (strainUuid == null || strainUuid == 'new') {
+          // Create new strain
+          final strain = PostStrainDto(
+            strainName: _strainNameController.text,
+            color: _selectedColor.value
+                .toRadixString(16)
+                .substring(2)
+                .toUpperCase(),
+            owner: _selectedOwner ?? await AccountHelper.getDefaultOwner(),
+            backgrounds: _selectedBackgrounds,
+            comment: _commentController.text,
+          );
+          await StrainApi().createStrain(strain);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Strain created successfully!')),
+          );
+        } else {
+          // Update existing strain
+          StrainApi().putStrain(
+            strainUuid,
+            PutStrainDto(
+              strainId: _strainData!.strainId,
+              strainUuid: strainUuid,
+              backgrounds: _selectedBackgrounds,
+              color: _selectedColor.value
+                  .toRadixString(16)
+                  .substring(2)
+                  .toUpperCase(),
+              comment: _commentController.text,
+              owner: _selectedOwner ?? await AccountHelper.getDefaultOwner(),
+              strainName: _strainNameController.text,
+            ),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Strain updated successfully!')),
+          );
+        }
+        context.go('/strains');
+      } catch (e) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving strain: $e')));
+      }
     }
   }
 
@@ -149,7 +239,13 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('Strain Details')),
+      appBar: AppBar(
+        title: Text(
+          _strainUuid == null || _strainUuid == 'new'
+              ? 'Create Strain'
+              : 'Edit Strain',
+        ),
+      ),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(

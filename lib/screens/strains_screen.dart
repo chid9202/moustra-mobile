@@ -97,6 +97,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
               records: rows,
               selected: _selected,
               onToggle: _onToggleSelected,
+              context: context,
             ),
             fetchPage: (page, pageSize) async {
               final pageData = await strainService.getStrainsPage(
@@ -178,11 +179,13 @@ class _StrainGridSource extends DataGridSource {
   final List<StrainDto> records;
   final Set<String> selected;
   final void Function(String uuid, bool selected) onToggle;
+  final BuildContext context;
 
   _StrainGridSource({
     required this.records,
     required this.selected,
     required this.onToggle,
+    required this.context,
   }) {
     _dataGridRows = records.map(StrainListColumn.getDataGridRow).toList();
   }
@@ -210,7 +213,9 @@ class _StrainGridSource extends DataGridSource {
           child: IconButton(
             icon: const Icon(Icons.edit),
             tooltip: 'Edit',
-            onPressed: () {},
+            onPressed: () {
+              context.go('/strains/$uuid');
+            },
           ),
         ),
         Padding(

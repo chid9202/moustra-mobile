@@ -89,6 +89,8 @@ class StrainBackgroundDto {
     'uuid': uuid,
     'name': name,
   };
+  BackgroundStoreDto toBackgroundStoreDto() =>
+      BackgroundStoreDto(id: id, uuid: uuid, name: name);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -96,18 +98,38 @@ class PostStrainDto {
   final List<BackgroundStoreDto> backgrounds;
   final String color;
   final String? comment;
-  final AccountStoreDto account;
+  final AccountStoreDto owner;
   final String strainName;
 
   PostStrainDto({
     required this.backgrounds,
     required this.color,
     this.comment,
-    required this.account,
+    required this.owner,
     required this.strainName,
   });
 
   factory PostStrainDto.fromJson(Map<String, dynamic> json) =>
       _$PostStrainDtoFromJson(json);
   Map<String, dynamic> toJson() => _$PostStrainDtoToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class PutStrainDto extends PostStrainDto {
+  final int strainId;
+  final String strainUuid;
+
+  PutStrainDto({
+    required this.strainId,
+    required this.strainUuid,
+    required super.backgrounds,
+    required super.color,
+    required super.comment,
+    required super.owner,
+    required super.strainName,
+  });
+
+  factory PutStrainDto.fromJson(Map<String, dynamic> json) =>
+      _$PutStrainDtoFromJson(json);
+  Map<String, dynamic> toJson() => _$PutStrainDtoToJson(this);
 }
