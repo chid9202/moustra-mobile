@@ -20,7 +20,7 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
   final _strainNameController = TextEditingController();
   final _commentController = TextEditingController();
 
-  Color _selectedColor = Colors.blue;
+  Color _selectedColor = Colors.white;
   AccountStoreDto? _selectedOwner;
   List<BackgroundStoreDto> _selectedBackgrounds = [];
 
