@@ -7,17 +7,17 @@ class BackgroundStoreDto {
   final int id;
   final String uuid;
   final String name;
-  final DateTime createdDate;
-  final String lab; // lab uuid
-  final String owner; // owner uuid
+  final DateTime? createdDate;
+  final String? lab; // lab uuid
+  final String? owner; // owner uuid
 
   BackgroundStoreDto({
     required this.id,
     required this.uuid,
     required this.name,
-    required this.createdDate,
-    required this.lab,
-    required this.owner,
+    this.createdDate,
+    this.lab,
+    this.owner,
   });
 
   factory BackgroundStoreDto.fromJson(dynamic json) =>

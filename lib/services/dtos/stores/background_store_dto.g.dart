@@ -11,9 +11,11 @@ BackgroundStoreDto _$BackgroundStoreDtoFromJson(Map<String, dynamic> json) =>
       id: (json['id'] as num).toInt(),
       uuid: json['uuid'] as String,
       name: json['name'] as String,
-      createdDate: DateTime.parse(json['createdDate'] as String),
-      lab: json['lab'] as String,
-      owner: json['owner'] as String,
+      createdDate: json['createdDate'] == null
+          ? null
+          : DateTime.parse(json['createdDate'] as String),
+      lab: json['lab'] as String?,
+      owner: json['owner'] as String?,
     );
 
 Map<String, dynamic> _$BackgroundStoreDtoToJson(BackgroundStoreDto instance) =>
@@ -21,7 +23,7 @@ Map<String, dynamic> _$BackgroundStoreDtoToJson(BackgroundStoreDto instance) =>
       'id': instance.id,
       'uuid': instance.uuid,
       'name': instance.name,
-      'createdDate': instance.createdDate.toIso8601String(),
+      'createdDate': instance.createdDate?.toIso8601String(),
       'lab': instance.lab,
       'owner': instance.owner,
     };
