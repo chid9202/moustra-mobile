@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:fl_chart/fl_chart.dart';
-
 import 'package:grid_view/screens/dashboard/animals_to_wean.dart';
 import 'package:grid_view/screens/dashboard/data_by_account.dart';
+import 'package:grid_view/screens/dashboard/mice_by_sex.dart';
 import 'package:grid_view/screens/dashboard/mice_count_by_age.dart';
 import 'package:grid_view/services/dashboard_service.dart';
 
@@ -73,33 +72,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
 
               const SizedBox(height: 12),
-
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Mice by Sex',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 220,
-                        child: PieChart(
-                          PieChartData(
-                            sections: _sexSections(animalsSexRatio),
-                            sectionsSpace: 2,
-                            centerSpaceRadius: 0,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: MiceBySex(animalsSexRatio),
                 ),
               ),
             ],
@@ -107,36 +83,5 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
       },
     );
-  }
-
-  List<PieChartSectionData> _sexSections(List<dynamic> sexData) {
-    final total = sexData.fold<int>(
-      0,
-      (sum, e) => sum + ((e['count'] as int?) ?? 0),
-    );
-    Color colorFor(String? sex) {
-      switch (sex) {
-        case 'M':
-          return Colors.blue;
-        case 'F':
-          return Colors.pink;
-        case 'U':
-          return Colors.grey;
-        default:
-          return Colors.black26;
-      }
-    }
-
-    return sexData.map((e) {
-      final c = (e['count'] as int? ?? 0);
-      final sex = e['sex']?.toString();
-      final pct = total == 0 ? 0.0 : (c / total * 100);
-      return PieChartSectionData(
-        color: colorFor(sex),
-        value: c.toDouble(),
-        title: '${pct.toStringAsFixed(1)}%',
-        titleStyle: const TextStyle(fontSize: 12, color: Colors.white),
-      );
-    }).toList();
   }
 }
