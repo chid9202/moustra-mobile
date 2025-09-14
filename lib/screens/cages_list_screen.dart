@@ -6,6 +6,7 @@ import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/helpers/datetime_helper.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
+import 'package:moustra/widgets/safe_text.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -185,16 +186,16 @@ class _CageGridSource extends DataGridSource {
 
     return DataGridRowAdapter(
       cells: [
-        Center(child: Text('${row.getCells()[0].value}')),
+        Center(child: SafeText('${row.getCells()[0].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[1].value),
+          child: SafeText(row.getCells()[1].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[2].value),
+          child: SafeText(row.getCells()[2].value),
         ),
-        Center(child: Text('${row.getCells()[3].value}')),
+        Center(child: SafeText('${row.getCells()[3].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Column(
@@ -202,7 +203,8 @@ class _CageGridSource extends DataGridSource {
             mainAxisSize: MainAxisSize.min,
             children: asList(row.getCells()[4].value)
                 .map(
-                  (t) => Text(t, overflow: TextOverflow.ellipsis, maxLines: 1),
+                  (t) =>
+                      SafeText(t, overflow: TextOverflow.ellipsis, maxLines: 1),
                 )
                 .toList(),
           ),
@@ -214,20 +216,21 @@ class _CageGridSource extends DataGridSource {
             mainAxisSize: MainAxisSize.min,
             children: asList(row.getCells()[5].value)
                 .map(
-                  (g) => Text(g, overflow: TextOverflow.ellipsis, maxLines: 1),
+                  (g) =>
+                      SafeText(g, overflow: TextOverflow.ellipsis, maxLines: 1),
                 )
                 .toList(),
           ),
         ),
-        Center(child: Text(row.getCells()[6].value)),
-        Center(child: Text(row.getCells()[7].value)),
+        Center(child: SafeText(row.getCells()[6].value)),
+        Center(child: SafeText(row.getCells()[7].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[8].value),
+          child: SafeText(row.getCells()[8].value),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[9].value),
+          child: SafeText(row.getCells()[9].value),
         ),
       ],
     );
