@@ -1,6 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:moustra/services/dtos/account_dto.dart';
 import 'package:moustra/services/dtos/genotype_dto.dart';
+import 'package:moustra/services/dtos/stores/account_store_dto.dart';
+import 'package:moustra/services/dtos/stores/background_store_dto.dart';
 
 part 'strain_dto.g.dart';
 
@@ -87,4 +89,25 @@ class StrainBackgroundDto {
     'uuid': uuid,
     'name': name,
   };
+}
+
+@JsonSerializable(explicitToJson: true)
+class PostStrainDto {
+  final List<BackgroundStoreDto> backgrounds;
+  final String color;
+  final String? comment;
+  final AccountStoreDto account;
+  final String strainName;
+
+  PostStrainDto({
+    required this.backgrounds,
+    required this.color,
+    this.comment,
+    required this.account,
+    required this.strainName,
+  });
+
+  factory PostStrainDto.fromJson(Map<String, dynamic> json) =>
+      _$PostStrainDtoFromJson(json);
+  Map<String, dynamic> toJson() => _$PostStrainDtoToJson(this);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moustra/screens/strain_detail_screen.dart';
 import 'package:moustra/widgets/app_menu.dart';
 import 'package:moustra/screens/strains_screen.dart';
 import 'package:moustra/screens/cages_list_screen.dart';
@@ -90,6 +91,16 @@ final GoRouter appRouter = GoRouter(
           path: '/strains',
           pageBuilder: (context, state) =>
               const MaterialPage(child: StrainsScreen()),
+        ),
+        GoRoute(
+          path: '/strains/:strainUuid',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: StrainDetailScreen()),
+        ),
+        GoRoute(
+          path: '/strains/new',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: StrainDetailScreen()),
         ),
         GoRoute(
           path: '/cages/list',

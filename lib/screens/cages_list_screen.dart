@@ -67,7 +67,6 @@ class _CagesListScreenState extends State<CagesListScreen> {
           child: PaginatedDataGrid<CageDto>(
             controller: _controller,
             onSortChanged: (columnName, ascending) {
-              print('onSortChanged: $columnName, $ascending');
               _sortField = columnName;
               _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
               _controller.reload();
