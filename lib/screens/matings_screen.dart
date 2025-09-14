@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/constants/animal_constants.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/constants/list_constants/mating_list_constants.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
-import 'package:moustra/helpers/account_helper.dart';
-import 'package:moustra/helpers/datetime_helper.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:moustra/widgets/safe_text.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -91,7 +90,7 @@ class _MatingsScreenState extends State<MatingsScreen> {
     final List<AnimalSummaryDto> animals =
         (m.animals as List<AnimalSummaryDto>? ?? <AnimalSummaryDto>[]);
     final List<AnimalSummaryDto> females = animals
-        .where((a) => (a.sex ?? '') == 'F') // TODO: use constants
+        .where((a) => (a.sex ?? '') == SexConstants.female)
         .cast<AnimalSummaryDto>()
         .toList();
     final int femaleTagLines = females
