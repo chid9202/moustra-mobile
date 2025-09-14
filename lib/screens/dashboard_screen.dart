@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:moustra/constants/animal_constants.dart';
 import 'package:moustra/services/clients/dashboard_api.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -350,11 +351,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
     Color colorFor(String? sex) {
       switch (sex) {
-        case 'M':
+        case SexConstants.male:
           return Colors.blue;
-        case 'F':
+        case SexConstants.female:
           return Colors.pink;
-        case 'U':
+        case SexConstants.unknown:
           return Colors.grey;
         default:
           return Colors.black26;

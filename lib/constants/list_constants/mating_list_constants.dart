@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/constants/animal_constants.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/helpers/datetime_helper.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
@@ -113,11 +114,11 @@ enum MatingListColumn implements ListColumn<MatingDto> {
     final String litterStrain = (m.litterStrain?.strainName ?? '').toString();
     final List<AnimalSummaryDto> animals = m.animals;
     final AnimalSummaryDto? male = animals.cast<AnimalSummaryDto?>().firstWhere(
-      (a) => (a?.sex ?? '') == 'M', // TODO: use constants
+      (a) => (a?.sex ?? '') == SexConstants.male,
       orElse: () => null,
     );
     final List<AnimalSummaryDto> females = animals
-        .where((a) => (a.sex ?? '') == 'F') // TODO: use constants
+        .where((a) => (a.sex ?? '') == SexConstants.female)
         .cast<AnimalSummaryDto>()
         .toList();
     final String maleTag = (male?.physicalTag ?? '').toString();
