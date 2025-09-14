@@ -74,7 +74,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
               _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
               _controller.reload();
             },
-            columns: cageListColumns(),
+            columns: CageListColumn.getColumns(),
             sourceBuilder: (rows) => _CageGridSource(records: rows),
             fetchPage: (page, pageSize) async {
               final pageData = await cageService.getCagesPage(
@@ -120,65 +120,13 @@ class _CageGridSource extends DataGridSource {
   final List<CageDto> records;
 
   _CageGridSource({required this.records}) {
-    _rows = records.map(_toRow).toList();
+    _rows = records.map(CageListColumn.getDataGridRow).toList();
   }
 
   late List<DataGridRow> _rows;
 
   @override
   List<DataGridRow> get rows => _rows;
-
-  DataGridRow _toRow(CageDto c) {
-    final List<dynamic> animals = (c.animals as List<dynamic>? ?? <dynamic>[]);
-    final int numAnimals = animals.length;
-    final List<String> animalTagLines = animals
-        .map((a) => (a.physicalTag ?? '').toString())
-        .where((t) => t.isNotEmpty)
-        .toList();
-    return DataGridRow(
-      cells: [
-        DataGridCell<int>(columnName: CageListColumn.eid.name, value: c.eid),
-        DataGridCell<String>(
-          columnName: CageListColumn.cageTag.name,
-          value: c.cageTag,
-        ),
-        DataGridCell<String>(
-          columnName: CageListColumn.strain.name,
-          value: c.strain?.strainName ?? '',
-        ),
-        DataGridCell<int>(
-          columnName: CageListColumn.numberOfAnimals.name,
-          value: numAnimals,
-        ),
-        DataGridCell<List<String>>(
-          columnName: CageListColumn.animalTags.name,
-          value: animalTagLines,
-        ),
-        DataGridCell<List<String>>(
-          columnName: CageListColumn.genotypes.name,
-          value: c.animals
-              .map((a) => GenotypeHelper.formatGenotypes(a.genotypes))
-              .toList(),
-        ),
-        DataGridCell<String>(
-          columnName: CageListColumn.status.name,
-          value: c.status,
-        ),
-        DataGridCell<String>(
-          columnName: CageListColumn.endDate.name,
-          value: DateTimeHelper.formatDate(c.endDate),
-        ),
-        DataGridCell<String>(
-          columnName: CageListColumn.owner.name,
-          value: AccountHelper.getOwnerName(c.owner),
-        ),
-        DataGridCell<String>(
-          columnName: CageListColumn.created.name,
-          value: DateTimeHelper.formatDateTime(c.createdDate),
-        ),
-      ],
-    );
-  }
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
