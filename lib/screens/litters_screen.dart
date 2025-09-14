@@ -33,7 +33,7 @@ class _LittersScreenState extends State<LittersScreen> {
         _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
         _controller.reload();
       },
-      columns: litterListColumns(),
+      columns: LitterListColumn.getColumns(),
       sourceBuilder: (rows) => _LitterGridSource(records: rows),
       fetchPage: (page, pageSize) async {
         final pageData = await litterService.getLittersPage(
@@ -70,56 +70,13 @@ class _LitterGridSource extends DataGridSource {
   final List<LitterDto> records;
 
   _LitterGridSource({required this.records}) {
-    _rows = records.map(_toGridRow).toList();
+    _rows = records.map(LitterListColumn.getDataGridRow).toList();
   }
 
   late List<DataGridRow> _rows;
 
   @override
   List<DataGridRow> get rows => _rows;
-
-  DataGridRow _toGridRow(LitterDto litter) {
-    final int eid = (litter.eid);
-    final String tag = (litter.litterTag).toString();
-    final String strain = (litter.mating.litterStrain?.strainName ?? '')
-        .toString();
-    final List<LitterAnimalDto>? pups = (litter.animals);
-    final int numPups = pups?.length ?? 0;
-    final String weanDate = DateTimeHelper.formatDate(litter.weanDate);
-    final String dob = DateTimeHelper.formatDate(litter.dateOfBirth);
-    final String owner = AccountHelper.getOwnerName(litter.owner);
-    final String created = DateTimeHelper.formatDateTime(litter.createdDate);
-    return DataGridRow(
-      cells: [
-        DataGridCell<int>(columnName: LitterListColumn.eid.name, value: eid),
-        DataGridCell<String>(
-          columnName: LitterListColumn.litterTag.name,
-          value: tag,
-        ),
-        DataGridCell<String>(
-          columnName: LitterListColumn.litterStrain.name,
-          value: strain,
-        ),
-        DataGridCell<int>(
-          columnName: LitterListColumn.numberOfPups.name,
-          value: numPups,
-        ),
-        DataGridCell<String>(
-          columnName: LitterListColumn.wean.name,
-          value: weanDate,
-        ),
-        DataGridCell<String>(columnName: LitterListColumn.dob.name, value: dob),
-        DataGridCell<String>(
-          columnName: LitterListColumn.owner.name,
-          value: owner,
-        ),
-        DataGridCell<String>(
-          columnName: LitterListColumn.created.name,
-          value: created,
-        ),
-      ],
-    );
-  }
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {

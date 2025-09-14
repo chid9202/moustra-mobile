@@ -97,7 +97,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
               _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
               _controller.reload();
             },
-            columns: strainListColumns(),
+            columns: StrainListColumn.getColumns(),
             sourceBuilder: (rows) => _StrainGridSource(
               records: rows,
               selected: _selected,
@@ -191,57 +191,13 @@ class _StrainGridSource extends DataGridSource {
     required this.selected,
     required this.onToggle,
   }) {
-    _dataGridRows = records.map(_toGridRow).toList();
+    _dataGridRows = records.map(StrainListColumn.getDataGridRow).toList();
   }
 
   late List<DataGridRow> _dataGridRows;
 
   @override
   List<DataGridRow> get rows => _dataGridRows;
-
-  DataGridRow _toGridRow(StrainDto e) {
-    final String uuid = e.strainUuid;
-    return DataGridRow(
-      cells: [
-        DataGridCell<String>(
-          columnName: StrainListColumn.select.name,
-          value: uuid,
-        ),
-        DataGridCell<String>(
-          columnName: StrainListColumn.edit.name,
-          value: uuid,
-        ),
-        DataGridCell<String>(
-          columnName: StrainListColumn.strainName.name,
-          value: e.strainName,
-        ),
-        DataGridCell<int>(
-          columnName: StrainListColumn.animals.name,
-          value: e.numberOfAnimals,
-        ),
-        DataGridCell<String>(
-          columnName: StrainListColumn.color.name,
-          value: e.color ?? '',
-        ),
-        DataGridCell<String>(
-          columnName: StrainListColumn.owner.name,
-          value: AccountHelper.getOwnerName(e.owner),
-        ),
-        DataGridCell<String>(
-          columnName: StrainListColumn.created.name,
-          value: DateTimeHelper.formatDateTime(e.createdDate),
-        ),
-        DataGridCell<String>(
-          columnName: StrainListColumn.background.name,
-          value: StrainHelper.getBackgroundNames(e.backgrounds),
-        ),
-        DataGridCell<bool>(
-          columnName: StrainListColumn.active.name,
-          value: e.isActive,
-        ),
-      ],
-    );
-  }
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
