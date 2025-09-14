@@ -3,9 +3,6 @@ import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/constants/list_constants/strain_list_constants.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/services/clients/strain_api.dart';
-import 'package:moustra/helpers/account_helper.dart';
-import 'package:moustra/helpers/datetime_helper.dart';
-import 'package:moustra/helpers/strain_helper.dart';
 import 'package:moustra/widgets/color_picker.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
@@ -20,7 +17,6 @@ class StrainsScreen extends StatefulWidget {
 class _StrainsScreenState extends State<StrainsScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
   List<StrainDto> _all = <StrainDto>[];
-  List<StrainDto> _filtered = <StrainDto>[];
   final TextEditingController _filterController = TextEditingController();
   String? _sortField; // api field, e.g., strain_name
   String _sortOrder = SortOrder.asc.name;
@@ -115,7 +111,6 @@ class _StrainsScreenState extends State<StrainsScreen> {
                 },
               );
               _all = pageData.results.cast<StrainDto>();
-              _filtered = List<StrainDto>.from(_all);
               return PaginatedResult<StrainDto>(
                 count: pageData.count,
                 results: pageData.results,
@@ -141,13 +136,12 @@ class _StrainsScreenState extends State<StrainsScreen> {
     final query = term.trim().toLowerCase();
     if (query.isEmpty) {
       setState(() {
-        _filtered = List<StrainDto>.from(_all);
         _currentPage = 0;
       });
       return;
     }
     setState(() {
-      _filtered = _all.where((e) {
+      _all = _all.where((e) {
         final name = e.strainName.toLowerCase();
         final uuid = e.strainUuid.toLowerCase();
         return name.contains(query) || uuid.contains(query);
