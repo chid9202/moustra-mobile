@@ -24,6 +24,11 @@ class AnimalApi {
       (j) => AnimalDto.fromJson(j),
     );
   }
+
+  Future<AnimalDto> getAnimal(String animalUuid) async {
+    final res = await apiClient.get('$basePath/$animalUuid');
+    return AnimalDto.fromJson(jsonDecode(res.body));
+  }
 }
 
 final AnimalApi animalService = AnimalApi();

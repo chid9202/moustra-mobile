@@ -8,6 +8,7 @@ import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum AnimalListColumn implements ListColumn<AnimalDto> {
+  select('', 'select'),
   eid('EID', 'eid'),
   physicalTag('Physical Tag', 'physical_tag'),
   status('Status', 'status'),
@@ -33,6 +34,12 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
 
   static List<GridColumn> getColumns() {
     return [
+      GridColumn(
+        columnName: AnimalListColumn.select.field,
+        width: 56,
+        label: const SizedBox.shrink(),
+        allowSorting: false,
+      ),
       GridColumn(
         columnName: AnimalListColumn.eid.field,
         width: 80,
@@ -123,6 +130,10 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
   static DataGridRow getDataGridRow(AnimalDto a) {
     return DataGridRow(
       cells: [
+        DataGridCell<String>(
+          columnName: AnimalListColumn.select.name,
+          value: a.animalUuid,
+        ),
         DataGridCell<int>(columnName: AnimalListColumn.eid.name, value: a.eid),
         DataGridCell<String>(
           columnName: AnimalListColumn.physicalTag.name,
