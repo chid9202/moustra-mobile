@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/animal_list_constants.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/services/clients/animal_api.dart';
@@ -61,7 +62,8 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
               _controller.reload();
             },
             columns: AnimalListColumn.getColumns(),
-            sourceBuilder: (rows) => _AnimalGridSource(records: rows),
+            sourceBuilder: (rows) =>
+                _AnimalGridSource(records: rows, context: context),
             fetchPage: (page, pageSize) async {
               final pageData = await animalService.getAnimalsPage(
                 page: page,
@@ -95,8 +97,9 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
 
 class _AnimalGridSource extends DataGridSource {
   final List<AnimalDto> records;
+  final BuildContext context;
 
-  _AnimalGridSource({required this.records}) {
+  _AnimalGridSource({required this.records, required this.context}) {
     _rows = records.map(AnimalListColumn.getDataGridRow).toList();
   }
 
@@ -107,23 +110,29 @@ class _AnimalGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
+    final String uuid = row.getCells()[0].value as String;
     return DataGridRowAdapter(
       cells: [
-        Center(child: SafeText('${row.getCells()[0].value}')),
+        Center(
+          child: IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit',
+            onPressed: () {
+              context.go('/animals/$uuid');
+            },
+          ),
+        ),
+        Center(child: SafeText('${row.getCells()[1].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[1].value),
+          child: SafeText(row.getCells()[2].value),
         ),
-        Center(child: SafeText(row.getCells()[2].value)),
         Center(child: SafeText(row.getCells()[3].value)),
         Center(child: SafeText(row.getCells()[4].value)),
         Center(child: SafeText(row.getCells()[5].value)),
         Center(child: SafeText(row.getCells()[6].value)),
         Center(child: SafeText(row.getCells()[7].value)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[8].value),
-        ),
+        Center(child: SafeText(row.getCells()[8].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: SafeText(row.getCells()[9].value),
@@ -143,6 +152,10 @@ class _AnimalGridSource extends DataGridSource {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: SafeText(row.getCells()[13].value),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: SafeText(row.getCells()[14].value),
         ),
       ],
     );

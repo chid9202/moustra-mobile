@@ -17,6 +17,8 @@ class SelectOwner extends StatefulWidget {
 }
 
 class _SelectOwnerState extends State<SelectOwner> {
+  List<AccountStoreDto>? accounts;
+
   @override
   void initState() {
     super.initState();
@@ -24,15 +26,11 @@ class _SelectOwnerState extends State<SelectOwner> {
   }
 
   void _loadAccounts() async {
-    if (accountStore.value.isEmpty) {
-      final value = await StoreApi<AccountStoreDto>().getStore(
-        StoreKeys.account,
-      );
-      if (mounted) {
-        setState(() {
-          accountStore.value = value;
-        });
-      }
+    if (accounts == null && mounted) {
+      final loadedAccounts = await getAccountsHook();
+      setState(() {
+        accounts = loadedAccounts;
+      });
     }
   }
 
@@ -42,7 +40,7 @@ class _SelectOwnerState extends State<SelectOwner> {
     AccountStoreDto? matchingOwner;
     if (widget.selectedOwner != null) {
       try {
-        matchingOwner = accountStore.value.firstWhere(
+        matchingOwner = accounts?.firstWhere(
           (account) => account.accountUuid == widget.selectedOwner!.accountUuid,
         );
       } catch (e) {
@@ -57,7 +55,7 @@ class _SelectOwnerState extends State<SelectOwner> {
         labelText: 'Owner',
         border: OutlineInputBorder(),
       ),
-      items: accountStore.value.map((account) {
+      items: accounts?.map((account) {
         return DropdownMenuItem<AccountStoreDto>(
           value: account,
           child: Text('${account.user.firstName} ${account.user.lastName}'),

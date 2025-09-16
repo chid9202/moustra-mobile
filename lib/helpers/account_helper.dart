@@ -1,5 +1,4 @@
 import 'package:moustra/app/router.dart';
-import 'package:moustra/services/clients/store_api.dart';
 import 'package:moustra/services/dtos/account_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/stores/account_store.dart';
@@ -20,15 +19,12 @@ class AccountHelper {
       throw Exception('Profile not found');
     }
 
-    if (accountStore.value.isEmpty) {
-      await StoreApi<AccountStoreDto>().getStore(StoreKeys.account).then((
-        value,
-      ) {
-        accountStore.value = value;
-      });
+    print('profile.accountUuid: ${profile.accountUuid}');
+    final account = await getAccountHook(profile.accountUuid);
+    print('55555555555555 account: $account');
+    if (account == null) {
+      throw Exception('Default owner not found');
     }
-    return accountStore.value.firstWhere(
-      (account) => account.accountUuid == profile.accountUuid,
-    );
+    return account;
   }
 }

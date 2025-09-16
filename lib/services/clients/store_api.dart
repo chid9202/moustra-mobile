@@ -2,11 +2,17 @@ import 'dart:convert';
 
 import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
+import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
 import 'package:moustra/services/dtos/stores/background_store_dto.dart';
+import 'package:moustra/services/dtos/stores/cage_store_dto.dart';
+import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
 
 enum StoreKeys {
   account('Account', AccountStoreDto.fromJson),
-  background('Background', BackgroundStoreDto.fromJson);
+  background('Background', BackgroundStoreDto.fromJson),
+  animal('Animal', AnimalStoreDto.fromJson),
+  cage('Cage', CageStoreDto.fromJson),
+  strain('Strain', StrainStoreDto.fromJson);
 
   const StoreKeys(this.path, this.fromJson);
   final String path;

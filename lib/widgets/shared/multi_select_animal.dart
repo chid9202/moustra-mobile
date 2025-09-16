@@ -1,52 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:moustra/services/clients/store_api.dart';
-import 'package:moustra/services/dtos/stores/background_store_dto.dart';
-import 'package:moustra/stores/background_store.dart';
+import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
+import 'package:moustra/stores/animal_store.dart';
 
-class SelectBackground extends StatefulWidget {
-  const SelectBackground({
+class MultiSelectAnimal extends StatefulWidget {
+  const MultiSelectAnimal({
     super.key,
-    required this.selectedBackgrounds,
+    required this.selectedAnimals,
     required this.onChanged,
   });
-  final List<BackgroundStoreDto> selectedBackgrounds;
-  final Function(List<BackgroundStoreDto>) onChanged;
+  final List<AnimalStoreDto> selectedAnimals;
+  final Function(List<AnimalStoreDto>) onChanged;
 
   @override
-  State<SelectBackground> createState() => _SelectBackgroundState();
+  State<MultiSelectAnimal> createState() => _MultiSelectAnimalState();
 }
 
-class _SelectBackgroundState extends State<SelectBackground> {
-  List<BackgroundStoreDto>? backgrounds;
+class _MultiSelectAnimalState extends State<MultiSelectAnimal> {
+  List<AnimalStoreDto>? animals;
 
   @override
   void initState() {
     super.initState();
-    _loadBackgrounds();
+    _loadAnimals();
   }
 
-  void _loadBackgrounds() async {
-    if (backgrounds == null && mounted) {
-      final loadedBackgrounds = await getBackgroundsHook();
+  void _loadAnimals() async {
+    if (animals == null && mounted) {
+      final loadedAnimals = await getAnimalsHook();
       setState(() {
-        backgrounds = loadedBackgrounds;
+        animals = loadedAnimals;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (backgrounds == null) {
-      StoreApi<BackgroundStoreDto>().getStore(StoreKeys.background).then((
-        value,
-      ) {
-        backgrounds = value;
-      });
-    }
-
-    void showBackgroundPicker() {
-      List<BackgroundStoreDto> tempSelectedBackgrounds = List.from(
-        widget.selectedBackgrounds,
+    void showAnimalPicker() {
+      List<AnimalStoreDto> tempSelectedAnimals = List.from(
+        widget.selectedAnimals,
       );
 
       showDialog(
@@ -55,28 +46,28 @@ class _SelectBackgroundState extends State<SelectBackground> {
           return StatefulBuilder(
             builder: (context, setDialogState) {
               return AlertDialog(
-                title: const Text('Select Backgrounds'),
+                title: const Text('Select Animals'),
                 content: SizedBox(
                   width: double.maxFinite,
                   child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: backgrounds?.length ?? 0,
+                    itemCount: animals?.length ?? 0,
                     itemBuilder: (context, index) {
-                      final background = backgrounds?[index];
-                      final isSelected = tempSelectedBackgrounds.any(
-                        (bg) => bg.uuid == background?.uuid,
+                      final animal = animals?[index];
+                      final isSelected = tempSelectedAnimals.any(
+                        (a) => a.animalUuid == animal?.animalUuid,
                       );
 
                       return CheckboxListTile(
-                        title: Text(background?.name ?? ''),
+                        title: Text(animal?.physicalTag ?? ''),
                         value: isSelected,
                         onChanged: (value) {
                           setDialogState(() {
                             if (value == true) {
-                              tempSelectedBackgrounds.add(background!);
+                              tempSelectedAnimals.add(animal!);
                             } else {
-                              tempSelectedBackgrounds.removeWhere(
-                                (bg) => bg.uuid == background?.uuid,
+                              tempSelectedAnimals.removeWhere(
+                                (a) => a.animalUuid == animal?.animalUuid,
                               );
                             }
                           });
@@ -88,7 +79,7 @@ class _SelectBackgroundState extends State<SelectBackground> {
                 actions: [
                   TextButton(
                     onPressed: () {
-                      widget.onChanged(tempSelectedBackgrounds);
+                      widget.onChanged(tempSelectedAnimals);
                       Navigator.of(context).pop(true);
                     },
                     child: const Text('OK'),
@@ -107,33 +98,32 @@ class _SelectBackgroundState extends State<SelectBackground> {
       ).then((saved) {
         if (saved != true) {
           // Dialog was closed without saving, reset to original values
-          widget.onChanged(List.from(widget.selectedBackgrounds));
+          widget.onChanged(List.from(widget.selectedAnimals));
         }
       });
     }
 
     return InkWell(
-      onTap: showBackgroundPicker,
+      onTap: showAnimalPicker,
       child: InputDecorator(
         decoration: const InputDecoration(
-          labelText: 'Backgrounds',
+          labelText: 'Animals',
           border: OutlineInputBorder(),
         ),
-        child: widget.selectedBackgrounds.isEmpty
-            ? const Text(
-                'Select backgrounds',
-                style: TextStyle(color: Colors.grey),
-              )
+        child: widget.selectedAnimals.isEmpty
+            ? const Text('Select animals', style: TextStyle(color: Colors.grey))
             : Wrap(
                 spacing: 8,
                 runSpacing: 4,
-                children: widget.selectedBackgrounds.map((bg) {
+                children: widget.selectedAnimals.map((bg) {
                   return Chip(
-                    label: Text(bg.name),
+                    label: Text(bg.physicalTag ?? ''),
                     onDeleted: () {
                       widget.onChanged(
-                        widget.selectedBackgrounds
-                            .where((background) => background.uuid != bg.uuid)
+                        widget.selectedAnimals
+                            .where(
+                              (animal) => animal.animalUuid != bg.animalUuid,
+                            )
                             .toList(),
                       );
                     },
