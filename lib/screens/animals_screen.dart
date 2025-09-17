@@ -40,9 +40,11 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
               spacing: 12,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.go('/animals/new');
+                  },
                   icon: const Icon(Icons.add),
-                  label: const Text('Add Animal'),
+                  label: const Text('Create Animals'),
                 ),
                 FilledButton.icon(
                   onPressed: () {},

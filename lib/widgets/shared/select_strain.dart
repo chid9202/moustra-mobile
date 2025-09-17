@@ -7,10 +7,11 @@ class SelectStrain extends StatefulWidget {
     super.key,
     required this.selectedStrain,
     required this.onChanged,
+    this.label,
   });
   final StrainStoreDto? selectedStrain;
   final Function(StrainStoreDto?) onChanged;
-
+  final String? label;
   @override
   State<SelectStrain> createState() => _SelectStrainState();
 }
@@ -100,8 +101,8 @@ class _SelectStrainState extends State<SelectStrain> {
           child: InkWell(
             onTap: showStrainPicker,
             child: InputDecorator(
-              decoration: const InputDecoration(
-                labelText: 'Strains',
+              decoration: InputDecoration(
+                labelText: widget.label ?? 'Strains',
                 border: OutlineInputBorder(),
               ),
               child: Text(
