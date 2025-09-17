@@ -31,14 +31,22 @@ class AnimalApi {
   }
 
   Future<AnimalDto> putAnimal(String animalUuid, AnimalDto payload) async {
-    print('1111111111111111111111111111');
     final res = await apiClient.put('$basePath/$animalUuid', body: payload);
-    print('222222222222222222222222222 ${jsonDecode(res.body)}');
 
     if (res.statusCode != 200) {
       throw Exception('Failed to update animal ${res.body}');
     }
     return AnimalDto.fromJson(jsonDecode(res.body));
+  }
+
+  Future<List<AnimalDto>> postAnimal(PostAnimalDto payload) async {
+    final res = await apiClient.post(basePath, body: payload);
+    if (res.statusCode != 201) {
+      throw Exception('Failed to create animal ${res.body}');
+    }
+
+    final animalsData = jsonDecode(res.body)['animals'] as List<dynamic>;
+    return animalsData.map((e) => AnimalDto.fromDynamicJson(e)).toList();
   }
 }
 

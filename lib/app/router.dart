@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/screens/animal_detail_screen.dart';
+import 'package:moustra/screens/animal_new_screen.dart';
 import 'package:moustra/screens/strain_detail_screen.dart';
 import 'package:moustra/widgets/app_menu.dart';
 import 'package:moustra/screens/strains_screen.dart';
@@ -107,6 +108,11 @@ final GoRouter appRouter = GoRouter(
           path: '/animals',
           pageBuilder: (context, state) =>
               const MaterialPage(child: AnimalsScreen()),
+        ),
+        GoRoute(
+          path: '/animals/new',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: AnimalNewScreen()),
         ),
         GoRoute(
           path: '/animals/:animalUuid',

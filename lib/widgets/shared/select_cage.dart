@@ -7,10 +7,11 @@ class SelectCage extends StatefulWidget {
     super.key,
     required this.selectedCage,
     required this.onChanged,
+    this.label,
   });
   final CageStoreDto? selectedCage;
   final Function(CageStoreDto?) onChanged;
-
+  final String? label;
   @override
   State<SelectCage> createState() => _SelectCageState();
 }
@@ -106,8 +107,8 @@ class _SelectCageState extends State<SelectCage> {
           child: InkWell(
             onTap: showCagePicker,
             child: InputDecorator(
-              decoration: const InputDecoration(
-                labelText: 'Cages',
+              decoration: InputDecoration(
+                labelText: widget.label ?? 'Cages',
                 border: OutlineInputBorder(),
               ),
               child: Text(

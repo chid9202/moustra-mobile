@@ -48,16 +48,20 @@ class SelectDate extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    selectedDate != null
-                        ? DateFormat('yyyy-MM-dd').format(selectedDate!)
-                        : hintText ?? 'Select date',
-                    style: TextStyle(
-                      color: selectedDate != null
-                          ? Theme.of(context).textTheme.bodyLarge?.color
-                          : Theme.of(context).hintColor,
+                  Expanded(
+                    child: Text(
+                      selectedDate != null
+                          ? DateFormat('yyyy-MM-dd').format(selectedDate!)
+                          : hintText ?? 'Select date',
+                      style: TextStyle(
+                        color: selectedDate != null
+                            ? Theme.of(context).textTheme.bodyLarge?.color
+                            : Theme.of(context).hintColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  const SizedBox(width: 8),
                   const Icon(Icons.calendar_today),
                 ],
               ),

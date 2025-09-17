@@ -7,7 +7,7 @@ part of 'genotype_dto.dart';
 // **************************************************************************
 
 GenotypeDto _$GenotypeDtoFromJson(Map<String, dynamic> json) => GenotypeDto(
-  id: (json['id'] as num).toInt(),
+  id: (json['id'] as num?)?.toInt(),
   gene: json['gene'] == null
       ? null
       : GeneDto.fromJson(json['gene'] as Map<String, dynamic>),
