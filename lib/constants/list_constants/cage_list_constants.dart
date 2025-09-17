@@ -7,6 +7,7 @@ import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum CageListColumn implements ListColumn<CageDto> {
+  select('', 'select'),
   eid('EID', 'eid'),
   cageTag('Cage Tag', 'cage_tag'),
   strain('Strain', 'strain'),
@@ -28,6 +29,12 @@ enum CageListColumn implements ListColumn<CageDto> {
 
   static List<GridColumn> getColumns() {
     return [
+      GridColumn(
+        columnName: CageListColumn.select.field,
+        width: 56,
+        label: const SizedBox.shrink(),
+        allowSorting: false,
+      ),
       GridColumn(
         columnName: CageListColumn.eid.field,
         width: 80,
@@ -101,6 +108,10 @@ enum CageListColumn implements ListColumn<CageDto> {
         .toList();
     return DataGridRow(
       cells: [
+        DataGridCell<String>(
+          columnName: CageListColumn.select.name,
+          value: cage.cageUuid,
+        ),
         DataGridCell<int>(columnName: CageListColumn.eid.name, value: cage.eid),
         DataGridCell<String>(
           columnName: CageListColumn.cageTag.name,

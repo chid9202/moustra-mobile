@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/cage_list_constants.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/services/clients/cage_api.dart';
@@ -41,10 +42,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
               children: [
                 ElevatedButton.icon(
                   onPressed: () {
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Add Cage clicked')),
-                    );
+                    context.go('/cages/new');
                   },
                   icon: const Icon(Icons.add),
                   label: const Text('Add Cage'),
@@ -72,7 +70,8 @@ class _CagesListScreenState extends State<CagesListScreen> {
               _controller.reload();
             },
             columns: CageListColumn.getColumns(),
-            sourceBuilder: (rows) => _CageGridSource(records: rows),
+            sourceBuilder: (rows) =>
+                _CageGridSource(records: rows, context: context),
             fetchPage: (page, pageSize) async {
               final pageData = await cageService.getCagesPage(
                 page: page,
@@ -115,8 +114,9 @@ class _CagesListScreenState extends State<CagesListScreen> {
 
 class _CageGridSource extends DataGridSource {
   final List<CageDto> records;
+  final BuildContext context;
 
-  _CageGridSource({required this.records}) {
+  _CageGridSource({required this.records, required this.context}) {
     _rows = records.map(CageListColumn.getDataGridRow).toList();
   }
 
@@ -127,26 +127,36 @@ class _CageGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
+    final String uuid = row.getCells()[0].value as String;
     List<String> asList(dynamic v) => (v as List<String>? ?? <String>[]);
 
     return DataGridRowAdapter(
       cells: [
-        Center(child: SafeText('${row.getCells()[0].value}')),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[1].value),
+        Center(
+          child: IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit',
+            onPressed: () {
+              context.go('/cages/${uuid}');
+            },
+          ),
         ),
+        Center(child: SafeText('${row.getCells()[1].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: SafeText(row.getCells()[2].value),
         ),
-        Center(child: SafeText('${row.getCells()[3].value}')),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: SafeText(row.getCells()[3].value),
+        ),
+        Center(child: SafeText('${row.getCells()[4].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: asList(row.getCells()[4].value)
+            children: asList(row.getCells()[5].value)
                 .map(
                   (t) =>
                       SafeText(t, overflow: TextOverflow.ellipsis, maxLines: 1),
@@ -159,7 +169,7 @@ class _CageGridSource extends DataGridSource {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: asList(row.getCells()[5].value)
+            children: asList(row.getCells()[6].value)
                 .map(
                   (g) =>
                       SafeText(g, overflow: TextOverflow.ellipsis, maxLines: 1),
@@ -167,15 +177,15 @@ class _CageGridSource extends DataGridSource {
                 .toList(),
           ),
         ),
-        Center(child: SafeText(row.getCells()[6].value)),
         Center(child: SafeText(row.getCells()[7].value)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[8].value),
-        ),
+        Center(child: SafeText(row.getCells()[8].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: SafeText(row.getCells()[9].value),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: SafeText(row.getCells()[10].value),
         ),
       ],
     );

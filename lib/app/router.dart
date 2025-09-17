@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/screens/animal_detail_screen.dart';
 import 'package:moustra/screens/animal_new_screen.dart';
+import 'package:moustra/screens/cage_detail_screen.dart';
 import 'package:moustra/screens/strain_detail_screen.dart';
 import 'package:moustra/widgets/app_menu.dart';
 import 'package:moustra/screens/strains_screen.dart';
@@ -98,6 +99,16 @@ final GoRouter appRouter = GoRouter(
           path: '/cages/grid',
           pageBuilder: (context, state) =>
               const MaterialPage(child: CagesGridScreen()),
+        ),
+        GoRoute(
+          path: '/cages/new',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: CageDetailScreen()),
+        ),
+        GoRoute(
+          path: '/cages/:cageUuid',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: CageDetailScreen()),
         ),
         GoRoute(
           path: '/litters',

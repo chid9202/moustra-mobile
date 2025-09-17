@@ -7,7 +7,7 @@ part of 'cage_dto.dart';
 // **************************************************************************
 
 CageDto _$CageDtoFromJson(Map<String, dynamic> json) => CageDto(
-  eid: (json['eid'] as num).toInt(),
+  eid: (json['eid'] as num?)?.toInt(),
   cageId: (json['cageId'] as num).toInt(),
   cageTag: json['cageTag'] as String,
   cageUuid: json['cageUuid'] as String,
@@ -15,7 +15,6 @@ CageDto _$CageDtoFromJson(Map<String, dynamic> json) => CageDto(
   strain: json['strain'] == null
       ? null
       : StrainSummaryDto.fromJson(json['strain'] as Map<String, dynamic>),
-  rack: (json['rack'] as num?)?.toInt(),
   animals:
       (json['animals'] as List<dynamic>?)
           ?.map((e) => AnimalSummaryDto.fromJson(e as Map<String, dynamic>))
@@ -39,7 +38,6 @@ Map<String, dynamic> _$CageDtoToJson(CageDto instance) => <String, dynamic>{
   'cageUuid': instance.cageUuid,
   'owner': instance.owner.toJson(),
   'strain': instance.strain?.toJson(),
-  'rack': instance.rack,
   'animals': instance.animals.map((e) => e.toJson()).toList(),
   'order': instance.order,
   'comment': instance.comment,
