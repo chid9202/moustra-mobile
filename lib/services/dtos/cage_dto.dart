@@ -7,28 +7,26 @@ part 'cage_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class CageDto {
-  final int eid;
+  final int? eid;
   final int cageId;
   final String cageTag;
   final String cageUuid;
   final AccountDto owner;
   final StrainSummaryDto? strain;
-  final int? rack;
   final List<AnimalSummaryDto> animals;
-  final int order;
+  final int? order;
   final String? comment;
   final DateTime? createdDate;
   final DateTime? endDate;
   final String status;
 
   CageDto({
-    required this.eid,
+    this.eid,
     required this.cageId,
     required this.cageTag,
     required this.cageUuid,
     required this.owner,
     this.strain,
-    this.rack,
     this.animals = const [],
     this.order = 0,
     this.comment,
