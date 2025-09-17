@@ -26,7 +26,9 @@ class StrainApi {
 
   Future<StrainDto> getStrain(String uuid) async {
     final res = await apiClient.get('${ApiConfig.strains}/$uuid');
-    print(res.body);
+    if (res.statusCode != 200) {
+      throw Exception('Failed to get strain ${res.body}');
+    }
     return StrainDto.fromJson(jsonDecode(res.body));
   }
 
@@ -36,8 +38,6 @@ class StrainApi {
   }
 
   Future<StrainDto> putStrain(String uuid, PutStrainDto payload) async {
-    print('Putting strain $uuid');
-    print(payload.toJson());
     final res = await apiClient.put(
       '${ApiConfig.strains}/$uuid',
       body: payload,

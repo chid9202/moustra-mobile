@@ -19,9 +19,7 @@ class AccountHelper {
       throw Exception('Profile not found');
     }
 
-    print('profile.accountUuid: ${profile.accountUuid}');
     final account = await getAccountHook(profile.accountUuid);
-    print('55555555555555 account: $account');
     if (account == null) {
       throw Exception('Default owner not found');
     }

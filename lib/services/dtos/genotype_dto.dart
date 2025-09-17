@@ -4,12 +4,12 @@ part 'genotype_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class GenotypeDto {
-  final int id;
+  final int? id;
   final GeneDto? gene;
   final AlleleDto? allele;
   final int? order;
 
-  GenotypeDto({required this.id, this.gene, this.allele, this.order});
+  GenotypeDto({this.id, this.gene, this.allele, this.order});
 
   factory GenotypeDto.fromJson(Map<String, dynamic> json) =>
       _$GenotypeDtoFromJson(json);

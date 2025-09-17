@@ -29,6 +29,17 @@ class AnimalApi {
     final res = await apiClient.get('$basePath/$animalUuid');
     return AnimalDto.fromJson(jsonDecode(res.body));
   }
+
+  Future<AnimalDto> putAnimal(String animalUuid, AnimalDto payload) async {
+    print('1111111111111111111111111111');
+    final res = await apiClient.put('$basePath/$animalUuid', body: payload);
+    print('222222222222222222222222222 ${jsonDecode(res.body)}');
+
+    if (res.statusCode != 200) {
+      throw Exception('Failed to update animal ${res.body}');
+    }
+    return AnimalDto.fromJson(jsonDecode(res.body));
+  }
 }
 
 final AnimalApi animalService = AnimalApi();

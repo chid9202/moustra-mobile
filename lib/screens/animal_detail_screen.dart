@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/services/clients/animal_api.dart';
+import 'package:moustra/services/dtos/genotype_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
 import 'package:moustra/services/dtos/stores/cage_store_dto.dart';
 import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
-import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/stores/account_store.dart';
 import 'package:moustra/stores/animal_store.dart';
@@ -16,8 +16,8 @@ import 'package:moustra/widgets/shared/multi_select_animal.dart';
 import 'package:moustra/widgets/shared/select_animal.dart';
 import 'package:moustra/widgets/shared/select_cage.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
+import 'package:moustra/widgets/shared/select_gene.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
-import 'package:intl/intl.dart';
 import 'package:moustra/widgets/shared/select_sex.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
 
@@ -43,6 +43,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
   List<AnimalStoreDto> _selectedDam = [];
   AnimalDto? _animalData;
   bool _animalDataLoaded = false;
+  List<GenotypeDto> _selectedGenotypes = [];
 
   // Get the animal UUID from the route parameters
   String? get _animalUuid {
@@ -83,23 +84,29 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
       // Load existing animal data for editing
       final animal = await AnimalApi().getAnimal(animalUuid);
       if (mounted) {
-        setState(() async {
+        final loadedStrain = await getStrainHook(animal.strain?.strainUuid);
+        final loadedOwner = await getAccountHook(
+          animal.owner?.accountUuid ?? '',
+        );
+        final loadedCage = await getCageHook(animal.cage?.cageUuid);
+        final loadedSire = await getAnimalHook(animal.sire?.animalUuid ?? '');
+        final loadedDam = await getAnimalsHookByUuids(
+          animal.dam?.map((dam) => dam.animalUuid).toList() ?? [],
+        );
+        setState(() {
           _physicalTagController.text = animal.physicalTag ?? '';
           _commentController.text = animal.comment ?? '';
           _selectedSex = animal.sex;
-          _selectedStrain = await getStrainHook(animal.strain?.strainUuid);
+          _selectedStrain = loadedStrain;
           _selectedDateOfBirth = animal.dateOfBirth;
           _selectedWeanDate = animal.weanDate;
-          _selectedOwner = await getAccountHook(
-            animal.owner?.accountUuid ?? '',
-          );
-          _selectedCage = await getCageHook(animal.cage?.cageUuid);
-          _selectedSire = await getAnimalHook(animal.sire?.animalUuid ?? '');
-          _selectedDam = await getAnimalsHookByUuids(
-            animal.dam?.map((dam) => dam.animalUuid).toList() ?? [],
-          );
+          _selectedOwner = loadedOwner;
+          _selectedCage = loadedCage;
+          _selectedSire = loadedSire;
+          _selectedDam = loadedDam;
           _animalData = animal;
           _animalDataLoaded = true;
+          _selectedGenotypes = animal.genotypes ?? [];
         });
       }
     } catch (e) {
@@ -121,32 +128,40 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
   }
 
   void _saveAnimal() async {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate() && _animalData != null) {
       try {
         final animalUuid = _animalUuid;
+        if (animalUuid == null) {
+          return;
+        }
+        print(_selectedGenotypes.map((e) => e.toJson()).toList());
+        // return;
         // Update existing animal
-        // await AnimalApi().updateAnimal(
-        //   animalUuid,
-        //   PutAnimalDto(
-        //     animalId: _animalData!.animalId,
-        //     animalUuid: animalUuid,
-        //     physicalTag: _physicalTagController.text,
-        //     sex: _selectedSex!,
-        //     strain: _selectedStrain!,
-        //     dateOfBirth: _selectedDateOfBirth!,
-        //     weanDate: _selectedWeanDate,
-        //     cageTag: _selectedCage!,
-        //     owner: _selectedOwner ?? await AccountHelper.getDefaultOwner(),
-        //     sire: _selectedSire,
-        //     dam: _selectedDam,
-        //     comment: _commentController.text,
-        //   ),
-        // );
+        await AnimalApi().putAnimal(
+          animalUuid,
+          AnimalDto(
+            eid: 0,
+            animalId: 0,
+            animalUuid: animalUuid,
+            physicalTag: _physicalTagController.text,
+            sex: _selectedSex,
+            strain: _selectedStrain?.toStrainSummaryDto(),
+            dateOfBirth: _selectedDateOfBirth,
+            weanDate: _selectedWeanDate,
+            cage: _selectedCage?.toCageSummaryDto(),
+            owner: _selectedOwner?.toAccountDto(),
+            sire: _selectedSire?.toAnimalSummaryDto(),
+            dam: _selectedDam.map((dam) => dam.toAnimalSummaryDto()).toList(),
+            comment: _commentController.text,
+            genotypes: _selectedGenotypes,
+          ),
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Animal updated successfully!')),
         );
         context.go('/animals');
       } catch (e) {
+        print('Error saving animal: $e - ${e.toString()}');
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error saving animal: $e')));
@@ -161,6 +176,12 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
     }
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            context.go('/animals');
+          },
+          icon: const Icon(Icons.arrow_back),
+        ),
         title: Text(
           _animalUuid == null || _animalUuid == 'new'
               ? 'Create Animal'
@@ -242,6 +263,20 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
 
               const SizedBox(height: 16),
 
+              // Genotype Selection
+              SelectGene(
+                selectedGenotypes: _selectedGenotypes,
+                onGenotypesChanged: (genotypes) {
+                  setState(() {
+                    _selectedGenotypes = genotypes;
+                  });
+                },
+                label: 'Genotype',
+                placeholderText: 'Select Genotype',
+              ),
+
+              const SizedBox(height: 16),
+
               // Owner Select Field
               SelectOwner(
                 selectedOwner: _selectedOwner,
@@ -273,6 +308,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                     _selectedSire = animal;
                   });
                 },
+                label: 'Sire',
+                placeholderText: 'Select Sire',
               ),
 
               const SizedBox(height: 16),
@@ -285,6 +322,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                     _selectedDam = items;
                   });
                 },
+                label: 'Dam',
+                placeholderText: 'Select Dam',
               ),
 
               const SizedBox(height: 16),

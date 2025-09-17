@@ -94,18 +94,38 @@ class _SelectStrainState extends State<SelectStrain> {
       });
     }
 
-    return InkWell(
-      onTap: showStrainPicker,
-      child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'Strains',
-          border: OutlineInputBorder(),
+    return Row(
+      children: [
+        Expanded(
+          child: InkWell(
+            onTap: showStrainPicker,
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: 'Strains',
+                border: OutlineInputBorder(),
+              ),
+              child: Text(
+                widget.selectedStrain?.strainName ?? 'Select strain',
+                style: TextStyle(
+                  color: widget.selectedStrain != null
+                      ? Theme.of(context).textTheme.bodyLarge?.color
+                      : Theme.of(context).hintColor,
+                ),
+              ),
+            ),
+          ),
         ),
-        child: Text(
-          widget.selectedStrain?.strainName ?? 'Select strain',
-          style: TextStyle(color: Colors.grey),
-        ),
-      ),
+        if (widget.selectedStrain != null) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: () {
+              widget.onChanged(null);
+            },
+            icon: Icon(Icons.clear, color: Colors.grey[600]),
+            tooltip: 'Clear selection',
+          ),
+        ],
+      ],
     );
   }
 }

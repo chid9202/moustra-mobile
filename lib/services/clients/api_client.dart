@@ -50,16 +50,10 @@ class ApiClient {
       query: query,
       withoutAccountPrefix: withoutAccountPrefix,
     );
-    print('uri $uri');
-    return httpClient.get(uri, headers: await _headers());
-  }
-
-  Future<http.Response> getAbsolute(
-    String url, {
-    Map<String, String>? query,
-  }) async {
-    final uri = Uri.parse(url).replace(queryParameters: query);
-    return httpClient.get(uri, headers: await _headers());
+    print('GET uri $uri');
+    final res = await httpClient.get(uri, headers: await _headers());
+    print('res ${res.statusCode}');
+    return res;
   }
 
   Future<http.Response> post(
@@ -67,22 +61,39 @@ class ApiClient {
     Object? body,
     bool withoutAccountPrefix = false,
   }) async {
+    print('POST path $path');
     final uri = _buildUri(path, withoutAccountPrefix: withoutAccountPrefix);
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
-    return httpClient.post(uri, headers: headers, body: jsonEncode(body));
+    final res = await httpClient.post(
+      uri,
+      headers: headers,
+      body: jsonEncode(body),
+    );
+    print('res ${res.statusCode}');
+    return res;
   }
 
   Future<http.Response> put(String path, {Object? body}) async {
+    print('PUT path $path');
     final uri = _buildUri(path);
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
-    return httpClient.put(uri, headers: headers, body: jsonEncode(body));
+    final res = await httpClient.put(
+      uri,
+      headers: headers,
+      body: jsonEncode(body),
+    );
+    print('res ${res.statusCode}');
+    return res;
   }
 
   Future<http.Response> delete(String path) async {
+    print('DELETE path $path');
     final uri = _buildUri(path);
-    return httpClient.delete(uri, headers: await _headers());
+    final res = await httpClient.delete(uri, headers: await _headers());
+    print('res ${res.statusCode}');
+    return res;
   }
 }
 

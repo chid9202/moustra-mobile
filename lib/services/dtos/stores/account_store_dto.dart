@@ -20,4 +20,10 @@ class AccountStoreDto {
   factory AccountStoreDto.fromJson(dynamic json) =>
       _$AccountStoreDtoFromJson(json);
   Map<String, dynamic> toJson() => _$AccountStoreDtoToJson(this);
+  AccountDto toAccountDto() => AccountDto(
+    accountId: accountId,
+    accountUuid: accountUuid,
+    user: user,
+    isActive: isActive,
+  );
 }

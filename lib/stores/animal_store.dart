@@ -7,7 +7,6 @@ final animalStore = ValueNotifier<List<AnimalStoreDto>?>(null);
 Future<List<AnimalStoreDto>> useAnimalStore() async {
   if (animalStore.value == null) {
     StoreApi<AnimalStoreDto>().getStore(StoreKeys.animal).then((value) {
-      print('---------- value: $value');
       animalStore.value = value;
     });
   }

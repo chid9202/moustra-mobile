@@ -7,10 +7,13 @@ class SelectAnimal extends StatefulWidget {
     super.key,
     required this.selectedAnimal,
     required this.onChanged,
+    required this.label,
+    required this.placeholderText,
   });
   final AnimalStoreDto? selectedAnimal;
   final Function(AnimalStoreDto?) onChanged;
-
+  final String label;
+  final String placeholderText;
   @override
   State<SelectAnimal> createState() => _SelectAnimalState();
 }
@@ -39,8 +42,6 @@ class _SelectAnimalState extends State<SelectAnimal> {
   Widget build(BuildContext context) {
     void showAnimalPicker() {
       AnimalStoreDto? tempSelectedAnimal = widget.selectedAnimal;
-
-      print('---------- animals: $animals');
 
       showDialog(
         context: context,
@@ -98,18 +99,38 @@ class _SelectAnimalState extends State<SelectAnimal> {
       });
     }
 
-    return InkWell(
-      onTap: showAnimalPicker,
-      child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'Animals',
-          border: OutlineInputBorder(),
+    return Row(
+      children: [
+        Expanded(
+          child: InkWell(
+            onTap: showAnimalPicker,
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: widget.label,
+                border: OutlineInputBorder(),
+              ),
+              child: Text(
+                widget.selectedAnimal?.physicalTag ?? widget.placeholderText,
+                style: TextStyle(
+                  color: widget.selectedAnimal != null
+                      ? Theme.of(context).textTheme.bodyLarge?.color
+                      : Theme.of(context).hintColor,
+                ),
+              ),
+            ),
+          ),
         ),
-        child: Text(
-          widget.selectedAnimal?.physicalTag ?? 'Select animal',
-          style: TextStyle(color: Colors.grey),
-        ),
-      ),
+        if (widget.selectedAnimal != null) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: () {
+              widget.onChanged(null);
+            },
+            icon: Icon(Icons.clear, color: Colors.grey[600]),
+            tooltip: 'Clear selection',
+          ),
+        ],
+      ],
     );
   }
 }

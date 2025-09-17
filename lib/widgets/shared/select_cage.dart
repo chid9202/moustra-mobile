@@ -100,18 +100,38 @@ class _SelectCageState extends State<SelectCage> {
       });
     }
 
-    return InkWell(
-      onTap: showCagePicker,
-      child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'Cages',
-          border: OutlineInputBorder(),
+    return Row(
+      children: [
+        Expanded(
+          child: InkWell(
+            onTap: showCagePicker,
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: 'Cages',
+                border: OutlineInputBorder(),
+              ),
+              child: Text(
+                widget.selectedCage?.cageTag ?? 'Select cage',
+                style: TextStyle(
+                  color: widget.selectedCage != null
+                      ? Theme.of(context).textTheme.bodyLarge?.color
+                      : Theme.of(context).hintColor,
+                ),
+              ),
+            ),
+          ),
         ),
-        child: Text(
-          widget.selectedCage?.cageTag ?? 'Select cage',
-          style: TextStyle(color: Colors.grey),
-        ),
-      ),
+        if (widget.selectedCage != null) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: () {
+              widget.onChanged(null);
+            },
+            icon: Icon(Icons.clear, color: Colors.grey[600]),
+            tooltip: 'Clear selection',
+          ),
+        ],
+      ],
     );
   }
 }

@@ -5,6 +5,8 @@ import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
 import 'package:moustra/services/dtos/stores/background_store_dto.dart';
 import 'package:moustra/services/dtos/stores/cage_store_dto.dart';
+import 'package:moustra/services/dtos/stores/allele_store_dto.dart';
+import 'package:moustra/services/dtos/stores/gene_store_dto.dart';
 import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
 
 enum StoreKeys {
@@ -12,7 +14,9 @@ enum StoreKeys {
   background('Background', BackgroundStoreDto.fromJson),
   animal('Animal', AnimalStoreDto.fromJson),
   cage('Cage', CageStoreDto.fromJson),
-  strain('Strain', StrainStoreDto.fromJson);
+  strain('Strain', StrainStoreDto.fromJson),
+  allele('Allele', AlleleStoreDto.fromJson),
+  gene('Gene', GeneStoreDto.fromJson);
 
   const StoreKeys(this.path, this.fromJson);
   final String path;

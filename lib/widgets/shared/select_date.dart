@@ -24,9 +24,9 @@ class SelectDate extends StatelessWidget {
   void _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate ?? DateTime.now(),
+      initialDate: selectedDate,
       firstDate: firstDate ?? DateTime(2020),
-      lastDate: lastDate ?? DateTime.now(),
+      lastDate: lastDate ?? DateTime(2099),
     );
     if (picked != null) {
       onChanged(picked);
@@ -35,30 +35,46 @@ class SelectDate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => _selectDate(context),
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: labelText,
-          border: const OutlineInputBorder(),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              selectedDate != null
-                  ? DateFormat('yyyy-MM-dd').format(selectedDate!)
-                  : hintText ?? 'Select date',
-              style: TextStyle(
-                color: selectedDate != null
-                    ? Theme.of(context).textTheme.bodyLarge?.color
-                    : Theme.of(context).hintColor,
+    return Row(
+      children: [
+        Expanded(
+          child: InkWell(
+            onTap: () => _selectDate(context),
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: labelText,
+                border: const OutlineInputBorder(),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    selectedDate != null
+                        ? DateFormat('yyyy-MM-dd').format(selectedDate!)
+                        : hintText ?? 'Select date',
+                    style: TextStyle(
+                      color: selectedDate != null
+                          ? Theme.of(context).textTheme.bodyLarge?.color
+                          : Theme.of(context).hintColor,
+                    ),
+                  ),
+                  const Icon(Icons.calendar_today),
+                ],
               ),
             ),
-            const Icon(Icons.calendar_today),
-          ],
+          ),
         ),
-      ),
+        if (selectedDate != null) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: () {
+              onChanged(null);
+            },
+            icon: Icon(Icons.clear, color: Colors.grey[600]),
+            tooltip: 'Clear selection',
+          ),
+        ],
+      ],
     );
   }
 }
