@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:moustra/services/dtos/genotype_dto.dart';
+import 'package:moustra/services/dtos/strain_dto.dart';
 
 part 'strain_store_dto.g.dart';
 
@@ -22,4 +23,9 @@ class StrainStoreDto {
   factory StrainStoreDto.fromJson(dynamic json) =>
       _$StrainStoreDtoFromJson(json);
   Map<String, dynamic> toJson() => _$StrainStoreDtoToJson(this);
+  StrainSummaryDto toStrainSummaryDto() => StrainSummaryDto(
+    strainId: strainId,
+    strainUuid: strainUuid,
+    strainName: strainName,
+  );
 }

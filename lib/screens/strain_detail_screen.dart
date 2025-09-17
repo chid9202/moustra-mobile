@@ -240,6 +240,12 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
     }
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            context.go('/strains');
+          },
+          icon: const Icon(Icons.arrow_back),
+        ),
         title: Text(
           _strainUuid == null || _strainUuid == 'new'
               ? 'Create Strain'

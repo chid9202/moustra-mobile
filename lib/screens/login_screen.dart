@@ -32,16 +32,13 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
           firstName: authService.user?.givenName ?? '',
           lastName: authService.user?.familyName ?? '',
         );
-        print('11111111111111');
         profileService
             .getProfile(req)
             .then((profile) {
-              print('22222222222222');
               profileState.value = profile;
               context.go('/dashboard');
             })
             .catchError((e) {
-              print('33333333333333');
               print(e);
             });
       }

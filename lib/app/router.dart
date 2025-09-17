@@ -58,26 +58,11 @@ final GoRouter appRouter = GoRouter(
         ),
       ),
       routes: [
-        // GoRoute(
-        //   path: '/ios/:rest(.*)',
-        //   pageBuilder: (context, state) =>
-        //       const MaterialPage(child: SizedBox.shrink()),
-        // ),
         GoRoute(
           path: '/login',
           pageBuilder: (context, state) =>
               const MaterialPage(child: LoginScreen()),
         ),
-        // GoRoute(
-        //   path: '/logout',
-        //   pageBuilder: (context, state) {
-        //     WidgetsBinding.instance.addPostFrameCallback((_) {
-        //       print('android logout callback ------> $authService.isLoggedIn');
-        //       if (context.mounted) context.go('/login');
-        //     });
-        //     return const MaterialPage(child: SizedBox.shrink());
-        //   },
-        // ),
         GoRoute(
           path: '/',
           pageBuilder: (context, state) =>

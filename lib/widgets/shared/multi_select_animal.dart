@@ -7,10 +7,13 @@ class MultiSelectAnimal extends StatefulWidget {
     super.key,
     required this.selectedAnimals,
     required this.onChanged,
+    required this.label,
+    required this.placeholderText,
   });
   final List<AnimalStoreDto> selectedAnimals;
   final Function(List<AnimalStoreDto>) onChanged;
-
+  final String label;
+  final String placeholderText;
   @override
   State<MultiSelectAnimal> createState() => _MultiSelectAnimalState();
 }
@@ -103,34 +106,54 @@ class _MultiSelectAnimalState extends State<MultiSelectAnimal> {
       });
     }
 
-    return InkWell(
-      onTap: showAnimalPicker,
-      child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'Animals',
-          border: OutlineInputBorder(),
-        ),
-        child: widget.selectedAnimals.isEmpty
-            ? const Text('Select animals', style: TextStyle(color: Colors.grey))
-            : Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: widget.selectedAnimals.map((bg) {
-                  return Chip(
-                    label: Text(bg.physicalTag ?? ''),
-                    onDeleted: () {
-                      widget.onChanged(
-                        widget.selectedAnimals
-                            .where(
-                              (animal) => animal.animalUuid != bg.animalUuid,
-                            )
-                            .toList(),
-                      );
-                    },
-                  );
-                }).toList(),
+    return Row(
+      children: [
+        Expanded(
+          child: InkWell(
+            onTap: showAnimalPicker,
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: widget.label,
+                border: OutlineInputBorder(),
               ),
-      ),
+              child: widget.selectedAnimals.isEmpty
+                  ? Text(
+                      widget.placeholderText,
+                      style: TextStyle(color: Colors.grey),
+                    )
+                  : Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: widget.selectedAnimals.map((bg) {
+                        return Chip(
+                          label: Text(bg.physicalTag ?? ''),
+                          onDeleted: () {
+                            widget.onChanged(
+                              widget.selectedAnimals
+                                  .where(
+                                    (animal) =>
+                                        animal.animalUuid != bg.animalUuid,
+                                  )
+                                  .toList(),
+                            );
+                          },
+                        );
+                      }).toList(),
+                    ),
+            ),
+          ),
+        ),
+        if (widget.selectedAnimals.isNotEmpty) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: () {
+              widget.onChanged([]);
+            },
+            icon: Icon(Icons.clear, color: Colors.grey[600]),
+            tooltip: 'Clear all selections',
+          ),
+        ],
+      ],
     );
   }
 }

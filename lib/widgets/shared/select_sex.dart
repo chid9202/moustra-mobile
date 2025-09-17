@@ -12,24 +12,45 @@ class SelectSex extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
-      items: [
-        DropdownMenuItem<String>(
-          value: SexConstants.male,
-          child: Text(SexConstants.male),
+    return Row(
+      children: [
+        Expanded(
+          child: DropdownButtonFormField<String>(
+            initialValue: selectedSex,
+            decoration: InputDecoration(
+              labelText: 'Sex',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              DropdownMenuItem<String>(
+                value: SexConstants.male,
+                child: Text(SexConstants.male),
+              ),
+              DropdownMenuItem<String>(
+                value: SexConstants.female,
+                child: Text(SexConstants.female),
+              ),
+              DropdownMenuItem<String>(
+                value: SexConstants.unknown,
+                child: Text(SexConstants.unknown),
+              ),
+            ],
+            onChanged: (String? value) {
+              onChanged(value);
+            },
+          ),
         ),
-        DropdownMenuItem<String>(
-          value: SexConstants.female,
-          child: Text(SexConstants.female),
-        ),
-        DropdownMenuItem<String>(
-          value: SexConstants.unknown,
-          child: Text(SexConstants.unknown),
-        ),
+        if (selectedSex != null) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: () {
+              onChanged(null);
+            },
+            icon: Icon(Icons.clear, color: Colors.grey[600]),
+            tooltip: 'Clear selection',
+          ),
+        ],
       ],
-      onChanged: (String? value) {
-        onChanged(value);
-      },
     );
   }
 }

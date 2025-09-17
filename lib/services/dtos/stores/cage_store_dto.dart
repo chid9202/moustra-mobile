@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:moustra/services/dtos/cage_dto.dart';
 
 part 'cage_store_dto.g.dart';
 
@@ -20,6 +21,8 @@ class CageStoreDto {
 
   factory CageStoreDto.fromJson(dynamic json) => _$CageStoreDtoFromJson(json);
   Map<String, dynamic> toJson() => _$CageStoreDtoToJson(this);
+  CageSummaryDto toCageSummaryDto() =>
+      CageSummaryDto(cageId: cageId, cageUuid: cageUuid, cageTag: cageTag);
 }
 
 @JsonSerializable(explicitToJson: true)
