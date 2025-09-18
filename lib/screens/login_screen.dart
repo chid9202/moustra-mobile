@@ -59,6 +59,22 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
       await authService.init();
+      if (authService.isLoggedIn) {
+        final req = ProfileRequestDto(
+          email: authService.user?.email ?? '',
+          firstName: authService.user?.givenName ?? '',
+          lastName: authService.user?.familyName ?? '',
+        );
+        profileService
+            .getProfile(req)
+            .then((profile) {
+              profileState.value = profile;
+              context.go('/dashboard');
+            })
+            .catchError((e) {
+              print(e);
+            });
+      }
       if (!mounted) return;
       setState(() {
         _loading = false;
