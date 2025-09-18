@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/animal_constants.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/constants/list_constants/mating_list_constants.dart';
@@ -40,10 +41,7 @@ class _MatingsScreenState extends State<MatingsScreen> {
             alignment: Alignment.centerLeft,
             child: ElevatedButton.icon(
               onPressed: () {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Add Mating clicked')),
-                );
+                context.go('/matings/new');
               },
               icon: const Icon(Icons.add),
               label: const Text('Add Mating'),
@@ -59,7 +57,8 @@ class _MatingsScreenState extends State<MatingsScreen> {
               _controller.reload();
             },
             columns: MatingListColumn.getColumns(),
-            sourceBuilder: (rows) => _MatingGridSource(records: rows),
+            sourceBuilder: (rows) =>
+                _MatingGridSource(records: rows, context: context),
             fetchPage: (page, pageSize) async {
               final pageData = await matingService.getMatingsPage(
                 page: page,
@@ -110,8 +109,9 @@ class _MatingsScreenState extends State<MatingsScreen> {
 
 class _MatingGridSource extends DataGridSource {
   final List<MatingDto> records;
+  final BuildContext context;
 
-  _MatingGridSource({required this.records}) {
+  _MatingGridSource({required this.records, required this.context}) {
     _rows = records.map(MatingListColumn.getDataGridRow).toList();
   }
 
@@ -122,15 +122,22 @@ class _MatingGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
+    final String uuid = row.getCells()[0].value as String;
+    final BuildContext context = this.context;
     List<String> asList(dynamic v) => (v as List<String>? ?? <String>[]);
 
     return DataGridRowAdapter(
       cells: [
-        Center(child: SafeText('${row.getCells()[0].value}')),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[1].value),
+        Center(
+          child: IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit',
+            onPressed: () {
+              context.go('/matings/$uuid');
+            },
+          ),
         ),
+        Center(child: SafeText('${row.getCells()[2].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: SafeText(row.getCells()[2].value),
@@ -145,8 +152,12 @@ class _MatingGridSource extends DataGridSource {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: SafeText(row.getCells()[5].value),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: SafeText(
-            row.getCells()[5].value,
+            row.getCells()[6].value,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
@@ -156,7 +167,7 @@ class _MatingGridSource extends DataGridSource {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: asList(row.getCells()[6].value)
+            children: asList(row.getCells()[7].value)
                 .map(
                   (t) =>
                       SafeText(t, overflow: TextOverflow.ellipsis, maxLines: 1),
@@ -169,7 +180,7 @@ class _MatingGridSource extends DataGridSource {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: asList(row.getCells()[7].value)
+            children: asList(row.getCells()[8].value)
                 .map(
                   (g) =>
                       SafeText(g, overflow: TextOverflow.ellipsis, maxLines: 1),
@@ -177,15 +188,15 @@ class _MatingGridSource extends DataGridSource {
                 .toList(),
           ),
         ),
-        Center(child: SafeText(row.getCells()[8].value)),
-        Center(child: Text(row.getCells()[9].value)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[10].value),
-        ),
+        Center(child: SafeText(row.getCells()[9].value)),
+        Center(child: Text(row.getCells()[10].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: SafeText(row.getCells()[11].value),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: SafeText(row.getCells()[12].value),
         ),
       ],
     );

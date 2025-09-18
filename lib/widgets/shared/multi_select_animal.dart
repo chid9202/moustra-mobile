@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
+import 'package:moustra/helpers/animal_helper.dart';
 import 'package:moustra/stores/animal_store.dart';
 
 class MultiSelectAnimal extends StatefulWidget {
@@ -9,11 +10,15 @@ class MultiSelectAnimal extends StatefulWidget {
     required this.onChanged,
     required this.label,
     required this.placeholderText,
+    this.filter,
+    this.disabled = false,
   });
   final List<AnimalStoreDto> selectedAnimals;
   final Function(List<AnimalStoreDto>) onChanged;
   final String label;
   final String placeholderText;
+  final List<AnimalStoreDto> Function(List<AnimalStoreDto>)? filter;
+  final bool disabled;
   @override
   State<MultiSelectAnimal> createState() => _MultiSelectAnimalState();
 }
@@ -38,6 +43,9 @@ class _MultiSelectAnimalState extends State<MultiSelectAnimal> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredAnimals = widget.filter != null
+        ? widget.filter!(animals ?? [])
+        : animals;
     void showAnimalPicker() {
       List<AnimalStoreDto> tempSelectedAnimals = List.from(
         widget.selectedAnimals,
@@ -54,15 +62,15 @@ class _MultiSelectAnimalState extends State<MultiSelectAnimal> {
                   width: double.maxFinite,
                   child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: animals?.length ?? 0,
+                    itemCount: filteredAnimals?.length ?? 0,
                     itemBuilder: (context, index) {
-                      final animal = animals?[index];
+                      final animal = filteredAnimals?[index];
                       final isSelected = tempSelectedAnimals.any(
                         (a) => a.animalUuid == animal?.animalUuid,
                       );
 
                       return CheckboxListTile(
-                        title: Text(animal?.physicalTag ?? ''),
+                        title: Text(AnimalHelper.getAnimalOptionLabel(animal!)),
                         value: isSelected,
                         onChanged: (value) {
                           setDialogState(() {
@@ -110,11 +118,15 @@ class _MultiSelectAnimalState extends State<MultiSelectAnimal> {
       children: [
         Expanded(
           child: InkWell(
-            onTap: showAnimalPicker,
+            onTap: widget.disabled != true ? showAnimalPicker : null,
             child: InputDecorator(
               decoration: InputDecoration(
                 labelText: widget.label,
                 border: OutlineInputBorder(),
+                enabled: !widget.disabled,
+                disabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
               ),
               child: widget.selectedAnimals.isEmpty
                   ? Text(
@@ -126,7 +138,7 @@ class _MultiSelectAnimalState extends State<MultiSelectAnimal> {
                       runSpacing: 4,
                       children: widget.selectedAnimals.map((bg) {
                         return Chip(
-                          label: Text(bg.physicalTag ?? ''),
+                          label: Text(AnimalHelper.getAnimalOptionLabel(bg)),
                           onDeleted: () {
                             widget.onChanged(
                               widget.selectedAnimals
@@ -143,7 +155,7 @@ class _MultiSelectAnimalState extends State<MultiSelectAnimal> {
             ),
           ),
         ),
-        if (widget.selectedAnimals.isNotEmpty) ...[
+        if (widget.selectedAnimals.isNotEmpty && !widget.disabled) ...[
           const SizedBox(width: 8),
           IconButton(
             onPressed: () {

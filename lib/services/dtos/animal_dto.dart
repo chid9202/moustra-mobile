@@ -62,7 +62,7 @@ class AnimalSummaryDto {
   final String? physicalTag;
   final DateTime? dateOfBirth;
   final List<GenotypeDto>? genotypes;
-  final int? owner;
+  final AccountDto? owner;
   final StrainSummaryDto? strain;
   final String? weanDate;
   final String? sex;

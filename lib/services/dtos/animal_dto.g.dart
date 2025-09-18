@@ -85,7 +85,9 @@ AnimalSummaryDto _$AnimalSummaryDtoFromJson(Map<String, dynamic> json) =>
               ?.map((e) => GenotypeDto.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      owner: (json['owner'] as num?)?.toInt(),
+      owner: json['owner'] == null
+          ? null
+          : AccountDto.fromJson(json['owner'] as Map<String, dynamic>),
       strain: json['strain'] == null
           ? null
           : StrainSummaryDto.fromJson(json['strain'] as Map<String, dynamic>),
@@ -107,7 +109,7 @@ Map<String, dynamic> _$AnimalSummaryDtoToJson(AnimalSummaryDto instance) =>
       'physicalTag': instance.physicalTag,
       'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
       'genotypes': instance.genotypes?.map((e) => e.toJson()).toList(),
-      'owner': instance.owner,
+      'owner': instance.owner?.toJson(),
       'strain': instance.strain?.toJson(),
       'weanDate': instance.weanDate,
       'sex': instance.sex,

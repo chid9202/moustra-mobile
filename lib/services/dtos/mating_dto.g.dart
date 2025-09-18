@@ -7,7 +7,7 @@ part of 'mating_dto.dart';
 // **************************************************************************
 
 MatingDto _$MatingDtoFromJson(Map<String, dynamic> json) => MatingDto(
-  eid: (json['eid'] as num).toInt(),
+  eid: (json['eid'] as num?)?.toInt(),
   matingId: (json['matingId'] as num).toInt(),
   matingUuid: json['matingUuid'] as String,
   animals:

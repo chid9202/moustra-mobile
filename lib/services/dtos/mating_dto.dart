@@ -8,7 +8,7 @@ part 'mating_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class MatingDto {
-  final int eid;
+  final int? eid;
   final int matingId;
   final String matingUuid;
   final List<AnimalSummaryDto> animals;
@@ -24,7 +24,7 @@ class MatingDto {
   final CageSummaryDto? cage;
 
   MatingDto({
-    required this.eid,
+    this.eid,
     required this.matingId,
     required this.matingUuid,
     this.animals = const [],
