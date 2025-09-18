@@ -1,0 +1,206 @@
+import 'package:flutter/material.dart';
+
+import 'package:fl_chart/fl_chart.dart';
+
+class MouseCountByAge extends StatefulWidget {
+  const MouseCountByAge(this.data, {super.key});
+
+  final Map<String, dynamic> data;
+
+  @override
+  State<MouseCountByAge> createState() => _MouseCountByAgeState();
+}
+
+class _MouseCountByAgeState extends State<MouseCountByAge> {
+  String _selectedStrainUuid = '00000000-0000-0000-0000-000000000000';
+
+  late final Map<String, dynamic> accounts;
+  late final List<dynamic> animalByAge;
+  late final List<dynamic> animalsSexRatio;
+  late final List<dynamic> animalsToWean;
+
+  late final List<Map<String, dynamic>> strains;
+  late final List<dynamic> ageData;
+  late final double maxWidth;
+
+  late Map<String, dynamic> selected;
+
+  @override
+  void initState() {
+    super.initState();
+    accounts =
+        (widget.data['accounts'] as Map<String, dynamic>? ??
+        <String, dynamic>{});
+    animalByAge = (widget.data['animalByAge'] as List<dynamic>? ?? <dynamic>[]);
+    animalsSexRatio =
+        (widget.data['animalsSexRatio'] as List<dynamic>? ?? <dynamic>[]);
+    animalsToWean =
+        (widget.data['animalsToWean'] as List<dynamic>? ?? <dynamic>[]);
+
+    strains = animalByAge.cast<Map<String, dynamic>>();
+    selected = strains.firstWhere(
+      (s) => (s['strainUuid'] ?? '') == _selectedStrainUuid,
+      orElse: () => strains.isNotEmpty ? strains.first : <String, dynamic>{},
+    );
+    ageData = (selected['ageData'] as List<dynamic>? ?? <dynamic>[]);
+
+    maxWidth = ageData.length * 20.0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          children: [
+            const Text(
+              'Mice Count by Age',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            DropdownButton<String>(
+              isExpanded: true,
+              value: _selectedStrainUuid,
+              items: strains
+                  .map(
+                    (s) => DropdownMenuItem<String>(
+                      value: (s['strainUuid'] ?? '').toString(),
+                      child: Text(
+                        (s['strainName'] ?? 'All').toString(),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (v) {
+                if (v == null) return;
+                setState(() => _selectedStrainUuid = v);
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: InteractiveViewer(
+            panAxis: PanAxis.horizontal,
+            child: SizedBox(
+              height: 300,
+              width: maxWidth,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                child: BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    gridData: const FlGridData(show: true),
+                    borderData: borderData,
+                    titlesData: titlesData,
+                    barTouchData: barTouchData,
+                    barGroups: barGroups,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  BarTouchData get barTouchData => BarTouchData(
+    enabled: true,
+    touchTooltipData: BarTouchTooltipData(
+      fitInsideVertically: true,
+      fitInsideHorizontally: true,
+      getTooltipColor: (group) => Colors.blueGrey,
+      tooltipPadding: EdgeInsets.zero,
+      tooltipMargin: 8,
+      getTooltipItem:
+          (
+            BarChartGroupData group,
+            int groupIndex,
+            BarChartRodData rod,
+            int rodIndex,
+          ) {
+            String barName = '${group.x} week(s)';
+            return BarTooltipItem(
+              '${rod.toY.toStringAsFixed(0)}\n',
+              const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+              children: <TextSpan>[
+                TextSpan(
+                  text: barName,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            );
+          },
+    ),
+  );
+
+  FlTitlesData get titlesData => FlTitlesData(
+    leftTitles: AxisTitles(
+      sideTitles: SideTitles(
+        showTitles: true,
+        interval: 30,
+        reservedSize: 22,
+        getTitlesWidget: (value, meta) {
+          if (value == meta.max) {
+            return Container();
+          }
+          return Align(
+            alignment: AlignmentGeometry.centerRight,
+            child: Text(
+              value.toInt().toString(),
+              style: const TextStyle(fontSize: 12),
+            ),
+          );
+        },
+      ),
+    ),
+    bottomTitles: AxisTitles(
+      axisNameSize: 20,
+      axisNameWidget: Padding(
+        padding: const EdgeInsets.fromLTRB(48, 0, 0, 0),
+        child: Align(alignment: Alignment.centerLeft, child: Text('Weeks')),
+      ),
+      sideTitles: SideTitles(
+        showTitles: true,
+        interval: 20,
+        reservedSize: 20,
+        getTitlesWidget: (value, meta) {
+          return Transform.rotate(
+            angle: -0.6,
+            child: Text(
+              value.toInt().toString(),
+              style: const TextStyle(fontSize: 12),
+            ),
+          );
+        },
+      ),
+    ),
+    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+  );
+
+  FlBorderData get borderData => FlBorderData(
+    show: true,
+    border: const Border(bottom: BorderSide(color: Colors.black, width: 1)),
+  );
+
+  List<BarChartGroupData> get barGroups => ageData.map((e) {
+    final int week = (e['ageInWeeks'] as int? ?? 0);
+    final int count = (e['count'] as int? ?? 0);
+    return BarChartGroupData(
+      x: week,
+      barRods: [BarChartRodData(toY: count.toDouble())],
+    );
+  }).toList();
+}
