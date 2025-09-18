@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:moustra/screens/animal_detail_screen.dart';
 import 'package:moustra/screens/animal_new_screen.dart';
 import 'package:moustra/screens/cage_detail_screen.dart';
+import 'package:moustra/screens/mating_detail_screen.dart';
 import 'package:moustra/screens/strain_detail_screen.dart';
 import 'package:moustra/widgets/app_menu.dart';
 import 'package:moustra/screens/strains_screen.dart';
@@ -134,6 +135,16 @@ final GoRouter appRouter = GoRouter(
           path: '/matings',
           pageBuilder: (context, state) =>
               const MaterialPage(child: MatingsScreen()),
+        ),
+        GoRoute(
+          path: '/matings/new',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: MatingDetailScreen()),
+        ),
+        GoRoute(
+          path: '/matings/:matingUuid',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: MatingDetailScreen()),
         ),
       ],
     ),

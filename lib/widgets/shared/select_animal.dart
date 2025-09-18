@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
+import 'package:moustra/helpers/animal_helper.dart';
 import 'package:moustra/stores/animal_store.dart';
 
 class SelectAnimal extends StatefulWidget {
@@ -9,11 +10,15 @@ class SelectAnimal extends StatefulWidget {
     required this.onChanged,
     required this.label,
     required this.placeholderText,
+    this.filter,
+    this.disabled = false,
   });
   final AnimalStoreDto? selectedAnimal;
   final Function(AnimalStoreDto?) onChanged;
   final String label;
   final String placeholderText;
+  final List<AnimalStoreDto> Function(List<AnimalStoreDto>)? filter;
+  final bool disabled;
   @override
   State<SelectAnimal> createState() => _SelectAnimalState();
 }
@@ -30,6 +35,7 @@ class _SelectAnimalState extends State<SelectAnimal> {
   void _loadAnimals() async {
     if (animals == null && mounted) {
       final loadedAnimals = await getAnimalsHook();
+
       if (mounted) {
         setState(() {
           animals = loadedAnimals;
@@ -40,6 +46,9 @@ class _SelectAnimalState extends State<SelectAnimal> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredAnimals = widget.filter != null
+        ? widget.filter!(animals ?? [])
+        : animals;
     void showAnimalPicker() {
       AnimalStoreDto? tempSelectedAnimal = widget.selectedAnimal;
 
@@ -54,11 +63,11 @@ class _SelectAnimalState extends State<SelectAnimal> {
                   width: double.maxFinite,
                   child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: animals?.length ?? 0,
+                    itemCount: filteredAnimals?.length ?? 0,
                     itemBuilder: (context, index) {
-                      final animal = animals?[index];
+                      final animal = filteredAnimals?[index];
                       return RadioListTile<AnimalStoreDto?>(
-                        title: Text(animal?.physicalTag ?? ''),
+                        title: Text(AnimalHelper.getAnimalOptionLabel(animal!)),
                         value: animal,
                         // ignore: deprecated_member_use
                         groupValue: tempSelectedAnimal,
@@ -103,11 +112,15 @@ class _SelectAnimalState extends State<SelectAnimal> {
       children: [
         Expanded(
           child: InkWell(
-            onTap: showAnimalPicker,
+            onTap: widget.disabled != true ? showAnimalPicker : null,
             child: InputDecorator(
               decoration: InputDecoration(
                 labelText: widget.label,
                 border: OutlineInputBorder(),
+                enabled: !widget.disabled,
+                disabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
               ),
               child: Text(
                 widget.selectedAnimal?.physicalTag ?? widget.placeholderText,
@@ -120,7 +133,7 @@ class _SelectAnimalState extends State<SelectAnimal> {
             ),
           ),
         ),
-        if (widget.selectedAnimal != null) ...[
+        if (widget.selectedAnimal != null && !widget.disabled) ...[
           const SizedBox(width: 8),
           IconButton(
             onPressed: () {

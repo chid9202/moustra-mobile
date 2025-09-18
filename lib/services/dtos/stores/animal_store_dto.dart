@@ -12,6 +12,7 @@ class AnimalStoreDto {
   final bool? isEnded;
   final String? sex;
   final DateTime? dateOfBirth;
+  final DateTime? weanDate;
 
   AnimalStoreDto({
     required this.eid,
@@ -21,6 +22,7 @@ class AnimalStoreDto {
     this.isEnded,
     this.sex,
     this.dateOfBirth,
+    this.weanDate,
   });
 
   factory AnimalStoreDto.fromJson(dynamic json) =>

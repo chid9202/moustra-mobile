@@ -17,6 +17,9 @@ AnimalStoreDto _$AnimalStoreDtoFromJson(Map<String, dynamic> json) =>
       dateOfBirth: json['dateOfBirth'] == null
           ? null
           : DateTime.parse(json['dateOfBirth'] as String),
+      weanDate: json['weanDate'] == null
+          ? null
+          : DateTime.parse(json['weanDate'] as String),
     );
 
 Map<String, dynamic> _$AnimalStoreDtoToJson(AnimalStoreDto instance) =>
@@ -28,4 +31,5 @@ Map<String, dynamic> _$AnimalStoreDtoToJson(AnimalStoreDto instance) =>
       'isEnded': instance.isEnded,
       'sex': instance.sex,
       'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
+      'weanDate': instance.weanDate?.toIso8601String(),
     };

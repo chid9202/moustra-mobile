@@ -8,10 +8,12 @@ class SelectCage extends StatefulWidget {
     required this.selectedCage,
     required this.onChanged,
     this.label,
+    this.disabled = false,
   });
   final CageStoreDto? selectedCage;
   final Function(CageStoreDto?) onChanged;
   final String? label;
+  final bool disabled;
   @override
   State<SelectCage> createState() => _SelectCageState();
 }
@@ -42,6 +44,7 @@ class _SelectCageState extends State<SelectCage> {
 
   @override
   Widget build(BuildContext context) {
+    print('widget.selectedCage: ${widget.selectedCage}');
     void showCagePicker() {
       CageStoreDto? tempSelectedCage = widget.selectedCage;
 
@@ -105,11 +108,15 @@ class _SelectCageState extends State<SelectCage> {
       children: [
         Expanded(
           child: InkWell(
-            onTap: showCagePicker,
+            onTap: widget.disabled != true ? showCagePicker : null,
             child: InputDecorator(
               decoration: InputDecoration(
                 labelText: widget.label ?? 'Cages',
                 border: OutlineInputBorder(),
+                enabled: !widget.disabled,
+                disabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
               ),
               child: Text(
                 widget.selectedCage?.cageTag ?? 'Select cage',
@@ -122,7 +129,7 @@ class _SelectCageState extends State<SelectCage> {
             ),
           ),
         ),
-        if (widget.selectedCage != null) ...[
+        if (widget.selectedCage != null && !widget.disabled) ...[
           const SizedBox(width: 8),
           IconButton(
             onPressed: () {
