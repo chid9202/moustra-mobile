@@ -6,24 +6,24 @@ part 'litter_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class LitterDto {
-  final int eid;
+  final int? eid;
   final String litterUuid;
   final String? litterTag;
   final DateTime? weanDate;
-  final MatingSummaryDto mating;
-  final AccountDto owner;
-  final List<LitterAnimalDto>? animals;
+  final MatingSummaryDto? mating;
+  final AccountDto? owner;
+  final List<LitterAnimalDto> animals;
   final DateTime? createdDate;
   final String? comment;
   final DateTime? dateOfBirth;
 
   LitterDto({
-    required this.eid,
+    this.eid,
     required this.litterUuid,
     this.litterTag,
     this.weanDate,
-    required this.mating,
-    required this.owner,
+    this.mating,
+    this.owner,
     this.animals = const [],
     this.createdDate,
     this.comment,

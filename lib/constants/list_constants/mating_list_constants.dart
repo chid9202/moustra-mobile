@@ -119,7 +119,7 @@ enum MatingListColumn implements ListColumn<MatingDto> {
     final String matingTag = (m.matingTag ?? '').toString();
     final String cageTag = (m.cage?.cageTag ?? '').toString();
     final String litterStrain = (m.litterStrain?.strainName ?? '').toString();
-    final List<AnimalSummaryDto> animals = m.animals;
+    final List<AnimalSummaryDto> animals = m.animals ?? [];
     final AnimalSummaryDto? male = animals.cast<AnimalSummaryDto?>().firstWhere(
       (a) => (a?.sex ?? '') == SexConstants.male,
       orElse: () => null,

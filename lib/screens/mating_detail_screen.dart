@@ -82,10 +82,10 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
           // Extract male and females from animals list
           final animals = mating.animals;
           final maleAnimal = animals
-              .where((a) => a.sex == SexConstants.male)
+              ?.where((a) => a.sex == SexConstants.male)
               .firstOrNull;
           final femaleAnimals = animals
-              .where((a) => a.sex == SexConstants.female)
+              ?.where((a) => a.sex == SexConstants.female)
               .toList();
 
           _selectedMale = maleAnimal != null
@@ -99,19 +99,21 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
                       0, // Default value since not available in AnimalSummaryDto
                 )
               : null;
-          _selectedFemales = femaleAnimals
-              .map(
-                (f) => AnimalStoreDto(
-                  animalId: f.animalId,
-                  animalUuid: f.animalUuid,
-                  physicalTag: f.physicalTag,
-                  sex: f.sex,
-                  dateOfBirth: f.dateOfBirth,
-                  eid:
-                      0, // Default value since not available in AnimalSummaryDto
-                ),
-              )
-              .toList();
+          _selectedFemales =
+              femaleAnimals
+                  ?.map(
+                    (f) => AnimalStoreDto(
+                      animalId: f.animalId,
+                      animalUuid: f.animalUuid,
+                      physicalTag: f.physicalTag,
+                      sex: f.sex,
+                      dateOfBirth: f.dateOfBirth,
+                      eid:
+                          0, // Default value since not available in AnimalSummaryDto
+                    ),
+                  )
+                  .toList() ??
+              [];
           _selectedCage = mating.cage != null
               ? CageStoreDto(
                   cageId: mating.cage!.cageId,

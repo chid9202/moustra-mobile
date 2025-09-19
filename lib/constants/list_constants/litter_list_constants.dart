@@ -6,6 +6,7 @@ import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum LitterListColumn implements ListColumn<LitterDto> {
+  edit('Edit', 'edit'),
   eid('EID', 'eid'),
   litterTag('Litter Tag', 'litter_tag'),
   litterStrain('Litter Strain', 'litter_strain'),
@@ -25,6 +26,12 @@ enum LitterListColumn implements ListColumn<LitterDto> {
 
   static List<GridColumn> getColumns() {
     return [
+      GridColumn(
+        columnName: LitterListColumn.edit.field,
+        width: 72,
+        label: Center(child: Text(LitterListColumn.edit.label)),
+        allowSorting: false,
+      ),
       GridColumn(
         columnName: LitterListColumn.eid.field,
         width: 80,
@@ -79,6 +86,10 @@ enum LitterListColumn implements ListColumn<LitterDto> {
   static DataGridRow getDataGridRow(LitterDto litter) {
     return DataGridRow(
       cells: [
+        DataGridCell<String>(
+          columnName: LitterListColumn.edit.name,
+          value: litter.litterUuid,
+        ),
         DataGridCell<int>(
           columnName: LitterListColumn.eid.name,
           value: litter.eid,
@@ -89,7 +100,7 @@ enum LitterListColumn implements ListColumn<LitterDto> {
         ),
         DataGridCell<String>(
           columnName: LitterListColumn.litterStrain.name,
-          value: litter.mating.litterStrain?.strainName,
+          value: litter.mating?.litterStrain?.strainName,
         ),
         DataGridCell<int>(
           columnName: LitterListColumn.numberOfPups.name,

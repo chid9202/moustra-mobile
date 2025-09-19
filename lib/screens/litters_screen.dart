@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:moustra/services/clients/litter_api.dart';
@@ -32,7 +33,8 @@ class _LittersScreenState extends State<LittersScreen> {
         _controller.reload();
       },
       columns: LitterListColumn.getColumns(),
-      sourceBuilder: (rows) => _LitterGridSource(records: rows),
+      sourceBuilder: (rows) =>
+          _LitterGridSource(records: rows, context: context),
       fetchPage: (page, pageSize) async {
         final pageData = await litterService.getLittersPage(
           page: page,
@@ -50,9 +52,7 @@ class _LittersScreenState extends State<LittersScreen> {
       topBar: ElevatedButton.icon(
         onPressed: () {
           if (!mounted) return;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Add Litter clicked')));
+          context.go('/litters/new');
         },
         icon: const Icon(Icons.add),
         label: const Text('Add Litter'),
@@ -66,8 +66,8 @@ class _LittersScreenState extends State<LittersScreen> {
 
 class _LitterGridSource extends DataGridSource {
   final List<LitterDto> records;
-
-  _LitterGridSource({required this.records}) {
+  final BuildContext context;
+  _LitterGridSource({required this.records, required this.context}) {
     _rows = records.map(LitterListColumn.getDataGridRow).toList();
   }
 
@@ -78,27 +78,37 @@ class _LitterGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
+    final String uuid = row.getCells()[0].value as String;
     return DataGridRowAdapter(
       cells: [
-        Center(child: SafeText('${row.getCells()[0].value}')),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[1].value),
+        Center(
+          child: IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit',
+            onPressed: () {
+              context.go('/litters/${uuid}');
+            },
+          ),
         ),
+        Center(child: SafeText('${row.getCells()[1].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: SafeText(row.getCells()[2].value),
         ),
-        Center(child: SafeText('${row.getCells()[3].value}')),
-        Center(child: SafeText(row.getCells()[4].value)),
-        Center(child: SafeText(row.getCells()[5].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[6].value),
+          child: SafeText(row.getCells()[3].value),
         ),
+        Center(child: SafeText('${row.getCells()[3].value}')),
+        Center(child: SafeText(row.getCells()[5].value)),
+        Center(child: SafeText(row.getCells()[6].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: SafeText(row.getCells()[7].value),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: SafeText(row.getCells()[8].value),
         ),
       ],
     );

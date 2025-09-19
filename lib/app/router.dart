@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:moustra/screens/animal_detail_screen.dart';
 import 'package:moustra/screens/animal_new_screen.dart';
 import 'package:moustra/screens/cage_detail_screen.dart';
+import 'package:moustra/screens/litter_detail_screen.dart';
 import 'package:moustra/screens/mating_detail_screen.dart';
 import 'package:moustra/screens/strain_detail_screen.dart';
 import 'package:moustra/widgets/app_menu.dart';
@@ -115,6 +116,16 @@ final GoRouter appRouter = GoRouter(
           path: '/litters',
           pageBuilder: (context, state) =>
               const MaterialPage(child: LittersScreen()),
+        ),
+        GoRoute(
+          path: '/litters/new',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: LitterDetailScreen()),
+        ),
+        GoRoute(
+          path: '/litters/:litterUuid',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: LitterDetailScreen()),
         ),
         GoRoute(
           path: '/animals',
