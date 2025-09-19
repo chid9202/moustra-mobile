@@ -47,7 +47,7 @@ Map<String, dynamic> _$MatingDtoToJson(MatingDto instance) => <String, dynamic>{
   'eid': instance.eid,
   'matingId': instance.matingId,
   'matingUuid': instance.matingUuid,
-  'animals': instance.animals.map((e) => e.toJson()).toList(),
+  'animals': instance.animals?.map((e) => e.toJson()).toList(),
   'litterStrain': instance.litterStrain?.toJson(),
   'owner': instance.owner?.toJson(),
   'matingTag': instance.matingTag,
@@ -62,6 +62,7 @@ Map<String, dynamic> _$MatingDtoToJson(MatingDto instance) => <String, dynamic>{
 
 MatingSummaryDto _$MatingSummaryDtoFromJson(Map<String, dynamic> json) =>
     MatingSummaryDto(
+      matingId: (json['matingId'] as num?)?.toInt(),
       matingUuid: json['matingUuid'] as String,
       matingTag: json['matingTag'] as String?,
       litterStrain: json['litterStrain'] == null
@@ -81,10 +82,11 @@ MatingSummaryDto _$MatingSummaryDtoFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$MatingSummaryDtoToJson(MatingSummaryDto instance) =>
     <String, dynamic>{
+      'matingId': instance.matingId,
       'matingUuid': instance.matingUuid,
       'matingTag': instance.matingTag,
       'litterStrain': instance.litterStrain?.toJson(),
-      'animals': instance.animals.map((e) => e.toJson()).toList(),
+      'animals': instance.animals?.map((e) => e.toJson()).toList(),
     };
 
 MatingSummaryAnimalDto _$MatingSummaryAnimalDtoFromJson(

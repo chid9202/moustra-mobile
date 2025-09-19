@@ -11,7 +11,7 @@ class MatingDto {
   final int? eid;
   final int matingId;
   final String matingUuid;
-  final List<AnimalSummaryDto> animals;
+  final List<AnimalSummaryDto>? animals;
   final StrainSummaryDto? litterStrain;
   final AccountDto? owner;
   final String? matingTag;
@@ -47,12 +47,14 @@ class MatingDto {
 
 @JsonSerializable(explicitToJson: true)
 class MatingSummaryDto {
+  final int? matingId;
   final String matingUuid;
   final String? matingTag;
   final StrainSummaryDto? litterStrain;
-  final List<MatingSummaryAnimalDto> animals;
+  final List<MatingSummaryAnimalDto>? animals;
 
   MatingSummaryDto({
+    this.matingId,
     required this.matingUuid,
     this.matingTag,
     this.litterStrain,
