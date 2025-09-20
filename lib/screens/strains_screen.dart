@@ -18,8 +18,6 @@ class StrainsScreen extends StatefulWidget {
 
 class _StrainsScreenState extends State<StrainsScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
-  List<StrainDto> _all = <StrainDto>[];
-  final TextEditingController _filterController = TextEditingController();
   String? _sortField; // api field, e.g., strain_name
   String _sortOrder = SortOrder.asc.name;
   final Set<String> _selected = <String>{};
@@ -28,12 +26,6 @@ class _StrainsScreenState extends State<StrainsScreen> {
   void initState() {
     super.initState();
     _goToPage(0);
-  }
-
-  @override
-  void dispose() {
-    _filterController.dispose();
-    super.dispose();
   }
 
   @override
@@ -68,21 +60,6 @@ class _StrainsScreenState extends State<StrainsScreen> {
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: TextField(
-            controller: _filterController,
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              labelText: 'Filter strains',
-              border: OutlineInputBorder(),
-            ),
-            onChanged: (value) {
-              _applyFilter(value);
-              _controller.reload();
-            },
-          ),
-        ),
         Expanded(
           child: PaginatedDataGrid<StrainDto>(
             controller: _controller,
@@ -109,7 +86,27 @@ class _StrainsScreenState extends State<StrainsScreen> {
                     SortQueryParamKey.order.name: _sortOrder,
                 },
               );
-              _all = pageData.results.cast<StrainDto>();
+              return PaginatedResult<StrainDto>(
+                count: pageData.count,
+                results: pageData.results,
+              );
+            },
+            onFilterChanged: (page, pageSize, searchTerm) async {
+              final pageData = await strainService.getStrainsPage(
+                page: page,
+                pageSize: pageSize,
+                query: {
+                  if (_sortField != null)
+                    SortQueryParamKey.sort.name: _sortField!,
+                  if (_sortField != null)
+                    SortQueryParamKey.order.name: _sortOrder,
+                  if (searchTerm.isNotEmpty) ...{
+                    SearchQueryParamKey.filter.name: 'strain_name',
+                    SearchQueryParamKey.value.name: searchTerm,
+                    SearchQueryParamKey.op.name: 'contains',
+                  },
+                },
+              );
               return PaginatedResult<StrainDto>(
                 count: pageData.count,
                 results: pageData.results,
@@ -128,20 +125,6 @@ class _StrainsScreenState extends State<StrainsScreen> {
       } else {
         _selected.remove(uuid);
       }
-    });
-  }
-
-  void _applyFilter(String term) {
-    final query = term.trim().toLowerCase();
-    if (query.isEmpty) {
-      return;
-    }
-    setState(() {
-      _all = _all.where((e) {
-        final name = e.strainName.toLowerCase();
-        final uuid = e.strainUuid.toLowerCase();
-        return name.contains(query) || uuid.contains(query);
-      }).toList();
     });
   }
 
