@@ -48,6 +48,21 @@ class AnimalApi {
     final animalsData = jsonDecode(res.body)['animals'] as List<dynamic>;
     return animalsData.map((e) => AnimalDto.fromDynamicJson(e)).toList();
   }
+
+  Future endAnimals(List<String> animalUuids) async {
+    final res = await apiClient.put(
+      '$basePath/end',
+      query: {'animals': animalUuids.join(',')},
+      body: {
+        'endCage': false,
+        'endComment': '',
+        'endDate': DateTime.now().toIso8601String().split('T')[0],
+      },
+    );
+    if (res.statusCode != 200) {
+      throw Exception('Failed to end animals ${res.body}');
+    }
+  }
 }
 
 final AnimalApi animalService = AnimalApi();

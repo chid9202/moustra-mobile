@@ -74,9 +74,13 @@ class ApiClient {
     return res;
   }
 
-  Future<http.Response> put(String path, {Object? body}) async {
-    print('PUT path $path');
-    final uri = _buildUri(path);
+  Future<http.Response> put(
+    String path, {
+    Object? body,
+    Map<String, String>? query,
+  }) async {
+    final uri = _buildUri(path, query: query);
+    print('PUT path $uri');
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
     final res = await httpClient.put(
