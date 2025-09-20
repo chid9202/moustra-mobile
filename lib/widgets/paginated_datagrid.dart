@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
@@ -11,6 +12,12 @@ typedef FetchPage<T> =
     Future<PaginatedResult<T>> Function(int page, int pageSize);
 typedef SourceBuilder<T> = DataGridSource Function(List<T> rows);
 typedef RowHeightEstimator<T> = int Function(int index, T row);
+typedef FilterChanged<T> =
+    Future<PaginatedResult<T>> Function(
+      int page,
+      int pageSize,
+      String searchTerm,
+    );
 
 class PaginatedGridController {
   VoidCallback? _reload;
@@ -26,6 +33,7 @@ class PaginatedDataGrid<T> extends StatefulWidget {
   final PaginatedGridController? controller;
   final int pageSize;
   final RowHeightEstimator<T>? rowHeightEstimator;
+  final FilterChanged<T>? onFilterChanged;
   final void Function(String columnName, bool ascending)? onSortChanged;
 
   const PaginatedDataGrid({
@@ -37,6 +45,7 @@ class PaginatedDataGrid<T> extends StatefulWidget {
     this.controller,
     this.pageSize = 25,
     this.rowHeightEstimator,
+    this.onFilterChanged,
     this.onSortChanged,
   });
 
@@ -51,6 +60,7 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
   int _totalCount = 0;
   bool _isLoading = true;
   bool _sortAscending = true;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -60,7 +70,31 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
     widget.controller?._attach(() => _reload());
   }
 
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    widget.controller?._attach(() {});
+    super.dispose();
+  }
+
   Future<void> _reload() async => _fetchAndSet(_currentPage);
+
+  void _onFilterChanged(String value) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (widget.onFilterChanged != null) {
+        widget.onFilterChanged!
+            .call(1, _pageSize, value)
+            .then(
+              (res) => setState(() {
+                _currentPage = 0;
+                _rows = res.results;
+                _totalCount = res.count;
+              }),
+            );
+      }
+    });
+  }
 
   int _pageCount() {
     if (_totalCount <= 0) return 1;
@@ -95,6 +129,17 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        if (widget.onFilterChanged != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TextField(
+              onChanged: _onFilterChanged,
+              decoration: const InputDecoration(
+                labelText: 'Filter',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
         if (widget.topBar != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
