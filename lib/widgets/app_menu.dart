@@ -83,14 +83,6 @@ class AppMenu extends StatelessWidget {
               context.go('/');
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.science),
-            title: const Text('Strain'),
-            onTap: () {
-              Navigator.of(context).pop();
-              context.go('/strains');
-            },
-          ),
           ExpansionTile(
             leading: const Icon(Icons.home_work_outlined),
             title: const Text('Cage'),
@@ -114,11 +106,11 @@ class AppMenu extends StatelessWidget {
             ],
           ),
           ListTile(
-            leading: const Icon(Icons.baby_changing_station),
-            title: const Text('Litter'),
+            leading: const Icon(Icons.science),
+            title: const Text('Strain'),
             onTap: () {
               Navigator.of(context).pop();
-              context.go('/litters');
+              context.go('/strains');
             },
           ),
           ListTile(
@@ -135,6 +127,14 @@ class AppMenu extends StatelessWidget {
             onTap: () {
               Navigator.of(context).pop();
               context.go('/matings');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.baby_changing_station),
+            title: const Text('Litter'),
+            onTap: () {
+              Navigator.of(context).pop();
+              context.go('/litters');
             },
           ),
           const Divider(),
