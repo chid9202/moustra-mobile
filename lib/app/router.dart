@@ -8,6 +8,7 @@ import 'package:moustra/screens/mating_detail_screen.dart';
 import 'package:moustra/screens/strain_detail_screen.dart';
 import 'package:moustra/stores/auth_store.dart';
 import 'package:moustra/stores/profile_store.dart';
+import 'package:moustra/widgets/app_bar.dart';
 import 'package:moustra/widgets/app_menu.dart';
 import 'package:moustra/screens/strains_screen.dart';
 import 'package:moustra/screens/cages_list_screen.dart';
@@ -27,44 +28,11 @@ final GoRouter appRouter = GoRouter(
       path: '/login',
       pageBuilder: (context, state) => const MaterialPage(child: LoginScreen()),
     ),
-    GoRoute(path: '/', redirect: (context, state) => '/dashboard'),
+    GoRoute(path: '/', redirect: (context, state) => '/login'),
     ShellRoute(
       pageBuilder: (context, state, child) => MaterialPage(
         child: Scaffold(
-          appBar: AppBar(
-            title: Center(
-              child: GestureDetector(
-                onTap: () => context.go('/dashboard'),
-                child: Image.asset(
-                  'assets/icons/app_icon.png',
-                  height: 64,
-                  width: 64,
-                ),
-              ),
-            ),
-            leading: Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              ),
-            ),
-            actions: [
-              ValueListenableBuilder(
-                valueListenable: authState,
-                builder: (context, value, _) {
-                  final bool loggedIn = value;
-                  return IconButton(
-                    icon: Icon(loggedIn ? Icons.logout : Icons.login),
-                    onPressed: () async {
-                      if (loggedIn) {
-                        await authService.logout();
-                      }
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
+          appBar: const MoustraAppBar(),
           drawer: const AppMenu(),
           body: child,
         ),

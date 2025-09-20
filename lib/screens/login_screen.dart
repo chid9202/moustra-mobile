@@ -25,6 +25,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     _authListener = () {
       if (!mounted) return;
       if (authService.isLoggedIn) {
+        setState(() {
+          _loading = true;
+        });
         final req = ProfileRequestDto(
           email: authService.user?.email ?? '',
           firstName: authService.user?.givenName ?? '',
@@ -67,6 +70,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       await authService.init();
       if (authService.isLoggedIn) {
+        setState(() {
+          _loading = true;
+        });
         final req = ProfileRequestDto(
           email: authService.user?.email ?? '',
           firstName: authService.user?.givenName ?? '',
@@ -80,6 +86,11 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
             })
             .catchError((e) {
               print(e);
+            })
+            .then((_) {
+              setState(() {
+                _loading = false;
+              });
             });
       }
       if (!mounted) return;
