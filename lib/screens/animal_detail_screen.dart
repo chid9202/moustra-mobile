@@ -20,6 +20,7 @@ import 'package:moustra/widgets/shared/select_gene.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
 import 'package:moustra/widgets/shared/select_sex.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
+import 'package:moustra/widgets/shared/button.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
   const AnimalDetailScreen({super.key});
@@ -344,9 +345,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
               // Save Button
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: MoustraButtonPrimary(
                   onPressed: _saveAnimal,
-                  child: const Text('Save Animal'),
+                  label: 'Save Animal',
                 ),
               ),
             ],

@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/app/mui_color.dart';
 
-final ThemeData appTheme = ThemeData(
-  useMaterial3: true,
-  scaffoldBackgroundColor: Colors.white,
-  colorScheme: ColorScheme.fromSeed(
-    seedColor: const Color(0xFF0175C2), // Match web manifest theme color
-    brightness: Brightness.light,
-  ),
-  appBarTheme: const AppBarTheme(
-    backgroundColor: Colors.white,
-    foregroundColor: Colors.black,
+final ThemeData appTheme = lightTheme.copyWith(
+  scaffoldBackgroundColor: lightColorScheme.surface,
+  appBarTheme: AppBarTheme(
+    backgroundColor: lightColorScheme.surface,
+    foregroundColor: lightColorScheme.onSurface,
+    elevation: 0,
   ),
 );

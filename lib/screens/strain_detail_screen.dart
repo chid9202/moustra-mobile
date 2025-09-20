@@ -5,6 +5,7 @@ import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/services/dtos/stores/background_store_dto.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
+import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/widgets/shared/select_background.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
 
@@ -348,9 +349,9 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
               // Save Button
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: MoustraButtonPrimary(
+                  label: 'Save',
                   onPressed: _saveStrain,
-                  child: const Text('Save Strain'),
                 ),
               ),
             ],

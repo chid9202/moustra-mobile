@@ -13,6 +13,7 @@ import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_gene.dart';
 import 'package:moustra/widgets/shared/select_sex.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
+import 'package:moustra/widgets/shared/button.dart';
 
 class AnimalNewScreen extends StatefulWidget {
   const AnimalNewScreen({super.key});
@@ -199,11 +200,10 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
               // Save Button
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: MoustraButtonPrimary(
                   onPressed: _saveAnimals,
-                  child: Text(
-                    'Create ${_animals.length} Animal${_animals.length == 1 ? '' : 's'}',
-                  ),
+                  label:
+                      'Create ${_animals.length} Animal${_animals.length == 1 ? '' : 's'}',
                 ),
               ),
             ],

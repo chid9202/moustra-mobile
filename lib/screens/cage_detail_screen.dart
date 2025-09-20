@@ -7,6 +7,7 @@ import 'package:moustra/services/dtos/post_cage_dto.dart';
 import 'package:moustra/services/dtos/put_cage_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
+import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
@@ -233,9 +234,9 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: MoustraButtonPrimary(
                   onPressed: _saveCage,
-                  child: const Text('Save Cage'),
+                  label: 'Save Cage',
                 ),
               ),
             ],

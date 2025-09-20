@@ -7,6 +7,7 @@ import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/widgets/safe_text.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
+import 'package:moustra/widgets/shared/button.dart';
 
 class AnimalsScreen extends StatefulWidget {
   const AnimalsScreen({super.key});
@@ -39,17 +40,17 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
             child: Wrap(
               spacing: 12,
               children: [
-                ElevatedButton.icon(
+                MoustraButton.icon(
                   onPressed: () {
                     context.go('/animals/new');
                   },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create Animals'),
+                  icon: Icons.add,
+                  label: 'Create Animals',
                 ),
-                FilledButton.icon(
+                MoustraButton.icon(
                   onPressed: () {},
-                  icon: const Icon(Icons.stop_circle_outlined),
-                  label: const Text('End Animal'),
+                  icon: Icons.stop_circle_outlined,
+                  label: 'End Animal',
                 ),
               ],
             ),

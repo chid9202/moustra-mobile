@@ -5,6 +5,7 @@ import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:moustra/services/clients/litter_api.dart';
 import 'package:moustra/constants/list_constants/litter_list_constants.dart';
 import 'package:moustra/widgets/safe_text.dart';
+import 'package:moustra/widgets/shared/button.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -49,13 +50,12 @@ class _LittersScreenState extends State<LittersScreen> {
           results: pageData.results.cast<LitterDto>(),
         );
       },
-      topBar: ElevatedButton.icon(
+      topBar: MoustraButton.icon(
+        label: 'Add Litter',
+        icon: Icons.add,
         onPressed: () {
-          if (!mounted) return;
           context.go('/litters/new');
         },
-        icon: const Icon(Icons.add),
-        label: const Text('Add Litter'),
       ),
     );
   }
@@ -86,7 +86,7 @@ class _LitterGridSource extends DataGridSource {
             icon: const Icon(Icons.edit),
             tooltip: 'Edit',
             onPressed: () {
-              context.go('/litters/${uuid}');
+              context.go('/litters/$uuid');
             },
           ),
         ),

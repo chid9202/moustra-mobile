@@ -6,6 +6,7 @@ import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:moustra/widgets/safe_text.dart';
+import 'package:moustra/widgets/shared/button.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -40,22 +41,22 @@ class _CagesListScreenState extends State<CagesListScreen> {
             child: Wrap(
               spacing: 12,
               children: [
-                ElevatedButton.icon(
+                MoustraButton.icon(
                   onPressed: () {
                     context.go('/cages/new');
                   },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Cage'),
+                  icon: Icons.add,
+                  label: 'Add Cage',
                 ),
-                FilledButton.icon(
+                MoustraButton.icon(
                   onPressed: () {
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('End Cage clicked')),
                     );
                   },
-                  icon: const Icon(Icons.stop_circle_outlined),
-                  label: const Text('End Cage'),
+                  icon: Icons.stop_circle_outlined,
+                  label: 'End Cage',
                 ),
               ],
             ),
