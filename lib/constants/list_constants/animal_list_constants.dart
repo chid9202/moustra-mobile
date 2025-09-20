@@ -9,6 +9,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum AnimalListColumn implements ListColumn<AnimalDto> {
   select('', 'select'),
+  edit('Edit', 'edit'),
   eid('EID', 'eid'),
   physicalTag('Physical Tag', 'physical_tag'),
   status('Status', 'status'),
@@ -38,6 +39,12 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
         columnName: AnimalListColumn.select.field,
         width: 56,
         label: const SizedBox.shrink(),
+        allowSorting: false,
+      ),
+      GridColumn(
+        columnName: AnimalListColumn.edit.field,
+        width: 72,
+        label: Center(child: Text(AnimalListColumn.edit.label)),
         allowSorting: false,
       ),
       GridColumn(
@@ -132,6 +139,10 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
       cells: [
         DataGridCell<String>(
           columnName: AnimalListColumn.select.name,
+          value: a.animalUuid,
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.edit.name,
           value: a.animalUuid,
         ),
         DataGridCell<int>(columnName: AnimalListColumn.eid.name, value: a.eid),

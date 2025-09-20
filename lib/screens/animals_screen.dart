@@ -18,6 +18,7 @@ class AnimalsScreen extends StatefulWidget {
 
 class _AnimalsScreenState extends State<AnimalsScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
+  final Set<String> _selected = <String>{};
 
   @override
   void initState() {
@@ -48,9 +49,41 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   label: 'Create Animals',
                 ),
                 MoustraButton.icon(
-                  onPressed: () {},
+                  onPressed: _selected.isNotEmpty
+                      ? () {
+                          animalService
+                              .endAnimals(_selected.toList())
+                              .then(
+                                (value) => {
+                                  animalService
+                                      .getAnimalsPage(page: 1, pageSize: 25)
+                                      .then(
+                                        (value) => {
+                                          setState(() {
+                                            _controller.reload();
+                                          }),
+                                        },
+                                      ),
+                                  _selected.clear(),
+                                  _controller.reload(),
+                                  if (mounted)
+                                    {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Animals ended successfully!',
+                                          ),
+                                        ),
+                                      ),
+                                    },
+                                },
+                              );
+                        }
+                      : null,
                   icon: Icons.stop_circle_outlined,
-                  label: 'End Animal',
+                  label: 'End Animals',
                 ),
               ],
             ),
@@ -65,8 +98,12 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
               _controller.reload();
             },
             columns: AnimalListColumn.getColumns(),
-            sourceBuilder: (rows) =>
-                _AnimalGridSource(records: rows, context: context),
+            sourceBuilder: (rows) => _AnimalGridSource(
+              records: rows,
+              selected: _selected,
+              onToggle: _onToggleSelected,
+              context: context,
+            ),
             fetchPage: (page, pageSize) async {
               final pageData = await animalService.getAnimalsPage(
                 page: page,
@@ -89,6 +126,16 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     );
   }
 
+  void _onToggleSelected(String uuid, bool selected) {
+    setState(() {
+      if (selected) {
+        _selected.add(uuid);
+      } else {
+        _selected.remove(uuid);
+      }
+    });
+  }
+
   @override
   void didUpdateWidget(covariant AnimalsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -100,9 +147,16 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
 
 class _AnimalGridSource extends DataGridSource {
   final List<AnimalDto> records;
+  final Set<String> selected;
+  final void Function(String uuid, bool selected) onToggle;
   final BuildContext context;
 
-  _AnimalGridSource({required this.records, required this.context}) {
+  _AnimalGridSource({
+    required this.records,
+    required this.selected,
+    required this.onToggle,
+    required this.context,
+  }) {
     _rows = records.map(AnimalListColumn.getDataGridRow).toList();
   }
 
@@ -114,8 +168,18 @@ class _AnimalGridSource extends DataGridSource {
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
     final String uuid = row.getCells()[0].value as String;
+    final bool isChecked = selected.contains(uuid);
+    final BuildContext context = this.context;
     return DataGridRowAdapter(
       cells: [
+        Center(
+          child: Checkbox(
+            value: isChecked,
+            onChanged: (v) {
+              onToggle(uuid, v ?? false);
+            },
+          ),
+        ),
         Center(
           child: IconButton(
             icon: const Icon(Icons.edit),
@@ -125,21 +189,17 @@ class _AnimalGridSource extends DataGridSource {
             },
           ),
         ),
-        Center(child: SafeText('${row.getCells()[1].value}')),
+        Center(child: SafeText('${row.getCells()[2].value}')),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[2].value),
+          child: SafeText(row.getCells()[3].value),
         ),
-        Center(child: SafeText(row.getCells()[3].value)),
         Center(child: SafeText(row.getCells()[4].value)),
         Center(child: SafeText(row.getCells()[5].value)),
         Center(child: SafeText(row.getCells()[6].value)),
         Center(child: SafeText(row.getCells()[7].value)),
         Center(child: SafeText(row.getCells()[8].value)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[9].value),
-        ),
+        Center(child: SafeText(row.getCells()[9].value)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: SafeText(row.getCells()[10].value),
@@ -159,6 +219,10 @@ class _AnimalGridSource extends DataGridSource {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: SafeText(row.getCells()[14].value),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: SafeText(row.getCells()[15].value),
         ),
       ],
     );
