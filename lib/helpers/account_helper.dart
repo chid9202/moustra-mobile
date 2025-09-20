@@ -1,7 +1,7 @@
-import 'package:moustra/app/router.dart';
 import 'package:moustra/services/dtos/account_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/stores/account_store.dart';
+import 'package:moustra/stores/profile_store.dart';
 
 class AccountHelper {
   static String getOwnerName(AccountDto? account) {

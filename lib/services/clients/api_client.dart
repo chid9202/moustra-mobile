@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:moustra/app/router.dart';
 import 'package:moustra/config/api_config.dart';
 import 'package:moustra/services/auth_service.dart';
+import 'package:moustra/stores/profile_store.dart';
 
 class ApiClient {
   final http.Client httpClient;

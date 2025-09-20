@@ -1,7 +1,7 @@
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:moustra/config/auth0.dart';
 import 'package:moustra/config/env.dart';
-import 'package:moustra/app/router.dart';
+import 'package:moustra/stores/auth_store.dart';
 
 class AuthService {
   Credentials? _credentials;
