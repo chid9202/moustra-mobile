@@ -137,6 +137,14 @@ class AppMenu extends StatelessWidget {
               context.go('/litters');
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.people),
+            title: const Text('Users'),
+            onTap: () {
+              Navigator.of(context).pop();
+              context.go('/users');
+            },
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
