@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
-import 'package:moustra/app/router.dart';
 import 'package:moustra/services/clients/profile_api.dart';
 import 'package:moustra/services/dtos/profile_dto.dart';
+import 'package:moustra/stores/auth_store.dart';
+import 'package:moustra/stores/profile_store.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,9 +24,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _authListener = () {
       if (!mounted) return;
-      setState(() {
-        _loading = false;
-      });
       if (authService.isLoggedIn) {
         final req = ProfileRequestDto(
           email: authService.user?.email ?? '',
@@ -40,7 +38,16 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
             })
             .catchError((e) {
               print(e);
+            })
+            .then((_) {
+              setState(() {
+                _loading = false;
+              });
             });
+      } else {
+        setState(() {
+          _loading = false;
+        });
       }
     };
     authState.addListener(_authListener!);
@@ -115,11 +122,22 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Image.asset(
+                  'assets/icons/app_icon.png',
+                  height: 128,
+                  width: 128,
+                ),
+                const SizedBox(height: 12),
                 const Text(
-                  'Use Auth0 hosted login to sign in.',
+                  'Welcome to Moustra',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 if (_error != null)
                   Text(
                     _error!,

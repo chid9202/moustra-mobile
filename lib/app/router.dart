@@ -6,6 +6,8 @@ import 'package:moustra/screens/cage_detail_screen.dart';
 import 'package:moustra/screens/litter_detail_screen.dart';
 import 'package:moustra/screens/mating_detail_screen.dart';
 import 'package:moustra/screens/strain_detail_screen.dart';
+import 'package:moustra/stores/auth_store.dart';
+import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/widgets/app_menu.dart';
 import 'package:moustra/screens/strains_screen.dart';
 import 'package:moustra/screens/cages_list_screen.dart';
@@ -16,24 +18,30 @@ import 'package:moustra/screens/matings_screen.dart';
 import 'package:moustra/screens/dashboard_screen.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:moustra/screens/login_screen.dart';
-import 'package:moustra/services/dtos/profile_dto.dart';
-
-final ValueNotifier<bool> authState = ValueNotifier<bool>(
-  authService.isLoggedIn,
-);
-
-// TODO: move to state management later
-final ValueNotifier<ProfileResponseDto?> profileState =
-    ValueNotifier<ProfileResponseDto?>(null);
 
 final GoRouter appRouter = GoRouter(
   refreshListenable: authState,
   routes: [
+    // Login routes without AppBar
+    GoRoute(
+      path: '/login',
+      pageBuilder: (context, state) => const MaterialPage(child: LoginScreen()),
+    ),
+    GoRoute(path: '/', redirect: (context, state) => '/dashboard'),
     ShellRoute(
       pageBuilder: (context, state, child) => MaterialPage(
         child: Scaffold(
           appBar: AppBar(
-            title: const Center(child: Text('moustra')),
+            title: Center(
+              child: GestureDetector(
+                onTap: () => context.go('/dashboard'),
+                child: Image.asset(
+                  'assets/icons/app_icon.png',
+                  height: 64,
+                  width: 64,
+                ),
+              ),
+            ),
             leading: Builder(
               builder: (context) => IconButton(
                 icon: const Icon(Icons.menu),
@@ -62,16 +70,6 @@ final GoRouter appRouter = GoRouter(
         ),
       ),
       routes: [
-        GoRoute(
-          path: '/login',
-          pageBuilder: (context, state) =>
-              const MaterialPage(child: LoginScreen()),
-        ),
-        GoRoute(
-          path: '/',
-          pageBuilder: (context, state) =>
-              const MaterialPage(child: LoginScreen()),
-        ),
         GoRoute(
           path: '/dashboard',
           pageBuilder: (context, state) =>
