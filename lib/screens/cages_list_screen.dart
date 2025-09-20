@@ -89,6 +89,27 @@ class _CagesListScreenState extends State<CagesListScreen> {
                 results: pageData.results.cast<CageDto>(),
               );
             },
+            onFilterChanged: (page, pageSize, searchTerm) async {
+              final pageData = await cageService.getCagesPage(
+                page: page,
+                pageSize: pageSize,
+                query: {
+                  if (_sortField != null)
+                    SortQueryParamKey.sort.name: _sortField!,
+                  if (_sortField != null)
+                    SortQueryParamKey.order.name: _sortOrder,
+                  if (searchTerm.isNotEmpty) ...{
+                    SearchQueryParamKey.filter.name: 'cage_tag',
+                    SearchQueryParamKey.value.name: searchTerm,
+                    SearchQueryParamKey.op.name: 'contains',
+                  },
+                },
+              );
+              return PaginatedResult<CageDto>(
+                count: pageData.count,
+                results: pageData.results,
+              );
+            },
             rowHeightEstimator: (index, row) => _estimateLines(row),
           ),
         ),

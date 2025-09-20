@@ -50,6 +50,25 @@ class _LittersScreenState extends State<LittersScreen> {
           results: pageData.results.cast<LitterDto>(),
         );
       },
+      onFilterChanged: (page, pageSize, searchTerm) async {
+        final pageData = await litterService.getLittersPage(
+          page: page,
+          pageSize: pageSize,
+          query: {
+            if (_sortField != null) SortQueryParamKey.sort.name: _sortField!,
+            if (_sortField != null) SortQueryParamKey.order.name: _sortOrder,
+            if (searchTerm.isNotEmpty) ...{
+              SearchQueryParamKey.filter.name: 'litter_tag',
+              SearchQueryParamKey.value.name: searchTerm,
+              SearchQueryParamKey.op.name: 'contains',
+            },
+          },
+        );
+        return PaginatedResult<LitterDto>(
+          count: pageData.count,
+          results: pageData.results,
+        );
+      },
       topBar: MoustraButton.icon(
         label: 'Add Litter',
         icon: Icons.add,
