@@ -8,6 +8,7 @@ import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:moustra/widgets/safe_text.dart';
+import 'package:moustra/widgets/shared/button.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -39,12 +40,12 @@ class _MatingsScreenState extends State<MatingsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: ElevatedButton.icon(
+            child: MoustraButtonPrimary(
+              label: 'Create Mating',
+              icon: Icons.add,
               onPressed: () {
                 context.go('/matings/new');
               },
-              icon: const Icon(Icons.add),
-              label: const Text('Add Mating'),
             ),
           ),
         ),
@@ -86,8 +87,7 @@ class _MatingsScreenState extends State<MatingsScreen> {
   String _sortOrder = SortOrder.asc.name;
 
   int _estimateLines(MatingDto m) {
-    final List<AnimalSummaryDto> animals =
-        (m.animals as List<AnimalSummaryDto>? ?? <AnimalSummaryDto>[]);
+    final List<AnimalSummaryDto> animals = (m.animals ?? <AnimalSummaryDto>[]);
     final List<AnimalSummaryDto> females = animals
         .where((a) => (a.sex ?? '') == SexConstants.female)
         .cast<AnimalSummaryDto>()

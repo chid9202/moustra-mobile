@@ -7,6 +7,7 @@ import 'package:moustra/services/clients/strain_api.dart';
 import 'package:moustra/widgets/color_picker.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
+import 'package:moustra/widgets/shared/button.dart';
 
 class StrainsScreen extends StatefulWidget {
   const StrainsScreen({super.key});
@@ -21,9 +22,6 @@ class _StrainsScreenState extends State<StrainsScreen> {
   final TextEditingController _filterController = TextEditingController();
   String? _sortField; // api field, e.g., strain_name
   String _sortOrder = SortOrder.asc.name;
-  // Sorting handled by grid; legacy fields removed
-  // Paging handled by PaginatedDataGrid; keep UI page index for filter reset
-  int _currentPage = 0;
   final Set<String> _selected = <String>{};
 
   @override
@@ -35,7 +33,6 @@ class _StrainsScreenState extends State<StrainsScreen> {
   @override
   void dispose() {
     _filterController.dispose();
-    // No controllers to dispose
     super.dispose();
   }
 
@@ -51,19 +48,21 @@ class _StrainsScreenState extends State<StrainsScreen> {
               spacing: 12,
               runSpacing: 8,
               children: [
-                ElevatedButton.icon(
+                MoustraButton.icon(
+                  label: 'Create Strain',
+                  icon: Icons.add,
+                  variant: ButtonVariant.primary,
                   onPressed: () {
                     if (context.mounted) {
                       context.go('/strains/new');
                     }
                   },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create Strain'),
                 ),
-                FilledButton.icon(
+                MoustraButton.icon(
+                  label: 'Merge Strain',
+                  icon: Icons.merge_type,
+                  variant: ButtonVariant.secondary,
                   onPressed: _selected.length >= 2 ? _mergeSelected : null,
-                  icon: const Icon(Icons.merge_type),
-                  label: const Text('Merge Strain'),
                 ),
               ],
             ),
@@ -135,9 +134,6 @@ class _StrainsScreenState extends State<StrainsScreen> {
   void _applyFilter(String term) {
     final query = term.trim().toLowerCase();
     if (query.isEmpty) {
-      setState(() {
-        _currentPage = 0;
-      });
       return;
     }
     setState(() {
@@ -146,15 +142,10 @@ class _StrainsScreenState extends State<StrainsScreen> {
         final uuid = e.strainUuid.toLowerCase();
         return name.contains(query) || uuid.contains(query);
       }).toList();
-      _currentPage = 0;
     });
   }
 
-  Future<void> _goToPage(int zeroBasedPage) async {
-    setState(() {
-      _currentPage = zeroBasedPage;
-    });
-  }
+  Future<void> _goToPage(int zeroBasedPage) async {}
 
   Future<void> _mergeSelected() async {
     final strains = _selected.toList();

@@ -17,6 +17,7 @@ import 'package:moustra/widgets/shared/select_cage.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
+import 'package:moustra/widgets/shared/button.dart';
 
 class MatingDetailScreen extends StatefulWidget {
   const MatingDetailScreen({super.key});
@@ -334,9 +335,9 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: MoustraButtonPrimary(
+                  label: 'Save Mating',
                   onPressed: _saveMating,
-                  child: const Text('Save Mating'),
                 ),
               ),
             ],

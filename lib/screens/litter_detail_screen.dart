@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/services/clients/litter_api.dart';
-import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/services/dtos/post_litter_dto.dart';
 import 'package:moustra/services/dtos/put_litter_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
+import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_mating.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
@@ -30,7 +30,6 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
   DateTime? _selectedDateOfBirth = DateTime.now();
   DateTime? _selectedWeanDate = DateTime.now().add(const Duration(days: 21));
   AccountStoreDto? _selectedOwner;
-  LitterDto? _litterData;
   bool _litterDataLoaded = false;
 
   String? get _litterUuid {
@@ -65,7 +64,6 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
     final litter = await litterService.getLitter(_litterUuid!);
     if (mounted) {
       setState(() {
-        _litterData = litter;
         _litterDataLoaded = true;
         _selectedMating = MatingDto(
           matingId: litter.mating?.matingId ?? 0,
@@ -285,9 +283,9 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: MoustraButtonPrimary(
                   onPressed: _selectedMating == null ? null : _saveLitter,
-                  child: Text(isNew ? 'Create Litter' : 'Update Litter'),
+                  label: isNew ? 'Create Litter' : 'Update Litter',
                 ),
               ),
             ],
