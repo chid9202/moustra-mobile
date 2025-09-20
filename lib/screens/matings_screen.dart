@@ -76,6 +76,27 @@ class _MatingsScreenState extends State<MatingsScreen> {
                 results: pageData.results.cast<MatingDto>(),
               );
             },
+            onFilterChanged: (page, pageSize, searchTerm) async {
+              final pageData = await matingService.getMatingsPage(
+                page: page,
+                pageSize: pageSize,
+                query: {
+                  if (_sortField != null)
+                    SortQueryParamKey.sort.name: _sortField!,
+                  if (_sortField != null)
+                    SortQueryParamKey.order.name: _sortOrder,
+                  if (searchTerm.isNotEmpty) ...{
+                    SearchQueryParamKey.filter.name: 'mating_tag',
+                    SearchQueryParamKey.value.name: searchTerm,
+                    SearchQueryParamKey.op.name: 'contains',
+                  },
+                },
+              );
+              return PaginatedResult<MatingDto>(
+                count: pageData.count,
+                results: pageData.results,
+              );
+            },
             rowHeightEstimator: (index, row) => _estimateLines(row),
           ),
         ),
