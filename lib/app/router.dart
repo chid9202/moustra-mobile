@@ -17,6 +17,7 @@ import 'package:moustra/screens/litters_screen.dart';
 import 'package:moustra/screens/animals_screen.dart';
 import 'package:moustra/screens/matings_screen.dart';
 import 'package:moustra/screens/users_screen.dart';
+import 'package:moustra/screens/user_detail_screen.dart';
 import 'package:moustra/screens/dashboard_screen.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:moustra/screens/login_screen.dart';
@@ -131,15 +132,14 @@ final GoRouter appRouter = GoRouter(
         ),
         GoRoute(
           path: '/users/new',
-          pageBuilder: (context, state) => const MaterialPage(
-            child: UsersScreen(),
-          ), // TODO: Create UserDetailScreen
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: UserDetailScreen(isNew: true)),
         ),
         GoRoute(
           path: '/users/:userUuid',
-          pageBuilder: (context, state) => const MaterialPage(
-            child: UsersScreen(),
-          ), // TODO: Create UserDetailScreen
+          pageBuilder: (context, state) => MaterialPage(
+            child: UserDetailScreen(userUuid: state.pathParameters['userUuid']),
+          ),
         ),
       ],
     ),

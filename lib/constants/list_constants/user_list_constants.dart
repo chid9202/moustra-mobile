@@ -5,14 +5,14 @@ import 'package:moustra/services/dtos/user_list_dto.dart';
 class UserListColumn {
   static List<GridColumn> getColumns() {
     return [
-      // GridColumn(
-      //   columnName: 'accountId',
-      //   label: Container(
-      //     padding: const EdgeInsets.all(8.0),
-      //     alignment: Alignment.centerLeft,
-      //     child: const Text('', style: TextStyle(fontWeight: FontWeight.bold)),
-      //   ),
-      // ),
+      GridColumn(
+        columnName: 'accountId',
+        label: Container(
+          padding: const EdgeInsets.all(8.0),
+          alignment: Alignment.centerLeft,
+          child: const Text('', style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+      ),
       GridColumn(
         columnName: 'name',
         label: Container(
