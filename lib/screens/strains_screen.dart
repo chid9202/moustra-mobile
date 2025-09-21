@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moustra/constants/list_constants/cell_text.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/constants/list_constants/strain_list_constants.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
@@ -192,24 +193,12 @@ class _StrainGridSource extends DataGridSource {
             },
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[2].value),
-        ),
-        Center(child: Text('${row.getCells()[3].value}')),
+        cellText(row.getCells()[2].value),
+        cellText('${row.getCells()[3].value}', textAlign: Alignment.center),
         Center(child: ColorPicker(hex: row.getCells()[4].value)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[5].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[6].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[7].value),
-        ),
+        cellText(row.getCells()[5].value),
+        cellText(row.getCells()[6].value),
+        cellText(row.getCells()[7].value),
         Center(
           child: Icon(
             (row.getCells()[8].value as bool)

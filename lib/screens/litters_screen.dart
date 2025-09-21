@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moustra/constants/list_constants/cell_text.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:moustra/services/clients/litter_api.dart';
@@ -110,25 +111,13 @@ class _LitterGridSource extends DataGridSource {
           ),
         ),
         Center(child: SafeText('${row.getCells()[1].value}')),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[2].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[3].value),
-        ),
-        Center(child: SafeText('${row.getCells()[3].value}')),
-        Center(child: SafeText(row.getCells()[5].value)),
-        Center(child: SafeText(row.getCells()[6].value)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[7].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[8].value),
-        ),
+        cellText(row.getCells()[2].value),
+        cellText(row.getCells()[3].value),
+        cellText('${row.getCells()[4].value}'),
+        cellText(row.getCells()[5].value),
+        cellText(row.getCells()[6].value),
+        cellText(row.getCells()[7].value),
+        cellText(row.getCells()[8].value),
       ],
     );
   }

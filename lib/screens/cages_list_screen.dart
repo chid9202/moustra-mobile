@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/cage_list_constants.dart';
+import 'package:moustra/constants/list_constants/cell_text.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
-import 'package:moustra/widgets/safe_text.dart';
 import 'package:moustra/widgets/shared/button.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
@@ -47,16 +47,6 @@ class _CagesListScreenState extends State<CagesListScreen> {
                   },
                   icon: Icons.add,
                   label: 'Add Cage',
-                ),
-                MoustraButton.icon(
-                  onPressed: () {
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('End Cage clicked')),
-                    );
-                  },
-                  icon: Icons.stop_circle_outlined,
-                  label: 'End Cage',
                 ),
               ],
             ),
@@ -150,8 +140,6 @@ class _CageGridSource extends DataGridSource {
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
     final String uuid = row.getCells()[0].value as String;
-    List<String> asList(dynamic v) => (v as List<String>? ?? <String>[]);
-
     return DataGridRowAdapter(
       cells: [
         Center(
@@ -159,56 +147,20 @@ class _CageGridSource extends DataGridSource {
             icon: const Icon(Icons.edit),
             tooltip: 'Edit',
             onPressed: () {
-              context.go('/cages/${uuid}');
+              context.go('/cages/$uuid');
             },
           ),
         ),
-        Center(child: SafeText('${row.getCells()[1].value}')),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[2].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[3].value),
-        ),
-        Center(child: SafeText('${row.getCells()[4].value}')),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: asList(row.getCells()[5].value)
-                .map(
-                  (t) =>
-                      SafeText(t, overflow: TextOverflow.ellipsis, maxLines: 1),
-                )
-                .toList(),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: asList(row.getCells()[6].value)
-                .map(
-                  (g) =>
-                      SafeText(g, overflow: TextOverflow.ellipsis, maxLines: 1),
-                )
-                .toList(),
-          ),
-        ),
-        Center(child: SafeText(row.getCells()[7].value)),
-        Center(child: SafeText(row.getCells()[8].value)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[9].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[10].value),
-        ),
+        cellText('${row.getCells()[1].value}', textAlign: Alignment.center),
+        cellText(row.getCells()[2].value),
+        cellText(row.getCells()[3].value),
+        cellText('${row.getCells()[4].value}', textAlign: Alignment.center),
+        cellTextList(row.getCells()[5].value),
+        cellTextList(row.getCells()[6].value),
+        cellText(row.getCells()[7].value),
+        cellText(row.getCells()[8].value),
+        cellText(row.getCells()[9].value),
+        cellText(row.getCells()[10].value),
       ],
     );
   }

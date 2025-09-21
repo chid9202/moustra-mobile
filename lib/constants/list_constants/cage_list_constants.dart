@@ -31,13 +31,13 @@ enum CageListColumn implements ListColumn<CageDto> {
     return [
       GridColumn(
         columnName: CageListColumn.select.field,
-        width: 56,
+        width: selectColumnWidth,
         label: const SizedBox.shrink(),
         allowSorting: false,
       ),
       GridColumn(
         columnName: CageListColumn.eid.field,
-        width: 80,
+        width: eidColumnWidth,
         label: Center(child: Text(CageListColumn.eid.label)),
         allowSorting: false,
       ),
@@ -85,7 +85,7 @@ enum CageListColumn implements ListColumn<CageDto> {
       ),
       GridColumn(
         columnName: CageListColumn.owner.field,
-        width: 220,
+        width: ownerColumnWidth,
         label: Center(child: Text(CageListColumn.owner.label)),
         allowSorting: true,
       ),

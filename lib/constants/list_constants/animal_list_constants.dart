@@ -37,13 +37,13 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
     return [
       GridColumn(
         columnName: AnimalListColumn.select.field,
-        width: 56,
+        width: selectColumnWidth,
         label: const SizedBox.shrink(),
         allowSorting: false,
       ),
       GridColumn(
         columnName: AnimalListColumn.edit.field,
-        width: 72,
+        width: editColumnWidth,
         label: Center(child: Text(AnimalListColumn.edit.label)),
         allowSorting: false,
       ),
@@ -121,7 +121,7 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
       ),
       GridColumn(
         columnName: AnimalListColumn.owner.field,
-        width: 220,
+        width: ownerColumnWidth,
         label: Center(child: Text(AnimalListColumn.owner.label)),
         allowSorting: true,
       ),

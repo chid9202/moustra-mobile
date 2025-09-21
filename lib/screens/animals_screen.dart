@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/animal_list_constants.dart';
+import 'package:moustra/constants/list_constants/cell_text.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
@@ -210,41 +211,20 @@ class _AnimalGridSource extends DataGridSource {
             },
           ),
         ),
-        Center(child: SafeText('${row.getCells()[2].value}')),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[3].value),
-        ),
-        Center(child: SafeText(row.getCells()[4].value)),
-        Center(child: SafeText(row.getCells()[5].value)),
-        Center(child: SafeText(row.getCells()[6].value)),
-        Center(child: SafeText(row.getCells()[7].value)),
-        Center(child: SafeText(row.getCells()[8].value)),
-        Center(child: SafeText(row.getCells()[9].value)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[10].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[11].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[12].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[13].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[14].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[15].value),
-        ),
+        cellText('${row.getCells()[2].value}', textAlign: Alignment.center),
+        cellText(row.getCells()[3].value),
+        cellText(row.getCells()[4].value, textAlign: Alignment.center),
+        cellText(row.getCells()[5].value, textAlign: Alignment.center),
+        cellText(row.getCells()[6].value),
+        cellText(row.getCells()[7].value),
+        cellText(row.getCells()[8].value),
+        cellText(row.getCells()[9].value),
+        cellText(row.getCells()[10].value),
+        cellText(row.getCells()[11].value),
+        cellText(row.getCells()[12].value),
+        cellText(row.getCells()[13].value),
+        cellText(row.getCells()[14].value),
+        cellText(row.getCells()[15].value),
       ],
     );
   }

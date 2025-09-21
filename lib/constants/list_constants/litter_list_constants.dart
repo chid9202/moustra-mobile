@@ -28,13 +28,13 @@ enum LitterListColumn implements ListColumn<LitterDto> {
     return [
       GridColumn(
         columnName: LitterListColumn.edit.field,
-        width: 72,
+        width: editColumnWidth,
         label: Center(child: Text(LitterListColumn.edit.label)),
         allowSorting: false,
       ),
       GridColumn(
         columnName: LitterListColumn.eid.field,
-        width: 80,
+        width: eidColumnWidth,
         label: Center(child: Text(LitterListColumn.eid.label)),
         allowSorting: false,
       ),
@@ -70,7 +70,7 @@ enum LitterListColumn implements ListColumn<LitterDto> {
       ),
       GridColumn(
         columnName: LitterListColumn.owner.field,
-        width: 220,
+        width: ownerColumnWidth,
         label: Center(child: Text(LitterListColumn.owner.label)),
         allowSorting: true,
       ),
@@ -104,7 +104,7 @@ enum LitterListColumn implements ListColumn<LitterDto> {
         ),
         DataGridCell<int>(
           columnName: LitterListColumn.numberOfPups.name,
-          value: litter.animals?.length,
+          value: litter.animals.length,
         ),
         DataGridCell<String>(
           columnName: LitterListColumn.wean.name,
