@@ -4,6 +4,7 @@ import 'package:moustra/constants/list_constants/user_list_constants.dart';
 import 'package:moustra/services/dtos/user_list_dto.dart';
 import 'package:moustra/services/clients/users_api.dart';
 import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/widgets/shared/button.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -37,16 +38,16 @@ class _UsersScreenState extends State<UsersScreen> {
               spacing: 12,
               runSpacing: 8,
               children: [
-                // MoustraButton.icon(
-                //   label: 'Create User',
-                //   icon: Icons.add,
-                //   variant: ButtonVariant.primary,
-                //   onPressed: () {
-                //     if (context.mounted) {
-                //       context.go('/users/new');
-                //     }
-                //   },
-                // ),
+                MoustraButton.icon(
+                  label: 'Create User',
+                  icon: Icons.add,
+                  variant: ButtonVariant.primary,
+                  onPressed: () {
+                    if (context.mounted) {
+                      context.go('/users/new');
+                    }
+                  },
+                ),
               ],
             ),
           ),
@@ -93,19 +94,19 @@ class _UserGridSource extends DataGridSource {
 
     return DataGridRowAdapter(
       cells: [
-        // Center(
-        //   child: IconButton(
-        //     icon: const Icon(Icons.edit),
-        //     tooltip: 'Edit User',
-        //     onPressed: () {
-        //       final String accountUuid = records
-        //           .where((user) => user.accountId == row.getCells()[0].value)
-        //           .first
-        //           .accountUuid;
-        //       context.go('/users/$accountUuid');
-        //     },
-        //   ),
-        // ),
+        Center(
+          child: IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit User',
+            onPressed: () {
+              final String accountUuid = records
+                  .where((user) => user.accountId == row.getCells()[0].value)
+                  .first
+                  .accountUuid;
+              context.go('/users/$accountUuid');
+            },
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Text(row.getCells()[1].value),
