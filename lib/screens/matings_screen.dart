@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/animal_constants.dart';
+import 'package:moustra/constants/list_constants/cell_text.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/constants/list_constants/mating_list_constants.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
@@ -158,67 +159,18 @@ class _MatingGridSource extends DataGridSource {
             },
           ),
         ),
-        Center(child: SafeText('${row.getCells()[2].value}')),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[2].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[3].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[4].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[5].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(
-            row.getCells()[6].value,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: asList(row.getCells()[7].value)
-                .map(
-                  (t) =>
-                      SafeText(t, overflow: TextOverflow.ellipsis, maxLines: 1),
-                )
-                .toList(),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: asList(row.getCells()[8].value)
-                .map(
-                  (g) =>
-                      SafeText(g, overflow: TextOverflow.ellipsis, maxLines: 1),
-                )
-                .toList(),
-          ),
-        ),
-        Center(child: SafeText(row.getCells()[9].value)),
-        Center(child: Text(row.getCells()[10].value)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[11].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SafeText(row.getCells()[12].value),
-        ),
+        cellText('${row.getCells()[1].value}', textAlign: Alignment.center),
+        cellText(row.getCells()[2].value),
+        cellText(row.getCells()[3].value),
+        cellText(row.getCells()[4].value),
+        cellText(row.getCells()[5].value),
+        cellText(row.getCells()[6].value),
+        cellTextList(asList(row.getCells()[7].value)),
+        cellTextList(asList(row.getCells()[8].value)),
+        cellText(row.getCells()[9].value),
+        cellText(row.getCells()[10].value),
+        cellText(row.getCells()[11].value),
+        cellText(row.getCells()[12].value),
       ],
     );
   }

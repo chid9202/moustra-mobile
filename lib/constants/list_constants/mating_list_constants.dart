@@ -35,13 +35,13 @@ enum MatingListColumn implements ListColumn<MatingDto> {
     return [
       GridColumn(
         columnName: MatingListColumn.edit.field,
-        width: 72,
+        width: editColumnWidth,
         label: Center(child: Text(MatingListColumn.edit.label)),
         allowSorting: false,
       ),
       GridColumn(
         columnName: MatingListColumn.eid.field,
-        width: 80,
+        width: eidColumnWidth,
         label: Center(child: Text(MatingListColumn.eid.label)),
         allowSorting: false,
       ),
@@ -101,7 +101,7 @@ enum MatingListColumn implements ListColumn<MatingDto> {
       ),
       GridColumn(
         columnName: MatingListColumn.owner.field,
-        width: 220,
+        width: ownerColumnWidth,
         label: Center(child: Text(MatingListColumn.owner.label)),
         allowSorting: true,
       ),
@@ -131,14 +131,12 @@ enum MatingListColumn implements ListColumn<MatingDto> {
     final String maleTag = (male?.physicalTag ?? '').toString();
     final List<String> femaleTags = females
         .map((f) => (f.physicalTag ?? '').toString())
-        .where((t) => t.isNotEmpty)
         .toList();
     final String maleGenotypes = GenotypeHelper.formatGenotypes(
       male?.genotypes,
     );
     final List<String> femaleGenotypeLines = females
         .map((f) => GenotypeHelper.formatGenotypes(f.genotypes))
-        .where((g) => g.isNotEmpty)
         .toList();
     final String setUpDate = DateTimeHelper.formatDate(m.setUpDate);
     final String disbandedDate = DateTimeHelper.formatDate(m.disbandedDate);

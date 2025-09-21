@@ -29,13 +29,13 @@ enum StrainListColumn implements ListColumn<StrainDto> {
     return [
       GridColumn(
         columnName: StrainListColumn.select.field,
-        width: 56,
+        width: selectColumnWidth,
         label: const SizedBox.shrink(),
         allowSorting: false,
       ),
       GridColumn(
         columnName: StrainListColumn.edit.field,
-        width: 72,
+        width: editColumnWidth,
         label: Center(child: Text(StrainListColumn.edit.label)),
         allowSorting: false,
       ),
@@ -59,7 +59,7 @@ enum StrainListColumn implements ListColumn<StrainDto> {
       ),
       GridColumn(
         columnName: StrainListColumn.owner.field,
-        width: 220,
+        width: ownerColumnWidth,
         label: Center(child: Text(StrainListColumn.owner.label)),
         allowSorting: true,
       ),

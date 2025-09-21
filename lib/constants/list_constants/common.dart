@@ -9,3 +9,8 @@ abstract class ListColumn<T> {
   String get field;
   String get enumName; // expose enum name
 }
+
+const double selectColumnWidth = 42;
+const double editColumnWidth = 42;
+const double eidColumnWidth = 64;
+const double ownerColumnWidth = 160;
