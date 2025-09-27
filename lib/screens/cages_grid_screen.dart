@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/screens/cage/cage_interactive_view.dart';
-import 'package:moustra/services/clients/cage_api.dart';
+import 'package:moustra/services/clients/rack_api.dart';
+import 'package:moustra/services/dtos/rack_dto.dart';
 
 class CagesGridScreen extends StatefulWidget {
   const CagesGridScreen({super.key});
@@ -15,16 +15,14 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   final TransformationController _transformationController =
       TransformationController();
   final ScrollController _scrollController = ScrollController();
+  late Future<RackDto> _rackFuture;
 
-  String? _sortField;
-  final _sortOrder = SortOrder.asc.name;
-
-  final int _gridCount = 100;
   double zoomLevel = 0.0;
 
   @override
   void initState() {
     super.initState();
+    _rackFuture = rackApi.getRack();
     _transformationController.addListener(_onTransformationChanged);
     _transformationController.value.scaleByDouble(1, 1, 1, 1);
     // final zoomFactor = 0.75;
@@ -55,19 +53,34 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: cageService.getCagesPage(
-        page: 1,
-        pageSize: 25,
-        query: {
-          if (_sortField != null) SortQueryParamKey.sort.name: _sortField!,
-          if (_sortField != null) SortQueryParamKey.order.name: _sortOrder,
-        },
-      ),
+      future: _rackFuture,
       builder: (context, snapshot) {
-        final data = snapshot.data;
-
-        if (data == null) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Error: ${snapshot.error}'),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _rackFuture = rackApi.getRack();
+                    });
+                  },
+                  child: Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final data = snapshot.data;
+        if (data == null) {
+          return Center(child: Text('No data received'));
         }
 
         return InteractiveViewer(
@@ -83,7 +96,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
             height: 1500,
             child: GridView.builder(
               controller: _scrollController,
-              itemCount: data.results.length,
+              itemCount: data.cages?.length ?? 0,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 5,
@@ -92,11 +105,12 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
                 childAspectRatio: 1.0,
               ),
               itemBuilder: (context, index) {
-                final resultItem = data.results[index];
+                final resultItem = data.cages?[index];
+                if (resultItem == null) return Container();
                 return CageInteractiveView(
                   cage: resultItem,
                   detailLevel: zoomLevel.ceil(),
-                  allCagesData: data,
+                  rackData: data,
                 );
               },
             ),

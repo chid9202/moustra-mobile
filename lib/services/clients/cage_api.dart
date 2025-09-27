@@ -50,4 +50,4 @@ class CageApi {
   }
 }
 
-final CageApi cageService = CageApi();
+final CageApi cageApi = CageApi();

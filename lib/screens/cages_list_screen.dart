@@ -64,7 +64,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
             sourceBuilder: (rows) =>
                 _CageGridSource(records: rows, context: context),
             fetchPage: (page, pageSize) async {
-              final pageData = await cageService.getCagesPage(
+              final pageData = await cageApi.getCagesPage(
                 page: page,
                 pageSize: pageSize,
                 query: {
@@ -80,7 +80,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
               );
             },
             onFilterChanged: (page, pageSize, searchTerm) async {
-              final pageData = await cageService.getCagesPage(
+              final pageData = await cageApi.getCagesPage(
                 page: page,
                 pageSize: pageSize,
                 query: {
