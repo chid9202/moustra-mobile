@@ -23,16 +23,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     super.initState();
     _loadRackData();
     _transformationController.addListener(_onTransformationChanged);
-    _transformationController.value.scaleByDouble(1, 1, 1, 1);
-    // final zoomFactor = 0.75;
-    // final xTranslate = 300.0;
-    // final yTranslate = 300.0;
-    // _transformationController.value.setEntry(0, 0, zoomFactor);
-    // _transformationController.value.setEntry(1, 1, zoomFactor);
-    // _transformationController.value.setEntry(2, 2, zoomFactor);
-    // _transformationController.value.setEntry(0, 3, -xTranslate);
-    // _transformationController.value.setEntry(1, 3, -yTranslate);
-    // _transformationController.value.scaleByDouble(sx, sy, sz, sw)
+    _restoreSavedPosition();
   }
 
   Future<void> _loadRackData() async {
@@ -51,6 +42,20 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     setState(() {
       zoomLevel = _transformationController.value.entry(0, 0);
     });
+    // Save the current transformation matrix to the store
+    saveTransformationMatrix(_transformationController.value);
+  }
+
+  void _restoreSavedPosition() {
+    // Restore the saved transformation matrix if available
+    final savedMatrix = getSavedTransformationMatrix();
+    if (savedMatrix != null) {
+      _transformationController.value = savedMatrix;
+      zoomLevel = savedMatrix.entry(0, 0);
+    } else {
+      // Set default position if no saved position exists
+      _transformationController.value.scaleByDouble(1, 1, 1, 1);
+    }
   }
 
   @override
