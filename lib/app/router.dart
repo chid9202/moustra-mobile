@@ -102,8 +102,10 @@ final GoRouter appRouter = GoRouter(
         ),
         GoRoute(
           path: '/animals/new',
-          pageBuilder: (context, state) =>
-              const MaterialPage(child: AnimalNewScreen()),
+          pageBuilder: (context, state) {
+            final cageUuid = state.uri.queryParameters['cageUuid'];
+            return MaterialPage(child: AnimalNewScreen(cageUuid: cageUuid));
+          },
         ),
         GoRoute(
           path: '/animals/:animalUuid',

@@ -6,6 +6,7 @@ import 'package:moustra/services/dtos/genotype_dto.dart';
 import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
 import 'package:moustra/services/dtos/stores/cage_store_dto.dart';
 import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
+import 'package:moustra/stores/cage_store.dart';
 import 'package:moustra/widgets/shared/multi_select_animal.dart';
 import 'package:moustra/widgets/shared/select_animal.dart';
 import 'package:moustra/widgets/shared/select_cage.dart';
@@ -16,7 +17,9 @@ import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/widgets/shared/button.dart';
 
 class AnimalNewScreen extends StatefulWidget {
-  const AnimalNewScreen({super.key});
+  final String? cageUuid;
+
+  const AnimalNewScreen({super.key, this.cageUuid});
 
   @override
   State<AnimalNewScreen> createState() => _AnimalNewScreenState();
@@ -36,6 +39,22 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
   void initState() {
     super.initState();
     _addNewAnimal();
+    _loadCageIfProvided();
+  }
+
+  void _loadCageIfProvided() async {
+    if (widget.cageUuid != null) {
+      try {
+        final cage = await getCageHook(widget.cageUuid);
+        if (cage != null && mounted) {
+          setState(() {
+            _selectedCage = cage;
+          });
+        }
+      } catch (e) {
+        print('Error loading cage: $e');
+      }
+    }
   }
 
   void _addNewAnimal() {
