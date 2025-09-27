@@ -130,7 +130,7 @@ Map<String, dynamic> _$RackCageAnimalGenotypeDtoToJson(
 RackCageAnimalDto _$RackCageAnimalDtoFromJson(Map<String, dynamic> json) =>
     RackCageAnimalDto(
       animalId: (json['animalId'] as num?)?.toInt(),
-      animalUuid: json['animalUuid'] as String?,
+      animalUuid: json['animalUuid'] as String,
       physicalTag: json['physicalTag'] as String?,
       weanDate: json['weanDate'] == null
           ? null
@@ -179,7 +179,7 @@ Map<String, dynamic> _$RackCageAnimalDtoToJson(RackCageAnimalDto instance) =>
 RackCageMatingDto _$RackCageMatingDtoFromJson(Map<String, dynamic> json) =>
     RackCageMatingDto(
       matingId: (json['matingId'] as num?)?.toInt(),
-      matingUuid: json['matingUuid'] as String?,
+      matingUuid: json['matingUuid'] as String,
       animals: (json['animals'] as List<dynamic>?)
           ?.map((e) => RackCageAnimalDto.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -219,7 +219,7 @@ Map<String, dynamic> _$RackCageMatingDtoToJson(RackCageMatingDto instance) =>
 RackCageDto _$RackCageDtoFromJson(Map<String, dynamic> json) => RackCageDto(
   cageId: (json['cageId'] as num?)?.toInt(),
   cageTag: json['cageTag'] as String?,
-  cageUuid: json['cageUuid'] as String?,
+  cageUuid: json['cageUuid'] as String,
   owner: json['owner'] == null
       ? null
       : RackCageOwnerDto.fromJson(json['owner'] as Map<String, dynamic>),
@@ -251,8 +251,8 @@ Map<String, dynamic> _$RackCageDtoToJson(RackCageDto instance) =>
 
 RackSimpleDto _$RackSimpleDtoFromJson(Map<String, dynamic> json) =>
     RackSimpleDto(
-      rackId: (json['rackId'] as num?)?.toInt(),
-      rackUuid: json['rackUuid'] as String?,
+      rackId: (json['rackId'] as num).toInt(),
+      rackUuid: json['rackUuid'] as String,
       rackName: json['rackName'] as String?,
     );
 

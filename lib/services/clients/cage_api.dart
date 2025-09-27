@@ -48,6 +48,13 @@ class CageApi {
     }
     return CageDto.fromJson(jsonDecode(res.body));
   }
+
+  Future<void> endCage(String cageUuid) async {
+    final res = await apiClient.post('$basePath/$cageUuid/end');
+    if (res.statusCode != 204) {
+      throw Exception('Failed to end cage ${res.body}');
+    }
+  }
 }
 
 final CageApi cageApi = CageApi();

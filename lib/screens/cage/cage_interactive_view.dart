@@ -37,7 +37,7 @@ class CageInteractiveView extends StatelessWidget {
         child: GestureDetector(
           onTap: () {
             if (cage.cageUuid != null) {
-              context.go('/cage/${cage.cageUuid}');
+              context.go('/cages/${cage.cageUuid}');
             }
           },
           child: Column(

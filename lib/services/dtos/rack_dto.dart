@@ -125,7 +125,7 @@ class RackCageAnimalGenotypeDto {
 @JsonSerializable(explicitToJson: true)
 class RackCageAnimalDto {
   final int? animalId;
-  final String? animalUuid;
+  final String animalUuid;
   final String? physicalTag;
   final DateTime? weanDate;
   final String? sex;
@@ -139,7 +139,7 @@ class RackCageAnimalDto {
 
   RackCageAnimalDto({
     this.animalId,
-    this.animalUuid,
+    required this.animalUuid,
     this.physicalTag,
     this.weanDate,
     this.sex,
@@ -161,7 +161,7 @@ class RackCageAnimalDto {
 @JsonSerializable(explicitToJson: true)
 class RackCageMatingDto {
   final int? matingId;
-  final String? matingUuid;
+  final String matingUuid;
   final List<RackCageAnimalDto>? animals;
   final String? matingTag;
   final DateTime? setUpDate;
@@ -173,7 +173,7 @@ class RackCageMatingDto {
 
   RackCageMatingDto({
     this.matingId,
-    this.matingUuid,
+    required this.matingUuid,
     this.animals,
     this.matingTag,
     this.setUpDate,
@@ -194,7 +194,7 @@ class RackCageMatingDto {
 class RackCageDto {
   final int? cageId;
   final String? cageTag;
-  final String? cageUuid;
+  final String cageUuid;
   final RackCageOwnerDto? owner;
   final RackCageStrainDto? strain;
   final List<RackCageAnimalDto>? animals;
@@ -205,7 +205,7 @@ class RackCageDto {
   RackCageDto({
     this.cageId,
     this.cageTag,
-    this.cageUuid,
+    required this.cageUuid,
     this.owner,
     this.strain,
     this.animals,
@@ -222,11 +222,11 @@ class RackCageDto {
 // Simple Rack DTO
 @JsonSerializable(explicitToJson: true)
 class RackSimpleDto {
-  final int? rackId;
-  final String? rackUuid;
+  final int rackId;
+  final String rackUuid;
   final String? rackName;
 
-  RackSimpleDto({this.rackId, this.rackUuid, this.rackName});
+  RackSimpleDto({required this.rackId, required this.rackUuid, this.rackName});
 
   factory RackSimpleDto.fromJson(Map<String, dynamic> json) =>
       _$RackSimpleDtoFromJson(json);
