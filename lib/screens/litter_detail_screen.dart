@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/services/clients/litter_api.dart';
+import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/services/dtos/post_litter_dto.dart';
 import 'package:moustra/services/dtos/put_litter_dto.dart';
@@ -12,7 +13,9 @@ import 'package:moustra/widgets/shared/select_mating.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
 
 class LitterDetailScreen extends StatefulWidget {
-  const LitterDetailScreen({super.key});
+  final String? matingUuid;
+
+  const LitterDetailScreen({super.key, this.matingUuid});
 
   @override
   State<LitterDetailScreen> createState() => _LitterDetailScreenState();
@@ -41,6 +44,22 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
   void initState() {
     super.initState();
     _loadDefaultOwner();
+    _loadMatingIfProvided();
+  }
+
+  void _loadMatingIfProvided() async {
+    if (widget.matingUuid != null) {
+      try {
+        final mating = await MatingApi().getMating(widget.matingUuid!);
+        if (mounted) {
+          setState(() {
+            _selectedMating = mating;
+          });
+        }
+      } catch (e) {
+        print('Error loading mating: $e');
+      }
+    }
   }
 
   @override

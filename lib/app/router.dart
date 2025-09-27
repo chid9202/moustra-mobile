@@ -87,8 +87,12 @@ final GoRouter appRouter = GoRouter(
         ),
         GoRoute(
           path: '/litters/new',
-          pageBuilder: (context, state) =>
-              const MaterialPage(child: LitterDetailScreen()),
+          pageBuilder: (context, state) {
+            final matingUuid = state.uri.queryParameters['matingUuid'];
+            return MaterialPage(
+              child: LitterDetailScreen(matingUuid: matingUuid),
+            );
+          },
         ),
         GoRoute(
           path: '/litters/:litterUuid',
