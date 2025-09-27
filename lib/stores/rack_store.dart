@@ -23,3 +23,10 @@ void removeAnimalFromCage(String cageUuid, String animalUuid) {
       ?.removeWhere((animal) => animal.animalUuid == animalUuid);
   rackStore.value = RackStoreDto(rackData: rackData);
 }
+
+void removeCageFromRack(String cageUuid) {
+  final rackData = rackStore.value?.rackData;
+  if (rackData == null) return;
+  rackData.cages?.removeWhere((cage) => cage.cageUuid == cageUuid);
+  rackStore.value = RackStoreDto(rackData: rackData);
+}

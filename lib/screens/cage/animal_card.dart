@@ -135,7 +135,7 @@ class AnimalCard extends StatelessWidget {
           value: 'end',
           child: Text('End'),
           onTap: () {
-            removeAnimalFromCage(cage.cageUuid ?? '', animal.animalUuid ?? '');
+            removeAnimalFromCage(cage.cageUuid, animal.animalUuid ?? '');
             animalService.endAnimals([animal.animalUuid ?? '']);
           },
         ),

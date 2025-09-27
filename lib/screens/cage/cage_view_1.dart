@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/screens/cage/animal_card.dart';
+import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
+import 'package:moustra/stores/rack_store.dart';
 
 class CageView1 extends StatelessWidget {
   final RackCageDto cage;
@@ -67,7 +69,14 @@ class CageView1 extends StatelessWidget {
         onTap: () => context.go('/cages/${cage.cageUuid}'),
       ),
       const PopupMenuItem(value: 'add_animals', child: Text('Add Animals')),
-      const PopupMenuItem(value: 'end_cage', child: Text('End Cage')),
+      PopupMenuItem(
+        value: 'end_cage',
+        child: const Text('End Cage'),
+        onTap: () {
+          removeCageFromRack(cage.cageUuid);
+          cageApi.endCage(cage.cageUuid);
+        },
+      ),
     ];
 
     if (hasMating) {
@@ -75,7 +84,7 @@ class CageView1 extends StatelessWidget {
         PopupMenuItem(
           value: 'open_mating',
           child: Text('Open Mating'),
-          onTap: () => context.go('/matings/${cage.mating?.matingUuid}'),
+          onTap: () => {context.go('/matings/${cage.mating?.matingUuid}')},
         ),
         const PopupMenuItem(value: 'add_litter', child: Text('Add Litter')),
       ]);
