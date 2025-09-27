@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moustra/screens/cage/cage_view_1.dart';
+import 'package:moustra/screens/cage/cage_view_2.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 
 class CageInteractiveView extends StatelessWidget {
@@ -21,9 +23,9 @@ class CageInteractiveView extends StatelessWidget {
     switch (detailLevel) {
       case 0:
       case 1:
-        childWidget = _buildMiceView();
+        childWidget = CageView1(cage: cage);
       case 2:
-        childWidget = _buildSummaryView();
+        childWidget = CageView2(cage: cage);
         break;
     }
 
@@ -41,63 +43,10 @@ class CageInteractiveView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                cage.cageTag ?? 'Unknown',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Text(
-                  cage.cageUuid ?? 'No UUID',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Expanded(child: childWidget),
-            ],
+            children: [Expanded(child: childWidget)],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildMiceView() {
-    final animals = cage.animals ?? [];
-    return Column(
-      children: [
-        Text('Animals: ${animals.length}'),
-        if (animals.isNotEmpty)
-          ...animals
-              .take(3)
-              .map(
-                (animal) => Text(
-                  animal.physicalTag ?? 'No tag',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ),
-        if (animals.length > 3) Text('... and ${animals.length - 3} more'),
-      ],
-    );
-  }
-
-  Widget _buildSummaryView() {
-    final animals = cage.animals ?? [];
-    final males = animals.where((e) => e.sex == 'M').length;
-    final females = animals.where((e) => e.sex == 'F').length;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Status: ${cage.status ?? 'Unknown'}'),
-        Text('Animals: ${animals.length}'),
-        Text('Males: $males'),
-        Text('Females: $females'),
-        if (cage.strain != null)
-          Text('Strain: ${cage.strain!.strainName ?? 'Unknown'}'),
-      ],
     );
   }
 }
