@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:moustra/screens/cage/cage_summary_view.dart';
-import 'package:moustra/screens/cage/cage_mice_view.dart';
-import 'package:moustra/screens/cage/shared.dart';
-import 'package:moustra/services/dtos/cage_dto.dart';
-import 'package:moustra/services/dtos/paginated_response_dto.dart';
+import 'package:moustra/services/dtos/rack_dto.dart';
 
 class CageInteractiveView extends StatelessWidget {
-  final CageDto cage;
+  final RackCageDto cage;
   final int detailLevel;
-  final PaginatedResponseDto<CageDto> allCagesData;
+  final RackDto rackData;
 
   const CageInteractiveView({
     super.key,
     required this.cage,
     required this.detailLevel,
-    required this.allCagesData,
+    required this.rackData,
   });
 
   @override
@@ -25,9 +21,9 @@ class CageInteractiveView extends StatelessWidget {
     switch (detailLevel) {
       case 0:
       case 1:
-        childWidget = CageMiceView(cage);
+        childWidget = _buildMiceView();
       case 2:
-        childWidget = CageSummaryView(cage);
+        childWidget = _buildSummaryView();
         break;
     }
 
@@ -38,20 +34,22 @@ class CageInteractiveView extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: GestureDetector(
           onTap: () {
-            context.go('/cage/${cage.cageUuid}');
+            if (cage.cageUuid != null) {
+              context.go('/cage/${cage.cageUuid}');
+            }
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                cage.cageTag,
+                cage.cageTag ?? 'Unknown',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Text(
-                  cage.cageUuid,
+                  cage.cageUuid ?? 'No UUID',
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -63,6 +61,43 @@ class CageInteractiveView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMiceView() {
+    final animals = cage.animals ?? [];
+    return Column(
+      children: [
+        Text('Animals: ${animals.length}'),
+        if (animals.isNotEmpty)
+          ...animals
+              .take(3)
+              .map(
+                (animal) => Text(
+                  animal.physicalTag ?? 'No tag',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+        if (animals.length > 3) Text('... and ${animals.length - 3} more'),
+      ],
+    );
+  }
+
+  Widget _buildSummaryView() {
+    final animals = cage.animals ?? [];
+    final males = animals.where((e) => e.sex == 'M').length;
+    final females = animals.where((e) => e.sex == 'F').length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Status: ${cage.status ?? 'Unknown'}'),
+        Text('Animals: ${animals.length}'),
+        Text('Males: $males'),
+        Text('Females: $females'),
+        if (cage.strain != null)
+          Text('Strain: ${cage.strain!.strainName ?? 'Unknown'}'),
+      ],
     );
   }
 }
