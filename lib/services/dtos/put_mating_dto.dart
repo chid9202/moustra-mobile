@@ -1,6 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
-import 'package:moustra/services/dtos/stores/cage_store_dto.dart';
 import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
 
 part 'put_mating_dto.g.dart';

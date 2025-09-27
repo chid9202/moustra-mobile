@@ -126,7 +126,6 @@ class MoustraButton extends StatelessWidget {
 
   Color _getButtonTextColor(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final mui = Theme.of(context).extension<MUIExtraColors>();
 
     switch (variant) {
       case ButtonVariant.primary:

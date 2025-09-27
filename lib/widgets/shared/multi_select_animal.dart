@@ -75,10 +75,10 @@ class _MultiSelectAnimalState extends State<MultiSelectAnimal> {
                         onChanged: (value) {
                           setDialogState(() {
                             if (value == true) {
-                              tempSelectedAnimals.add(animal!);
+                              tempSelectedAnimals.add(animal);
                             } else {
                               tempSelectedAnimals.removeWhere(
-                                (a) => a.animalUuid == animal?.animalUuid,
+                                (a) => a.animalUuid == animal.animalUuid,
                               );
                             }
                           });
