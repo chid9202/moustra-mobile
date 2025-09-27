@@ -3,8 +3,15 @@ import 'package:moustra/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/services/clients/profile_api.dart';
 import 'package:moustra/services/dtos/profile_dto.dart';
+import 'package:moustra/stores/account_store.dart';
+import 'package:moustra/stores/animal_store.dart';
 import 'package:moustra/stores/auth_store.dart';
+import 'package:moustra/stores/background_store.dart';
+import 'package:moustra/stores/cage_store.dart';
+import 'package:moustra/stores/gene_store.dart';
 import 'package:moustra/stores/profile_store.dart';
+import 'package:moustra/stores/rack_store.dart';
+import 'package:moustra/stores/strain_store.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -33,20 +40,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
           firstName: authService.user?.givenName ?? '',
           lastName: authService.user?.familyName ?? '',
         );
-        profileService
-            .getProfile(req)
-            .then((profile) {
-              profileState.value = profile;
-              context.go('/dashboard');
-            })
-            .catchError((e) {
-              print(e);
-            })
-            .then((_) {
-              setState(() {
-                _loading = false;
-              });
-            });
+        _postLogin(req);
       } else {
         setState(() {
           _loading = false;
@@ -65,6 +59,28 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  void _postLogin(ProfileRequestDto request) {
+    profileService
+        .getProfile(request)
+        .then((profile) {
+          profileState.value = profile;
+          // Initialize all stores in parallel without awaiting
+          useAccountStore();
+          useAnimalStore();
+          useCageStore();
+          useStrainStore();
+          useGeneStore();
+          useRackStore();
+          useBackgroundStore();
+        })
+        .catchError((e) {
+          print(e);
+        })
+        .then((_) {
+          context.go('/dashboard');
+        });
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
@@ -78,20 +94,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
           firstName: authService.user?.givenName ?? '',
           lastName: authService.user?.familyName ?? '',
         );
-        profileService
-            .getProfile(req)
-            .then((profile) {
-              profileState.value = profile;
-              context.go('/dashboard');
-            })
-            .catchError((e) {
-              print(e);
-            })
-            .then((_) {
-              setState(() {
-                _loading = false;
-              });
-            });
+        _postLogin(req);
       }
       if (!mounted) return;
       setState(() {
