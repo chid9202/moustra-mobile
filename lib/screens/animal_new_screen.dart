@@ -18,8 +18,9 @@ import 'package:moustra/widgets/shared/button.dart';
 
 class AnimalNewScreen extends StatefulWidget {
   final String? cageUuid;
+  final bool fromCageGrid;
 
-  const AnimalNewScreen({super.key, this.cageUuid});
+  const AnimalNewScreen({super.key, this.cageUuid, this.fromCageGrid = false});
 
   @override
   State<AnimalNewScreen> createState() => _AnimalNewScreenState();
@@ -113,7 +114,12 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Animals created successfully!')),
           );
-          context.go('/animals');
+          // Navigate back to the appropriate page based on where we came from
+          if (widget.fromCageGrid) {
+            context.go('/cages/grid');
+          } else {
+            context.go('/animals');
+          }
         }
       } catch (e) {
         print('Error saving animals: $e');
@@ -135,7 +141,14 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => context.go('/animals'),
+          onPressed: () {
+            // Navigate back to the appropriate page based on where we came from
+            if (widget.fromCageGrid) {
+              context.go('/cages/grid');
+            } else {
+              context.go('/animals');
+            }
+          },
           icon: const Icon(Icons.arrow_back),
         ),
         title: const Text('Create Animals'),

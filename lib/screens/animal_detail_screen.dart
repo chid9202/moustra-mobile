@@ -23,7 +23,9 @@ import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/widgets/shared/button.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
-  const AnimalDetailScreen({super.key});
+  final bool fromCageGrid;
+
+  const AnimalDetailScreen({super.key, this.fromCageGrid = false});
 
   @override
   State<AnimalDetailScreen> createState() => _AnimalDetailScreenState();
@@ -160,7 +162,12 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Animal updated successfully!')),
         );
-        context.go('/animals');
+        // Navigate back to the appropriate page based on where we came from
+        if (widget.fromCageGrid) {
+          context.go('/cages/grid');
+        } else {
+          context.go('/animals');
+        }
       } catch (e) {
         print('Error saving animal: $e - ${e.toString()}');
         ScaffoldMessenger.of(
@@ -179,7 +186,12 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            context.go('/animals');
+            // Navigate back to the appropriate page based on where we came from
+            if (widget.fromCageGrid) {
+              context.go('/cages/grid');
+            } else {
+              context.go('/animals');
+            }
           },
           icon: const Icon(Icons.arrow_back),
         ),

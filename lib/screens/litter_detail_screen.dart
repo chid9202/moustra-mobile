@@ -14,8 +14,13 @@ import 'package:moustra/widgets/shared/select_owner.dart';
 
 class LitterDetailScreen extends StatefulWidget {
   final String? matingUuid;
+  final bool fromCageGrid;
 
-  const LitterDetailScreen({super.key, this.matingUuid});
+  const LitterDetailScreen({
+    super.key,
+    this.matingUuid,
+    this.fromCageGrid = false,
+  });
 
   @override
   State<LitterDetailScreen> createState() => _LitterDetailScreenState();
@@ -146,7 +151,12 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
           const SnackBar(content: Text('Litter created successfully!')),
         );
 
-        context.go('/litters');
+        // Navigate back to the appropriate page based on where we came from
+        if (widget.fromCageGrid) {
+          context.go('/cages/grid');
+        } else {
+          context.go('/litters');
+        }
       } catch (e) {
         print('Error saving litter: $e');
         ScaffoldMessenger.of(
@@ -167,7 +177,12 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            context.go('/litters');
+            // Navigate back to the appropriate page based on where we came from
+            if (widget.fromCageGrid) {
+              context.go('/cages/grid');
+            } else {
+              context.go('/litters');
+            }
           },
           icon: const Icon(Icons.arrow_back),
         ),
