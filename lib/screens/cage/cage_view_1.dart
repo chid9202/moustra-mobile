@@ -68,7 +68,11 @@ class CageView1 extends StatelessWidget {
         child: const Text('Open Cage'),
         onTap: () => context.go('/cages/${cage.cageUuid}'),
       ),
-      const PopupMenuItem(value: 'add_animals', child: Text('Add Animals')),
+      PopupMenuItem(
+        value: 'add_animals',
+        child: Text('Add Animals'),
+        onTap: () => context.go('/animals/new?cageUuid=${cage.cageUuid}'),
+      ),
       PopupMenuItem(
         value: 'end_cage',
         child: const Text('End Cage'),
