@@ -38,6 +38,7 @@ class CageView1 extends StatelessWidget {
                       (animal) => AnimalCard(
                         animal: animal,
                         hasMating: _hasMating(animal),
+                        cage: cage,
                       ),
                     )
                     .toList(),

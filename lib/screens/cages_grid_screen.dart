@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:moustra/screens/cage/cage_interactive_view.dart';
-import 'package:moustra/services/clients/rack_api.dart';
-import 'package:moustra/services/dtos/rack_dto.dart';
+import 'package:moustra/services/dtos/stores/rack_store_dto.dart';
+import 'package:moustra/stores/rack_store.dart';
 
 class CagesGridScreen extends StatefulWidget {
   const CagesGridScreen({super.key});
@@ -15,14 +15,13 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   final TransformationController _transformationController =
       TransformationController();
   final ScrollController _scrollController = ScrollController();
-  late Future<RackDto> _rackFuture;
 
   double zoomLevel = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _rackFuture = rackApi.getRack();
+    _loadRackData();
     _transformationController.addListener(_onTransformationChanged);
     _transformationController.value.scaleByDouble(1, 1, 1, 1);
     // final zoomFactor = 0.75;
@@ -34,6 +33,10 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     // _transformationController.value.setEntry(0, 3, -xTranslate);
     // _transformationController.value.setEntry(1, 3, -yTranslate);
     // _transformationController.value.scaleByDouble(sx, sy, sz, sw)
+  }
+
+  Future<void> _loadRackData() async {
+    await useRackStore();
   }
 
   @override
@@ -52,36 +55,14 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _rackFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    return ValueListenableBuilder<RackStoreDto?>(
+      valueListenable: rackStore,
+      builder: (context, rackStoreValue, child) {
+        if (rackStoreValue == null) {
           return Center(child: CircularProgressIndicator());
         }
 
-        if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Error: ${snapshot.error}'),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _rackFuture = rackApi.getRack();
-                    });
-                  },
-                  child: Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        final data = snapshot.data;
-        if (data == null) {
-          return Center(child: Text('No data received'));
-        }
+        final data = rackStoreValue.rackData;
 
         return InteractiveViewer(
           constrained: false,
