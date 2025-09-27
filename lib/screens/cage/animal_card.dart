@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
+import 'package:moustra/stores/rack_store.dart';
 
 class AnimalCard extends StatelessWidget {
+  final RackCageDto cage;
   final RackCageAnimalDto animal;
   final bool hasMating;
 
-  const AnimalCard({super.key, required this.animal, required this.hasMating});
+  const AnimalCard({
+    super.key,
+    required this.animal,
+    required this.hasMating,
+    required this.cage,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +116,7 @@ class AnimalCard extends StatelessWidget {
   String _getCardTitle() {
     var physicalTag = animal.physicalTag ?? 'No tag';
     if (hasMating) {
-      physicalTag += ' [mating]';
+      physicalTag += ' 💕';
     }
     return physicalTag;
   }
@@ -117,9 +126,19 @@ class AnimalCard extends StatelessWidget {
       context: context,
       position: const RelativeRect.fromLTRB(100, 100, 0, 0),
       items: [
-        const PopupMenuItem(value: 'open', child: Text('Open')),
-        const PopupMenuItem(value: 'end', child: Text('End')),
-        const PopupMenuItem(value: 'delete', child: Text('Delete')),
+        PopupMenuItem(
+          value: 'open',
+          child: Text('Open'),
+          onTap: () => context.go('/animals/${animal.animalUuid}'),
+        ),
+        PopupMenuItem(
+          value: 'end',
+          child: Text('End'),
+          onTap: () {
+            removeAnimalFromCage(cage.cageUuid ?? '', animal.animalUuid ?? '');
+            animalService.endAnimals([animal.animalUuid ?? '']);
+          },
+        ),
       ],
     ).then((value) {
       if (value != null) {
