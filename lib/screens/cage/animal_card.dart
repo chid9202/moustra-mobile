@@ -129,7 +129,8 @@ class AnimalCard extends StatelessWidget {
         PopupMenuItem(
           value: 'open',
           child: Text('Open'),
-          onTap: () => context.go('/animals/${animal.animalUuid}'),
+          onTap: () =>
+              context.go('/animals/${animal.animalUuid}?fromCageGrid=true'),
         ),
         PopupMenuItem(
           value: 'end',

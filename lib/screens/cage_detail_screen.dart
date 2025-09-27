@@ -13,7 +13,9 @@ import 'package:moustra/widgets/shared/select_owner.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
 
 class CageDetailScreen extends StatefulWidget {
-  const CageDetailScreen({super.key});
+  final bool fromCageGrid;
+
+  const CageDetailScreen({super.key, this.fromCageGrid = false});
 
   @override
   State<CageDetailScreen> createState() => _CageDetailScreenState();
@@ -138,7 +140,12 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
             const SnackBar(content: Text('Cage updated successfully!')),
           );
         }
-        context.go('/cages/list');
+        // Navigate back to the appropriate page based on where we came from
+        if (widget.fromCageGrid) {
+          context.go('/cages/grid');
+        } else {
+          context.go('/cages/list');
+        }
       } catch (e) {
         print('Error saving cage: $e');
         ScaffoldMessenger.of(
@@ -157,7 +164,12 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            context.go('/cages/list');
+            // Navigate back to the appropriate page based on where we came from
+            if (widget.fromCageGrid) {
+              context.go('/cages/grid');
+            } else {
+              context.go('/cages/list');
+            }
           },
           icon: const Icon(Icons.arrow_back),
         ),

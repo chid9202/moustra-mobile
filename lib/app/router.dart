@@ -77,8 +77,13 @@ final GoRouter appRouter = GoRouter(
         ),
         GoRoute(
           path: '/cages/:cageUuid',
-          pageBuilder: (context, state) =>
-              const MaterialPage(child: CageDetailScreen()),
+          pageBuilder: (context, state) {
+            final fromCageGrid =
+                state.uri.queryParameters['fromCageGrid'] == 'true';
+            return MaterialPage(
+              child: CageDetailScreen(fromCageGrid: fromCageGrid),
+            );
+          },
         ),
         GoRoute(
           path: '/litters',
@@ -89,15 +94,25 @@ final GoRouter appRouter = GoRouter(
           path: '/litters/new',
           pageBuilder: (context, state) {
             final matingUuid = state.uri.queryParameters['matingUuid'];
+            final fromCageGrid =
+                state.uri.queryParameters['fromCageGrid'] == 'true';
             return MaterialPage(
-              child: LitterDetailScreen(matingUuid: matingUuid),
+              child: LitterDetailScreen(
+                matingUuid: matingUuid,
+                fromCageGrid: fromCageGrid,
+              ),
             );
           },
         ),
         GoRoute(
           path: '/litters/:litterUuid',
-          pageBuilder: (context, state) =>
-              const MaterialPage(child: LitterDetailScreen()),
+          pageBuilder: (context, state) {
+            final fromCageGrid =
+                state.uri.queryParameters['fromCageGrid'] == 'true';
+            return MaterialPage(
+              child: LitterDetailScreen(fromCageGrid: fromCageGrid),
+            );
+          },
         ),
         GoRoute(
           path: '/animals',
@@ -108,13 +123,25 @@ final GoRouter appRouter = GoRouter(
           path: '/animals/new',
           pageBuilder: (context, state) {
             final cageUuid = state.uri.queryParameters['cageUuid'];
-            return MaterialPage(child: AnimalNewScreen(cageUuid: cageUuid));
+            final fromCageGrid =
+                state.uri.queryParameters['fromCageGrid'] == 'true';
+            return MaterialPage(
+              child: AnimalNewScreen(
+                cageUuid: cageUuid,
+                fromCageGrid: fromCageGrid,
+              ),
+            );
           },
         ),
         GoRoute(
           path: '/animals/:animalUuid',
-          pageBuilder: (context, state) =>
-              const MaterialPage(child: AnimalDetailScreen()),
+          pageBuilder: (context, state) {
+            final fromCageGrid =
+                state.uri.queryParameters['fromCageGrid'] == 'true';
+            return MaterialPage(
+              child: AnimalDetailScreen(fromCageGrid: fromCageGrid),
+            );
+          },
         ),
         GoRoute(
           path: '/matings',
@@ -128,8 +155,13 @@ final GoRouter appRouter = GoRouter(
         ),
         GoRoute(
           path: '/matings/:matingUuid',
-          pageBuilder: (context, state) =>
-              const MaterialPage(child: MatingDetailScreen()),
+          pageBuilder: (context, state) {
+            final fromCageGrid =
+                state.uri.queryParameters['fromCageGrid'] == 'true';
+            return MaterialPage(
+              child: MatingDetailScreen(fromCageGrid: fromCageGrid),
+            );
+          },
         ),
         GoRoute(
           path: '/users',

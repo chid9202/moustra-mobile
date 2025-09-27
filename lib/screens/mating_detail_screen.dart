@@ -20,7 +20,9 @@ import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/widgets/shared/button.dart';
 
 class MatingDetailScreen extends StatefulWidget {
-  const MatingDetailScreen({super.key});
+  final bool fromCageGrid;
+
+  const MatingDetailScreen({super.key, this.fromCageGrid = false});
 
   @override
   State<MatingDetailScreen> createState() => _MatingDetailScreenState();
@@ -192,7 +194,12 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
             const SnackBar(content: Text('Mating updated successfully!')),
           );
         }
-        context.go('/matings');
+        // Navigate back to the appropriate page based on where we came from
+        if (widget.fromCageGrid) {
+          context.go('/cages/grid');
+        } else {
+          context.go('/matings');
+        }
       } catch (e) {
         print('Error saving mating: $e');
         ScaffoldMessenger.of(
@@ -212,7 +219,12 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            context.go('/matings');
+            // Navigate back to the appropriate page based on where we came from
+            if (widget.fromCageGrid) {
+              context.go('/cages/grid');
+            } else {
+              context.go('/matings');
+            }
           },
           icon: const Icon(Icons.arrow_back),
         ),

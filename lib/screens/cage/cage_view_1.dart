@@ -66,12 +66,14 @@ class CageView1 extends StatelessWidget {
       PopupMenuItem(
         value: 'open_cage',
         child: const Text('Open Cage'),
-        onTap: () => context.go('/cages/${cage.cageUuid}'),
+        onTap: () => context.go('/cages/${cage.cageUuid}?fromCageGrid=true'),
       ),
       PopupMenuItem(
         value: 'add_animals',
         child: Text('Add Animals'),
-        onTap: () => context.go('/animals/new?cageUuid=${cage.cageUuid}'),
+        onTap: () => context.go(
+          '/animals/new?cageUuid=${cage.cageUuid}&fromCageGrid=true',
+        ),
       ),
       PopupMenuItem(
         value: 'end_cage',
@@ -88,13 +90,16 @@ class CageView1 extends StatelessWidget {
         PopupMenuItem(
           value: 'open_mating',
           child: Text('Open Mating'),
-          onTap: () => {context.go('/matings/${cage.mating?.matingUuid}')},
+          onTap: () => context.go(
+            '/matings/${cage.mating?.matingUuid}?fromCageGrid=true',
+          ),
         ),
         PopupMenuItem(
           value: 'add_litter',
           child: Text('Add Litter'),
-          onTap: () =>
-              context.go('/litters/new?matingUuid=${cage.mating?.matingUuid}'),
+          onTap: () => context.go(
+            '/litters/new?matingUuid=${cage.mating?.matingUuid}&fromCageGrid=true',
+          ),
         ),
       ]);
     }
