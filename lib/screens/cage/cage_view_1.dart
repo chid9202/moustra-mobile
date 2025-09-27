@@ -90,7 +90,12 @@ class CageView1 extends StatelessWidget {
           child: Text('Open Mating'),
           onTap: () => {context.go('/matings/${cage.mating?.matingUuid}')},
         ),
-        const PopupMenuItem(value: 'add_litter', child: Text('Add Litter')),
+        PopupMenuItem(
+          value: 'add_litter',
+          child: Text('Add Litter'),
+          onTap: () =>
+              context.go('/litters/new?matingUuid=${cage.mating?.matingUuid}'),
+        ),
       ]);
     }
 
