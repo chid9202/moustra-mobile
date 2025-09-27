@@ -92,8 +92,8 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
           panEnabled: true,
           trackpadScrollCausesScale: true,
           child: SizedBox(
-            width: 1500,
-            height: 1500,
+            width: 2000,
+            height: 5500,
             child: GridView.builder(
               controller: _scrollController,
               itemCount: data.cages?.length ?? 0,
