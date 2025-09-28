@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+
 import 'package:go_router/go_router.dart';
+
 import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/stores/rack_store.dart';
+import 'package:moustra/widgets/shared/select_rack_cage.dart';
 
 class AnimalCard extends StatelessWidget {
   final RackCageDto cage;
@@ -126,6 +129,23 @@ class AnimalCard extends StatelessWidget {
       context: context,
       position: const RelativeRect.fromLTRB(100, 100, 0, 0),
       items: [
+        PopupMenuItem(
+          value: 'move',
+          child: Text('Move'),
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return SelectRackCage(
+                  selectedCage: cage,
+                  onSubmit: (submittedCage) {
+                    print('submitted cage: ${submittedCage?.cageId}');
+                  },
+                );
+              },
+            );
+          },
+        ),
         PopupMenuItem(
           value: 'open',
           child: Text('Open'),
