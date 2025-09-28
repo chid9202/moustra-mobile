@@ -182,6 +182,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
     if (_selectedOwner == null) {
       return const Center(child: CircularProgressIndicator());
     }
+    if (_animalUuid != null && !_animalDataLoaded) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(

@@ -214,6 +214,9 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
     if (_selectedOwner == null) {
       return const Center(child: CircularProgressIndicator());
     }
+    if (_matingUuid != null && !_matingDataLoaded) {
+      return const Center(child: CircularProgressIndicator());
+    }
     final isNew = _matingUuid == null || _matingUuid == 'new';
     return Scaffold(
       appBar: AppBar(

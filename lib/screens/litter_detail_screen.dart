@@ -171,6 +171,9 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
     if (_selectedOwner == null) {
       return const Center(child: CircularProgressIndicator());
     }
+    if (_litterUuid != null && !_litterDataLoaded) {
+      return const Center(child: CircularProgressIndicator());
+    }
     final isNew = _litterUuid == null || _litterUuid == 'new';
 
     return Scaffold(

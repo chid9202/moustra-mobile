@@ -133,6 +133,10 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
     showDialog(
       context: context,
       builder: (context) {
+        if (_strainUuid != null && !_strainDataLoaded) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
         return AlertDialog(
           title: const Text('Select Color'),
           content: SizedBox(
