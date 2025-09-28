@@ -160,6 +160,9 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
     if (_selectedOwner == null) {
       return const Center(child: CircularProgressIndicator());
     }
+    if (_cageUuid != null && !_cageDataLoaded) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
