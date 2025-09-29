@@ -7,11 +7,13 @@ class GeneStoreDto {
   final int geneId;
   final String geneUuid;
   final String geneName;
+  final bool isActive;
 
   GeneStoreDto({
     required this.geneId,
     required this.geneUuid,
     required this.geneName,
+    required this.isActive,
   });
 
   factory GeneStoreDto.fromJson(dynamic json) => _$GeneStoreDtoFromJson(json);

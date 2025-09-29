@@ -16,7 +16,7 @@ import 'package:moustra/widgets/shared/multi_select_animal.dart';
 import 'package:moustra/widgets/shared/select_animal.dart';
 import 'package:moustra/widgets/shared/select_cage.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
-import 'package:moustra/widgets/shared/select_gene.dart';
+import 'package:moustra/widgets/shared/select_gene/select_gene.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
 import 'package:moustra/widgets/shared/select_sex.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';

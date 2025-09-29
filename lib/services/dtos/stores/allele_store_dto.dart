@@ -7,11 +7,13 @@ class AlleleStoreDto {
   final int alleleId;
   final String alleleUuid;
   final String alleleName;
+  final bool isActive;
 
   AlleleStoreDto({
     required this.alleleId,
     required this.alleleUuid,
     required this.alleleName,
+    required this.isActive,
   });
 
   factory AlleleStoreDto.fromJson(dynamic json) =>
