@@ -148,18 +148,6 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
           icon: const Icon(Icons.arrow_back),
         ),
         title: const Text('Create Animals'),
-        actions: [
-          IconButton(
-            onPressed: _addNewAnimal,
-            icon: const Icon(Icons.add),
-            tooltip: 'Add Animal',
-          ),
-          IconButton(
-            onPressed: _saveAnimals,
-            icon: const Icon(Icons.save),
-            tooltip: 'Save Animals',
-          ),
-        ],
       ),
       body: Form(
         key: _formKey,
