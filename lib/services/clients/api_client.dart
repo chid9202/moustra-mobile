@@ -61,8 +61,8 @@ class ApiClient {
     Object? body,
     bool withoutAccountPrefix = false,
   }) async {
-    print('POST path $path');
     final uri = _buildUri(path, withoutAccountPrefix: withoutAccountPrefix);
+    print('POST path $uri');
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
     final res = await httpClient.post(

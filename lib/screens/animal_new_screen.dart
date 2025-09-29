@@ -11,7 +11,7 @@ import 'package:moustra/widgets/shared/multi_select_animal.dart';
 import 'package:moustra/widgets/shared/select_animal.dart';
 import 'package:moustra/widgets/shared/select_cage.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
-import 'package:moustra/widgets/shared/select_gene.dart';
+import 'package:moustra/widgets/shared/select_gene/select_gene.dart';
 import 'package:moustra/widgets/shared/select_sex.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/widgets/shared/button.dart';
@@ -134,10 +134,6 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-      '1111 ${_animals.map((e) => e.dam.map((e) => e.toJson()).toList()).toList()}',
-    );
-    print(_animals);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(

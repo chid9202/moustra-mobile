@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:moustra/services/clients/profile_api.dart';
 import 'package:moustra/services/dtos/profile_dto.dart';
 import 'package:moustra/stores/account_store.dart';
+import 'package:moustra/stores/allele_store.dart';
 import 'package:moustra/stores/animal_store.dart';
 import 'package:moustra/stores/auth_store.dart';
 import 'package:moustra/stores/background_store.dart';
@@ -70,6 +71,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
           useCageStore();
           useStrainStore();
           useGeneStore();
+          useAlleleStore();
           useRackStore();
           useBackgroundStore();
         })

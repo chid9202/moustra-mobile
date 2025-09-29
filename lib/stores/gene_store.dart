@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/services/clients/gene_api.dart';
 import 'package:moustra/services/clients/store_api.dart';
 import 'package:moustra/services/dtos/stores/gene_store_dto.dart';
 
@@ -24,4 +25,21 @@ Future<GeneStoreDto?> getGeneHook(String? uuid) async {
   }
   await useGeneStore();
   return geneStore.value?.firstWhere((gene) => gene.geneUuid == uuid);
+}
+
+Future<GeneStoreDto> postGeneHook(String geneName) async {
+  final newGene = await geneApi.postGene(geneName);
+  // Fetch full list to maintain integrity
+  final value = await StoreApi<GeneStoreDto>().getStore(StoreKeys.gene);
+  print('Gene store updated after create, new count: ${value.length}');
+  geneStore.value = value;
+  return newGene;
+}
+
+Future<void> deleteGeneHook(String geneUuid) async {
+  await geneApi.deleteGene(geneUuid);
+  // Fetch full list to maintain integrity
+  final value = await StoreApi<GeneStoreDto>().getStore(StoreKeys.gene);
+  print('Gene store updated after delete, new count: ${value.length}');
+  geneStore.value = value;
 }
