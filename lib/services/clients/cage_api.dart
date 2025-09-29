@@ -5,6 +5,7 @@ import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/post_cage_dto.dart';
 import 'package:moustra/services/dtos/put_cage_dto.dart';
+import 'package:moustra/services/dtos/rack_dto.dart';
 
 class CageApi {
   static const String basePath = '/cage';
@@ -54,6 +55,14 @@ class CageApi {
     if (res.statusCode != 204) {
       throw Exception('Failed to end cage ${res.body}');
     }
+  }
+
+  Future<RackDto> moveCage(String cageUuid, int order) async {
+    final res = await apiClient.put(
+      '$basePath/$cageUuid/order',
+      body: {'order': order},
+    );
+    return RackDto.fromJson(jsonDecode(res.body));
   }
 }
 

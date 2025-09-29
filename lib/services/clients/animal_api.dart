@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
+import 'package:moustra/services/dtos/rack_dto.dart';
 
 class AnimalApi {
   static const String basePath = '/animal';
@@ -62,6 +63,14 @@ class AnimalApi {
     if (res.statusCode != 200) {
       throw Exception('Failed to end animals ${res.body}');
     }
+  }
+
+  Future<RackDto> moveAnimal(String animalUuid, String cageUuid) async {
+    final res = await apiClient.post(
+      '$basePath/$animalUuid/move',
+      body: {'animal': animalUuid, 'cage': cageUuid},
+    );
+    return RackDto.fromJson(jsonDecode(res.body));
   }
 }
 

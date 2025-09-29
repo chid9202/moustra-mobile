@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/dtos/stores/rack_store_dto.dart';
 import 'package:moustra/services/clients/rack_api.dart';
+import 'package:moustra/services/clients/animal_api.dart';
 
 final rackStore = ValueNotifier<RackStoreDto?>(null);
 
@@ -61,4 +63,18 @@ void removeCageFromRack(String cageUuid) {
   if (rackData == null) return;
   rackData.cages?.removeWhere((cage) => cage.cageUuid == cageUuid);
   rackStore.value = RackStoreDto(rackData: rackData);
+}
+
+Future<void> moveCage(String cageUuid, int order) async {
+  final rackData = rackStore.value?.rackData;
+  if (rackData == null) return;
+  final newRack = await cageApi.moveCage(cageUuid, order);
+  rackStore.value = RackStoreDto(rackData: newRack);
+}
+
+Future<void> moveAnimal(String animalUuid, String cageUuid) async {
+  final rackData = rackStore.value?.rackData;
+  if (rackData == null) return;
+  final newRack = await animalService.moveAnimal(animalUuid, cageUuid);
+  rackStore.value = RackStoreDto(rackData: newRack);
 }
