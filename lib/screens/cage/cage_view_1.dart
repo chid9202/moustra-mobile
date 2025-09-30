@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'package:go_router/go_router.dart';
+
 import 'package:moustra/screens/cage/animal_card.dart';
 import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
@@ -8,7 +10,7 @@ import 'package:moustra/stores/rack_store.dart';
 class CageView1 extends StatelessWidget {
   final RackCageDto cage;
 
-  const CageView1({super.key, required this.cage});
+  const CageView1({required this.cage, super.key});
 
   @override
   Widget build(BuildContext context) {
