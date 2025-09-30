@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'package:go_router/go_router.dart';
+
 import 'package:moustra/screens/cage/cage_view_1.dart';
 import 'package:moustra/screens/cage/cage_view_2.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
@@ -36,9 +38,7 @@ class CageInteractiveView extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: GestureDetector(
           onTap: () {
-            if (cage.cageUuid != null) {
-              context.go('/cages/${cage.cageUuid}');
-            }
+            context.go('/cages/${cage.cageUuid}');
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
