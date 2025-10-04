@@ -105,16 +105,5 @@ class CageView1 extends StatelessWidget {
         ),
       ]);
     }
-
-    showMenu(
-      context: context,
-      position: const RelativeRect.fromLTRB(100, 100, 0, 0),
-      items: menuItems,
-    ).then((value) {
-      if (value != null) {
-        // Handle menu selection
-        print('Selected: $value for cage ${cage.cageTag}');
-      }
-    });
   }
 }

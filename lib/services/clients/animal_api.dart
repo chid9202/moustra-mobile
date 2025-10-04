@@ -70,7 +70,13 @@ class AnimalApi {
       '$basePath/$animalUuid/move',
       body: {'animal': animalUuid, 'cage': cageUuid},
     );
-    return RackDto.fromJson(jsonDecode(res.body));
+    if (res.statusCode == 200) {
+      return RackDto.fromJson(jsonDecode(res.body));
+    }
+    throw Exception(
+      'Status code ${res.statusCode} while moving animal.\n'
+      '${res.body}',
+    );
   }
 }
 
