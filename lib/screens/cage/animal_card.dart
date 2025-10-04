@@ -87,14 +87,13 @@ class _AnimalCardState extends State<AnimalCard> {
             child: Center(
               child: _moving
                   ? CircularProgressIndicator()
-                  : IconButton(
+                  : PopupMenuButton(
                       icon: const Icon(Icons.more_vert),
-                      onPressed: () {
-                        // Show menu for now
-                        _showMenu(
+                      itemBuilder: (_) {
+                        return menu(
                           context,
-                          () => setState(() {
-                            _moving = true;
+                          (bool value) => setState(() {
+                            _moving = value;
                           }),
                         );
                       },
@@ -138,60 +137,74 @@ class _AnimalCardState extends State<AnimalCard> {
     return physicalTag;
   }
 
-  void _showMenu(BuildContext context, VoidCallback setMoving) {
-    showMenu(
-      context: context,
-      position: const RelativeRect.fromLTRB(100, 100, 0, 0),
-      items: [
-        PopupMenuItem(
-          value: 'move',
-          child: Text('Move'),
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) {
-                return SelectRackCage(
-                  selectedCage: widget.cage,
-                  onSubmit: (submittedCage) async {
-                    print('submitted cage: ${submittedCage?.cageId}');
-                    if (submittedCage == null) {
-                      return;
-                    }
-                    setMoving();
-                    await moveAnimal(
-                      widget.animal.animalUuid,
-                      submittedCage.cageUuid,
+  List<PopupMenuItem> menu(
+    BuildContext buildContext,
+    Function(bool) setMoving,
+  ) => [
+    PopupMenuItem(
+      value: 'move',
+      child: Text('Move'),
+      onTap: () {
+        showDialog(
+          context: buildContext,
+          builder: (context) {
+            return SelectRackCage(
+              selectedCage: widget.cage,
+              onSubmit: (submittedCage) async {
+                debugPrint('submitted cage: ${submittedCage?.cageId}');
+                if (submittedCage == null ||
+                    submittedCage.cageId == widget.cage.cageId) {
+                  return;
+                }
+                setMoving(true);
+                try {
+                  await moveAnimal(
+                    widget.animal.animalUuid,
+                    submittedCage.cageUuid,
+                  );
+                } catch (e) {
+                  if (buildContext.mounted) {
+                    await showDialog(
+                      context: buildContext,
+                      builder: (buildContext) {
+                        return AlertDialog(
+                          title: Text('Error while moving animal'),
+                          content: SingleChildScrollView(child: Text('$e')),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(buildContext).pop();
+                              },
+                              child: Text('OK'),
+                            ),
+                          ],
+                        );
+                      },
                     );
-                  },
-                );
+                  }
+                } finally {
+                  setMoving(false);
+                }
               },
             );
           },
-        ),
-        PopupMenuItem(
-          value: 'open',
-          child: Text('Open'),
-          onTap: () => context.go(
-            '/animals/${widget.animal.animalUuid}?fromCageGrid=true',
-          ),
-        ),
-        PopupMenuItem(
-          value: 'end',
-          child: Text('End'),
-          onTap: () {
-            removeAnimalFromCage(
-              widget.cage.cageUuid,
-              widget.animal.animalUuid,
-            );
-            animalService.endAnimals([widget.animal.animalUuid]);
-          },
-        ),
-      ],
-    ).then((value) {
-      if (value != null) {
-        // Handle menu selection
-        print('Selected: $value for animal ${widget.animal.physicalTag}');
-      }
-    });
-  }
+        );
+      },
+    ),
+    PopupMenuItem(
+      value: 'open',
+      child: Text('Open'),
+      onTap: () => buildContext.go(
+        '/animals/${widget.animal.animalUuid}?fromCageGrid=true',
+      ),
+    ),
+    PopupMenuItem(
+      value: 'end',
+      child: Text('End'),
+      onTap: () {
+        removeAnimalFromCage(widget.cage.cageUuid, widget.animal.animalUuid);
+        animalService.endAnimals([widget.animal.animalUuid]);
+      },
+    ),
+  ];
 }
