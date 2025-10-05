@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:moustra/screens/cage/cage_interactive_view.dart';
+import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/dtos/stores/rack_store_dto.dart';
 import 'package:moustra/stores/rack_store.dart';
 
@@ -17,6 +18,8 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   final ScrollController _scrollController = ScrollController();
 
   double zoomLevel = 0.0;
+
+  late RackDto data;
 
   @override
   void initState() {
@@ -67,7 +70,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
           return Center(child: CircularProgressIndicator());
         }
 
-        final data = rackStoreValue.rackData;
+        data = rackStoreValue.rackData;
 
         return InteractiveViewer(
           constrained: false,
