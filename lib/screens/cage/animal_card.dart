@@ -7,7 +7,7 @@ import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/stores/rack_store.dart';
 import 'package:moustra/widgets/shared/select_rack_cage.dart';
 
-class AnimalCard extends StatelessWidget {
+class AnimalCard extends StatefulWidget {
   final RackCageDto cage;
   final RackCageAnimalDto animal;
   final bool hasMating;
@@ -18,6 +18,13 @@ class AnimalCard extends StatelessWidget {
     required this.hasMating,
     required this.cage,
   });
+
+  @override
+  State<AnimalCard> createState() => _AnimalCardState();
+}
+
+class _AnimalCardState extends State<AnimalCard> {
+  bool _moving = false;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +42,7 @@ class AnimalCard extends StatelessWidget {
             flex: 1,
             child: Center(
               child: Text(
-                animal.sex ?? 'U',
+                widget.animal.sex ?? 'U',
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -59,7 +66,7 @@ class AnimalCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (animal.litter != null) ...[
+                    if (widget.animal.litter != null) ...[
                       const SizedBox(width: 4),
                       const Icon(Icons.favorite, color: Colors.red, size: 16),
                     ],
@@ -78,13 +85,19 @@ class AnimalCard extends StatelessWidget {
           Expanded(
             flex: 1,
             child: Center(
-              child: IconButton(
-                icon: const Icon(Icons.more_vert),
-                onPressed: () {
-                  // Show menu for now
-                  _showMenu(context);
-                },
-              ),
+              child: _moving
+                  ? CircularProgressIndicator()
+                  : PopupMenuButton(
+                      icon: const Icon(Icons.more_vert),
+                      itemBuilder: (_) {
+                        return menu(
+                          context,
+                          (bool value) => setState(() {
+                            _moving = value;
+                          }),
+                        );
+                      },
+                    ),
             ),
           ),
         ],
@@ -93,11 +106,11 @@ class AnimalCard extends StatelessWidget {
   }
 
   String _formatGenotypes() {
-    if (animal.genotypes == null || animal.genotypes!.isEmpty) {
+    if (widget.animal.genotypes == null || widget.animal.genotypes!.isEmpty) {
       return 'No genotypes';
     }
 
-    return animal.genotypes!
+    return widget.animal.genotypes!
         .map((g) {
           final String gene = (g.gene?.geneName ?? '').toString();
           final String allele = (g.allele?.alleleName ?? '').toString();
@@ -117,55 +130,81 @@ class AnimalCard extends StatelessWidget {
   }
 
   String _getCardTitle() {
-    var physicalTag = animal.physicalTag ?? 'No tag';
-    if (hasMating) {
+    var physicalTag = widget.animal.physicalTag ?? 'No tag';
+    if (widget.hasMating) {
       physicalTag += ' 💕';
     }
     return physicalTag;
   }
 
-  void _showMenu(BuildContext context) {
-    showMenu(
-      context: context,
-      position: const RelativeRect.fromLTRB(100, 100, 0, 0),
-      items: [
-        PopupMenuItem(
-          value: 'move',
-          child: Text('Move'),
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) {
-                return SelectRackCage(
-                  selectedCage: cage,
-                  onSubmit: (submittedCage) {
-                    print('submitted cage: ${submittedCage?.cageId}');
-                  },
-                );
+  List<PopupMenuItem> menu(
+    BuildContext buildContext,
+    Function(bool) setMoving,
+  ) => [
+    PopupMenuItem(
+      value: 'move',
+      child: Text('Move'),
+      onTap: () {
+        showDialog(
+          context: buildContext,
+          builder: (context) {
+            return SelectRackCage(
+              selectedCage: widget.cage,
+              onSubmit: (submittedCage) async {
+                debugPrint('submitted cage: ${submittedCage?.cageId}');
+                if (submittedCage == null ||
+                    submittedCage.cageId == widget.cage.cageId) {
+                  return;
+                }
+                setMoving(true);
+                try {
+                  await moveAnimal(
+                    widget.animal.animalUuid,
+                    submittedCage.cageUuid,
+                  );
+                } catch (e) {
+                  if (buildContext.mounted) {
+                    await showDialog(
+                      context: buildContext,
+                      builder: (buildContext) {
+                        return AlertDialog(
+                          title: Text('Error while moving animal'),
+                          content: SingleChildScrollView(child: Text('$e')),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(buildContext).pop();
+                              },
+                              child: Text('OK'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
+                } finally {
+                  setMoving(false);
+                }
               },
             );
           },
-        ),
-        PopupMenuItem(
-          value: 'open',
-          child: Text('Open'),
-          onTap: () =>
-              context.go('/animals/${animal.animalUuid}?fromCageGrid=true'),
-        ),
-        PopupMenuItem(
-          value: 'end',
-          child: Text('End'),
-          onTap: () {
-            removeAnimalFromCage(cage.cageUuid, animal.animalUuid);
-            animalService.endAnimals([animal.animalUuid]);
-          },
-        ),
-      ],
-    ).then((value) {
-      if (value != null) {
-        // Handle menu selection
-        print('Selected: $value for animal ${animal.physicalTag}');
-      }
-    });
-  }
+        );
+      },
+    ),
+    PopupMenuItem(
+      value: 'open',
+      child: Text('Open'),
+      onTap: () => buildContext.go(
+        '/animals/${widget.animal.animalUuid}?fromCageGrid=true',
+      ),
+    ),
+    PopupMenuItem(
+      value: 'end',
+      child: Text('End'),
+      onTap: () {
+        removeAnimalFromCage(widget.cage.cageUuid, widget.animal.animalUuid);
+        animalService.endAnimals([widget.animal.animalUuid]);
+      },
+    ),
+  ];
 }
