@@ -12,46 +12,63 @@ class AuthService {
   String? get accessToken => _credentials?.accessToken;
   Credentials? get credentials => _credentials;
 
+  String get _logoutUrl => '${Env.auth0Scheme}://${Env.auth0Domain}/logout';
+
   Future<void> init() async {
     _credentialsManager = auth0.credentialsManager;
-
-    try {
-      final has = await _credentialsManager!.hasValidCredentials();
-
-      if (has) {
-        _credentials = await _credentialsManager!.credentials();
-      } else {
-        _credentials = null; // first run / logged out
-      }
-    } catch (e) {
-      // Treat as logged-out; the "no credentials" case is expected on first run
-      _credentials = null;
-    }
-
-    authState.value = isLoggedIn; // or notifyListeners()
+    // Don't auto-restore credentials to avoid network errors on startup
+    // User will need to login each time the app starts
+    _credentials = null;
+    authState.value = false;
   }
 
   Future<Credentials?> login() async {
-    final params = <String, String>{'scope': 'openid profile email'};
-    params['audience'] = Env.auth0Audience;
-    params['connection'] = Env.auth0Connection;
-    params['prompt'] = 'login';
+    try {
+      final creds = await auth0
+          .webAuthentication(scheme: Env.auth0Scheme)
+          .login(
+            parameters: {
+              'scope': 'openid profile email',
+              if (Env.auth0Audience.isNotEmpty) 'audience': Env.auth0Audience,
+              if (Env.auth0Connection.isNotEmpty)
+                'connection': Env.auth0Connection,
+            },
+          );
 
-    final credentials = await auth0
-        .webAuthentication(scheme: Env.auth0Scheme)
-        .login(parameters: params);
-    print('credentials $credentials');
-    _credentials = credentials;
-    if (_credentialsManager != null) {
-      await _credentialsManager!.storeCredentials(credentials);
+      _credentials = creds;
+      await _credentialsManager?.storeCredentials(creds);
+      authState.value = isLoggedIn;
+      return _credentials;
+    } catch (e) {
+      print('Login error: $e');
+      rethrow;
     }
-    authState.value = isLoggedIn;
-    return _credentials;
   }
 
   Future<void> logout() async {
-    await auth0.webAuthentication(scheme: Env.auth0Scheme).logout();
-    _credentialsManager!.clearCredentials();
+    try {
+      await auth0
+          .webAuthentication(scheme: Env.auth0Scheme)
+          .logout(returnTo: _logoutUrl);
+    } catch (e) {
+      print('Logout error: $e');
+    } finally {
+      try {
+        await _credentialsManager?.clearCredentials();
+      } catch (e) {
+        print('Error clearing credentials: $e');
+      }
+      _credentials = null;
+      authState.value = false;
+    }
+  }
+
+  Future<void> clearAll() async {
+    try {
+      await _credentialsManager?.clearCredentials();
+    } catch (e) {
+      print('Error clearing credentials: $e');
+    }
     _credentials = null;
     authState.value = false;
   }

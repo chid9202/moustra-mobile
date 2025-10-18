@@ -1,32 +1,25 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class Env {
-  static const String apiBaseUrl = String.fromEnvironment(
+  static String get apiBaseUrl => dotenv.get(
     'API_BASE_URL',
-    defaultValue:
-        'https://core-staging-dot-upphish.uc.r.appspot.com/api/v1', // TODO: Move this to env
+    fallback: 'https://core-staging-dot-upphish.uc.r.appspot.com/api/v1',
   );
 
-  static const String auth0Domain = String.fromEnvironment(
-    'AUTH0_DOMAIN',
-    defaultValue: 'login-dev.moustra.com',
-  );
+  static String get auth0Domain =>
+      dotenv.get('AUTH0_DOMAIN', fallback: 'login-dev.moustra.com');
 
-  static const String auth0ClientId = String.fromEnvironment(
+  static String get auth0ClientId => dotenv.get(
     'AUTH0_CLIENT_ID',
-    defaultValue: 'q9MiH8vXt6H5yXZ96BcW16qVuKPXXO6K',
+    fallback: 'q9MiH8vXt6H5yXZ96BcW16qVuKPXXO6K',
   );
 
-  static const String auth0Scheme = String.fromEnvironment(
-    'AUTH0_SCHEME',
-    defaultValue: 'com.moustra.app',
-  );
+  static String get auth0Scheme =>
+      dotenv.get('AUTH0_SCHEME', fallback: 'com.moustra.app');
 
-  static const String auth0Audience = String.fromEnvironment(
-    'AUTH0_AUDIENCE',
-    defaultValue: 'https://api.moustra.com',
-  );
+  static String get auth0Audience =>
+      dotenv.get('AUTH0_AUDIENCE', fallback: 'https://api.moustra.com');
 
-  static const String auth0Connection = String.fromEnvironment(
-    'AUTH0_CONNECTION',
-    defaultValue: 'Moustra-Dev',
-  );
+  static String get auth0Connection =>
+      dotenv.get('AUTH0_CONNECTION', fallback: 'Moustra-Dev');
 }
