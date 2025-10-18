@@ -26,8 +26,12 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        // Auth0 configuration
+        // These values should match your .env file
+        // The scheme should match AUTH0_SCHEME in .env
         manifestPlaceholders["auth0Domain"] = "login-dev.moustra.com"
-        manifestPlaceholders["auth0Scheme"] = "moustra"
+        manifestPlaceholders["auth0Scheme"] = "com.moustra.app"
         applicationId = "com.moustra.app"
 
     }

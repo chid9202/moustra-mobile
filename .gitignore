@@ -46,3 +46,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Environment variables
+.env
+.env.backup
+.env.production
+# Note: .env.production and .env.example should be committed
+# but ensure no sensitive data is in .env.production before committing
