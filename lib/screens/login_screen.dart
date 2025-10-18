@@ -87,6 +87,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
       await authService.init();
+      if (!mounted) return;
       if (authService.isLoggedIn) {
         setState(() {
           _loading = true;
@@ -98,7 +99,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
         );
         _postLogin(req);
       }
-      if (!mounted) return;
       setState(() {
         _loading = false;
       });
@@ -106,13 +106,14 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _handleLogin() async {
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      await authService.login();
       if (!mounted) return;
+      await authService.login();
     } catch (e) {
       setState(() {
         _error = e.toString();

@@ -13,13 +13,13 @@ flutter run --dart-define=AUTH0_DOMAIN=login-dev.moustra.com --dart-define=AUTH0
 Android callback URL to configure in Auth0:
 
 ```
-https://login-dev.moustra.com/android/com.example.grid_view/callback
+https://login-dev.moustra.com/android/com.moustra.app/callback
 ```
 
 iOS callback URL to configure in Auth0:
 
 ```
-https://login-dev.moustra.com/ios/com.example.grid-view/callback
+https://login-dev.moustra.com/ios/com.moustra.app/callback
 ```
 
 This project is a starting point for a Flutter application.
@@ -39,7 +39,7 @@ samples, guidance on mobile development, and a full API reference.
 
 ```
 flutter clean
-adb uninstall com.moustra.app.dev
+adb uninstall com.moustra.app
 flutter pub get
 flutter run -d emulator-5556
 ```

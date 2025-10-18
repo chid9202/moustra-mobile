@@ -1,4 +1,4 @@
-package com.moustra.app.dev
+package com.moustra.app
 
 import io.flutter.embedding.android.FlutterActivity
 

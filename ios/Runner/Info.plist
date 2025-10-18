@@ -52,7 +52,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.example.grid-view</string>
+				<string>com.moustra.app</string>
 			</array>
 		</dict>
 	</array>

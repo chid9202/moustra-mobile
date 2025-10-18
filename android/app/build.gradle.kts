@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.moustra.app.dev"
+    namespace = "com.moustra.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -28,7 +28,7 @@ android {
         versionName = flutter.versionName
         manifestPlaceholders["auth0Domain"] = "login-dev.moustra.com"
         manifestPlaceholders["auth0Scheme"] = "moustra"
-        applicationId = "com.moustra.app.dev"
+        applicationId = "com.moustra.app"
 
     }
 
