@@ -17,7 +17,7 @@ class Env {
 
   static const String auth0Scheme = String.fromEnvironment(
     'AUTH0_SCHEME',
-    defaultValue: 'moustra',
+    defaultValue: 'com.moustra.app',
   );
 
   static const String auth0Audience = String.fromEnvironment(

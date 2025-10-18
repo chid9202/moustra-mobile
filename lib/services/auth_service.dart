@@ -10,6 +10,7 @@ class AuthService {
   bool get isLoggedIn => _credentials != null;
   UserProfile? get user => _credentials?.user;
   String? get accessToken => _credentials?.accessToken;
+  Credentials? get credentials => _credentials;
 
   Future<void> init() async {
     _credentialsManager = auth0.credentialsManager;
@@ -39,6 +40,7 @@ class AuthService {
     final credentials = await auth0
         .webAuthentication(scheme: Env.auth0Scheme)
         .login(parameters: params);
+    print('credentials $credentials');
     _credentials = credentials;
     if (_credentialsManager != null) {
       await _credentialsManager!.storeCredentials(credentials);
