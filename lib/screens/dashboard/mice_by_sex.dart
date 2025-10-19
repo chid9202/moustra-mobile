@@ -137,9 +137,9 @@ class MiceBySexState extends State<MiceBySex> {
     }
 
     final finalMap = {
-      'M': combinedMap['M'],
-      'F': combinedMap['F'],
-      'U': combinedMap['U'],
+      'M': combinedMap['M'] ?? 0,
+      'F': combinedMap['F'] ?? 0,
+      'U': combinedMap['U'] ?? 0,
     };
 
     return List.generate(finalMap.length, (i) {
@@ -147,7 +147,7 @@ class MiceBySexState extends State<MiceBySex> {
       final entry = finalMap.entries.toList()[i];
 
       final sex = entry.key;
-      late final c = entry.value;
+      final c = entry.value ?? 0;
 
       final pct = total == 0 ? 0.0 : (c / total * 100);
 

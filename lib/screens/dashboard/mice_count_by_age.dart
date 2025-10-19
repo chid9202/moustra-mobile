@@ -52,30 +52,36 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
               'Mice Count by Age',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            DropdownButton<String>(
-              isExpanded: true,
-              value: _selectedStrainUuid,
-              items: strains
-                  .map(
-                    (s) => DropdownMenuItem<String>(
-                      value: (s['strainUuid'] ?? '').toString(),
-                      child: Text(
-                        (s['strainName'] ?? 'All').toString(),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (v) {
-                if (v == null) return;
-                setState(() => _selectedStrainUuid = v);
-              },
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: DropdownButton<String>(
+                  isExpanded: true,
+                  value: _selectedStrainUuid,
+                  items: strains
+                      .map(
+                        (s) => DropdownMenuItem<String>(
+                          value: (s['strainUuid'] ?? '').toString(),
+                          child: Text(
+                            (s['strainName'] ?? 'All').toString(),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (v) {
+                    if (v == null) return;
+                    setState(() => _selectedStrainUuid = v);
+                  },
+                ),
+              ),
             ),
           ],
         ),
@@ -88,7 +94,7 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
               height: 300,
               width: maxWidth,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
                 child: BarChart(
                   BarChartData(
                     alignment: BarChartAlignment.spaceAround,
@@ -150,13 +156,13 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
       sideTitles: SideTitles(
         showTitles: true,
         interval: 30,
-        reservedSize: 22,
+        reservedSize: 10,
         getTitlesWidget: (value, meta) {
           if (value == meta.max) {
             return Container();
           }
           return Align(
-            alignment: AlignmentGeometry.centerRight,
+            alignment: Alignment.centerRight,
             child: Text(
               value.toInt().toString(),
               style: const TextStyle(fontSize: 12),
