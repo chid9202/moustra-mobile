@@ -30,6 +30,13 @@ final GoRouter appRouter = GoRouter(
       path: '/login',
       pageBuilder: (context, state) => const MaterialPage(child: LoginScreen()),
     ),
+    GoRoute(
+      path: '/logout',
+      redirect: (context, state) async {
+        await authService.logout();
+        return '/login';
+      },
+    ),
     GoRoute(path: '/', redirect: (context, state) => '/login'),
     ShellRoute(
       pageBuilder: (context, state, child) => MaterialPage(
