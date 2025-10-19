@@ -49,6 +49,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(color: Colors.grey.shade300, width: 1),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: MouseCountByAge(data),
@@ -58,6 +63,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 12),
 
               Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(color: Colors.grey.shade300, width: 1),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: AnimalsToWean(animalsToWean),
@@ -67,6 +77,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 12),
 
               Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(color: Colors.grey.shade300, width: 1),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: DataByAccount(accounts),
@@ -76,6 +91,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 12),
 
               Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(color: Colors.grey.shade300, width: 1),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: MiceBySex(animalsSexRatio),

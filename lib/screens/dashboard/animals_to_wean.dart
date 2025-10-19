@@ -16,43 +16,61 @@ class AnimalsToWean extends StatelessWidget {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        ...animalsToWean.take(10).map((a) {
-          final tag = (a['physicalTag'] ?? '').toString();
-          final wean = (a['weanDate'] ?? '').toString();
-          final cageTag = (a['cage']?['cageTag'] ?? '').toString();
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Align(
-                    child: Text(
-                      tag.isEmpty ? '(no tag)' : tag,
-                      overflow: TextOverflow.ellipsis,
+        if (animalsToWean.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Text(
+                'No animals to wean',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          )
+        else
+          ...animalsToWean.take(10).map((a) {
+            final tag = (a['physicalTag'] ?? '').toString();
+            final wean = (a['weanDate'] ?? '').toString();
+            final cageTag = (a['cage']?['cageTag'] ?? '').toString();
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Align(
+                      child: Text(
+                        tag.isEmpty ? '(no tag)' : tag,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(
-                  width: 12,
-                  child: Text('→', textAlign: TextAlign.center),
-                ),
-                SizedBox(
-                  width: 120,
-                  child: Align(
-                    child: Text(cageTag, overflow: TextOverflow.ellipsis),
+                  const SizedBox(
+                    width: 12,
+                    child: Text('→', textAlign: TextAlign.center),
                   ),
-                ),
-                SizedBox(
-                  width: 120,
-                  child: Align(
-                    child: Text(_formatDate(wean), textAlign: TextAlign.right),
+                  SizedBox(
+                    width: 120,
+                    child: Align(
+                      child: Text(cageTag, overflow: TextOverflow.ellipsis),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        }),
+                  SizedBox(
+                    width: 120,
+                    child: Align(
+                      child: Text(
+                        _formatDate(wean),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
       ],
     );
   }
