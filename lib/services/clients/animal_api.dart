@@ -26,6 +26,18 @@ class AnimalApi {
     );
   }
 
+  Future<PaginatedResponseDto<AnimalDto>> searchAnimalsWithAi({
+    required String prompt,
+  }) async {
+    final query = {'prompt': prompt};
+    final res = await apiClient.get('$basePath/ai/search', query: query);
+    final Map<String, dynamic> data = jsonDecode(res.body);
+    return PaginatedResponseDto<AnimalDto>.fromJson(
+      data,
+      (j) => AnimalDto.fromJson(j),
+    );
+  }
+
   Future<AnimalDto> getAnimal(String animalUuid) async {
     final res = await apiClient.get('$basePath/$animalUuid');
     return AnimalDto.fromJson(jsonDecode(res.body));

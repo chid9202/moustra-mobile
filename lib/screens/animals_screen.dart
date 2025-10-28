@@ -120,22 +120,24 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                 results: pageData.results.cast<AnimalDto>(),
               );
             },
-            onFilterChanged: (page, pageSize, searchTerm) async {
-              final pageData = await animalService.getAnimalsPage(
-                page: page,
-                pageSize: pageSize,
-                query: {
-                  if (_sortField != null)
-                    SortQueryParamKey.sort.name: _sortField!,
-                  if (_sortField != null)
-                    SortQueryParamKey.order.name: _sortOrder,
-                  if (searchTerm.isNotEmpty) ...{
-                    SearchQueryParamKey.filter.name: 'physical_tag',
-                    SearchQueryParamKey.value.name: searchTerm,
-                    SearchQueryParamKey.op.name: 'contains',
-                  },
-                },
-              );
+            onFilterChanged: (page, pageSize, searchTerm, {useAiSearch}) async {
+              final pageData = useAiSearch == true
+                  ? await animalService.searchAnimalsWithAi(prompt: searchTerm)
+                  : await animalService.getAnimalsPage(
+                      page: page,
+                      pageSize: pageSize,
+                      query: {
+                        if (_sortField != null)
+                          SortQueryParamKey.sort.name: _sortField!,
+                        if (_sortField != null)
+                          SortQueryParamKey.order.name: _sortOrder,
+                        if (searchTerm.isNotEmpty) ...{
+                          SearchQueryParamKey.filter.name: 'physical_tag',
+                          SearchQueryParamKey.value.name: searchTerm,
+                          SearchQueryParamKey.op.name: 'contains',
+                        },
+                      },
+                    );
               return PaginatedResult<AnimalDto>(
                 count: pageData.count,
                 results: pageData.results,

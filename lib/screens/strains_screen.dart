@@ -92,22 +92,24 @@ class _StrainsScreenState extends State<StrainsScreen> {
                 results: pageData.results,
               );
             },
-            onFilterChanged: (page, pageSize, searchTerm) async {
-              final pageData = await strainService.getStrainsPage(
-                page: page,
-                pageSize: pageSize,
-                query: {
-                  if (_sortField != null)
-                    SortQueryParamKey.sort.name: _sortField!,
-                  if (_sortField != null)
-                    SortQueryParamKey.order.name: _sortOrder,
-                  if (searchTerm.isNotEmpty) ...{
-                    SearchQueryParamKey.filter.name: 'strain_name',
-                    SearchQueryParamKey.value.name: searchTerm,
-                    SearchQueryParamKey.op.name: 'contains',
-                  },
-                },
-              );
+            onFilterChanged: (page, pageSize, searchTerm, {useAiSearch}) async {
+              final pageData = useAiSearch == true
+                  ? await strainService.searchStrainsWithAi(prompt: searchTerm)
+                  : await strainService.getStrainsPage(
+                      page: page,
+                      pageSize: pageSize,
+                      query: {
+                        if (_sortField != null)
+                          SortQueryParamKey.sort.name: _sortField!,
+                        if (_sortField != null)
+                          SortQueryParamKey.order.name: _sortOrder,
+                        if (searchTerm.isNotEmpty) ...{
+                          SearchQueryParamKey.filter.name: 'strain_name',
+                          SearchQueryParamKey.value.name: searchTerm,
+                          SearchQueryParamKey.op.name: 'contains',
+                        },
+                      },
+                    );
               return PaginatedResult<StrainDto>(
                 count: pageData.count,
                 results: pageData.results,
