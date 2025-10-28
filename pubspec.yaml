@@ -72,14 +72,18 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icons/app_icon.png
+    - assets/icons/iTunesArtwork@2x.png
+    - assets/icons/playstore-icon.png
     - .env
 
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: assets/icons/app_icon.png
+  image_path_ios: assets/icons/iTunesArtwork@2x.png
+  image_path_android: assets/icons/playstore-icon.png
+  remove_alpha_ios: true
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: assets/icons/app_icon.png
+  adaptive_icon_foreground: assets/icons/playstore-icon.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -80,21 +80,30 @@ class _CagesListScreenState extends State<CagesListScreen> {
               );
             },
             onFilterChanged: (page, pageSize, searchTerm) async {
-              final pageData = await cageApi.getCagesPage(
-                page: page,
-                pageSize: pageSize,
-                query: {
-                  if (_sortField != null)
-                    SortQueryParamKey.sort.name: _sortField!,
-                  if (_sortField != null)
-                    SortQueryParamKey.order.name: _sortOrder,
-                  if (searchTerm.isNotEmpty) ...{
-                    SearchQueryParamKey.filter.name: 'cage_tag',
-                    SearchQueryParamKey.value.name: searchTerm,
-                    SearchQueryParamKey.op.name: 'contains',
-                  },
-                },
-              );
+              // Use AI search if the search term contains natural language patterns
+              final bool useAiSearch = _shouldUseAiSearch(searchTerm);
+
+              final pageData = useAiSearch
+                  ? await cageApi.searchCagesWithAi(
+                      prompt: searchTerm,
+                      page: page,
+                      pageSize: pageSize,
+                    )
+                  : await cageApi.getCagesPage(
+                      page: page,
+                      pageSize: pageSize,
+                      query: {
+                        if (_sortField != null)
+                          SortQueryParamKey.sort.name: _sortField!,
+                        if (_sortField != null)
+                          SortQueryParamKey.order.name: _sortOrder,
+                        if (searchTerm.isNotEmpty) ...{
+                          SearchQueryParamKey.filter.name: 'cage_tag',
+                          SearchQueryParamKey.value.name: searchTerm,
+                          SearchQueryParamKey.op.name: 'contains',
+                        },
+                      },
+                    );
               return PaginatedResult<CageDto>(
                 count: pageData.count,
                 results: pageData.results,
@@ -109,6 +118,36 @@ class _CagesListScreenState extends State<CagesListScreen> {
 
   String? _sortField;
   String _sortOrder = SortOrder.asc.name;
+
+  /// Determines whether to use AI search based on the search term
+  /// AI search is used for natural language queries like "Find cage with zzzz strain"
+  bool _shouldUseAiSearch(String searchTerm) {
+    if (searchTerm.isEmpty) return false;
+
+    // Check for natural language patterns
+    final lowerTerm = searchTerm.toLowerCase();
+    final naturalLanguageKeywords = [
+      'find',
+      'search',
+      'with',
+      'containing',
+      'having',
+      'that has',
+      'strain',
+      'genotype',
+      'animal',
+      'mice',
+      'cage',
+    ];
+
+    // Use AI search if it contains multiple words and natural language keywords
+    final hasMultipleWords = searchTerm.trim().split(RegExp(r'\s+')).length > 1;
+    final hasNaturalLanguage = naturalLanguageKeywords.any(
+      (keyword) => lowerTerm.contains(keyword),
+    );
+
+    return hasMultipleWords && hasNaturalLanguage;
+  }
 
   int _estimateLines(CageDto c) {
     final List<dynamic> animals = (c.animals as List<dynamic>? ?? <dynamic>[]);

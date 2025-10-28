@@ -28,6 +28,24 @@ class CageApi {
     );
   }
 
+  Future<PaginatedResponseDto<CageDto>> searchCagesWithAi({
+    required String prompt,
+    int page = 1,
+    int pageSize = 25,
+  }) async {
+    final query = {
+      'prompt': prompt,
+      'page': page.toString(),
+      'page_size': pageSize.toString(),
+    };
+    final res = await apiClient.get('$basePath/ai/search', query: query);
+    final Map<String, dynamic> data = jsonDecode(res.body);
+    return PaginatedResponseDto<CageDto>.fromJson(
+      data,
+      (j) => CageDto.fromJson(j),
+    );
+  }
+
   Future<CageDto> getCage(String cageUuid) async {
     final res = await apiClient.get('$basePath/$cageUuid');
     return CageDto.fromJson(jsonDecode(res.body));
