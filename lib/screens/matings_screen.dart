@@ -76,7 +76,11 @@ class _MatingsScreenState extends State<MatingsScreen> {
                 results: pageData.results.cast<MatingDto>(),
               );
             },
-            onFilterChanged: (page, pageSize, searchTerm) async {
+            onFilterChanged: (page, pageSize, searchTerm, {useAiSearch}) async {
+              if (useAiSearch == true) {
+                // AI search not supported for matings yet
+                return PaginatedResult<MatingDto>(count: 0, results: []);
+              }
               final pageData = await matingService.getMatingsPage(
                 page: page,
                 pageSize: pageSize,

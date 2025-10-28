@@ -16,8 +16,9 @@ typedef FilterChanged<T> =
     Future<PaginatedResult<T>> Function(
       int page,
       int pageSize,
-      String searchTerm,
-    );
+      String searchTerm, {
+      bool? useAiSearch,
+    });
 
 class PaginatedGridController {
   VoidCallback? _reload;
@@ -60,7 +61,8 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
   int _totalCount = 0;
   bool _isLoading = true;
   bool _sortAscending = true;
-  Timer? _debounceTimer;
+  bool _useAiSearch = true;
+  String _searchTerm = '';
 
   @override
   void initState() {
@@ -72,7 +74,6 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
     widget.controller?._attach(() {});
     super.dispose();
   }
@@ -80,20 +81,33 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
   Future<void> _reload() async => _fetchAndSet(_currentPage);
 
   void _onFilterChanged(String value) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      if (widget.onFilterChanged != null) {
-        widget.onFilterChanged!
-            .call(1, _pageSize, value)
-            .then(
-              (res) => setState(() {
+    setState(() {
+      _searchTerm = value;
+    });
+  }
+
+  void _triggerSearch() {
+    if (widget.onFilterChanged != null) {
+      // Only use AI search if there's a search term
+      final bool shouldUseAi = _useAiSearch && _searchTerm.trim().isNotEmpty;
+
+      setState(() {
+        _isLoading = true;
+      });
+
+      widget
+          .onFilterChanged!(1, _pageSize, _searchTerm, useAiSearch: shouldUseAi)
+          .then((res) {
+            if (mounted) {
+              setState(() {
                 _currentPage = 0;
                 _rows = res.results;
                 _totalCount = res.count;
-              }),
-            );
-      }
-    });
+                _isLoading = false;
+              });
+            }
+          });
+    }
   }
 
   int _pageCount() {
@@ -132,12 +146,47 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
         if (widget.onFilterChanged != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: TextField(
-              onChanged: _onFilterChanged,
-              decoration: const InputDecoration(
-                labelText: 'Filter',
-                border: OutlineInputBorder(),
-              ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    onChanged: _onFilterChanged,
+                    onSubmitted: (_) => _triggerSearch(),
+                    decoration: const InputDecoration(
+                      labelText: 'Filter',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: _triggerSearch,
+                  tooltip: 'Search',
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Use AI:'),
+                    Checkbox(
+                      visualDensity: const VisualDensity(
+                        vertical: VisualDensity.minimumDensity,
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      value: _useAiSearch,
+                      onChanged: (value) {
+                        setState(() {
+                          _useAiSearch = value ?? false;
+                        });
+                        // Trigger search again when checkbox is toggled
+                        _triggerSearch();
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 8),
+              ],
             ),
           ),
         if (widget.topBar != null)

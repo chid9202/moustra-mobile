@@ -79,16 +79,9 @@ class _CagesListScreenState extends State<CagesListScreen> {
                 results: pageData.results.cast<CageDto>(),
               );
             },
-            onFilterChanged: (page, pageSize, searchTerm) async {
-              // Use AI search if the search term contains natural language patterns
-              final bool useAiSearch = _shouldUseAiSearch(searchTerm);
-
-              final pageData = useAiSearch
-                  ? await cageApi.searchCagesWithAi(
-                      prompt: searchTerm,
-                      page: page,
-                      pageSize: pageSize,
-                    )
+            onFilterChanged: (page, pageSize, searchTerm, {useAiSearch}) async {
+              final pageData = useAiSearch == true
+                  ? await cageApi.searchCagesWithAi(prompt: searchTerm)
                   : await cageApi.getCagesPage(
                       page: page,
                       pageSize: pageSize,
@@ -118,36 +111,6 @@ class _CagesListScreenState extends State<CagesListScreen> {
 
   String? _sortField;
   String _sortOrder = SortOrder.asc.name;
-
-  /// Determines whether to use AI search based on the search term
-  /// AI search is used for natural language queries like "Find cage with zzzz strain"
-  bool _shouldUseAiSearch(String searchTerm) {
-    if (searchTerm.isEmpty) return false;
-
-    // Check for natural language patterns
-    final lowerTerm = searchTerm.toLowerCase();
-    final naturalLanguageKeywords = [
-      'find',
-      'search',
-      'with',
-      'containing',
-      'having',
-      'that has',
-      'strain',
-      'genotype',
-      'animal',
-      'mice',
-      'cage',
-    ];
-
-    // Use AI search if it contains multiple words and natural language keywords
-    final hasMultipleWords = searchTerm.trim().split(RegExp(r'\s+')).length > 1;
-    final hasNaturalLanguage = naturalLanguageKeywords.any(
-      (keyword) => lowerTerm.contains(keyword),
-    );
-
-    return hasMultipleWords && hasNaturalLanguage;
-  }
 
   int _estimateLines(CageDto c) {
     final List<dynamic> animals = (c.animals as List<dynamic>? ?? <dynamic>[]);

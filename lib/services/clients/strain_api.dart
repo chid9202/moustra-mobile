@@ -24,6 +24,21 @@ class StrainApi {
     );
   }
 
+  Future<PaginatedResponseDto<StrainDto>> searchStrainsWithAi({
+    required String prompt,
+  }) async {
+    final query = {'prompt': prompt};
+    final res = await apiClient.get(
+      '${ApiConfig.strains}/ai/search',
+      query: query,
+    );
+    final Map<String, dynamic> data = jsonDecode(res.body);
+    return PaginatedResponseDto<StrainDto>.fromJson(
+      data,
+      (j) => StrainDto.fromJson(j),
+    );
+  }
+
   Future<StrainDto> getStrain(String uuid) async {
     final res = await apiClient.get('${ApiConfig.strains}/$uuid');
     if (res.statusCode != 200) {

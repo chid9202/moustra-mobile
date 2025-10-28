@@ -51,7 +51,7 @@ class _LittersScreenState extends State<LittersScreen> {
           results: pageData.results.cast<LitterDto>(),
         );
       },
-      onFilterChanged: (page, pageSize, searchTerm) async {
+      onFilterChanged: (page, pageSize, searchTerm, {useAiSearch}) async {
         final pageData = await litterService.getLittersPage(
           page: page,
           pageSize: pageSize,
