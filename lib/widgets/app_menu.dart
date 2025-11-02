@@ -138,7 +138,7 @@ class _AppMenuState extends State<AppMenu> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.baby_changing_station),
+            leading: const Icon(Icons.loyalty),
             title: const Text('Litter'),
             onTap: () {
               Navigator.of(context).pop();
