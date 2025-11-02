@@ -60,12 +60,6 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
         allowSorting: true,
       ),
       GridColumn(
-        columnName: AnimalListColumn.status.field,
-        width: 100,
-        label: Center(child: Text(AnimalListColumn.status.label)),
-        allowSorting: true,
-      ),
-      GridColumn(
         columnName: AnimalListColumn.sex.field,
         width: 80,
         label: Center(child: Text(AnimalListColumn.sex.label)),
@@ -75,6 +69,18 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
         columnName: AnimalListColumn.dob.field,
         width: 140,
         label: Center(child: Text(AnimalListColumn.dob.label)),
+        allowSorting: true,
+      ),
+      GridColumn(
+        columnName: AnimalListColumn.genotypes.field,
+        width: 240,
+        label: Center(child: Text(AnimalListColumn.genotypes.label)),
+        allowSorting: false,
+      ),
+      GridColumn(
+        columnName: AnimalListColumn.status.field,
+        width: 100,
+        label: Center(child: Text(AnimalListColumn.status.label)),
         allowSorting: true,
       ),
       GridColumn(
@@ -100,12 +106,6 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
         width: 200,
         label: Center(child: Text(AnimalListColumn.strain.label)),
         allowSorting: true,
-      ),
-      GridColumn(
-        columnName: AnimalListColumn.genotypes.field,
-        width: 240,
-        label: Center(child: Text(AnimalListColumn.genotypes.label)),
-        allowSorting: false,
       ),
       GridColumn(
         columnName: AnimalListColumn.sire.field,
@@ -151,16 +151,20 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
           value: a.physicalTag,
         ),
         DataGridCell<String>(
-          columnName: AnimalListColumn.status.name,
-          value: a.cage?.status,
-        ),
-        DataGridCell<String>(
           columnName: AnimalListColumn.sex.name,
           value: a.sex,
         ),
         DataGridCell<String>(
           columnName: AnimalListColumn.dob.name,
           value: DateTimeHelper.formatDate(a.dateOfBirth),
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.genotypes.name,
+          value: GenotypeHelper.formatGenotypes(a.genotypes),
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.status.name,
+          value: a.cage?.status,
         ),
         DataGridCell<String>(
           columnName: AnimalListColumn.age.name,
@@ -177,10 +181,6 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
         DataGridCell<String>(
           columnName: AnimalListColumn.strain.name,
           value: a.strain?.strainName,
-        ),
-        DataGridCell<String>(
-          columnName: AnimalListColumn.genotypes.name,
-          value: GenotypeHelper.formatGenotypes(a.genotypes),
         ),
         DataGridCell<String>(
           columnName: AnimalListColumn.sire.name,
