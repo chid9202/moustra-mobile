@@ -77,9 +77,21 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
         })
         .catchError((e) {
           print(e);
+          if (mounted) {
+            setState(() {
+              _loading = false;
+              _error = 'Failed to load profile: $e';
+            });
+          }
         })
         .then((_) {
-          context.go('/dashboard');
+          if (mounted) {
+            // Reset loading before navigation
+            setState(() {
+              _loading = false;
+            });
+            context.go('/dashboard');
+          }
         });
   }
 
@@ -114,13 +126,13 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     try {
       if (!mounted) return;
       await authService.login();
+      // If login succeeds, the auth listener will handle loading state
+      // through _postLogin() until navigation completes
+      // Don't reset _loading here to keep the button showing loading state
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
-    } finally {
       if (mounted) {
         setState(() {
+          _error = e.toString();
           _loading = false;
         });
       }
