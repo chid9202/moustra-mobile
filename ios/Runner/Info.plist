@@ -45,6 +45,8 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Use Face ID to unlock your account and access stored credentials</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
