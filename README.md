@@ -49,7 +49,7 @@ The script automatically uses `.env.production`:
 ./build_production.sh all
 
 # Build for specific platform
-./build_production.sh ios
+flutter build ios --release --dart-define=ENV_FILENAME=.env.production
 ./build_production.sh android
 ./build_production.sh appbundle
 ```
