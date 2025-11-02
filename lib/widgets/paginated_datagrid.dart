@@ -216,18 +216,17 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
                     widget.onSortChanged?.call(name, _sortAscending);
                   }
                 },
-                onQueryRowHeight: widget.rowHeightEstimator == null
-                    ? null
-                    : (details) {
-                        const double base = 48;
-                        final int ri = details.rowIndex;
-                        if (ri <= 0 || ri > _rows.length) return base;
-                        final int lines = widget.rowHeightEstimator!(
-                          ri - 1,
-                          _rows[ri - 1],
-                        );
-                        return base + (lines > 1 ? (lines - 1) * 20.0 : 0);
-                      },
+                onQueryRowHeight: (details) {
+                  const double base = 36;
+                  final int ri = details.rowIndex;
+                  if (widget.rowHeightEstimator == null) return base;
+                  if (ri <= 0 || ri > _rows.length) return base;
+                  final int lines = widget.rowHeightEstimator!(
+                    ri - 1,
+                    _rows[ri - 1],
+                  );
+                  return base + (lines > 1 ? (lines - 1) * 20.0 : 0);
+                },
               ),
               if (_isLoading)
                 Positioned(
