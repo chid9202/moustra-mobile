@@ -5,9 +5,14 @@ import 'package:moustra/services/auth_service.dart';
 import 'package:moustra/services/dtos/profile_dto.dart';
 import 'package:moustra/stores/profile_store.dart';
 
-class AppMenu extends StatelessWidget {
+class AppMenu extends StatefulWidget {
   const AppMenu({super.key});
 
+  @override
+  State<AppMenu> createState() => _AppMenuState();
+}
+
+class _AppMenuState extends State<AppMenu> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -84,10 +89,12 @@ class AppMenu extends StatelessWidget {
             },
           ),
           ExpansionTile(
+            initiallyExpanded: true,
             leading: const Icon(Icons.home_work_outlined),
             title: const Text('Cage'),
             children: [
               ListTile(
+                contentPadding: const EdgeInsets.only(left: 24.0),
                 leading: const Icon(Icons.list),
                 title: const Text('List View'),
                 onTap: () {
@@ -96,6 +103,7 @@ class AppMenu extends StatelessWidget {
                 },
               ),
               ListTile(
+                contentPadding: const EdgeInsets.only(left: 24.0),
                 leading: const Icon(Icons.grid_view),
                 title: const Text('Grid View'),
                 onTap: () {
