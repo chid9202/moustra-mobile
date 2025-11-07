@@ -10,7 +10,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum MatingListColumn implements ListColumn<MatingDto> {
   edit('Edit', 'edit'),
-  eid('EID', 'eid'),
+  // eid('EID', 'eid'),
   matingTag('Mating Tag', 'mating_tag'),
   cageTag('Cage Tag', 'cage_tag'),
   litterStrain('Litter Strain', 'litter_strain'),
@@ -39,12 +39,12 @@ enum MatingListColumn implements ListColumn<MatingDto> {
         label: Center(child: Text(MatingListColumn.edit.label)),
         allowSorting: false,
       ),
-      GridColumn(
-        columnName: MatingListColumn.eid.field,
-        width: eidColumnWidth,
-        label: Center(child: Text(MatingListColumn.eid.label)),
-        allowSorting: false,
-      ),
+      // GridColumn(
+      //   columnName: MatingListColumn.eid.field,
+      //   width: eidColumnWidth,
+      //   label: Center(child: Text(MatingListColumn.eid.label)),
+      //   allowSorting: false,
+      // ),
       GridColumn(
         columnName: MatingListColumn.matingTag.field,
         width: 140,
@@ -115,7 +115,7 @@ enum MatingListColumn implements ListColumn<MatingDto> {
   }
 
   static DataGridRow getDataGridRow(MatingDto m) {
-    final int eid = (m.eid ?? 0);
+    // final int eid = (m.eid ?? 0);
     final String matingTag = (m.matingTag ?? '').toString();
     final String cageTag = (m.cage?.cageTag ?? '').toString();
     final String litterStrain = (m.litterStrain?.strainName ?? '').toString();
@@ -148,7 +148,7 @@ enum MatingListColumn implements ListColumn<MatingDto> {
           columnName: MatingListColumn.edit.name,
           value: m.matingUuid,
         ),
-        DataGridCell<int>(columnName: MatingListColumn.eid.name, value: eid),
+        // DataGridCell<int>(columnName: MatingListColumn.eid.name, value: eid),
         DataGridCell<String>(
           columnName: MatingListColumn.matingTag.name,
           value: matingTag,

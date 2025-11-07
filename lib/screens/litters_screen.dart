@@ -110,14 +110,14 @@ class _LitterGridSource extends DataGridSource {
             },
           ),
         ),
-        Center(child: SafeText('${row.getCells()[1].value}')),
+        // Center(child: SafeText('${row.getCells()[1].value}')),
+        cellText(row.getCells()[1].value),
         cellText(row.getCells()[2].value),
-        cellText(row.getCells()[3].value),
-        cellText('${row.getCells()[4].value}'),
+        cellText('${row.getCells()[3].value}'),
+        cellText(row.getCells()[4].value),
         cellText(row.getCells()[5].value),
         cellText(row.getCells()[6].value),
         cellText(row.getCells()[7].value),
-        cellText(row.getCells()[8].value),
       ],
     );
   }

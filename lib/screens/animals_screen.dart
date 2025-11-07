@@ -212,10 +212,11 @@ class _AnimalGridSource extends DataGridSource {
             },
           ),
         ),
-        cellText('${row.getCells()[2].value}', textAlign: Alignment.center),
-        cellText(row.getCells()[3].value),
+        // cellText('${row.getCells()[2].value}', textAlign: Alignment.center),
+        cellText(row.getCells()[2].value),
+        cellText(row.getCells()[3].value, textAlign: Alignment.center),
         cellText(row.getCells()[4].value, textAlign: Alignment.center),
-        cellText(row.getCells()[5].value, textAlign: Alignment.center),
+        cellText(row.getCells()[5].value),
         cellText(row.getCells()[6].value),
         cellText(row.getCells()[7].value),
         cellText(row.getCells()[8].value),
@@ -225,7 +226,6 @@ class _AnimalGridSource extends DataGridSource {
         cellText(row.getCells()[12].value),
         cellText(row.getCells()[13].value),
         cellText(row.getCells()[14].value),
-        cellText(row.getCells()[15].value),
       ],
     );
   }
