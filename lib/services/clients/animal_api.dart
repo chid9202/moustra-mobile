@@ -10,7 +10,7 @@ class AnimalApi {
 
   Future<PaginatedResponseDto<AnimalDto>> getAnimalsPage({
     int page = 1,
-    int pageSize = 25,
+    int pageSize = 1000,
     Map<String, String>? query,
   }) async {
     final mergedQuery = {
