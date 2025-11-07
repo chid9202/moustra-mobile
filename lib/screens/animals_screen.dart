@@ -19,6 +19,7 @@ class AnimalsScreen extends StatefulWidget {
 class _AnimalsScreenState extends State<AnimalsScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
   final Set<String> _selected = <String>{};
+  final int _pageSize = 1000;
 
   @override
   void initState() {
@@ -56,7 +57,10 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                               .then(
                                 (value) => {
                                   animalService
-                                      .getAnimalsPage(page: 1, pageSize: 25)
+                                      .getAnimalsPage(
+                                        page: 1,
+                                        pageSize: _pageSize,
+                                      )
                                       .then(
                                         (value) => {
                                           setState(() {
@@ -120,6 +124,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                 results: pageData.results.cast<AnimalDto>(),
               );
             },
+            pageSize: _pageSize,
             onFilterChanged: (page, pageSize, searchTerm, {useAiSearch}) async {
               final pageData = useAiSearch == true
                   ? await animalService.searchAnimalsWithAi(prompt: searchTerm)
