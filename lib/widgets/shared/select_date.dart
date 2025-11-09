@@ -68,16 +68,16 @@ class SelectDate extends StatelessWidget {
             ),
           ),
         ),
-        if (selectedDate != null) ...[
-          const SizedBox(width: 8),
-          IconButton(
-            onPressed: () {
-              onChanged(null);
-            },
-            icon: Icon(Icons.clear, color: Colors.grey[600]),
-            tooltip: 'Clear selection',
-          ),
-        ],
+        // if (selectedDate != null) ...[
+        //   const SizedBox(width: 8),
+        //   IconButton(
+        //     onPressed: () {
+        //       onChanged(null);
+        //     },
+        //     icon: Icon(Icons.clear, color: Colors.grey[600]),
+        //     tooltip: 'Clear selection',
+        //   ),
+        // ],
       ],
     );
   }

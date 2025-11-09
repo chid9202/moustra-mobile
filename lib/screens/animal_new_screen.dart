@@ -314,19 +314,19 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
                     hintText: 'Select date of birth',
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: SelectDate(
-                    selectedDate: animal.weanDate,
-                    onChanged: (date) {
-                      setState(() {
-                        animal.weanDate = date;
-                      });
-                    },
-                    labelText: 'Wean Date',
-                    hintText: 'Select wean date (optional)',
-                  ),
-                ),
+                // const SizedBox(width: 16),
+                // Expanded(
+                //   child: SelectDate(
+                //     selectedDate: animal.weanDate,
+                //     onChanged: (date) {
+                //       setState(() {
+                //         animal.weanDate = date;
+                //       });
+                //     },
+                //     labelText: 'Wean Date',
+                //     hintText: 'Select wean date (optional)',
+                //   ),
+                // ),
               ],
             ),
             const SizedBox(height: 16),
