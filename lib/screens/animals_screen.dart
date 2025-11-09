@@ -51,7 +51,9 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                       : SortOrder.desc.name;
                   _controller.reload();
                 },
-                columns: AnimalListColumn.getColumns(),
+                columns: AnimalListColumn.getColumns(
+                  includeSelect: _isEndingMode,
+                ),
                 sourceBuilder: (rows) => _AnimalGridSource(
                   records: rows,
                   selected: _selected,
@@ -246,47 +248,56 @@ class _AnimalGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final String uuid = row.getCells()[0].value as String;
-    final bool isChecked = selected.contains(uuid);
+    final Map<String, Object?> values = {
+      for (final cell in row.getCells()) cell.columnName: cell.value,
+    };
+    final String? uuid = values[AnimalListColumn.edit.name] as String?;
+    final bool isChecked = uuid != null && selected.contains(uuid);
     final BuildContext context = this.context;
-    return DataGridRowAdapter(
-      cells: [
-        Center(
-          child: Visibility(
-            visible: isEndingMode,
-            replacement: const SizedBox.shrink(),
-            child: Checkbox(
-              value: isChecked,
-              onChanged: (v) {
-                onToggle(uuid, v ?? false);
-              },
-            ),
-          ),
+    final List<Widget> cells = [];
+    cells.add(
+      Center(
+        child: Checkbox(
+          value: isChecked,
+          onChanged: uuid == null
+              ? null
+              : (v) {
+                  onToggle(uuid, v ?? false);
+                },
         ),
-        Center(
-          child: IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: 'Edit',
-            onPressed: () {
-              context.go('/animals/$uuid');
-            },
-          ),
-        ),
-        // cellText('${row.getCells()[2].value}', textAlign: Alignment.center),
-        cellText(row.getCells()[2].value),
-        cellText(row.getCells()[3].value, textAlign: Alignment.center),
-        cellText(row.getCells()[4].value, textAlign: Alignment.center),
-        cellText(row.getCells()[5].value),
-        cellText(row.getCells()[6].value),
-        cellText(row.getCells()[7].value),
-        cellText(row.getCells()[8].value),
-        cellText(row.getCells()[9].value),
-        cellText(row.getCells()[10].value),
-        cellText(row.getCells()[11].value),
-        cellText(row.getCells()[12].value),
-        cellText(row.getCells()[13].value),
-        cellText(row.getCells()[14].value),
-      ],
+      ),
     );
+    cells.add(
+      Center(
+        child: IconButton(
+          icon: const Icon(Icons.edit),
+          tooltip: 'Edit',
+          onPressed: uuid == null
+              ? null
+              : () {
+                  context.go('/animals/$uuid');
+                },
+        ),
+      ),
+    );
+    String? valueFor(AnimalListColumn column) => values[column.name] as String?;
+    cells.add(cellText(valueFor(AnimalListColumn.physicalTag)));
+    cells.add(
+      cellText(valueFor(AnimalListColumn.sex), textAlign: Alignment.center),
+    );
+    cells.add(
+      cellText(valueFor(AnimalListColumn.dob), textAlign: Alignment.center),
+    );
+    cells.add(cellText(valueFor(AnimalListColumn.genotypes)));
+    cells.add(cellText(valueFor(AnimalListColumn.status)));
+    cells.add(cellText(valueFor(AnimalListColumn.age)));
+    cells.add(cellText(valueFor(AnimalListColumn.wean)));
+    cells.add(cellText(valueFor(AnimalListColumn.cage)));
+    cells.add(cellText(valueFor(AnimalListColumn.strain)));
+    cells.add(cellText(valueFor(AnimalListColumn.sire)));
+    cells.add(cellText(valueFor(AnimalListColumn.dam)));
+    cells.add(cellText(valueFor(AnimalListColumn.owner)));
+    cells.add(cellText(valueFor(AnimalListColumn.created)));
+    return DataGridRowAdapter(cells: cells);
   }
 }

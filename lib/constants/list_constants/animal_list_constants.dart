@@ -33,13 +33,14 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
   @override
   String get enumName => name;
 
-  static List<GridColumn> getColumns() {
+  static List<GridColumn> getColumns({bool includeSelect = true}) {
     return [
       GridColumn(
         columnName: AnimalListColumn.select.field,
         width: selectColumnWidth,
         label: const SizedBox.shrink(),
         allowSorting: false,
+        visible: includeSelect,
       ),
       GridColumn(
         columnName: AnimalListColumn.edit.field,
