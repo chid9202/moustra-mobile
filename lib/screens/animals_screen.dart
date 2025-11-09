@@ -43,6 +43,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
             children: [
               PaginatedDataGrid<AnimalDto>(
                 controller: _controller,
+                searchPlaceholder: 'Try "Search Animal in mating"',
                 onSortChanged: (columnName, ascending) {
                   _sortField = columnName;
                   _sortOrder = ascending

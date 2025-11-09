@@ -40,6 +40,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
             children: [
               PaginatedDataGrid<CageDto>(
                 controller: _controller,
+                searchPlaceholder: 'Try "Search cage C-101"',
                 onSortChanged: (columnName, ascending) {
                   _sortField = columnName;
                   _sortOrder = ascending

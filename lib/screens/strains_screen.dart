@@ -39,6 +39,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
             children: [
               PaginatedDataGrid<StrainDto>(
                 controller: _controller,
+                searchPlaceholder: 'Try "Search strain B6"',
                 onSortChanged: (columnName, ascending) {
                   _sortField = columnName;
                   _sortOrder = ascending
