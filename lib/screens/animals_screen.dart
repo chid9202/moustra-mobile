@@ -6,8 +6,8 @@ import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
-import 'package:moustra/widgets/shared/button.dart';
 
 class AnimalsScreen extends StatefulWidget {
   const AnimalsScreen({super.key});
@@ -20,6 +20,9 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
   final Set<String> _selected = <String>{};
   final int _pageSize = 1000;
+  bool _isEndingMode = false;
+  bool _isEndingAnimals = false;
+  final MovableFabMenuController _fabController = MovableFabMenuController();
 
   @override
   void initState() {
@@ -35,119 +38,126 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Wrap(
-              spacing: 12,
-              children: [
-                MoustraButton.icon(
-                  onPressed: () {
-                    context.go('/animals/new');
-                  },
-                  icon: Icons.add,
-                  label: 'Create Animals',
-                ),
-                MoustraButton.icon(
-                  onPressed: _selected.isNotEmpty
-                      ? () {
-                          animalService
-                              .endAnimals(_selected.toList())
-                              .then(
-                                (value) => {
-                                  animalService
-                                      .getAnimalsPage(
-                                        page: 1,
-                                        pageSize: _pageSize,
-                                      )
-                                      .then(
-                                        (value) => {
-                                          setState(() {
-                                            _controller.reload();
-                                          }),
-                                        },
-                                      ),
-                                  _selected.clear(),
-                                  _controller.reload(),
-                                  if (mounted)
-                                    {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Animals ended successfully!',
-                                          ),
-                                        ),
-                                      ),
-                                    },
-                                },
-                              );
-                        }
-                      : null,
-                  icon: Icons.stop_circle_outlined,
-                  label: 'End Animals',
-                ),
-              ],
-            ),
-          ),
-        ),
         Expanded(
-          child: PaginatedDataGrid<AnimalDto>(
-            controller: _controller,
-            onSortChanged: (columnName, ascending) {
-              _sortField = columnName;
-              _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
-              _controller.reload();
-            },
-            columns: AnimalListColumn.getColumns(),
-            sourceBuilder: (rows) => _AnimalGridSource(
-              records: rows,
-              selected: _selected,
-              onToggle: _onToggleSelected,
-              context: context,
-            ),
-            fetchPage: (page, pageSize) async {
-              final pageData = await animalService.getAnimalsPage(
-                page: page,
-                pageSize: pageSize,
-                query: {
-                  if (_sortField != null)
-                    SortQueryParamKey.sort.name: _sortField!,
-                  if (_sortField != null)
-                    SortQueryParamKey.order.name: _sortOrder,
+          child: Stack(
+            children: [
+              PaginatedDataGrid<AnimalDto>(
+                controller: _controller,
+                onSortChanged: (columnName, ascending) {
+                  _sortField = columnName;
+                  _sortOrder = ascending
+                      ? SortOrder.asc.name
+                      : SortOrder.desc.name;
+                  _controller.reload();
                 },
-              );
-              return PaginatedResult<AnimalDto>(
-                count: pageData.count,
-                results: pageData.results.cast<AnimalDto>(),
-              );
-            },
-            pageSize: _pageSize,
-            onFilterChanged: (page, pageSize, searchTerm, {useAiSearch}) async {
-              final pageData = useAiSearch == true
-                  ? await animalService.searchAnimalsWithAi(prompt: searchTerm)
-                  : await animalService.getAnimalsPage(
-                      page: page,
-                      pageSize: pageSize,
-                      query: {
-                        if (_sortField != null)
-                          SortQueryParamKey.sort.name: _sortField!,
-                        if (_sortField != null)
-                          SortQueryParamKey.order.name: _sortOrder,
-                        if (searchTerm.isNotEmpty) ...{
-                          SearchQueryParamKey.filter.name: 'physical_tag',
-                          SearchQueryParamKey.value.name: searchTerm,
-                          SearchQueryParamKey.op.name: 'contains',
+                columns: AnimalListColumn.getColumns(),
+                sourceBuilder: (rows) => _AnimalGridSource(
+                  records: rows,
+                  selected: _selected,
+                  onToggle: _onToggleSelected,
+                  context: context,
+                  isEndingMode: _isEndingMode,
+                ),
+                fetchPage: (page, pageSize) async {
+                  final pageData = await animalService.getAnimalsPage(
+                    page: page,
+                    pageSize: pageSize,
+                    query: {
+                      if (_sortField != null)
+                        SortQueryParamKey.sort.name: _sortField!,
+                      if (_sortField != null)
+                        SortQueryParamKey.order.name: _sortOrder,
+                    },
+                  );
+                  return PaginatedResult<AnimalDto>(
+                    count: pageData.count,
+                    results: pageData.results.cast<AnimalDto>(),
+                  );
+                },
+                pageSize: _pageSize,
+                onFilterChanged:
+                    (page, pageSize, searchTerm, {useAiSearch}) async {
+                      final pageData = useAiSearch == true
+                          ? await animalService.searchAnimalsWithAi(
+                              prompt: searchTerm,
+                            )
+                          : await animalService.getAnimalsPage(
+                              page: page,
+                              pageSize: pageSize,
+                              query: {
+                                if (_sortField != null)
+                                  SortQueryParamKey.sort.name: _sortField!,
+                                if (_sortField != null)
+                                  SortQueryParamKey.order.name: _sortOrder,
+                                if (searchTerm.isNotEmpty) ...{
+                                  SearchQueryParamKey.filter.name:
+                                      'physical_tag',
+                                  SearchQueryParamKey.value.name: searchTerm,
+                                  SearchQueryParamKey.op.name: 'contains',
+                                },
+                              },
+                            );
+                      return PaginatedResult<AnimalDto>(
+                        count: pageData.count,
+                        results: pageData.results,
+                      );
+                    },
+              ),
+              Positioned.fill(
+                child: MovableFabMenu(
+                  controller: _fabController,
+                  heroTag: 'animals-fab-menu',
+                  margin: const EdgeInsets.only(right: 24, bottom: 50),
+                  actions: [
+                    if (_isEndingMode)
+                      FabMenuAction(
+                        label: _isEndingAnimals
+                            ? 'Ending...'
+                            : 'End Selected Animals',
+                        icon: _isEndingAnimals
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Icon(Icons.stop_circle_outlined),
+                        onPressed: _selected.isNotEmpty && !_isEndingAnimals
+                            ? _endSelectedAnimals
+                            : null,
+                        enabled: _selected.isNotEmpty && !_isEndingAnimals,
+                        closeOnTap: false,
+                      )
+                    else
+                      FabMenuAction(
+                        label: 'Create Animals',
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                          context.go('/animals/new');
                         },
+                      ),
+                    FabMenuAction(
+                      label: _isEndingMode ? 'Cancel End Mode' : 'End Animals',
+                      icon: Icon(
+                        _isEndingMode
+                            ? Icons.close
+                            : Icons.stop_circle_outlined,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isEndingMode = !_isEndingMode;
+                          if (!_isEndingMode) {
+                            _selected.clear();
+                          }
+                        });
                       },
-                    );
-              return PaginatedResult<AnimalDto>(
-                count: pageData.count,
-                results: pageData.results,
-              );
-            },
+                      closeOnTap: false,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -164,6 +174,44 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     });
   }
 
+  Future<void> _endSelectedAnimals() async {
+    if (_selected.isEmpty) {
+      return;
+    }
+    try {
+      setState(() {
+        _isEndingAnimals = true;
+      });
+      await animalService.endAnimals(_selected.toList());
+      await animalService.getAnimalsPage(page: 1, pageSize: _pageSize);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _controller.reload();
+        _selected.clear();
+        _isEndingMode = false;
+        _isEndingAnimals = false;
+      });
+      _fabController.close();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Animals ended successfully!')),
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isEndingAnimals = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to end animals. Please try again.'),
+        ),
+      );
+    }
+  }
+
   @override
   void didUpdateWidget(covariant AnimalsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -178,12 +226,14 @@ class _AnimalGridSource extends DataGridSource {
   final Set<String> selected;
   final void Function(String uuid, bool selected) onToggle;
   final BuildContext context;
+  final bool isEndingMode;
 
   _AnimalGridSource({
     required this.records,
     required this.selected,
     required this.onToggle,
     required this.context,
+    required this.isEndingMode,
   }) {
     _rows = records.map(AnimalListColumn.getDataGridRow).toList();
   }
@@ -201,11 +251,15 @@ class _AnimalGridSource extends DataGridSource {
     return DataGridRowAdapter(
       cells: [
         Center(
-          child: Checkbox(
-            value: isChecked,
-            onChanged: (v) {
-              onToggle(uuid, v ?? false);
-            },
+          child: Visibility(
+            visible: isEndingMode,
+            replacement: const SizedBox.shrink(),
+            child: Checkbox(
+              value: isChecked,
+              onChanged: (v) {
+                onToggle(uuid, v ?? false);
+              },
+            ),
           ),
         ),
         Center(

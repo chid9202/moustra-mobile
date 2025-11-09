@@ -5,10 +5,9 @@ import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:moustra/services/clients/litter_api.dart';
 import 'package:moustra/constants/list_constants/litter_list_constants.dart';
-import 'package:moustra/widgets/safe_text.dart';
-import 'package:moustra/widgets/shared/button.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class LittersScreen extends StatefulWidget {
   const LittersScreen({super.key});
@@ -19,6 +18,7 @@ class LittersScreen extends StatefulWidget {
 
 class _LittersScreenState extends State<LittersScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
+  final MovableFabMenuController _fabController = MovableFabMenuController();
 
   @override
   void initState() {
@@ -27,56 +27,73 @@ class _LittersScreenState extends State<LittersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PaginatedDataGrid<LitterDto>(
-      controller: _controller,
-      onSortChanged: (columnName, ascending) {
-        _sortField = columnName;
-        _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
-        _controller.reload();
-      },
-      columns: LitterListColumn.getColumns(),
-      sourceBuilder: (rows) =>
-          _LitterGridSource(records: rows, context: context),
-      fetchPage: (page, pageSize) async {
-        final pageData = await litterService.getLittersPage(
-          page: page,
-          pageSize: pageSize,
-          query: {
-            if (_sortField != null) SortQueryParamKey.sort.name: _sortField!,
-            if (_sortField != null) SortQueryParamKey.order.name: _sortOrder,
+    return Stack(
+      children: [
+        PaginatedDataGrid<LitterDto>(
+          controller: _controller,
+          onSortChanged: (columnName, ascending) {
+            _sortField = columnName;
+            _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
+            _controller.reload();
           },
-        );
-        return PaginatedResult<LitterDto>(
-          count: pageData.count,
-          results: pageData.results.cast<LitterDto>(),
-        );
-      },
-      onFilterChanged: (page, pageSize, searchTerm, {useAiSearch}) async {
-        final pageData = await litterService.getLittersPage(
-          page: page,
-          pageSize: pageSize,
-          query: {
-            if (_sortField != null) SortQueryParamKey.sort.name: _sortField!,
-            if (_sortField != null) SortQueryParamKey.order.name: _sortOrder,
-            if (searchTerm.isNotEmpty) ...{
-              SearchQueryParamKey.filter.name: 'litter_tag',
-              SearchQueryParamKey.value.name: searchTerm,
-              SearchQueryParamKey.op.name: 'contains',
-            },
+          columns: LitterListColumn.getColumns(),
+          sourceBuilder: (rows) =>
+              _LitterGridSource(records: rows, context: context),
+          fetchPage: (page, pageSize) async {
+            final pageData = await litterService.getLittersPage(
+              page: page,
+              pageSize: pageSize,
+              query: {
+                if (_sortField != null)
+                  SortQueryParamKey.sort.name: _sortField!,
+                if (_sortField != null)
+                  SortQueryParamKey.order.name: _sortOrder,
+              },
+            );
+            return PaginatedResult<LitterDto>(
+              count: pageData.count,
+              results: pageData.results.cast<LitterDto>(),
+            );
           },
-        );
-        return PaginatedResult<LitterDto>(
-          count: pageData.count,
-          results: pageData.results,
-        );
-      },
-      topBar: MoustraButton.icon(
-        label: 'Add Litter',
-        icon: Icons.add,
-        onPressed: () {
-          context.go('/litters/new');
-        },
-      ),
+          onFilterChanged: (page, pageSize, searchTerm, {useAiSearch}) async {
+            final pageData = await litterService.getLittersPage(
+              page: page,
+              pageSize: pageSize,
+              query: {
+                if (_sortField != null)
+                  SortQueryParamKey.sort.name: _sortField!,
+                if (_sortField != null)
+                  SortQueryParamKey.order.name: _sortOrder,
+                if (searchTerm.isNotEmpty) ...{
+                  SearchQueryParamKey.filter.name: 'litter_tag',
+                  SearchQueryParamKey.value.name: searchTerm,
+                  SearchQueryParamKey.op.name: 'contains',
+                },
+              },
+            );
+            return PaginatedResult<LitterDto>(
+              count: pageData.count,
+              results: pageData.results,
+            );
+          },
+        ),
+        Positioned.fill(
+          child: MovableFabMenu(
+            controller: _fabController,
+            heroTag: 'litters-fab-menu',
+            margin: const EdgeInsets.only(right: 24, bottom: 50),
+            actions: [
+              FabMenuAction(
+                label: 'Add Litter',
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  context.go('/litters/new');
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
