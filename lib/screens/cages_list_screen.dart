@@ -6,8 +6,8 @@ import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
-import 'package:moustra/widgets/shared/button.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
 class CagesListScreen extends StatefulWidget {
@@ -19,6 +19,7 @@ class CagesListScreen extends StatefulWidget {
 
 class _CagesListScreenState extends State<CagesListScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
+  final MovableFabMenuController _fabController = MovableFabMenuController();
 
   @override
   void initState() {
@@ -34,75 +35,79 @@ class _CagesListScreenState extends State<CagesListScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Wrap(
-              spacing: 12,
-              children: [
-                MoustraButton.icon(
-                  onPressed: () {
-                    context.go('/cages/new');
-                  },
-                  icon: Icons.add,
-                  label: 'Add Cage',
-                ),
-              ],
-            ),
-          ),
-        ),
         Expanded(
-          child: PaginatedDataGrid<CageDto>(
-            controller: _controller,
-            onSortChanged: (columnName, ascending) {
-              _sortField = columnName;
-              _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
-              _controller.reload();
-            },
-            columns: CageListColumn.getColumns(),
-            sourceBuilder: (rows) =>
-                _CageGridSource(records: rows, context: context),
-            fetchPage: (page, pageSize) async {
-              final pageData = await cageApi.getCagesPage(
-                page: page,
-                pageSize: pageSize,
-                query: {
-                  if (_sortField != null)
-                    SortQueryParamKey.sort.name: _sortField!,
-                  if (_sortField != null)
-                    SortQueryParamKey.order.name: _sortOrder,
+          child: Stack(
+            children: [
+              PaginatedDataGrid<CageDto>(
+                controller: _controller,
+                onSortChanged: (columnName, ascending) {
+                  _sortField = columnName;
+                  _sortOrder = ascending
+                      ? SortOrder.asc.name
+                      : SortOrder.desc.name;
+                  _controller.reload();
                 },
-              );
-              return PaginatedResult<CageDto>(
-                count: pageData.count,
-                results: pageData.results.cast<CageDto>(),
-              );
-            },
-            onFilterChanged: (page, pageSize, searchTerm, {useAiSearch}) async {
-              final pageData = useAiSearch == true
-                  ? await cageApi.searchCagesWithAi(prompt: searchTerm)
-                  : await cageApi.getCagesPage(
-                      page: page,
-                      pageSize: pageSize,
-                      query: {
-                        if (_sortField != null)
-                          SortQueryParamKey.sort.name: _sortField!,
-                        if (_sortField != null)
-                          SortQueryParamKey.order.name: _sortOrder,
-                        if (searchTerm.isNotEmpty) ...{
-                          SearchQueryParamKey.filter.name: 'cage_tag',
-                          SearchQueryParamKey.value.name: searchTerm,
-                          SearchQueryParamKey.op.name: 'contains',
-                        },
+                columns: CageListColumn.getColumns(),
+                sourceBuilder: (rows) =>
+                    _CageGridSource(records: rows, context: context),
+                fetchPage: (page, pageSize) async {
+                  final pageData = await cageApi.getCagesPage(
+                    page: page,
+                    pageSize: pageSize,
+                    query: {
+                      if (_sortField != null)
+                        SortQueryParamKey.sort.name: _sortField!,
+                      if (_sortField != null)
+                        SortQueryParamKey.order.name: _sortOrder,
+                    },
+                  );
+                  return PaginatedResult<CageDto>(
+                    count: pageData.count,
+                    results: pageData.results.cast<CageDto>(),
+                  );
+                },
+                onFilterChanged:
+                    (page, pageSize, searchTerm, {useAiSearch}) async {
+                      final pageData = useAiSearch == true
+                          ? await cageApi.searchCagesWithAi(prompt: searchTerm)
+                          : await cageApi.getCagesPage(
+                              page: page,
+                              pageSize: pageSize,
+                              query: {
+                                if (_sortField != null)
+                                  SortQueryParamKey.sort.name: _sortField!,
+                                if (_sortField != null)
+                                  SortQueryParamKey.order.name: _sortOrder,
+                                if (searchTerm.isNotEmpty) ...{
+                                  SearchQueryParamKey.filter.name: 'cage_tag',
+                                  SearchQueryParamKey.value.name: searchTerm,
+                                  SearchQueryParamKey.op.name: 'contains',
+                                },
+                              },
+                            );
+                      return PaginatedResult<CageDto>(
+                        count: pageData.count,
+                        results: pageData.results,
+                      );
+                    },
+                rowHeightEstimator: (index, row) => _estimateLines(row),
+              ),
+              Positioned.fill(
+                child: MovableFabMenu(
+                  controller: _fabController,
+                  heroTag: 'cages-fab-menu',
+                  actions: [
+                    FabMenuAction(
+                      label: 'Add Cage',
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        context.go('/cages/new');
                       },
-                    );
-              return PaginatedResult<CageDto>(
-                count: pageData.count,
-                results: pageData.results,
-              );
-            },
-            rowHeightEstimator: (index, row) => _estimateLines(row),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ],

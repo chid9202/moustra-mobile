@@ -8,9 +8,9 @@ import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
-import 'package:moustra/widgets/shared/button.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class MatingsScreen extends StatefulWidget {
   const MatingsScreen({super.key});
@@ -21,6 +21,7 @@ class MatingsScreen extends StatefulWidget {
 
 class _MatingsScreenState extends State<MatingsScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
+  final MovableFabMenuController _fabController = MovableFabMenuController();
 
   @override
   void initState() {
@@ -36,72 +37,83 @@ class _MatingsScreenState extends State<MatingsScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: MoustraButtonPrimary(
-              label: 'Create Mating',
-              icon: Icons.add,
-              onPressed: () {
-                context.go('/matings/new');
-              },
-            ),
-          ),
-        ),
         Expanded(
-          child: PaginatedDataGrid<MatingDto>(
-            controller: _controller,
-            onSortChanged: (columnName, ascending) {
-              _sortField = columnName;
-              _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
-              _controller.reload();
-            },
-            columns: MatingListColumn.getColumns(),
-            sourceBuilder: (rows) =>
-                _MatingGridSource(records: rows, context: context),
-            fetchPage: (page, pageSize) async {
-              final pageData = await matingService.getMatingsPage(
-                page: page,
-                pageSize: pageSize,
-                query: {
-                  if (_sortField != null)
-                    SortQueryParamKey.sort.name: _sortField!,
-                  if (_sortField != null)
-                    SortQueryParamKey.order.name: _sortOrder,
+          child: Stack(
+            children: [
+              PaginatedDataGrid<MatingDto>(
+                controller: _controller,
+                onSortChanged: (columnName, ascending) {
+                  _sortField = columnName;
+                  _sortOrder =
+                      ascending ? SortOrder.asc.name : SortOrder.desc.name;
+                  _controller.reload();
                 },
-              );
-              return PaginatedResult<MatingDto>(
-                count: pageData.count,
-                results: pageData.results.cast<MatingDto>(),
-              );
-            },
-            onFilterChanged: (page, pageSize, searchTerm, {useAiSearch}) async {
-              if (useAiSearch == true) {
-                // AI search not supported for matings yet
-                return PaginatedResult<MatingDto>(count: 0, results: []);
-              }
-              final pageData = await matingService.getMatingsPage(
-                page: page,
-                pageSize: pageSize,
-                query: {
-                  if (_sortField != null)
-                    SortQueryParamKey.sort.name: _sortField!,
-                  if (_sortField != null)
-                    SortQueryParamKey.order.name: _sortOrder,
-                  if (searchTerm.isNotEmpty) ...{
-                    SearchQueryParamKey.filter.name: 'mating_tag',
-                    SearchQueryParamKey.value.name: searchTerm,
-                    SearchQueryParamKey.op.name: 'contains',
-                  },
+                columns: MatingListColumn.getColumns(),
+                sourceBuilder: (rows) =>
+                    _MatingGridSource(records: rows, context: context),
+                fetchPage: (page, pageSize) async {
+                  final pageData = await matingService.getMatingsPage(
+                    page: page,
+                    pageSize: pageSize,
+                    query: {
+                      if (_sortField != null)
+                        SortQueryParamKey.sort.name: _sortField!,
+                      if (_sortField != null)
+                        SortQueryParamKey.order.name: _sortOrder,
+                    },
+                  );
+                  return PaginatedResult<MatingDto>(
+                    count: pageData.count,
+                    results: pageData.results.cast<MatingDto>(),
+                  );
                 },
-              );
-              return PaginatedResult<MatingDto>(
-                count: pageData.count,
-                results: pageData.results,
-              );
-            },
-            rowHeightEstimator: (index, row) => _estimateLines(row),
+                onFilterChanged:
+                    (page, pageSize, searchTerm, {useAiSearch}) async {
+                  if (useAiSearch == true) {
+                    // AI search not supported for matings yet
+                    return PaginatedResult<MatingDto>(
+                      count: 0,
+                      results: [],
+                    );
+                  }
+                  final pageData = await matingService.getMatingsPage(
+                    page: page,
+                    pageSize: pageSize,
+                    query: {
+                      if (_sortField != null)
+                        SortQueryParamKey.sort.name: _sortField!,
+                      if (_sortField != null)
+                        SortQueryParamKey.order.name: _sortOrder,
+                      if (searchTerm.isNotEmpty) ...{
+                        SearchQueryParamKey.filter.name: 'mating_tag',
+                        SearchQueryParamKey.value.name: searchTerm,
+                        SearchQueryParamKey.op.name: 'contains',
+                      },
+                    },
+                  );
+                  return PaginatedResult<MatingDto>(
+                    count: pageData.count,
+                    results: pageData.results,
+                  );
+                },
+                rowHeightEstimator: (index, row) => _estimateLines(row),
+              ),
+              Positioned.fill(
+                child: MovableFabMenu(
+                  controller: _fabController,
+                  heroTag: 'matings-fab-menu',
+                  actions: [
+                    FabMenuAction(
+                      label: 'Create Mating',
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        context.go('/matings/new');
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ],

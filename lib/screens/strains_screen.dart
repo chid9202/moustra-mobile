@@ -6,9 +6,9 @@ import 'package:moustra/constants/list_constants/strain_list_constants.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/services/clients/strain_api.dart';
 import 'package:moustra/widgets/color_picker.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
-import 'package:moustra/widgets/shared/button.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class StrainsScreen extends StatefulWidget {
   const StrainsScreen({super.key});
@@ -22,6 +22,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
   String? _sortField; // api field, e.g., strain_name
   String _sortOrder = SortOrder.asc.name;
   final Set<String> _selected = <String>{};
+  final MovableFabMenuController _fabController = MovableFabMenuController();
 
   @override
   void initState() {
@@ -33,88 +34,95 @@ class _StrainsScreenState extends State<StrainsScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                MoustraButton.icon(
-                  label: 'Create Strain',
-                  icon: Icons.add,
-                  variant: ButtonVariant.primary,
-                  onPressed: () {
-                    if (context.mounted) {
-                      context.go('/strains/new');
-                    }
-                  },
-                ),
-                MoustraButton.icon(
-                  label: 'Merge Strain',
-                  icon: Icons.merge_type,
-                  variant: ButtonVariant.secondary,
-                  onPressed: _selected.length >= 2 ? _mergeSelected : null,
-                ),
-              ],
-            ),
-          ),
-        ),
         Expanded(
-          child: PaginatedDataGrid<StrainDto>(
-            controller: _controller,
-            onSortChanged: (columnName, ascending) {
-              _sortField = columnName;
-              _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
-              _controller.reload();
-            },
-            columns: StrainListColumn.getColumns(),
-            sourceBuilder: (rows) => _StrainGridSource(
-              records: rows,
-              selected: _selected,
-              onToggle: _onToggleSelected,
-              context: context,
-            ),
-            fetchPage: (page, pageSize) async {
-              final pageData = await strainService.getStrainsPage(
-                page: page,
-                pageSize: pageSize,
-                query: {
-                  if (_sortField != null)
-                    SortQueryParamKey.sort.name: _sortField!,
-                  if (_sortField != null)
-                    SortQueryParamKey.order.name: _sortOrder,
+          child: Stack(
+            children: [
+              PaginatedDataGrid<StrainDto>(
+                controller: _controller,
+                onSortChanged: (columnName, ascending) {
+                  _sortField = columnName;
+                  _sortOrder = ascending
+                      ? SortOrder.asc.name
+                      : SortOrder.desc.name;
+                  _controller.reload();
                 },
-              );
-              return PaginatedResult<StrainDto>(
-                count: pageData.count,
-                results: pageData.results,
-              );
-            },
-            onFilterChanged: (page, pageSize, searchTerm, {useAiSearch}) async {
-              final pageData = useAiSearch == true
-                  ? await strainService.searchStrainsWithAi(prompt: searchTerm)
-                  : await strainService.getStrainsPage(
-                      page: page,
-                      pageSize: pageSize,
-                      query: {
-                        if (_sortField != null)
-                          SortQueryParamKey.sort.name: _sortField!,
-                        if (_sortField != null)
-                          SortQueryParamKey.order.name: _sortOrder,
-                        if (searchTerm.isNotEmpty) ...{
-                          SearchQueryParamKey.filter.name: 'strain_name',
-                          SearchQueryParamKey.value.name: searchTerm,
-                          SearchQueryParamKey.op.name: 'contains',
-                        },
+                columns: StrainListColumn.getColumns(),
+                sourceBuilder: (rows) => _StrainGridSource(
+                  records: rows,
+                  selected: _selected,
+                  onToggle: _onToggleSelected,
+                  context: context,
+                ),
+                fetchPage: (page, pageSize) async {
+                  final pageData = await strainService.getStrainsPage(
+                    page: page,
+                    pageSize: pageSize,
+                    query: {
+                      if (_sortField != null)
+                        SortQueryParamKey.sort.name: _sortField!,
+                      if (_sortField != null)
+                        SortQueryParamKey.order.name: _sortOrder,
+                    },
+                  );
+                  return PaginatedResult<StrainDto>(
+                    count: pageData.count,
+                    results: pageData.results,
+                  );
+                },
+                onFilterChanged:
+                    (page, pageSize, searchTerm, {useAiSearch}) async {
+                      final pageData = useAiSearch == true
+                          ? await strainService.searchStrainsWithAi(
+                              prompt: searchTerm,
+                            )
+                          : await strainService.getStrainsPage(
+                              page: page,
+                              pageSize: pageSize,
+                              query: {
+                                if (_sortField != null)
+                                  SortQueryParamKey.sort.name: _sortField!,
+                                if (_sortField != null)
+                                  SortQueryParamKey.order.name: _sortOrder,
+                                if (searchTerm.isNotEmpty) ...{
+                                  SearchQueryParamKey.filter.name:
+                                      'strain_name',
+                                  SearchQueryParamKey.value.name: searchTerm,
+                                  SearchQueryParamKey.op.name: 'contains',
+                                },
+                              },
+                            );
+                      return PaginatedResult<StrainDto>(
+                        count: pageData.count,
+                        results: pageData.results,
+                      );
+                    },
+              ),
+              Positioned.fill(
+                child: MovableFabMenu(
+                  controller: _fabController,
+                  heroTag: 'strains-fab-menu',
+                  margin: const EdgeInsets.only(right: 24, bottom: 50),
+                  actions: [
+                    FabMenuAction(
+                      label: 'Create Strain',
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        if (context.mounted) {
+                          context.go('/strains/new');
+                        }
                       },
-                    );
-              return PaginatedResult<StrainDto>(
-                count: pageData.count,
-                results: pageData.results,
-              );
-            },
+                    ),
+                    FabMenuAction(
+                      label: 'Merge Strain',
+                      icon: const Icon(Icons.merge_type),
+                      onPressed: _selected.length >= 2 ? _mergeSelected : null,
+                      enabled: _selected.length >= 2,
+                      closeOnTap: true,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -143,6 +151,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
       );
       _selected.clear();
       _controller.reload();
+      _fabController.close();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
