@@ -36,6 +36,7 @@ class PaginatedDataGrid<T> extends StatefulWidget {
   final RowHeightEstimator<T>? rowHeightEstimator;
   final FilterChanged<T>? onFilterChanged;
   final void Function(String columnName, bool ascending)? onSortChanged;
+  final String? searchPlaceholder;
 
   const PaginatedDataGrid({
     super.key,
@@ -48,6 +49,7 @@ class PaginatedDataGrid<T> extends StatefulWidget {
     this.rowHeightEstimator,
     this.onFilterChanged,
     this.onSortChanged,
+    this.searchPlaceholder,
   });
 
   @override
@@ -145,16 +147,21 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
       children: [
         if (widget.onFilterChanged != null)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     onChanged: _onFilterChanged,
                     onSubmitted: (_) => _triggerSearch(),
-                    decoration: const InputDecoration(
-                      labelText: 'Filter',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      hintText: widget.searchPlaceholder ?? 'Filter',
+                      border: const OutlineInputBorder(),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 5,
+                      ),
                     ),
                   ),
                 ),
@@ -164,34 +171,12 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
                   onPressed: _triggerSearch,
                   tooltip: 'Search',
                 ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Use AI:'),
-                    Checkbox(
-                      visualDensity: const VisualDensity(
-                        vertical: VisualDensity.minimumDensity,
-                      ),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      value: _useAiSearch,
-                      onChanged: (value) {
-                        setState(() {
-                          _useAiSearch = value ?? false;
-                        });
-                        // Trigger search again when checkbox is toggled
-                        _triggerSearch();
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 8),
               ],
             ),
           ),
         if (widget.topBar != null)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
             child: Align(
               alignment: Alignment.centerLeft,
               child: widget.topBar!,

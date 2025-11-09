@@ -42,6 +42,7 @@ class _MatingsScreenState extends State<MatingsScreen> {
             children: [
               PaginatedDataGrid<MatingDto>(
                 controller: _controller,
+                searchPlaceholder: 'Try "Search mating M-42"',
                 onSortChanged: (columnName, ascending) {
                   _sortField = columnName;
                   _sortOrder =

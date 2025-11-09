@@ -31,6 +31,7 @@ class _LittersScreenState extends State<LittersScreen> {
       children: [
         PaginatedDataGrid<LitterDto>(
           controller: _controller,
+          searchPlaceholder: 'Try "Search litter LTR-001"',
           onSortChanged: (columnName, ascending) {
             _sortField = columnName;
             _sortOrder = ascending ? SortOrder.asc.name : SortOrder.desc.name;
