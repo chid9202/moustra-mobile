@@ -84,6 +84,13 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
     if (_formKey.currentState!.validate()) {
       try {
         final postAnimalData = _animals.map((animal) {
+          var cage = CageStoreDto(
+            cageId: _selectedCage?.cageId ?? 0,
+            cageUuid: _selectedCage?.cageUuid ?? '',
+            cageTag: _selectedCage?.cageTag ?? '',
+            strain: _selectedStrain?.toCageStoreStrainDto(),
+            animals: _selectedCage?.animals ?? [],
+          );
           return PostAnimalData(
             idx: DateTime.now().millisecondsSinceEpoch.toString(),
             dateOfBirth: animal.dateOfBirth!,
@@ -97,12 +104,12 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
                 .toList(),
             physicalTag: animal.physicalTagController.text,
             sex: animal.sex,
-            strain: _selectedStrain,
+            strain: animal.strain,
             sire: animal.sire,
             dam: animal.dam,
-            cage: _selectedCage,
+            cage: cage,
             weanDate: animal.weanDate,
-            comment: animal.commentController.text,
+            // comment: animal.commentController.text,
           );
         }).toList();
 
@@ -287,22 +294,6 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: SelectSex(
-                    selectedSex: animal.sex,
-                    onChanged: (sex) {
-                      setState(() {
-                        animal.sex = sex;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            Row(
-              children: [
-                Expanded(
                   child: SelectDate(
                     selectedDate: animal.dateOfBirth,
                     onChanged: (date) {
@@ -314,19 +305,35 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
                     hintText: 'Select date of birth',
                   ),
                 ),
-                // const SizedBox(width: 16),
-                // Expanded(
-                //   child: SelectDate(
-                //     selectedDate: animal.weanDate,
-                //     onChanged: (date) {
-                //       setState(() {
-                //         animal.weanDate = date;
-                //       });
-                //     },
-                //     labelText: 'Wean Date',
-                //     hintText: 'Select wean date (optional)',
-                //   ),
-                // ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            Row(
+              children: [
+                Expanded(
+                  child: SelectSex(
+                    selectedSex: animal.sex,
+                    onChanged: (sex) {
+                      setState(() {
+                        animal.sex = sex;
+                      });
+                    },
+                  ),
+                ),
+
+                const SizedBox(width: 16),
+                Expanded(
+                  child: SelectStrain(
+                    selectedStrain: animal.strain,
+                    onChanged: (strain) {
+                      setState(() {
+                        animal.strain = strain;
+                      });
+                    },
+                    label: 'Strain',
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -372,17 +379,17 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            // const SizedBox(height: 16),
 
-            TextFormField(
-              controller: animal.commentController,
-              decoration: const InputDecoration(
-                labelText: 'Comment',
-                hintText: 'Enter any additional comments',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
+            // TextFormField(
+            //   controller: animal.commentController,
+            //   decoration: const InputDecoration(
+            //     labelText: 'Comment',
+            //     hintText: 'Enter any additional comments',
+            //     border: OutlineInputBorder(),
+            //   ),
+            //   maxLines: 2,
+            // ),
           ],
         ),
       ),
@@ -400,6 +407,7 @@ class AnimalCardData {
   List<GenotypeDto> genotypes = [];
   AnimalStoreDto? sire;
   List<AnimalStoreDto> dam = [];
+  StrainStoreDto? strain;
 
   AnimalCardData();
 
@@ -412,6 +420,7 @@ class AnimalCardData {
     genotypes = List.from(other.genotypes);
     sire = other.sire;
     dam = List.from(other.dam);
+    strain = other.strain;
   }
 
   void dispose() {
