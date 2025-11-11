@@ -12,44 +12,30 @@ class SelectSex extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: DropdownButtonFormField<String>(
-            initialValue: selectedSex,
-            decoration: InputDecoration(
-              labelText: 'Sex',
-              border: OutlineInputBorder(),
+        // const Text('Sex', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        SegmentedButton<String>(
+          segments: const [
+            ButtonSegment<String>(value: SexConstants.male, label: Text('M')),
+            ButtonSegment<String>(value: SexConstants.female, label: Text('F')),
+            ButtonSegment<String>(
+              value: SexConstants.unknown,
+              label: Text('U'),
             ),
-            items: [
-              DropdownMenuItem<String>(
-                value: SexConstants.male,
-                child: Text(SexConstants.male),
-              ),
-              DropdownMenuItem<String>(
-                value: SexConstants.female,
-                child: Text(SexConstants.female),
-              ),
-              DropdownMenuItem<String>(
-                value: SexConstants.unknown,
-                child: Text(SexConstants.unknown),
-              ),
-            ],
-            onChanged: (String? value) {
-              onChanged(value);
-            },
-          ),
-        ),
-        if (selectedSex != null) ...[
-          const SizedBox(width: 8),
-          IconButton(
-            onPressed: () {
+          ],
+          selected: {if (selectedSex != null) selectedSex!},
+          emptySelectionAllowed: true,
+          onSelectionChanged: (newSelection) {
+            if (newSelection.isEmpty) {
               onChanged(null);
-            },
-            icon: Icon(Icons.clear, color: Colors.grey[600]),
-            tooltip: 'Clear selection',
-          ),
-        ],
+            } else {
+              onChanged(newSelection.first);
+            }
+          },
+        ),
       ],
     );
   }

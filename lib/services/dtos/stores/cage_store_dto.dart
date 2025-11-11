@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
+import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
 
 part 'cage_store_dto.g.dart';
 
@@ -42,6 +43,12 @@ class CageStoreStrainDto {
   factory CageStoreStrainDto.fromJson(dynamic json) =>
       _$CageStoreStrainDtoFromJson(json);
   Map<String, dynamic> toJson() => _$CageStoreStrainDtoToJson(this);
+  factory CageStoreStrainDto.fromStrainStoreDto(StrainStoreDto strain) =>
+      CageStoreStrainDto(
+        strainId: strain.strainId,
+        strainUuid: strain.strainUuid,
+        strainName: strain.strainName,
+      );
 }
 
 @JsonSerializable(explicitToJson: true)
