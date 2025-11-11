@@ -1,9 +1,10 @@
-import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/stores/profile_store.dart';
 
 import 'api_client_test.mocks.dart';
 
@@ -12,6 +13,22 @@ void main() {
   group('ApiClient Tests', () {
     late MockClient mockHttpClient;
     late ApiClient apiClient;
+
+    setUpAll(() async {
+      // Initialize dotenv with test values
+      dotenv.testLoad(
+        fileInput: '''
+API_BASE_URL=https://test-api.example.com/api/v1
+AUTH0_DOMAIN=test-auth.example.com
+AUTH0_CLIENT_ID=test-client-id
+AUTH0_SCHEME=com.test.app
+AUTH0_AUDIENCE=https://test-api.example.com
+AUTH0_CONNECTION=Test-Connection
+''',
+      );
+      // Set up a mock profile state to avoid null accountUuid
+      profileState.value = null;
+    });
 
     setUp(() {
       mockHttpClient = MockClient();
