@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:moustra/services/auth_service.dart';
 import 'package:moustra/services/secure_store.dart';
@@ -30,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   VoidCallback? _authListener;
   bool _canUseBiometrics = false;
   bool _hasRefreshToken = false;
+  Timer? _autoUnlockTimer;
 
   @override
   void initState() {
@@ -61,6 +63,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _autoUnlockTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     if (_authListener != null) {
       authState.removeListener(_authListener!);
@@ -141,21 +144,23 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   /// Only attempts if biometrics are available and refresh token exists
   Future<void> _attemptAutoUnlock() async {
     // Use post-frame callback to ensure widget is fully rendered
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       // Wait a brief moment for any animations to complete
-      await Future.delayed(const Duration(milliseconds: 800));
+      _autoUnlockTimer = Timer(const Duration(milliseconds: 800), () async {
+        if (!mounted) return;
 
-      if (!mounted) return;
+        final canUse = await authService.canUseBiometrics();
+        final hasRefresh = await SecureStore.hasRefreshToken();
+        final isLoggedIn = authService.isLoggedIn;
 
-      final canUse = await authService.canUseBiometrics();
-      final hasRefresh = await SecureStore.hasRefreshToken();
-      final isLoggedIn = authService.isLoggedIn;
+        if (!mounted) return;
 
-      if (canUse && hasRefresh && !isLoggedIn) {
-        // Attempt automatic unlock
-        await authService.unlockWithBiometrics();
-        // If unlock succeeds, the auth listener will handle navigation
-      }
+        if (canUse && hasRefresh && !isLoggedIn) {
+          // Attempt automatic unlock
+          await authService.unlockWithBiometrics();
+          // If unlock succeeds, the auth listener will handle navigation
+        }
+      });
     });
   }
 

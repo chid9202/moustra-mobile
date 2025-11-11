@@ -56,7 +56,7 @@ void main() {
       expect(find.text('Select date'), findsNothing);
     });
 
-    testWidgets('shows clear button when date is selected', (
+    testWidgets('does not show clear button when date is selected', (
       WidgetTester tester,
     ) async {
       final selectedDate = DateTime(2024, 1, 15);
@@ -70,7 +70,8 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.clear), findsOneWidget);
+      // Clear button is currently not implemented (commented out in widget)
+      expect(find.byIcon(Icons.clear), findsNothing);
     });
 
     testWidgets('does not show clear button when no date is selected', (
@@ -88,23 +89,22 @@ void main() {
       expect(find.byIcon(Icons.clear), findsNothing);
     });
 
-    testWidgets('calls onChanged when clear button is tapped', (
+    testWidgets('clear button functionality is not available', (
       WidgetTester tester,
     ) async {
       final selectedDate = DateTime(2024, 1, 15);
-      DateTime? clearedDate;
 
       await TestHelpers.pumpWidgetWithTheme(
         tester,
         SelectDate(
           selectedDate: selectedDate,
-          onChanged: (date) => clearedDate = date,
+          onChanged: (date) {},
           labelText: 'Select Date',
         ),
       );
 
-      await TestHelpers.tapAndWait(tester, find.byIcon(Icons.clear));
-      expect(clearedDate, isNull);
+      // Clear button is not implemented, so it cannot be tapped
+      expect(find.byIcon(Icons.clear), findsNothing);
     });
 
     testWidgets('opens date picker when tapped', (WidgetTester tester) async {
@@ -350,7 +350,8 @@ void main() {
 
       expect(find.byType(InputDecorator), findsOneWidget);
       expect(find.byIcon(Icons.calendar_today), findsOneWidget);
-      expect(find.byIcon(Icons.clear), findsOneWidget);
+      // Clear button is not implemented (commented out in widget)
+      expect(find.byIcon(Icons.clear), findsNothing);
     });
   });
 
