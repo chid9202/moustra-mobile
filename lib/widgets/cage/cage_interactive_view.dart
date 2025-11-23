@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:moustra/widgets/cage/cage_detailed_view.dart';
 import 'package:moustra/widgets/cage/cage_compact_view.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
+import 'package:moustra/widgets/cage/animal_drag_data.dart';
+import 'package:moustra/stores/rack_store.dart';
 
-class CageInteractiveView extends StatelessWidget {
+class CageInteractiveView extends StatefulWidget {
   final RackCageDto cage;
   final double zoomLevel;
   final RackDto rackData;
@@ -17,32 +19,99 @@ class CageInteractiveView extends StatelessWidget {
   });
 
   @override
+  State<CageInteractiveView> createState() => _CageInteractiveViewState();
+}
+
+class _CageInteractiveViewState extends State<CageInteractiveView> {
+  bool _isDragOver = false;
+  bool _isValidTarget = false;
+
+  @override
   Widget build(BuildContext context) {
     late final Widget childWidget;
 
-    // Show detailed view when zoomed in (zoom >= 0.8)
-    // Show compact view when zoomed out (zoom < 0.8)
-    if (zoomLevel >= 0.8) {
-      childWidget = CageDetailedView(cage: cage);
+    // Show detailed view when zoomed in (zoom >= 0.4)
+    // Show compact view when zoomed out (zoom < 0.4)
+    if (widget.zoomLevel >= 0.4) {
+      childWidget = CageDetailedView(
+        cage: widget.cage,
+        zoomLevel: widget.zoomLevel,
+      );
     } else {
-      childWidget = CageCompactView(cage: cage);
+      childWidget = CageCompactView(cage: widget.cage);
     }
 
-    return Card(
+    final cardContent = Card(
       elevation: 12.0,
       margin: const EdgeInsets.all(16.0),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
-        side: const BorderSide(color: Colors.grey, width: 2.0),
+        side: BorderSide(
+          color: _isDragOver
+              ? (_isValidTarget ? Colors.green : Colors.red)
+              : Colors.grey,
+          width: _isDragOver ? 3.0 : 2.0,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          children: [Expanded(child: childWidget)],
+          children: [Flexible(child: childWidget)],
         ),
       ),
+    );
+
+    return DragTarget<AnimalDragData>(
+      onWillAccept: (data) {
+        if (data == null) return false;
+        final isValid = data.sourceCageUuid != widget.cage.cageUuid;
+        setState(() {
+          _isDragOver = true;
+          _isValidTarget = isValid;
+        });
+        return isValid;
+      },
+      onLeave: (data) {
+        setState(() {
+          _isDragOver = false;
+          _isValidTarget = false;
+        });
+      },
+      onAccept: (data) async {
+        setState(() {
+          _isDragOver = false;
+          _isValidTarget = false;
+        });
+
+        try {
+          await moveAnimal(data.animalUuid, widget.cage.cageUuid);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Animal moved to ${widget.cage.cageTag ?? 'cage'}',
+                ),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error moving animal: $e'),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        }
+      },
+      builder: (context, candidateData, rejectedData) {
+        return cardContent;
+      },
     );
   }
 }

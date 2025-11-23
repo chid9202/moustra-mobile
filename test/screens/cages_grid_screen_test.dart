@@ -343,7 +343,7 @@ void main() {
           find.byType(InteractiveViewer),
         );
         expect(interactiveViewer.minScale, 0.1);
-        expect(interactiveViewer.maxScale, 2.0);
+        expect(interactiveViewer.maxScale, 4.0);
       });
 
       testWidgets('has scaleEnabled and panEnabled set to true', (
