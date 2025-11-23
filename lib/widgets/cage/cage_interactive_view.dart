@@ -6,13 +6,13 @@ import 'package:moustra/services/dtos/rack_dto.dart';
 
 class CageInteractiveView extends StatelessWidget {
   final RackCageDto cage;
-  final int detailLevel;
+  final double zoomLevel;
   final RackDto rackData;
 
   const CageInteractiveView({
     super.key,
     required this.cage,
-    required this.detailLevel,
+    required this.zoomLevel,
     required this.rackData,
   });
 
@@ -20,13 +20,12 @@ class CageInteractiveView extends StatelessWidget {
   Widget build(BuildContext context) {
     late final Widget childWidget;
 
-    switch (detailLevel) {
-      case 0:
-      case 1:
-        childWidget = CageDetailedView(cage: cage);
-      case 2:
-        childWidget = CageCompactView(cage: cage);
-        break;
+    // Show detailed view when zoomed in (zoom >= 0.8)
+    // Show compact view when zoomed out (zoom < 0.8)
+    if (zoomLevel >= 0.8) {
+      childWidget = CageDetailedView(cage: cage);
+    } else {
+      childWidget = CageCompactView(cage: cage);
     }
 
     return Card(
@@ -47,4 +46,3 @@ class CageInteractiveView extends StatelessWidget {
     );
   }
 }
-

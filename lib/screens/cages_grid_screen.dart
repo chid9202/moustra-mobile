@@ -20,7 +20,8 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   final ScrollController _scrollController = ScrollController();
 
   Timer? _saveMatrixTimer;
-  int _previousDetailLevel = 0;
+  Timer? _rebuildTimer;
+  double _currentZoomLevel = 1.0;
 
   late RackDto data;
 
@@ -46,21 +47,24 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   void dispose() {
     _transformationController.removeListener(_onTransformationChanged);
     _saveMatrixTimer?.cancel();
+    _rebuildTimer?.cancel();
     _transformationController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   void _onTransformationChanged() {
-    // Only trigger rebuild if detailLevel actually changes
     final currentZoomLevel = _transformationController.value.entry(0, 0);
-    final currentDetailLevel = currentZoomLevel.ceil();
 
-    if (currentDetailLevel != _previousDetailLevel) {
-      setState(() {
-        _previousDetailLevel = currentDetailLevel;
-      });
-    }
+    // Update zoom level with debouncing to avoid too many rebuilds
+    _rebuildTimer?.cancel();
+    _rebuildTimer = Timer(const Duration(milliseconds: 50), () {
+      if (mounted) {
+        setState(() {
+          _currentZoomLevel = currentZoomLevel;
+        });
+      }
+    });
 
     // Debounce saveTransformationMatrix to avoid updating store on every frame
     _saveMatrixTimer?.cancel();
@@ -82,24 +86,19 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
       _transformationController.value = savedMatrix;
       final savedZoomLevel = savedMatrix.entry(0, 0);
       setState(() {
-        _previousDetailLevel = savedZoomLevel.ceil();
+        _currentZoomLevel = savedZoomLevel;
       });
     } else {
       // Set default position if no saved position exists
       _transformationController.value.scaleByDouble(1, 1, 1, 1);
       setState(() {
-        _previousDetailLevel = 1;
+        _currentZoomLevel = 1.0;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Compute zoomLevel directly from transformation controller
-    // This avoids storing it in state and triggering unnecessary rebuilds
-    final zoomLevel = _transformationController.value.entry(0, 0);
-    final detailLevel = zoomLevel.ceil();
-
     return ValueListenableBuilder<RackStoreDto?>(
       valueListenable: rackStore,
       builder: (context, rackStoreValue, child) {
@@ -139,7 +138,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
                 if (resultItem == null) return Container();
                 return CageInteractiveView(
                   cage: resultItem,
-                  detailLevel: detailLevel,
+                  zoomLevel: _currentZoomLevel,
                   rackData: data,
                 );
               },
