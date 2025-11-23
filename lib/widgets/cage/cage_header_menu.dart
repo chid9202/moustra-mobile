@@ -34,56 +34,44 @@ class CageHeaderMenu extends StatelessWidget {
     );
   }
 
-  void _showMenu(BuildContext context) {
-    final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
-    final Offset offset = renderBox?.localToGlobal(Offset.zero) ?? Offset.zero;
-    final Size size = renderBox?.size ?? Size.zero;
-
-    showMenu<String>(
-      context: context,
-      position: RelativeRect.fromLTRB(
-        offset.dx + size.width - 200,
-        offset.dy + size.height,
-        offset.dx + size.width,
-        offset.dy + size.height + 100,
-      ),
-      items: [
-        const PopupMenuItem<String>(
-          value: 'open_cage',
-          child: Text('Open Cage'),
-        ),
-        const PopupMenuItem<String>(
-          value: 'add_animals',
-          child: Text('Add Animals'),
-        ),
-        const PopupMenuItem<String>(
-          value: 'move_cage',
-          child: Text('Move Cage'),
-        ),
-      ],
-    ).then((value) {
-      if (value != null) {
-        // Wait for popup menu route animation to fully complete before navigating
-        // This avoids "deactivated widget's ancestor" error during popup closing
-        Future.delayed(const Duration(milliseconds: 400), () {
-          if (value == 'open_cage') {
-            appRouter.go('/cages/$cageUuid?fromCageGrid=true');
-          } else if (value == 'add_animals') {
-            appRouter.go('/animals/new?cageUuid=$cageUuid&fromCageGrid=true');
-          } else if (value == 'move_cage') {
-            _showMoveCageDialog(context);
-          }
+  List<PopupMenuItem<String>> _buildMenuItems(BuildContext context) => [
+    PopupMenuItem<String>(
+      value: 'open_cage',
+      child: const Text('Open Cage'),
+      onTap: () {
+        // Use Future.microtask to avoid closing the popup menu immediately
+        Future.microtask(() {
+          appRouter.go('/cages/$cageUuid?fromCageGrid=true');
         });
-      }
-    });
-  }
+      },
+    ),
+    PopupMenuItem<String>(
+      value: 'add_animals',
+      child: const Text('Add Animals'),
+      onTap: () {
+        Future.microtask(() {
+          appRouter.go('/animals/new?cageUuid=$cageUuid&fromCageGrid=true');
+        });
+      },
+    ),
+    PopupMenuItem<String>(
+      value: 'move_cage',
+      child: const Text('Move Cage'),
+      onTap: () {
+        Future.microtask(() => _showMoveCageDialog(context));
+      },
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
+    return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert),
-      onPressed: () => _showMenu(context),
+      itemBuilder: (context) => _buildMenuItems(context),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: Theme.of(context).dividerColor, width: 1),
+      ),
     );
   }
 }
-

@@ -24,6 +24,10 @@ class AnimalMenu extends StatelessWidget {
     return PopupMenuButton(
       icon: const Icon(Icons.more_vert),
       itemBuilder: (context) => _buildMenuItems(context),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: Theme.of(context).dividerColor, width: 1),
+      ),
     );
   }
 
@@ -40,9 +44,9 @@ class AnimalMenu extends StatelessWidget {
       value: 'open',
       child: const Text('Open'),
       onTap: () {
-        Future.microtask(() => context.go(
-          '/animals/${animal.animalUuid}?fromCageGrid=true',
-        ));
+        Future.microtask(
+          () => context.go('/animals/${animal.animalUuid}?fromCageGrid=true'),
+        );
       },
     ),
     PopupMenuItem(
@@ -62,16 +66,12 @@ class AnimalMenu extends StatelessWidget {
           selectedCage: cage,
           onSubmit: (submittedCage) async {
             debugPrint('submitted cage: ${submittedCage?.cageId}');
-            if (submittedCage == null ||
-                submittedCage.cageId == cage.cageId) {
+            if (submittedCage == null || submittedCage.cageId == cage.cageId) {
               return;
             }
             onMovingStateChanged(true);
             try {
-              await moveAnimal(
-                animal.animalUuid,
-                submittedCage.cageUuid,
-              );
+              await moveAnimal(animal.animalUuid, submittedCage.cageUuid);
               if (dialogContext.mounted) {
                 Navigator.of(dialogContext).pop();
               }
@@ -109,4 +109,3 @@ class AnimalMenu extends StatelessWidget {
     animalService.endAnimals([animal.animalUuid]);
   }
 }
-
