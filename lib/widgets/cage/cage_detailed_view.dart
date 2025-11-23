@@ -6,8 +6,13 @@ import 'package:moustra/services/dtos/rack_dto.dart';
 
 class CageDetailedView extends StatelessWidget {
   final RackCageDto cage;
+  final double zoomLevel;
 
-  const CageDetailedView({required this.cage, super.key});
+  const CageDetailedView({
+    required this.cage,
+    required this.zoomLevel,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +62,7 @@ class CageDetailedView extends StatelessWidget {
                         animal: animal,
                         hasMating: _hasMating(animal),
                         cage: cage,
+                        zoomLevel: zoomLevel,
                       ),
                     )
                     .toList(),
