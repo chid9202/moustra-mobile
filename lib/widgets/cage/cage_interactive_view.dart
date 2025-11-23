@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:go_router/go_router.dart';
-
-import 'package:moustra/screens/cage/cage_view_1.dart';
-import 'package:moustra/screens/cage/cage_view_2.dart';
+import 'package:moustra/widgets/cage/cage_detailed_view.dart';
+import 'package:moustra/widgets/cage/cage_compact_view.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 
 class CageInteractiveView extends StatelessWidget {
@@ -25,28 +23,28 @@ class CageInteractiveView extends StatelessWidget {
     switch (detailLevel) {
       case 0:
       case 1:
-        childWidget = CageView1(cage: cage);
+        childWidget = CageDetailedView(cage: cage);
       case 2:
-        childWidget = CageView2(cage: cage);
+        childWidget = CageCompactView(cage: cage);
         break;
     }
 
     return Card(
       elevation: 12.0,
       margin: const EdgeInsets.all(16.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        side: const BorderSide(color: Colors.grey, width: 2.0),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: GestureDetector(
-          onTap: () {
-            context.go('/cages/${cage.cageUuid}');
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [Expanded(child: childWidget)],
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [Expanded(child: childWidget)],
         ),
       ),
     );
   }
 }
+

@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-import 'package:moustra/screens/cage/cage_interactive_view.dart';
+import 'package:moustra/widgets/cage/cage_interactive_view.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/dtos/stores/rack_store_dto.dart';
 import 'package:moustra/stores/rack_store.dart';
@@ -17,7 +19,8 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
       TransformationController();
   final ScrollController _scrollController = ScrollController();
 
-  double zoomLevel = 0.0;
+  Timer? _saveMatrixTimer;
+  int _previousDetailLevel = 0;
 
   late RackDto data;
 
@@ -36,17 +39,28 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   @override
   void dispose() {
     _transformationController.removeListener(_onTransformationChanged);
+    _saveMatrixTimer?.cancel();
     _transformationController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   void _onTransformationChanged() {
-    setState(() {
-      zoomLevel = _transformationController.value.entry(0, 0);
+    // Only trigger rebuild if detailLevel actually changes
+    final currentZoomLevel = _transformationController.value.entry(0, 0);
+    final currentDetailLevel = currentZoomLevel.ceil();
+
+    if (currentDetailLevel != _previousDetailLevel) {
+      setState(() {
+        _previousDetailLevel = currentDetailLevel;
+      });
+    }
+
+    // Debounce saveTransformationMatrix to avoid updating store on every frame
+    _saveMatrixTimer?.cancel();
+    _saveMatrixTimer = Timer(const Duration(milliseconds: 300), () {
+      saveTransformationMatrix(_transformationController.value);
     });
-    // Save the current transformation matrix to the store
-    saveTransformationMatrix(_transformationController.value);
   }
 
   void _restoreSavedPosition() {
@@ -54,15 +68,22 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     final savedMatrix = getSavedTransformationMatrix();
     if (savedMatrix != null) {
       _transformationController.value = savedMatrix;
-      zoomLevel = savedMatrix.entry(0, 0);
+      final savedZoomLevel = savedMatrix.entry(0, 0);
+      _previousDetailLevel = savedZoomLevel.ceil();
     } else {
       // Set default position if no saved position exists
       _transformationController.value.scaleByDouble(1, 1, 1, 1);
+      _previousDetailLevel = 1;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Compute zoomLevel directly from transformation controller
+    // This avoids storing it in state and triggering unnecessary rebuilds
+    final zoomLevel = _transformationController.value.entry(0, 0);
+    final detailLevel = zoomLevel.ceil();
+
     return ValueListenableBuilder<RackStoreDto?>(
       valueListenable: rackStore,
       builder: (context, rackStoreValue, child) {
@@ -71,6 +92,10 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
         }
 
         data = rackStoreValue.rackData;
+
+        final rackWidth = data.rackWidth ?? 5;
+        final rackHeight = data.rackHeight ?? 1;
+        final maxCages = rackWidth * rackHeight;
 
         return InteractiveViewer(
           constrained: false,
@@ -81,14 +106,14 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
           panEnabled: true,
           trackpadScrollCausesScale: true,
           child: SizedBox(
-            width: 2000,
-            height: 5500,
+            width: 2500,
+            height: 8000,
             child: GridView.builder(
               controller: _scrollController,
-              itemCount: data.cages?.length ?? 0,
+              itemCount: maxCages,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: rackWidth,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
                 childAspectRatio: 1.0,
@@ -98,7 +123,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
                 if (resultItem == null) return Container();
                 return CageInteractiveView(
                   cage: resultItem,
-                  detailLevel: zoomLevel.ceil(),
+                  detailLevel: detailLevel,
                   rackData: data,
                 );
               },

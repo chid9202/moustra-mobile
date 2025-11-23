@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:go_router/go_router.dart';
-
-import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
-import 'package:moustra/stores/rack_store.dart';
-import 'package:moustra/widgets/shared/select_rack_cage.dart';
+import 'package:moustra/widgets/cage/animal_menu.dart';
 
 class AnimalCard extends StatefulWidget {
   final RackCageDto cage;
@@ -86,16 +82,14 @@ class _AnimalCardState extends State<AnimalCard> {
             flex: 1,
             child: Center(
               child: _moving
-                  ? CircularProgressIndicator()
-                  : PopupMenuButton(
-                      icon: const Icon(Icons.more_vert),
-                      itemBuilder: (_) {
-                        return menu(
-                          context,
-                          (bool value) => setState(() {
-                            _moving = value;
-                          }),
-                        );
+                  ? const CircularProgressIndicator()
+                  : AnimalMenu(
+                      cage: widget.cage,
+                      animal: widget.animal,
+                      onMovingStateChanged: (bool value) {
+                        setState(() {
+                          _moving = value;
+                        });
                       },
                     ),
             ),
@@ -136,75 +130,5 @@ class _AnimalCardState extends State<AnimalCard> {
     }
     return physicalTag;
   }
-
-  List<PopupMenuItem> menu(
-    BuildContext buildContext,
-    Function(bool) setMoving,
-  ) => [
-    PopupMenuItem(
-      value: 'move',
-      child: Text('Move'),
-      onTap: () {
-        showDialog(
-          context: buildContext,
-          builder: (context) {
-            return SelectRackCage(
-              selectedCage: widget.cage,
-              onSubmit: (submittedCage) async {
-                debugPrint('submitted cage: ${submittedCage?.cageId}');
-                if (submittedCage == null ||
-                    submittedCage.cageId == widget.cage.cageId) {
-                  return;
-                }
-                setMoving(true);
-                try {
-                  await moveAnimal(
-                    widget.animal.animalUuid,
-                    submittedCage.cageUuid,
-                  );
-                } catch (e) {
-                  if (buildContext.mounted) {
-                    await showDialog(
-                      context: buildContext,
-                      builder: (buildContext) {
-                        return AlertDialog(
-                          title: Text('Error while moving animal'),
-                          content: SingleChildScrollView(child: Text('$e')),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(buildContext).pop();
-                              },
-                              child: Text('OK'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  }
-                } finally {
-                  setMoving(false);
-                }
-              },
-            );
-          },
-        );
-      },
-    ),
-    PopupMenuItem(
-      value: 'open',
-      child: Text('Open'),
-      onTap: () => buildContext.go(
-        '/animals/${widget.animal.animalUuid}?fromCageGrid=true',
-      ),
-    ),
-    PopupMenuItem(
-      value: 'end',
-      child: Text('End'),
-      onTap: () {
-        removeAnimalFromCage(widget.cage.cageUuid, widget.animal.animalUuid);
-        animalService.endAnimals([widget.animal.animalUuid]);
-      },
-    ),
-  ];
 }
+

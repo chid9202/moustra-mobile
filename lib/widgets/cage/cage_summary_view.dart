@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:moustra/screens/cage/cage_mice_view.dart';
-import 'package:moustra/screens/cage/shared.dart';
+import 'package:moustra/widgets/cage/shared.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 
 class CageSummaryView extends StatelessWidget {
@@ -55,3 +54,4 @@ class CageSummaryView extends StatelessWidget {
     );
   }
 }
+
