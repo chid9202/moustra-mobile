@@ -5,6 +5,7 @@ import 'package:moustra/services/dtos/stores/gene_store_dto.dart';
 import 'package:moustra/services/dtos/stores/allele_store_dto.dart';
 import 'package:moustra/services/dtos/stores/background_store_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
+import 'package:moustra/services/dtos/stores/rack_store_dto.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/dtos/account_dto.dart';
@@ -267,5 +268,37 @@ class MockDataFactory {
         strainName: 'Test Strain ${index + 1}',
       );
     });
+  }
+
+  /// Creates a mock RackDto
+  static RackDto createRackDto({
+    int? rackId,
+    String? rackUuid,
+    String? rackName,
+    int? rackWidth,
+    int? rackHeight,
+    List<RackCageDto>? cages,
+    List<RackSimpleDto>? racks,
+  }) {
+    return RackDto(
+      rackId: rackId ?? 1,
+      rackUuid: rackUuid ?? 'test-rack-uuid',
+      rackName: rackName ?? 'Test Rack',
+      rackWidth: rackWidth,
+      rackHeight: rackHeight,
+      cages: cages,
+      racks: racks,
+    );
+  }
+
+  /// Creates a mock RackStoreDto
+  static RackStoreDto createRackStoreDto({
+    RackDto? rackData,
+    List<double>? transformationMatrix,
+  }) {
+    return RackStoreDto(
+      rackData: rackData ?? createRackDto(),
+      transformationMatrix: transformationMatrix,
+    );
   }
 }
