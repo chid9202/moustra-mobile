@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 
-class CageView2 extends StatelessWidget {
+class CageCompactView extends StatelessWidget {
   final RackCageDto cage;
 
-  const CageView2({super.key, required this.cage});
+  const CageCompactView({super.key, required this.cage});
 
   @override
   Widget build(BuildContext context) {
@@ -25,3 +25,4 @@ class CageView2 extends StatelessWidget {
     );
   }
 }
+
