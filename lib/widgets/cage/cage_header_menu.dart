@@ -35,39 +35,40 @@ class CageHeaderMenu extends StatelessWidget {
   }
 
   List<PopupMenuItem<String>> _buildMenuItems(BuildContext context) => [
-    PopupMenuItem<String>(
-      value: 'open_cage',
-      child: const Text('Open Cage'),
-      onTap: () {
-        // Use Future.microtask to avoid closing the popup menu immediately
-        Future.microtask(() {
+    const PopupMenuItem<String>(value: 'open_cage', child: Text('Open Cage')),
+    const PopupMenuItem<String>(
+      value: 'add_animals',
+      child: Text('Add Animals'),
+    ),
+    const PopupMenuItem<String>(value: 'move_cage', child: Text('Move Cage')),
+  ];
+
+  void _handleMenuSelection(BuildContext context, String value) {
+    switch (value) {
+      case 'open_cage':
+        // Wait for popup menu to fully close before navigating
+        Future.delayed(const Duration(milliseconds: 300), () {
           appRouter.go('/cages/$cageUuid?fromCageGrid=true');
         });
-      },
-    ),
-    PopupMenuItem<String>(
-      value: 'add_animals',
-      child: const Text('Add Animals'),
-      onTap: () {
-        Future.microtask(() {
+        break;
+      case 'add_animals':
+        // Wait for popup menu to fully close before navigating
+        Future.delayed(const Duration(milliseconds: 300), () {
           appRouter.go('/animals/new?cageUuid=$cageUuid&fromCageGrid=true');
         });
-      },
-    ),
-    PopupMenuItem<String>(
-      value: 'move_cage',
-      child: const Text('Move Cage'),
-      onTap: () {
-        Future.microtask(() => _showMoveCageDialog(context));
-      },
-    ),
-  ];
+        break;
+      case 'move_cage':
+        _showMoveCageDialog(context);
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert),
       itemBuilder: (context) => _buildMenuItems(context),
+      onSelected: (value) => _handleMenuSelection(context, value),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(color: Theme.of(context).dividerColor, width: 1),

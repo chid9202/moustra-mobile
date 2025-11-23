@@ -27,9 +27,15 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   @override
   void initState() {
     super.initState();
-    _loadRackData();
     _transformationController.addListener(_onTransformationChanged);
-    _restoreSavedPosition();
+    _initializeScreen();
+  }
+
+  Future<void> _initializeScreen() async {
+    // Load rack data first
+    await _loadRackData();
+    // Then restore saved position after data is loaded
+    await _restoreSavedPosition();
   }
 
   Future<void> _loadRackData() async {
@@ -63,17 +69,27 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     });
   }
 
-  void _restoreSavedPosition() {
-    // Restore the saved transformation matrix if available
-    final savedMatrix = getSavedTransformationMatrix();
+  Future<void> _restoreSavedPosition() async {
+    // First try to load from SharedPreferences (persisted across app restarts)
+    Matrix4? savedMatrix = await getSavedTransformationMatrixFromStorage();
+
+    // Fall back to in-memory store if SharedPreferences has no data
+    if (savedMatrix == null) {
+      savedMatrix = getSavedTransformationMatrix();
+    }
+
     if (savedMatrix != null) {
       _transformationController.value = savedMatrix;
       final savedZoomLevel = savedMatrix.entry(0, 0);
-      _previousDetailLevel = savedZoomLevel.ceil();
+      setState(() {
+        _previousDetailLevel = savedZoomLevel.ceil();
+      });
     } else {
       // Set default position if no saved position exists
       _transformationController.value.scaleByDouble(1, 1, 1, 1);
-      _previousDetailLevel = 1;
+      setState(() {
+        _previousDetailLevel = 1;
+      });
     }
   }
 
