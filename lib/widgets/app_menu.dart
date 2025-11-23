@@ -129,8 +129,8 @@ class _AppMenuState extends State<AppMenu> {
               context.go('/dashboard');
             },
           ),
-          ExpansionTile(
-            initiallyExpanded: _isCageActive(currentPath),
+          // Cage header - always expanded, not collapsible
+          ListTile(
             leading: Icon(
               Icons.home_work_outlined,
               color: _isCageActive(currentPath)
@@ -138,38 +138,37 @@ class _AppMenuState extends State<AppMenu> {
                   : null,
             ),
             title: Text('Cage'),
-            children: [
-              ListTile(
-                contentPadding: const EdgeInsets.only(left: 24.0),
-                leading: Icon(
-                  Icons.list,
-                  color: _isActive('/cages/list', currentPath)
-                      ? Theme.of(context).primaryColor
-                      : null,
-                ),
-                selected: _isActive('/cages/list', currentPath),
-                title: const Text('List View'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  context.go('/cages/list');
-                },
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.only(left: 24.0),
-                leading: Icon(
-                  Icons.grid_view,
-                  color: _isActive('/cages/grid', currentPath)
-                      ? Theme.of(context).primaryColor
-                      : null,
-                ),
-                selected: _isActive('/cages/grid', currentPath),
-                title: const Text('Grid View'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  context.go('/cages/grid');
-                },
-              ),
-            ],
+            enabled: false, // Make it non-tappable
+          ),
+          ListTile(
+            contentPadding: const EdgeInsets.only(left: 24.0),
+            leading: Icon(
+              Icons.list,
+              color: _isActive('/cages/list', currentPath)
+                  ? Theme.of(context).primaryColor
+                  : null,
+            ),
+            selected: _isActive('/cages/list', currentPath),
+            title: const Text('List View'),
+            onTap: () {
+              Navigator.of(context).pop();
+              context.go('/cages/list');
+            },
+          ),
+          ListTile(
+            contentPadding: const EdgeInsets.only(left: 24.0),
+            leading: Icon(
+              Icons.grid_view,
+              color: _isActive('/cages/grid', currentPath)
+                  ? Theme.of(context).primaryColor
+                  : null,
+            ),
+            selected: _isActive('/cages/grid', currentPath),
+            title: const Text('Grid View'),
+            onTap: () {
+              Navigator.of(context).pop();
+              context.go('/cages/grid');
+            },
           ),
           ListTile(
             leading: Icon(
