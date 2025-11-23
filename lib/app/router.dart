@@ -42,7 +42,7 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state, child) => MaterialPage(
         child: Scaffold(
           appBar: const MoustraAppBar(),
-          drawer: const AppMenu(),
+          drawer: AppMenu(),
           body: child,
         ),
       ),
