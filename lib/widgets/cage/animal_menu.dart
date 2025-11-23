@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:go_router/go_router.dart';
-
+import 'package:moustra/app/router.dart';
 import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/stores/rack_store.dart';
@@ -21,9 +20,10 @@ class AnimalMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton(
+    return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert),
       itemBuilder: (context) => _buildMenuItems(context),
+      onSelected: (value) => _handleMenuSelection(context, value),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(color: Theme.of(context).dividerColor, width: 1),
@@ -31,32 +31,29 @@ class AnimalMenu extends StatelessWidget {
     );
   }
 
-  List<PopupMenuItem> _buildMenuItems(BuildContext context) => [
-    PopupMenuItem(
-      value: 'move',
-      child: const Text('Move'),
-      onTap: () {
-        // Use Future.microtask to avoid closing the popup menu immediately
-        Future.microtask(() => _handleMove(context));
-      },
-    ),
-    PopupMenuItem(
-      value: 'open',
-      child: const Text('Open'),
-      onTap: () {
-        Future.microtask(
-          () => context.go('/animals/${animal.animalUuid}?fromCageGrid=true'),
-        );
-      },
-    ),
-    PopupMenuItem(
-      value: 'end',
-      child: const Text('End'),
-      onTap: () {
-        Future.microtask(() => _handleEnd());
-      },
-    ),
+  List<PopupMenuItem<String>> _buildMenuItems(BuildContext context) => [
+    const PopupMenuItem<String>(value: 'move', child: Text('Move')),
+    const PopupMenuItem<String>(value: 'open', child: Text('Open')),
+    const PopupMenuItem<String>(value: 'end', child: Text('End')),
   ];
+
+  void _handleMenuSelection(BuildContext context, String value) {
+    switch (value) {
+      case 'move':
+        _handleMove(context);
+        break;
+      case 'open':
+        // Wait for popup menu to fully close before navigating
+        // Use a delay to ensure the popup menu route is fully disposed
+        Future.delayed(const Duration(milliseconds: 300), () {
+          appRouter.go('/animals/${animal.animalUuid}?fromCageGrid=true');
+        });
+        break;
+      case 'end':
+        _handleEnd();
+        break;
+    }
+  }
 
   Future<void> _handleMove(BuildContext context) async {
     await showDialog(
