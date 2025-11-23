@@ -13,8 +13,43 @@ class AppMenu extends StatefulWidget {
 }
 
 class _AppMenuState extends State<AppMenu> {
+  bool _isActive(String routePath, String currentPath) {
+    if (routePath == '/dashboard' || routePath == '/') {
+      return currentPath == '/dashboard' || currentPath == '/';
+    }
+    if (routePath == '/cages/list') {
+      return currentPath == '/cages/list';
+    }
+    if (routePath == '/cages/grid') {
+      return currentPath == '/cages/grid';
+    }
+    // For other routes, check if current path starts with the route path
+    if (routePath == '/strains') {
+      return currentPath.startsWith('/strains');
+    }
+    if (routePath == '/animals') {
+      return currentPath.startsWith('/animals');
+    }
+    if (routePath == '/matings') {
+      return currentPath.startsWith('/matings');
+    }
+    if (routePath == '/litters') {
+      return currentPath.startsWith('/litters');
+    }
+    if (routePath == '/users') {
+      return currentPath.startsWith('/users');
+    }
+    return false;
+  }
+
+  bool _isCageActive(String currentPath) {
+    return currentPath.startsWith('/cages');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final currentPath = GoRouterState.of(context).uri.path;
+
     return Drawer(
       child: ListView(
         children: [
@@ -81,21 +116,38 @@ class _AppMenuState extends State<AppMenu> {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.dashboard),
-            title: const Text('Dashboard'),
+            leading: Icon(
+              Icons.dashboard,
+              color: _isActive('/dashboard', currentPath)
+                  ? Theme.of(context).primaryColor
+                  : null,
+            ),
+            selected: _isActive('/dashboard', currentPath),
+            title: Text('Dashboard'),
             onTap: () {
               Navigator.of(context).pop();
-              context.go('/');
+              context.go('/dashboard');
             },
           ),
           ExpansionTile(
-            initiallyExpanded: true,
-            leading: const Icon(Icons.home_work_outlined),
-            title: const Text('Cage'),
+            initiallyExpanded: _isCageActive(currentPath),
+            leading: Icon(
+              Icons.home_work_outlined,
+              color: _isCageActive(currentPath)
+                  ? Theme.of(context).primaryColor
+                  : null,
+            ),
+            title: Text('Cage'),
             children: [
               ListTile(
                 contentPadding: const EdgeInsets.only(left: 24.0),
-                leading: const Icon(Icons.list),
+                leading: Icon(
+                  Icons.list,
+                  color: _isActive('/cages/list', currentPath)
+                      ? Theme.of(context).primaryColor
+                      : null,
+                ),
+                selected: _isActive('/cages/list', currentPath),
                 title: const Text('List View'),
                 onTap: () {
                   Navigator.of(context).pop();
@@ -104,7 +156,13 @@ class _AppMenuState extends State<AppMenu> {
               ),
               ListTile(
                 contentPadding: const EdgeInsets.only(left: 24.0),
-                leading: const Icon(Icons.grid_view),
+                leading: Icon(
+                  Icons.grid_view,
+                  color: _isActive('/cages/grid', currentPath)
+                      ? Theme.of(context).primaryColor
+                      : null,
+                ),
+                selected: _isActive('/cages/grid', currentPath),
                 title: const Text('Grid View'),
                 onTap: () {
                   Navigator.of(context).pop();
@@ -114,7 +172,13 @@ class _AppMenuState extends State<AppMenu> {
             ],
           ),
           ListTile(
-            leading: const Icon(Icons.science),
+            leading: Icon(
+              Icons.science,
+              color: _isActive('/strains', currentPath)
+                  ? Theme.of(context).primaryColor
+                  : null,
+            ),
+            selected: _isActive('/strains', currentPath),
             title: const Text('Strain'),
             onTap: () {
               Navigator.of(context).pop();
@@ -122,7 +186,13 @@ class _AppMenuState extends State<AppMenu> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.pets),
+            leading: Icon(
+              Icons.pets,
+              color: _isActive('/animals', currentPath)
+                  ? Theme.of(context).primaryColor
+                  : null,
+            ),
+            selected: _isActive('/animals', currentPath),
             title: const Text('Animal'),
             onTap: () {
               Navigator.of(context).pop();
@@ -130,7 +200,13 @@ class _AppMenuState extends State<AppMenu> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.favorite),
+            leading: Icon(
+              Icons.favorite,
+              color: _isActive('/matings', currentPath)
+                  ? Theme.of(context).primaryColor
+                  : null,
+            ),
+            selected: _isActive('/matings', currentPath),
             title: const Text('Mating'),
             onTap: () {
               Navigator.of(context).pop();
@@ -138,7 +214,13 @@ class _AppMenuState extends State<AppMenu> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.loyalty),
+            leading: Icon(
+              Icons.loyalty,
+              color: _isActive('/litters', currentPath)
+                  ? Theme.of(context).primaryColor
+                  : null,
+            ),
+            selected: _isActive('/litters', currentPath),
             title: const Text('Litter'),
             onTap: () {
               Navigator.of(context).pop();
@@ -146,7 +228,13 @@ class _AppMenuState extends State<AppMenu> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.people),
+            leading: Icon(
+              Icons.people,
+              color: _isActive('/users', currentPath)
+                  ? Theme.of(context).primaryColor
+                  : null,
+            ),
+            selected: _isActive('/users', currentPath),
             title: const Text('Users'),
             onTap: () {
               Navigator.of(context).pop();
