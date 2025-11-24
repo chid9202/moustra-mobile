@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:moustra/app/app.dart';
 import 'package:moustra/services/auth_service.dart';
+import 'package:moustra/services/error_report_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +17,25 @@ Future<void> main() async {
   await dotenv.load(fileName: envFileName);
 
   await authService.init();
-  runApp(const MyApp());
+
+  // Set up global error handlers
+  FlutterError.onError = (FlutterErrorDetails details) {
+    // Report Flutter framework errors
+    reportError(error: details.exception, stackTrace: details.stack);
+    // Also log to console in debug mode
+    FlutterError.presentError(details);
+  };
+
+  // Catch async errors that aren't caught by Flutter
+  runZonedGuarded(
+    () {
+      runApp(const MyApp());
+    },
+    (error, stackTrace) {
+      // Report uncaught async errors
+      reportError(error: error, stackTrace: stackTrace);
+    },
+  );
 }
 
 class MyApp extends StatelessWidget {
