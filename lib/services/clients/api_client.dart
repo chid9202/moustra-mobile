@@ -74,6 +74,26 @@ class ApiClient {
     return res;
   }
 
+  Future<http.Response> postWithoutAuth(
+    String path, {
+    Object? body,
+    bool withoutAccountPrefix = false,
+  }) async {
+    final uri = _buildUri(path, withoutAccountPrefix: withoutAccountPrefix);
+    print('POST (no auth) path $uri');
+    final headers = <String, String>{
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    };
+    final res = await httpClient.post(
+      uri,
+      headers: headers,
+      body: jsonEncode(body),
+    );
+    print('res ${res.statusCode}');
+    return res;
+  }
+
   Future<http.Response> put(
     String path, {
     Object? body,

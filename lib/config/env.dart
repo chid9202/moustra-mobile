@@ -22,4 +22,7 @@ class Env {
 
   static String get auth0Connection =>
       dotenv.get('AUTH0_CONNECTION', fallback: 'Moustra-Dev');
+
+  static bool get isProduction =>
+      dotenv.get('ENVIRONMENT', fallback: 'staging') == 'production';
 }
