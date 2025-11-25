@@ -20,6 +20,14 @@ class App extends StatelessWidget {
       ),
       themeMode: ThemeMode.system, // Follows system preference
       routerConfig: appRouter,
+      builder: (context, child) {
+        // Override textScaleFactor to ensure consistent text rendering
+        // across simulator and physical device, regardless of iOS accessibility settings
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+          child: child!,
+        );
+      },
     );
   }
 }
