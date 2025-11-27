@@ -54,6 +54,21 @@ class CageApi {
     return CageDto.fromJson(jsonDecode(res.body));
   }
 
+  Future<RackDto> createCageInRack({
+    required String cageTag,
+    required String rackUuid,
+  }) async {
+    final res = await apiClient.post(
+      basePath,
+      body: {'cageTag': cageTag, 'rack': rackUuid},
+    );
+    if (res.statusCode != 201) {
+      throw Exception('Failed to create cage in rack: ${res.body}');
+    }
+    // The response should be a RackDto with the updated rack
+    return RackDto.fromJson(jsonDecode(res.body));
+  }
+
   Future<CageDto> putCage(String cageUuid, PutCageDto payload) async {
     final res = await apiClient.put('$basePath/$cageUuid', body: payload);
     if (res.statusCode != 200) {

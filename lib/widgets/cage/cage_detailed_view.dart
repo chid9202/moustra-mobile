@@ -3,14 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:moustra/widgets/cage/animal_card.dart';
 import 'package:moustra/widgets/cage/cage_header_menu.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
+import 'package:moustra/constants/cages_grid_constants.dart';
 
 class CageDetailedView extends StatelessWidget {
   final RackCageDto cage;
   final double zoomLevel;
+  final String? searchQuery;
+  final String searchType;
 
   const CageDetailedView({
     required this.cage,
     required this.zoomLevel,
+    this.searchQuery,
+    this.searchType = CagesGridConstants.searchTypeAnimalTag,
     super.key,
   });
 
@@ -63,6 +68,8 @@ class CageDetailedView extends StatelessWidget {
                         hasMating: _hasMating(animal),
                         cage: cage,
                         zoomLevel: zoomLevel,
+                        searchQuery: searchQuery,
+                        searchType: searchType,
                       ),
                     )
                     .toList(),

@@ -28,10 +28,7 @@ class ErrorReportService {
   static Future<void> _sendErrorReport(String subject, String message) async {
     try {
       final dto = ErrorReportDto(subject: subject, message: message);
-      await apiClient.postWithoutAuth(
-        'mobile/error-report',
-        body: dto.toJson(),
-      );
+      await apiClient.postWithoutAuth('error-report', body: dto.toJson());
     } catch (e) {
       // Silently ignore errors - we don't want error reporting to cause issues
     }

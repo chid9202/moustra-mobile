@@ -3,11 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:moustra/widgets/cage/cage_interactive_view.dart';
+import 'package:moustra/widgets/cages_grid_floating_bar.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/dtos/stores/rack_store_dto.dart';
 import 'package:moustra/stores/rack_store.dart';
 import 'package:moustra/helpers/util_helper.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
+import 'package:moustra/services/clients/rack_api.dart';
+import 'package:moustra/services/clients/cage_api.dart';
+import 'package:moustra/constants/cages_grid_constants.dart';
+import 'package:moustra/widgets/dialogs/add_or_update_rack.dart';
+import 'package:moustra/widgets/cage/add_cage_button.dart';
 
 class CagesGridScreen extends StatefulWidget {
   const CagesGridScreen({super.key});
@@ -26,6 +32,14 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   Timer? _rebuildTimer;
   double _currentZoomLevel = 0.6;
 
+  // Search state
+  String _searchQuery = '';
+  String _searchType = CagesGridConstants.searchTypeAnimalTag;
+
+  // Rack selection state
+  RackSimpleDto? _selectedRack;
+  bool _isLoadingRack = false;
+
   late RackDto data;
 
   @override
@@ -37,13 +51,99 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
 
   Future<void> _initializeScreen() async {
     // Load rack data first
-    await _loadRackData();
+    await useRackStore();
+    // Set initial selected rack from current data
+    if (rackStore.value != null) {
+      final rackData = rackStore.value!.rackData;
+      if (rackData.racks != null && rackData.racks!.isNotEmpty) {
+        final currentRackUuid = rackData.rackUuid;
+        if (currentRackUuid != null) {
+          setState(() {
+            _selectedRack = rackData.racks!.firstWhere(
+              (r) => r.rackUuid == currentRackUuid,
+              orElse: () => rackData.racks!.first,
+            );
+          });
+        } else {
+          setState(() {
+            _selectedRack = rackData.racks!.first;
+          });
+        }
+      }
+    }
     // Then restore saved position after data is loaded
     await _restoreSavedPosition();
   }
 
-  Future<void> _loadRackData() async {
-    await useRackStore();
+  Future<void> _loadRackData({String? rackUuid}) async {
+    if (mounted) {
+      setState(() {
+        _isLoadingRack = true;
+      });
+    }
+    try {
+      await useRackStore();
+      final newRackData = await rackApi.getRack(rackUuid: rackUuid);
+      rackStore.value = RackStoreDto(
+        rackData: newRackData,
+        transformationMatrix: rackStore.value?.transformationMatrix,
+      );
+      // Update selected rack if we have racks list
+      if (newRackData.racks != null && newRackData.racks!.isNotEmpty) {
+        final currentRackUuid = newRackData.rackUuid;
+        if (mounted) {
+          setState(() {
+            if (currentRackUuid != null) {
+              _selectedRack = newRackData.racks!.firstWhere(
+                (r) => r.rackUuid == currentRackUuid,
+                orElse: () => newRackData.racks!.first,
+              );
+            } else {
+              _selectedRack = newRackData.racks!.first;
+            }
+            _isLoadingRack = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoadingRack = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingRack = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading rack: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _switchRack(RackSimpleDto rack) async {
+    setState(() {
+      _selectedRack = rack;
+    });
+    await _loadRackData(rackUuid: rack.rackUuid);
+    // Reset view position (zoom and pan) to default when switching racks
+    _resetViewPosition();
+  }
+
+  /// Reset view position to default (zoom 0.6, centered at top)
+  void _resetViewPosition() {
+    final defaultMatrix = Matrix4.identity()..scale(0.6);
+    _transformationController.value = defaultMatrix;
+    setState(() {
+      _currentZoomLevel = 0.6;
+    });
+    // Save the reset transformation matrix
+    saveTransformationMatrix(defaultMatrix);
   }
 
   @override
@@ -113,8 +213,8 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
 
     final scale = (viewportWidth - paddingMargin) / gridViewWidth;
 
-    // Clamp scale to valid range (minScale: 0.1, maxScale: 2.0)
-    final clampedScale = scale.clamp(0.1, 2.0);
+    // Clamp scale to valid range (minScale: 0.1, maxScale: 4.0)
+    final clampedScale = scale.clamp(0.1, 4.0);
 
     _zoomToLevel(clampedScale);
   }
@@ -153,6 +253,58 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     _zoomToLevel(0.39);
   }
 
+  void _showRackDialog({bool isEdit = false}) {
+    showDialog(
+      context: context,
+      builder: (context) => AddOrUpdateRackDialog(
+        rackData: isEdit ? data : null,
+        onSuccess: ({String? rackUuid}) async {
+          await _loadRackData(rackUuid: rackUuid);
+        },
+      ),
+    );
+  }
+
+  Widget _buildAddCageButton() {
+    return AddCageButton(onTap: _handleAddCage);
+  }
+
+  Future<void> _handleAddCage() async {
+    final rackUuid = data.rackUuid;
+    if (rackUuid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Rack UUID is required'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      await cageApi.createCageInRack(cageTag: 'New Cage', rackUuid: rackUuid);
+      // Fetch the current rack again after successful creation
+      await _loadRackData(rackUuid: rackUuid);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cage created successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating cage: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<RackStoreDto?>(
@@ -170,6 +322,14 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
 
         return Stack(
           children: [
+            // Loading overlay
+            if (_isLoadingRack)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.white.withOpacity(0.8),
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+              ),
             InteractiveViewer(
               constrained: false,
               transformationController: _transformationController,
@@ -178,28 +338,46 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
               scaleEnabled: true,
               panEnabled: true,
               trackpadScrollCausesScale: true,
-              child: SizedBox(
-                width: 2500,
-                height: 8000,
-                child: GridView.builder(
-                  controller: _scrollController,
-                  itemCount: maxCages,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: rackWidth,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 1.0,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 250),
+                child: SizedBox(
+                  width: 2500,
+                  height: 8000,
+                  child: GridView.builder(
+                    controller: _scrollController,
+                    itemCount: maxCages,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: rackWidth,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 1.0,
+                    ),
+                    itemBuilder: (context, index) {
+                      // Check if index is within bounds of the cages array
+                      final cagesLength = data.cages?.length ?? 0;
+
+                      // Show Plus button in the first empty slot if rack is not full
+                      if (index == cagesLength && index < maxCages) {
+                        return _buildAddCageButton();
+                      }
+
+                      if (index >= cagesLength) {
+                        return Container();
+                      }
+                      final resultItem = data.cages?[index];
+                      if (resultItem == null) return Container();
+                      return CageInteractiveView(
+                        cage: resultItem,
+                        zoomLevel: _currentZoomLevel,
+                        rackData: data,
+                        searchQuery: _searchQuery.isNotEmpty
+                            ? _searchQuery
+                            : null,
+                        searchType: _searchType,
+                      );
+                    },
                   ),
-                  itemBuilder: (context, index) {
-                    final resultItem = data.cages?[index];
-                    if (resultItem == null) return Container();
-                    return CageInteractiveView(
-                      cage: resultItem,
-                      zoomLevel: _currentZoomLevel,
-                      rackData: data,
-                    );
-                  },
                 ),
               ),
             ),
@@ -225,6 +403,33 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
                     onPressed: _zoomToCompactView,
                   ),
                 ],
+              ),
+            ),
+            // Floating bar at the top - placed last to appear on top
+            Positioned(
+              top: 16,
+              left: 16,
+              right: 16,
+              child: CagesGridFloatingBar(
+                racks: data.racks,
+                selectedRack: _selectedRack,
+                onRackSelected: _switchRack,
+                onAddRack: () => _showRackDialog(isEdit: false),
+                onEditRack: () => _showRackDialog(isEdit: true),
+                searchType: _searchType,
+                searchQuery: _searchQuery,
+                onSearchTypeChanged: (value) {
+                  setState(() {
+                    _searchType = value;
+                    _searchQuery = ''; // Clear search when switching type
+                  });
+                },
+                onSearchQueryChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+                zoomLevel: _currentZoomLevel,
               ),
             ),
           ],
