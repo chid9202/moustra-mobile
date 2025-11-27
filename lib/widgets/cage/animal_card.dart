@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/widgets/cage/animal_menu.dart';
 import 'package:moustra/widgets/cage/animal_drag_data.dart';
+import 'package:moustra/constants/cages_grid_constants.dart';
 
 class AnimalCard extends StatefulWidget {
   final RackCageDto cage;
   final RackCageAnimalDto animal;
   final bool hasMating;
   final double zoomLevel;
+  final String? searchQuery;
+  final String searchType;
 
   const AnimalCard({
     super.key,
@@ -16,6 +19,8 @@ class AnimalCard extends StatefulWidget {
     required this.hasMating,
     required this.cage,
     required this.zoomLevel,
+    this.searchQuery,
+    this.searchType = CagesGridConstants.searchTypeAnimalTag,
   });
 
   @override
@@ -25,13 +30,33 @@ class AnimalCard extends StatefulWidget {
 class _AnimalCardState extends State<AnimalCard> {
   bool _moving = false;
 
+  bool _shouldHighlight() {
+    if (widget.searchQuery == null || widget.searchQuery!.isEmpty) {
+      return false;
+    }
+    if (widget.searchType == CagesGridConstants.searchTypeAnimalTag) {
+      final physicalTag = widget.animal.physicalTag ?? '';
+      return physicalTag.toLowerCase().contains(
+        widget.searchQuery!.toLowerCase(),
+      );
+    }
+    return false;
+  }
+
   Widget _buildCardContent({bool forFeedback = false}) {
+    final shouldHighlight = _shouldHighlight();
     final content = Container(
       padding: const EdgeInsets.all(8.0),
       margin: const EdgeInsets.symmetric(vertical: 2.0),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(
+          color: shouldHighlight
+              ? Colors.yellow.shade700
+              : Colors.grey.shade300,
+          width: shouldHighlight ? 2.0 : 1.0,
+        ),
         borderRadius: BorderRadius.circular(4.0),
+        color: shouldHighlight ? Colors.yellow.shade100 : null,
       ),
       child: Row(
         children: [
@@ -170,7 +195,7 @@ class _AnimalCardState extends State<AnimalCard> {
     final cardContent = _buildCardContent();
 
     // Only enable drag when zoomed in (detailed view)
-    final canDrag = widget.zoomLevel >= 0.8 && !_moving;
+    final canDrag = widget.zoomLevel >= 0.4 && !_moving;
 
     if (!canDrag) {
       return cardContent;

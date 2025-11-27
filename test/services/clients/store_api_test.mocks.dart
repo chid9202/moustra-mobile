@@ -101,6 +101,31 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
           as _i4.Future<_i2.Response>);
 
   @override
+  _i4.Future<_i2.Response> postWithoutAuth(
+    String? path, {
+    Object? body,
+    bool? withoutAccountPrefix = false,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #postWithoutAuth,
+              [path],
+              {#body: body, #withoutAccountPrefix: withoutAccountPrefix},
+            ),
+            returnValue: _i4.Future<_i2.Response>.value(
+              _FakeResponse_1(
+                this,
+                Invocation.method(
+                  #postWithoutAuth,
+                  [path],
+                  {#body: body, #withoutAccountPrefix: withoutAccountPrefix},
+                ),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.Response>);
+
+  @override
   _i4.Future<_i2.Response> put(
     String? path, {
     Object? body,
