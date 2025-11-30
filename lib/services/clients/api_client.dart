@@ -1,15 +1,38 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import 'package:moustra/config/api_config.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:moustra/stores/profile_store.dart';
+
+/// Creates an HTTP client that allows self-signed certificates for localhost
+/// This is only for development purposes when connecting to local backend
+http.Client _createHttpClient() {
+  final client = HttpClient();
+  client.badCertificateCallback =
+      (X509Certificate cert, String host, int port) {
+        // Allow self-signed certificates for localhost only
+        return host == 'localhost' || host == '127.0.0.1';
+      };
+  return IOClient(client);
+}
 
 class ApiClient {
   final http.Client httpClient;
 
   ApiClient({http.Client? httpClient})
-    : httpClient = httpClient ?? http.Client();
+    : httpClient =
+          httpClient ??
+          (_isLocalhost(ApiConfig.baseUrl)
+              ? _createHttpClient()
+              : http.Client());
+
+  static bool _isLocalhost(String url) {
+    final uri = Uri.parse(url);
+    return uri.host == 'localhost' || uri.host == '127.0.0.1';
+  }
 
   Uri _buildUri(
     String path, {
