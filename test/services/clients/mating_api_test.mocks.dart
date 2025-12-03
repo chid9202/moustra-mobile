@@ -79,13 +79,18 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
   _i4.Future<_i2.Response> post(
     String? path, {
     Object? body,
+    Map<String, String>? query,
     bool? withoutAccountPrefix = false,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
               #post,
               [path],
-              {#body: body, #withoutAccountPrefix: withoutAccountPrefix},
+              {
+                #body: body,
+                #query: query,
+                #withoutAccountPrefix: withoutAccountPrefix,
+              },
             ),
             returnValue: _i4.Future<_i2.Response>.value(
               _FakeResponse_1(
@@ -93,7 +98,11 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
                 Invocation.method(
                   #post,
                   [path],
-                  {#body: body, #withoutAccountPrefix: withoutAccountPrefix},
+                  {
+                    #body: body,
+                    #query: query,
+                    #withoutAccountPrefix: withoutAccountPrefix,
+                  },
                 ),
               ),
             ),

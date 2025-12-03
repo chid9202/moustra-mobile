@@ -20,14 +20,23 @@ http.Client _createHttpClient() {
 }
 
 class ApiClient {
-  final http.Client httpClient;
+  final http.Client? _providedHttpClient;
+  http.Client? _httpClient;
 
-  ApiClient({http.Client? httpClient})
-    : httpClient =
-          httpClient ??
-          (_isLocalhost(ApiConfig.baseUrl)
-              ? _createHttpClient()
-              : http.Client());
+  ApiClient({http.Client? httpClient}) : _providedHttpClient = httpClient;
+
+  /// Lazily creates the HTTP client, checking baseUrl at runtime
+  /// This ensures dotenv is loaded before we check if we need a custom client
+  http.Client get httpClient {
+    final provided = _providedHttpClient;
+    if (provided != null) {
+      return provided;
+    }
+    _httpClient ??= _isLocalhost(ApiConfig.baseUrl)
+        ? _createHttpClient()
+        : http.Client();
+    return _httpClient as http.Client;
+  }
 
   static bool _isLocalhost(String url) {
     final uri = Uri.parse(url);
@@ -82,9 +91,14 @@ class ApiClient {
   Future<http.Response> post(
     String path, {
     Object? body,
+    Map<String, String>? query,
     bool withoutAccountPrefix = false,
   }) async {
-    final uri = _buildUri(path, withoutAccountPrefix: withoutAccountPrefix);
+    final uri = _buildUri(
+      path,
+      query: query,
+      withoutAccountPrefix: withoutAccountPrefix,
+    );
     print('POST path $uri');
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';

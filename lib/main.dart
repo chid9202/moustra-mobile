@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:moustra/app/app.dart';
+import 'package:moustra/config/env.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:moustra/services/error_report_service.dart';
 
@@ -15,6 +17,12 @@ Future<void> main() async {
     defaultValue: '.env',
   );
   await dotenv.load(fileName: envFileName);
+
+  // Initialize Stripe
+  final stripeKey = Env.stripePublishableKey;
+  if (stripeKey.isNotEmpty) {
+    Stripe.publishableKey = stripeKey;
+  }
 
   await authService.init();
 

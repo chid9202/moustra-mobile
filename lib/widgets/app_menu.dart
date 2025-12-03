@@ -39,6 +39,9 @@ class _AppMenuState extends State<AppMenu> {
     if (routePath == '/users') {
       return currentPath.startsWith('/users');
     }
+    if (routePath == '/settings') {
+      return currentPath.startsWith('/settings');
+    }
     return false;
   }
 
@@ -238,6 +241,20 @@ class _AppMenuState extends State<AppMenu> {
             onTap: () {
               Navigator.of(context).pop();
               context.go('/users');
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.settings,
+              color: _isActive('/settings', currentPath)
+                  ? Theme.of(context).primaryColor
+                  : null,
+            ),
+            selected: _isActive('/settings', currentPath),
+            title: const Text('Settings'),
+            onTap: () {
+              Navigator.of(context).pop();
+              context.go('/settings');
             },
           ),
           const Divider(),
