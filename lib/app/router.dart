@@ -19,6 +19,7 @@ import 'package:moustra/screens/matings_screen.dart';
 import 'package:moustra/screens/users_screen.dart';
 import 'package:moustra/screens/user_detail_screen.dart';
 import 'package:moustra/screens/dashboard_screen.dart';
+import 'package:moustra/screens/settings_screen.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:moustra/screens/login_screen.dart';
 
@@ -185,6 +186,11 @@ final GoRouter appRouter = GoRouter(
           pageBuilder: (context, state) => MaterialPage(
             child: UserDetailScreen(userUuid: state.pathParameters['userUuid']),
           ),
+        ),
+        GoRoute(
+          path: '/settings',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: SettingsScreen()),
         ),
       ],
     ),
