@@ -25,7 +25,9 @@ class _SubscriptionDetailsScreenState extends State<SubscriptionDetailsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Cancel Subscription'),
-        content: const Text('Are you sure you want to cancel your subscription?'),
+        content: const Text(
+          'Are you sure you want to cancel your subscription?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -369,4 +371,3 @@ class _SubscriptionDetailsScreenState extends State<SubscriptionDetailsScreen> {
     );
   }
 }
-
