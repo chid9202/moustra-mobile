@@ -30,7 +30,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
 
   Timer? _saveMatrixTimer;
   Timer? _rebuildTimer;
-  double _currentZoomLevel = 0.6;
+  double _currentZoomLevel = CagesGridConstants.defaultZoomLevel;
 
   // Search state
   String _searchQuery = '';
@@ -137,10 +137,11 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
 
   /// Reset view position to default (zoom 0.6, centered at top)
   void _resetViewPosition() {
-    final defaultMatrix = Matrix4.identity()..scale(0.6);
+    final defaultMatrix = Matrix4.identity()
+      ..scale(CagesGridConstants.defaultZoomLevel);
     _transformationController.value = defaultMatrix;
     setState(() {
-      _currentZoomLevel = 0.6;
+      _currentZoomLevel = CagesGridConstants.defaultZoomLevel;
     });
     // Save the reset transformation matrix
     saveTransformationMatrix(defaultMatrix);
@@ -163,19 +164,25 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
 
     // Update zoom level with debouncing to avoid too many rebuilds
     _rebuildTimer?.cancel();
-    _rebuildTimer = Timer(const Duration(milliseconds: 50), () {
-      if (mounted) {
-        setState(() {
-          _currentZoomLevel = currentZoomLevel;
-        });
-      }
-    });
+    _rebuildTimer = Timer(
+      const Duration(milliseconds: CagesGridConstants.rebuildTimerMs),
+      () {
+        if (mounted) {
+          setState(() {
+            _currentZoomLevel = currentZoomLevel;
+          });
+        }
+      },
+    );
 
     // Debounce saveTransformationMatrix to avoid updating store on every frame
     _saveMatrixTimer?.cancel();
-    _saveMatrixTimer = Timer(const Duration(milliseconds: 300), () {
-      saveTransformationMatrix(_transformationController.value);
-    });
+    _saveMatrixTimer = Timer(
+      const Duration(milliseconds: CagesGridConstants.saveMatrixTimerMs),
+      () {
+        saveTransformationMatrix(_transformationController.value);
+      },
+    );
   }
 
   Future<void> _restoreSavedPosition() async {
@@ -195,9 +202,14 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
       });
     } else {
       // Set default position if no saved position exists
-      _transformationController.value.scaleByDouble(0.6, 0.6, 1, 1);
+      _transformationController.value.scaleByDouble(
+        CagesGridConstants.defaultZoomLevel,
+        CagesGridConstants.defaultZoomLevel,
+        1,
+        1,
+      );
       setState(() {
-        _currentZoomLevel = 0.6;
+        _currentZoomLevel = CagesGridConstants.defaultZoomLevel;
       });
     }
   }
@@ -208,13 +220,17 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
 
     // GridView child width is 2500px
     // Calculate scale to fit the grid width in viewport with some padding
-    const gridViewWidth = 2500.0;
-    const paddingMargin = 40.0; // 20px on each side
+    const gridViewWidth = CagesGridConstants.gridViewWidth;
+    const paddingMargin =
+        CagesGridConstants.zoomFitPaddingMargin; // 20px on each side
 
     final scale = (viewportWidth - paddingMargin) / gridViewWidth;
 
     // Clamp scale to valid range (minScale: 0.1, maxScale: 4.0)
-    final clampedScale = scale.clamp(0.1, 4.0);
+    final clampedScale = scale.clamp(
+      CagesGridConstants.minScale,
+      CagesGridConstants.maxScale,
+    );
 
     _zoomToLevel(clampedScale);
   }
@@ -245,12 +261,12 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
 
   /// Zoom to default view (0.6)
   void _zoomToDefaultView() {
-    _zoomToLevel(0.6);
+    _zoomToLevel(CagesGridConstants.defaultZoomLevel);
   }
 
   /// Zoom to compact view (3.9)
   void _zoomToCompactView() {
-    _zoomToLevel(0.39);
+    _zoomToLevel(CagesGridConstants.compactViewZoomLevel);
   }
 
   void _showRackDialog({bool isEdit = false}) {
@@ -316,8 +332,9 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
 
         data = rackStoreValue.rackData;
 
-        final rackWidth = data.rackWidth ?? 5;
-        final rackHeight = data.rackHeight ?? 1;
+        final rackWidth = data.rackWidth ?? CagesGridConstants.defaultRackWidth;
+        final rackHeight =
+            data.rackHeight ?? CagesGridConstants.defaultRackHeight;
         final maxCages = rackWidth * rackHeight;
 
         return Stack(
@@ -326,32 +343,36 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
             if (_isLoadingRack)
               Positioned.fill(
                 child: Container(
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withOpacity(
+                    CagesGridConstants.loadingOverlayOpacity,
+                  ),
                   child: const Center(child: CircularProgressIndicator()),
                 ),
               ),
             InteractiveViewer(
               constrained: false,
               transformationController: _transformationController,
-              minScale: 0.1,
-              maxScale: 4.0,
+              minScale: CagesGridConstants.minScale,
+              maxScale: CagesGridConstants.maxScale,
               scaleEnabled: true,
               panEnabled: true,
               trackpadScrollCausesScale: true,
               child: Padding(
-                padding: const EdgeInsets.only(top: 250),
+                padding: const EdgeInsets.only(
+                  top: CagesGridConstants.gridTopPadding,
+                ),
                 child: SizedBox(
-                  width: 2500,
-                  height: 8000,
+                  width: CagesGridConstants.gridViewWidth,
+                  height: CagesGridConstants.gridViewHeight,
                   child: GridView.builder(
                     controller: _scrollController,
                     itemCount: maxCages,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: rackWidth,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 1.0,
+                      crossAxisSpacing: CagesGridConstants.crossAxisSpacing,
+                      mainAxisSpacing: CagesGridConstants.mainAxisSpacing,
+                      childAspectRatio: CagesGridConstants.childAspectRatio,
                     ),
                     itemBuilder: (context, index) {
                       // Check if index is within bounds of the cages array
@@ -385,7 +406,10 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
               child: MovableFabMenu(
                 controller: _fabController,
                 heroTag: 'cages-grid-zoom-menu',
-                margin: const EdgeInsets.only(right: 24, bottom: 24),
+                margin: EdgeInsets.only(
+                  right: CagesGridConstants.fabMenuMargin,
+                  bottom: CagesGridConstants.fabMenuMargin,
+                ),
                 actions: [
                   FabMenuAction(
                     label: 'Fit to Screen',
@@ -407,9 +431,9 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
             ),
             // Floating bar at the top - placed last to appear on top
             Positioned(
-              top: 16,
-              left: 16,
-              right: 16,
+              top: CagesGridConstants.floatingBarMargin,
+              left: CagesGridConstants.floatingBarMargin,
+              right: CagesGridConstants.floatingBarMargin,
               child: CagesGridFloatingBar(
                 racks: data.racks,
                 selectedRack: _selectedRack,
