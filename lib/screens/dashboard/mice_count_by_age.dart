@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import 'package:fl_chart/fl_chart.dart';
@@ -20,10 +22,6 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
   late final List<dynamic> animalsToWean;
 
   late final List<Map<String, dynamic>> strains;
-  late final List<dynamic> ageData;
-  late final double maxWidth;
-
-  late Map<String, dynamic> selected;
 
   @override
   void initState() {
@@ -38,17 +36,20 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
         (widget.data['animalsToWean'] as List<dynamic>? ?? <dynamic>[]);
 
     strains = animalByAge.cast<Map<String, dynamic>>();
-    selected = strains.firstWhere(
-      (s) => (s['strainUuid'] ?? '') == _selectedStrainUuid,
-      orElse: () => strains.isNotEmpty ? strains.first : <String, dynamic>{},
-    );
-    ageData = (selected['ageData'] as List<dynamic>? ?? <dynamic>[]);
-
-    maxWidth = ageData.length * 20.0;
   }
 
   @override
   Widget build(BuildContext context) {
+    final selected = strains.firstWhere(
+      (s) => (s['strainUuid'] ?? '') == _selectedStrainUuid,
+      orElse: () => strains.isNotEmpty ? strains.first : <String, dynamic>{},
+    );
+    final ageData = (selected['ageData'] as List<dynamic>? ?? <dynamic>[]);
+    final maxWidth = max(
+      MediaQuery.of(context).size.width * 0.85,
+      ageData.length * 20.0,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -201,12 +202,19 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
     border: const Border(bottom: BorderSide(color: Colors.black, width: 1)),
   );
 
-  List<BarChartGroupData> get barGroups => ageData.map((e) {
+  List<BarChartGroupData> get barGroups {
+    final selected = strains.firstWhere(
+      (s) => (s['strainUuid'] ?? '') == _selectedStrainUuid,
+      orElse: () => strains.isNotEmpty ? strains.first : <String, dynamic>{},
+    );
+    final ageData = (selected['ageData'] as List<dynamic>? ?? <dynamic>[]);
+    return ageData.map((e) {
     final int week = (e['ageInWeeks'] as int? ?? 0);
     final int count = (e['count'] as int? ?? 0);
     return BarChartGroupData(
       x: week,
       barRods: [BarChartRodData(toY: count.toDouble())],
     );
-  }).toList();
+    }).toList();
+  }
 }
