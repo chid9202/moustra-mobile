@@ -34,6 +34,10 @@ class CagesGridFloatingBar extends StatefulWidget {
 
 class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
   late TextEditingController _searchController;
+  bool _isSearchExpanded = false;
+
+  // Breakpoint for switching between compact and wide layouts
+  static const double _compactBreakpoint = 600;
 
   @override
   void initState() {
@@ -58,181 +62,273 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
+  void _toggleSearch() {
+    setState(() {
+      _isSearchExpanded = !_isSearchExpanded;
+      if (!_isSearchExpanded) {
+        // Clear search when collapsing
+        _searchController.clear();
+        widget.onSearchQueryChanged('');
+      }
+    });
+  }
+
+  Widget _buildRackSelector() {
+    if (widget.racks == null || widget.racks!.isEmpty) {
+      return const SizedBox.shrink();
+    }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: DropdownButton<RackSimpleDto>(
+        value: widget.selectedRack,
+        hint: const Text('Select Rack'),
+        underline: const SizedBox(),
+        isDense: true,
+        items: widget.racks!.map((rack) {
+          return DropdownMenuItem<RackSimpleDto>(
+            value: rack,
+            child: Text(rack.rackName ?? 'Unnamed Rack'),
+          );
+        }).toList(),
+        onChanged: (rack) {
+          if (rack != null) {
+            widget.onRackSelected(rack);
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildSettingsButton() {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.settings),
+      onSelected: (value) {
+        if (value == 'add') {
+          widget.onAddRack();
+        } else if (value == 'edit') {
+          widget.onEditRack();
+        }
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'add',
+          child: Row(
+            children: [
+              Icon(Icons.add, size: 20),
+              SizedBox(width: 8),
+              Text('Add Rack'),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'edit',
+          child: Row(
+            children: [
+              Icon(Icons.edit, size: 20),
+              SizedBox(width: 8),
+              Text('Edit Rack'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchTypeDropdown() {
+    return DropdownButton<String>(
+      value: widget.searchType,
+      underline: const SizedBox(),
+      isDense: true,
+      items: const [
+        DropdownMenuItem(
+          value: CagesGridConstants.searchTypeAnimalTag,
+          child: Text(CagesGridConstants.searchTypeAnimalTag),
+        ),
+        DropdownMenuItem(
+          value: CagesGridConstants.searchTypeCageTag,
+          child: Text(CagesGridConstants.searchTypeCageTag),
+        ),
+      ],
+      onChanged: (value) {
+        if (value != null) {
+          widget.onSearchTypeChanged(value);
+        }
+      },
+    );
+  }
+
+  Widget _buildSearchField({double? maxWidth}) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(minWidth: 80, maxWidth: maxWidth ?? 150),
+      child: TextField(
+        controller: _searchController,
+        onChanged: widget.onSearchQueryChanged,
+        autofocus: true,
+        decoration: const InputDecoration(
+          hintText: 'Search...',
+          border: InputBorder.none,
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildZoomIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.zoom_in,
+            size: 16,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${(widget.zoomLevel * 100).toStringAsFixed(0)}%',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    );
+  }
+
+  Widget _buildSearchIconButton() {
+    final hasActiveSearch = widget.searchQuery.isNotEmpty;
+    return IconButton(
+      icon: Icon(
+        Icons.search,
+        color: hasActiveSearch ? Theme.of(context).colorScheme.primary : null,
+      ),
+      onPressed: _toggleSearch,
+      tooltip: 'Search',
+    );
+  }
+
+  Widget _buildWideLayout() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Left side: Rack selector and settings
+        Row(
+          children: [
+            _buildRackSelector(),
+            const SizedBox(width: 8),
+            _buildSettingsButton(),
+          ],
+        ),
+        // Right side: Search and zoom
+        Row(
+          children: [
+            // Search bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildSearchTypeDropdown(),
+                  const SizedBox(width: 8),
+                  _buildSearchField(maxWidth: 150),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            _buildZoomIndicator(),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactLayout() {
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Left side: Rack selector and settings
+          // Main row: Rack selector, settings, search icon, and zoom
           Row(
             children: [
-              // Rack selector dropdown
-              if (widget.racks != null && widget.racks!.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: DropdownButton<RackSimpleDto>(
-                    value: widget.selectedRack,
-                    hint: const Text('Select Rack'),
-                    underline: const SizedBox(),
-                    isDense: true,
-                    items: widget.racks!.map((rack) {
-                      return DropdownMenuItem<RackSimpleDto>(
-                        value: rack,
-                        child: Text(rack.rackName ?? 'Unnamed Rack'),
-                      );
-                    }).toList(),
-                    onChanged: (rack) {
-                      if (rack != null) {
-                        widget.onRackSelected(rack);
-                      }
-                    },
-                  ),
-                ),
+              Expanded(child: _buildRackSelector()),
+              _buildSettingsButton(),
+              _buildSearchIconButton(),
               const SizedBox(width: 8),
-              // Settings button
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.settings),
-                onSelected: (value) {
-                  if (value == 'add') {
-                    widget.onAddRack();
-                  } else if (value == 'edit') {
-                    widget.onEditRack();
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'add',
-                    child: Row(
-                      children: [
-                        Icon(Icons.add, size: 20),
-                        SizedBox(width: 8),
-                        Text('Add Rack'),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(Icons.edit, size: 20),
-                        SizedBox(width: 8),
-                        Text('Edit Rack'),
-                      ],
-                    ),
+              _buildZoomIndicator(),
+            ],
+          ),
+          // Expandable search row
+          if (_isSearchExpanded) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                children: [
+                  _buildSearchTypeDropdown(),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildSearchField(maxWidth: double.infinity)),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 20),
+                    onPressed: _toggleSearch,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: 'Close search',
                   ),
                 ],
               ),
-            ],
-          ),
-          // Right side: Search and zoom
-          Row(
-            children: [
-              // Search bar
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Search type dropdown
-                    DropdownButton<String>(
-                      value: widget.searchType,
-                      underline: const SizedBox(),
-                      isDense: true,
-                      items: const [
-                        DropdownMenuItem(
-                          value: CagesGridConstants.searchTypeAnimalTag,
-                          child: Text(CagesGridConstants.searchTypeAnimalTag),
-                        ),
-                        DropdownMenuItem(
-                          value: CagesGridConstants.searchTypeCageTag,
-                          child: Text(CagesGridConstants.searchTypeCageTag),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          widget.onSearchTypeChanged(value);
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    // Search text field
-                    SizedBox(
-                      width: 150,
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: widget.onSearchQueryChanged,
-                        decoration: const InputDecoration(
-                          hintText: 'Search...',
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 8,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Zoom percentage
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.zoom_in,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${(widget.zoomLevel * 100).toStringAsFixed(0)}%',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < _compactBreakpoint;
+
+        return Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: isCompact ? 8 : 12,
+          ),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.95),
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: isCompact ? _buildCompactLayout() : _buildWideLayout(),
+        );
+      },
     );
   }
 }
