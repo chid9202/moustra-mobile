@@ -3,6 +3,7 @@ import 'package:moustra/services/clients/rack_api.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/dtos/post_rack_dto.dart';
 import 'package:moustra/services/dtos/put_rack_dto.dart';
+import 'package:moustra/stores/setting_store.dart';
 
 class AddOrUpdateRackDialog extends StatefulWidget {
   final RackDto? rackData;
@@ -20,6 +21,7 @@ class _AddOrUpdateRackDialogState extends State<AddOrUpdateRackDialog> {
   late final TextEditingController _widthController;
   late final TextEditingController _heightController;
   bool _isLoading = false;
+  bool _isLoadingDefaults = false;
 
   bool get _isEdit => widget.rackData != null;
 
@@ -30,11 +32,46 @@ class _AddOrUpdateRackDialogState extends State<AddOrUpdateRackDialog> {
       text: _isEdit ? widget.rackData!.rackName : '',
     );
     _widthController = TextEditingController(
-      text: _isEdit ? (widget.rackData!.rackWidth ?? 5).toString() : '5',
+      text: _isEdit ? (widget.rackData!.rackWidth ?? 5).toString() : '',
     );
     _heightController = TextEditingController(
-      text: _isEdit ? (widget.rackData!.rackHeight ?? 1).toString() : '1',
+      text: _isEdit ? (widget.rackData!.rackHeight ?? 1).toString() : '',
     );
+
+    // Load default values from lab settings for new racks
+    if (!_isEdit) {
+      _loadDefaults();
+    }
+  }
+
+  Future<void> _loadDefaults() async {
+    setState(() => _isLoadingDefaults = true);
+    try {
+      final labSetting = await getLabSettingHook();
+      if (mounted && labSetting != null) {
+        setState(() {
+          _widthController.text = labSetting.defaultRackWidth.toString();
+          _heightController.text = labSetting.defaultRackHeight.toString();
+          _isLoadingDefaults = false;
+        });
+      } else if (mounted) {
+        // Fallback to defaults if settings not available
+        setState(() {
+          _widthController.text = '8';
+          _heightController.text = '10';
+          _isLoadingDefaults = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        // Fallback to defaults on error
+        setState(() {
+          _widthController.text = '8';
+          _heightController.text = '10';
+          _isLoadingDefaults = false;
+        });
+      }
+    }
   }
 
   @override
@@ -124,7 +161,7 @@ class _AddOrUpdateRackDialogState extends State<AddOrUpdateRackDialog> {
       title: Text(_isEdit ? 'Edit Rack' : 'Add Rack'),
       content: Form(
         key: _formKey,
-        child: _isLoading
+        child: _isLoading || _isLoadingDefaults
             ? const SizedBox(
                 height: 100,
                 child: Center(child: CircularProgressIndicator()),
