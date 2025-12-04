@@ -15,6 +15,7 @@ import 'package:moustra/stores/cage_store.dart';
 import 'package:moustra/stores/gene_store.dart';
 import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/stores/rack_store.dart';
+import 'package:moustra/stores/setting_store.dart';
 import 'package:moustra/stores/strain_store.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -85,6 +86,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
           useAlleleStore();
           useRackStore();
           useBackgroundStore();
+          useSettingStore();
         })
         .catchError((e) {
           print(e);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/constants/account_constants.dart';
+import 'package:moustra/screens/settings/lab_settings_tab.dart';
 import 'package:moustra/screens/settings/subscription_tab.dart';
 import 'package:moustra/services/dtos/profile_dto.dart';
 import 'package:moustra/stores/profile_store.dart';
@@ -13,7 +14,7 @@ class SettingsScreen extends StatelessWidget {
       valueListenable: profileState,
       builder: (context, profile, _) {
         final isAdmin = profile?.role == AccountRole.admin.value;
-        final tabCount = isAdmin ? 3 : 2;
+        final tabCount = isAdmin ? 2 : 1;
 
         return DefaultTabController(
           length: tabCount,
@@ -22,20 +23,16 @@ class SettingsScreen extends StatelessWidget {
               TabBar(
                 tabs: [
                   const Tab(text: 'Lab'),
-                  const Tab(text: 'Account'),
                   if (isAdmin) const Tab(text: 'Subscription'),
                 ],
               ),
               Expanded(
                 child: TabBarView(
                   children: [
-                    // Lab tab content - empty for now
-                    const Center(child: Text('Lab settings')),
-                    // Account tab content - empty for now
-                    const Center(child: Text('Account settings')),
+                    // Lab tab content
+                    const LabSettingsTab(),
                     // Subscription tab content - only shown for admins
-                    if (isAdmin)
-                      SubscriptionTab(profile: profile),
+                    if (isAdmin) SubscriptionTab(profile: profile),
                   ],
                 ),
               ),
