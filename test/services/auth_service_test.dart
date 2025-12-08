@@ -1,240 +1,140 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
-import 'package:auth0_flutter/auth0_flutter.dart';
+import 'package:moustra/services/auth_service.dart';
+void main() {
+  group('AppCredentials', () {
+    test('should parse token response correctly', () {
+      // Arrange
+      final tokenResponse = {
+        'access_token': 'test-access-token',
+        'id_token': _createTestIdToken(),
+        'refresh_token': 'test-refresh-token',
+        'expires_in': 3600,
+        'token_type': 'Bearer',
+      };
 
-import 'auth_service_test.mocks.dart';
+      // Act
+      final credentials = AppCredentials.fromTokenResponse(tokenResponse);
 
-// Testable version of AuthService that accepts dependencies
-class TestableAuthService {
-  Credentials? _credentials;
-  final CredentialsManager credentialsManager;
-  final WebAuthentication webAuthentication;
+      // Assert
+      expect(credentials.accessToken, 'test-access-token');
+      expect(credentials.refreshToken, 'test-refresh-token');
+      expect(credentials.idToken, isNotEmpty);
+      expect(
+        credentials.expiresAt.isAfter(DateTime.now()),
+        true,
+      );
+    });
 
-  TestableAuthService({
-    required this.credentialsManager,
-    required this.webAuthentication,
+    test('should handle missing refresh token', () {
+      // Arrange
+      final tokenResponse = {
+        'access_token': 'test-access-token',
+        'id_token': _createTestIdToken(),
+        'expires_in': 3600,
+      };
+
+      // Act
+      final credentials = AppCredentials.fromTokenResponse(tokenResponse);
+
+      // Assert
+      expect(credentials.accessToken, 'test-access-token');
+      expect(credentials.refreshToken, isNull);
+    });
   });
 
-  bool get isLoggedIn => _credentials != null;
-  UserProfile? get user => _credentials?.user;
-  String? get accessToken => _credentials?.accessToken;
+  group('AppUserProfile', () {
+    test('should parse user from ID token', () {
+      // Arrange
+      final idToken = _createTestIdToken(
+        email: 'test@example.com',
+        givenName: 'Test',
+        familyName: 'User',
+      );
 
-  Future<void> init() async {
-    try {
-      final has = await credentialsManager.hasValidCredentials();
+      // Act
+      final user = AppUserProfile.fromIdToken(idToken);
 
-      if (has) {
-        _credentials = await credentialsManager.credentials();
-      } else {
-        _credentials = null; // first run / logged out
-      }
-    } catch (e) {
-      // Treat as logged-out; the "no credentials" case is expected on first run
-      _credentials = null;
-    }
-  }
+      // Assert
+      expect(user.email, 'test@example.com');
+      expect(user.givenName, 'Test');
+      expect(user.familyName, 'User');
+    });
 
-  Future<Credentials?> login() async {
-    final params = <String, String>{'scope': 'openid profile email'};
-    params['audience'] = 'test-audience';
-    params['connection'] = 'test-connection';
-    params['prompt'] = 'login';
+    test('should handle invalid ID token gracefully', () {
+      // Act
+      final user = AppUserProfile.fromIdToken('invalid-token');
 
-    final credentials = await webAuthentication.login(parameters: params);
-    _credentials = credentials;
-    await credentialsManager.storeCredentials(credentials);
-    return _credentials;
-  }
+      // Assert
+      expect(user.email, isNull);
+      expect(user.givenName, isNull);
+    });
 
-  Future<void> logout() async {
-    await webAuthentication.logout();
-    credentialsManager.clearCredentials();
-    _credentials = null;
-  }
+    test('should handle malformed JWT gracefully', () {
+      // Act
+      final user = AppUserProfile.fromIdToken('part1.part2');
+
+      // Assert
+      expect(user.email, isNull);
+    });
+  });
+
+  group('AuthService', () {
+    test('should initialize with isLoggedIn false', () async {
+      // Arrange
+      final authService = AuthService();
+
+      // Act
+      await authService.init();
+
+      // Assert
+      expect(authService.isLoggedIn, false);
+      expect(authService.user, isNull);
+      expect(authService.accessToken, isNull);
+    });
+
+    test('should return null user when not logged in', () {
+      // Arrange
+      final authService = AuthService();
+
+      // Assert
+      expect(authService.user, isNull);
+    });
+
+    test('should return null accessToken when not logged in', () {
+      // Arrange
+      final authService = AuthService();
+
+      // Assert
+      expect(authService.accessToken, isNull);
+    });
+  });
 }
 
-@GenerateMocks([CredentialsManager, WebAuthentication, Credentials])
-void main() {
-  group('AuthService Tests', () {
-    late TestableAuthService authService;
-    late MockCredentialsManager mockCredentialsManager;
-    late MockWebAuthentication mockWebAuthentication;
-    late MockCredentials mockCredentials;
+/// Creates a test ID token with the given claims
+String _createTestIdToken({
+  String? email,
+  String? givenName,
+  String? familyName,
+  String? name,
+  String? sub,
+}) {
+  final header = {'alg': 'HS256', 'typ': 'JWT'};
+  final payload = {
+    if (email != null) 'email': email,
+    if (givenName != null) 'given_name': givenName,
+    if (familyName != null) 'family_name': familyName,
+    if (name != null) 'name': name,
+    if (sub != null) 'sub': sub,
+    'iat': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    'exp':
+        DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch ~/
+        1000,
+  };
 
-    setUp(() {
-      mockCredentialsManager = MockCredentialsManager();
-      mockWebAuthentication = MockWebAuthentication();
-      mockCredentials = MockCredentials();
-      authService = TestableAuthService(
-        credentialsManager: mockCredentialsManager,
-        webAuthentication: mockWebAuthentication,
-      );
-    });
+  final headerB64 = base64Url.encode(utf8.encode(jsonEncode(header)));
+  final payloadB64 = base64Url.encode(utf8.encode(jsonEncode(payload)));
+  final signature = 'test-signature';
 
-    group('isLoggedIn', () {
-      test('should return false when credentials are null', () {
-        // Act & Assert
-        expect(authService.isLoggedIn, false);
-      });
-
-      test('should return true when credentials are not null', () async {
-        // Arrange
-        when(
-          mockCredentialsManager.hasValidCredentials(),
-        ).thenAnswer((_) async => true);
-        when(
-          mockCredentialsManager.credentials(),
-        ).thenAnswer((_) async => mockCredentials);
-        await authService.init();
-
-        // Act & Assert
-        expect(authService.isLoggedIn, true);
-      });
-    });
-
-    group('user', () {
-      test('should return null when credentials are null', () {
-        // Act & Assert
-        expect(authService.user, null);
-      });
-
-      test('should return user when credentials are not null', () async {
-        // Arrange
-        final mockUser = UserProfile(
-          sub: 'test-sub',
-          name: 'Test User',
-          email: 'test@example.com',
-        );
-        when(mockCredentials.user).thenReturn(mockUser);
-        when(
-          mockCredentialsManager.hasValidCredentials(),
-        ).thenAnswer((_) async => true);
-        when(
-          mockCredentialsManager.credentials(),
-        ).thenAnswer((_) async => mockCredentials);
-        await authService.init();
-
-        // Act & Assert
-        expect(authService.user, mockUser);
-      });
-    });
-
-    group('accessToken', () {
-      test('should return null when credentials are null', () {
-        // Act & Assert
-        expect(authService.accessToken, null);
-      });
-
-      test(
-        'should return access token when credentials are not null',
-        () async {
-          // Arrange
-          when(mockCredentials.accessToken).thenReturn('test-token');
-          when(
-            mockCredentialsManager.hasValidCredentials(),
-          ).thenAnswer((_) async => true);
-          when(
-            mockCredentialsManager.credentials(),
-          ).thenAnswer((_) async => mockCredentials);
-          await authService.init();
-
-          // Act & Assert
-          expect(authService.accessToken, 'test-token');
-        },
-      );
-    });
-
-    group('init', () {
-      test('should initialize with valid credentials', () async {
-        // Arrange
-        when(
-          mockCredentialsManager.hasValidCredentials(),
-        ).thenAnswer((_) async => true);
-        when(
-          mockCredentialsManager.credentials(),
-        ).thenAnswer((_) async => mockCredentials);
-
-        // Act
-        await authService.init();
-
-        // Assert
-        expect(authService.isLoggedIn, true);
-        verify(mockCredentialsManager.hasValidCredentials()).called(1);
-        verify(mockCredentialsManager.credentials()).called(1);
-      });
-
-      test('should initialize without credentials when invalid', () async {
-        // Arrange
-        when(
-          mockCredentialsManager.hasValidCredentials(),
-        ).thenAnswer((_) async => false);
-
-        // Act
-        await authService.init();
-
-        // Assert
-        expect(authService.isLoggedIn, false);
-        verify(mockCredentialsManager.hasValidCredentials()).called(1);
-        verifyNever(mockCredentialsManager.credentials());
-      });
-
-      test('should handle exceptions during initialization', () async {
-        // Arrange
-        when(
-          mockCredentialsManager.hasValidCredentials(),
-        ).thenThrow(Exception('Test exception'));
-
-        // Act
-        await authService.init();
-
-        // Assert
-        expect(authService.isLoggedIn, false);
-        verify(mockCredentialsManager.hasValidCredentials()).called(1);
-      });
-    });
-
-    group('login', () {
-      test('should perform login and store credentials', () async {
-        // Arrange
-        when(
-          mockWebAuthentication.login(parameters: anyNamed('parameters')),
-        ).thenAnswer((_) async => mockCredentials);
-        when(
-          mockCredentialsManager.storeCredentials(any),
-        ).thenAnswer((_) async => true);
-
-        // Act
-        final result = await authService.login();
-
-        // Assert
-        expect(result, mockCredentials);
-        expect(authService.isLoggedIn, true);
-        verify(
-          mockWebAuthentication.login(parameters: anyNamed('parameters')),
-        ).called(1);
-        verify(
-          mockCredentialsManager.storeCredentials(mockCredentials),
-        ).called(1);
-      });
-    });
-
-    group('logout', () {
-      test('should perform logout and clear credentials', () async {
-        // Arrange
-        when(mockWebAuthentication.logout()).thenAnswer((_) async {});
-        when(
-          mockCredentialsManager.clearCredentials(),
-        ).thenAnswer((_) async => true);
-
-        // Act
-        await authService.logout();
-
-        // Assert
-        expect(authService.isLoggedIn, false);
-        verify(mockWebAuthentication.logout()).called(1);
-        verify(mockCredentialsManager.clearCredentials()).called(1);
-      });
-    });
-  });
+  return '$headerB64.$payloadB64.$signature';
 }
