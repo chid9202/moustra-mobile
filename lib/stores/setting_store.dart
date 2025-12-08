@@ -27,3 +27,4 @@ Future<void> refreshSettingStore() async {
   final value = await settingApi.getSetting();
   settingStore.value = value;
 }
+
