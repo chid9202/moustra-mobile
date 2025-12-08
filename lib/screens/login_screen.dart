@@ -237,16 +237,12 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
       _error = null;
     });
 
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
     try {
       if (!mounted) return;
-      final email = _emailController.text.trim();
-      final password = _passwordController.text;
-
       await authService.loginWithPassword(email, password);
-
-      // Always save credentials securely for convenience
-      await SecureStore.saveLoginCredentials(email, password);
-
       // If login succeeds, the auth listener will handle loading state
       // through _postLogin() until navigation completes
     } catch (e) {
@@ -261,6 +257,17 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
           _loading = false;
         });
       }
+      return; // Don't save credentials if login failed
+    }
+
+    // Save credentials after successful login (separate try-catch so storage
+    // failures don't block the login flow)
+    try {
+      await SecureStore.saveLoginCredentials(email, password);
+    } catch (e) {
+      // Silently fail - credential saving is a convenience feature,
+      // not critical to the login flow
+      print('[LoginScreen] Failed to save credentials: $e');
     }
   }
 

@@ -16,7 +16,6 @@ class SecureStore {
   static const String _keyExpiresAt = 'expires_at';
   static const String _keySavedEmail = 'saved_email';
   static const String _keySavedPassword = 'saved_password';
-  static const String _keyRememberMe = 'remember_me';
 
   /// Save refresh token securely
   static Future<void> saveRefreshToken(String token) async {
@@ -76,17 +75,15 @@ class SecureStore {
 
   /// Clear all stored tokens (keeps saved login credentials)
   static Future<void> clearAll() async {
-    // Save remember me credentials before clearing
+    // Save login credentials before clearing
     final savedEmail = await getSavedEmail();
     final savedPassword = await getSavedPassword();
-    final rememberMe = await getRememberMe();
 
     await _storage.deleteAll();
 
-    // Restore remember me credentials if they existed
-    if (rememberMe == true && savedEmail != null) {
+    // Restore saved login credentials if they existed
+    if (savedEmail != null && savedEmail.isNotEmpty) {
       await saveLoginCredentials(savedEmail, savedPassword ?? '');
-      await setRememberMe(true);
     }
   }
 
@@ -109,21 +106,9 @@ class SecureStore {
     return await _storage.read(key: _keySavedPassword);
   }
 
-  /// Set remember me preference
-  static Future<void> setRememberMe(bool value) async {
-    await _storage.write(key: _keyRememberMe, value: value.toString());
-  }
-
-  /// Get remember me preference
-  static Future<bool> getRememberMe() async {
-    final value = await _storage.read(key: _keyRememberMe);
-    return value == 'true';
-  }
-
   /// Clear saved login credentials
   static Future<void> clearSavedCredentials() async {
     await _storage.delete(key: _keySavedEmail);
     await _storage.delete(key: _keySavedPassword);
-    await _storage.delete(key: _keyRememberMe);
   }
 }
