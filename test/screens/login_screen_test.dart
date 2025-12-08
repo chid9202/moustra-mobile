@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
-import 'package:mockito/mockito.dart';
 import 'package:moustra/screens/login_screen.dart';
-import 'package:moustra/services/auth_service.dart';
 import '../test_helpers/test_helpers.dart';
 
 void main() {
@@ -15,7 +12,7 @@ void main() {
 
       // Check for main elements
       expect(find.text('Welcome to Moustra'), findsOneWidget);
-      expect(find.text('Sign in'), findsOneWidget);
+      expect(find.text('Sign In'), findsOneWidget);
       expect(find.byType(Image), findsOneWidget);
     });
 
@@ -33,7 +30,7 @@ void main() {
     testWidgets('shows sign in button', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
 
-      final signInButton = find.text('Sign in');
+      final signInButton = find.text('Sign In');
       expect(signInButton, findsOneWidget);
 
       // Button should be enabled by default
@@ -41,6 +38,17 @@ void main() {
         find.ancestor(of: signInButton, matching: find.byType(FilledButton)),
       );
       expect(button.onPressed, isNotNull);
+    });
+
+    testWidgets('shows email and password fields', (WidgetTester tester) async {
+      await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+
+      // Check for email field
+      expect(find.text('Email'), findsOneWidget);
+      expect(find.byType(TextFormField), findsNWidgets(2));
+
+      // Check for password field
+      expect(find.text('Password'), findsOneWidget);
     });
 
     testWidgets('has proper layout structure', (WidgetTester tester) async {
@@ -55,8 +63,8 @@ void main() {
       // Check for constrained box
       expect(find.byType(ConstrainedBox), findsAtLeastNWidgets(1));
 
-      // Check for main column
-      expect(find.byType(Column), findsAtLeastNWidgets(1));
+      // Check for form
+      expect(find.byType(Form), findsOneWidget);
     });
 
     testWidgets('displays welcome text with proper styling', (
@@ -70,7 +78,12 @@ void main() {
       final textWidget = tester.widget<Text>(welcomeText);
       expect(textWidget.style?.fontSize, 28.0);
       expect(textWidget.style?.fontWeight, FontWeight.bold);
-      expect(textWidget.style?.color, Colors.black87);
+    });
+
+    testWidgets('displays subtitle', (WidgetTester tester) async {
+      await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+
+      expect(find.text('Sign in to continue'), findsOneWidget);
     });
 
     testWidgets('has proper spacing between elements', (
@@ -82,10 +95,15 @@ void main() {
       expect(find.byType(SizedBox), findsAtLeastNWidgets(3));
     });
 
-    testWidgets('handles button tap', (WidgetTester tester) async {
+    testWidgets('handles sign in button tap', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
 
-      final signInButton = find.text('Sign in');
+      // First fill in email and password
+      await tester.enterText(find.byType(TextFormField).first, 'test@test.com');
+      await tester.enterText(find.byType(TextFormField).last, 'password123');
+      await tester.pump();
+
+      final signInButton = find.text('Sign In');
       await tester.tap(signInButton);
       await tester.pump();
 
@@ -102,7 +120,7 @@ void main() {
       expect(find.byType(Semantics), findsAtLeastNWidgets(1));
 
       // Check for proper button semantics
-      final signInButton = find.text('Sign in');
+      final signInButton = find.text('Sign In');
       expect(signInButton, findsOneWidget);
     });
 
@@ -141,12 +159,11 @@ void main() {
       final constrainedBoxes = find.byType(ConstrainedBox);
       expect(constrainedBoxes, findsAtLeastNWidgets(1));
 
-      // Find the specific constrained box with max width 360
-      // We need to find the one that has the 360.0 maxWidth constraint
+      // Find the specific constrained box with max width 400
       bool foundCorrectBox = false;
       for (int i = 0; i < constrainedBoxes.evaluate().length; i++) {
         final box = tester.widget<ConstrainedBox>(constrainedBoxes.at(i));
-        if (box.constraints.maxWidth == 360.0) {
+        if (box.constraints.maxWidth == 400.0) {
           foundCorrectBox = true;
           break;
         }
@@ -165,6 +182,75 @@ void main() {
       // Test that the screen can be rebuilt
       await tester.pump();
       expect(find.byType(LoginScreen), findsOneWidget);
+    });
+
+    testWidgets('password visibility toggle works', (
+      WidgetTester tester,
+    ) async {
+      await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+
+      // Find the visibility toggle button
+      final visibilityIcon = find.byIcon(Icons.visibility_outlined);
+      expect(visibilityIcon, findsOneWidget);
+
+      // Tap to toggle visibility
+      await tester.tap(visibilityIcon);
+      await tester.pump();
+
+      // Should now show visibility_off icon
+      expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
+    });
+
+    testWidgets('validates email format', (WidgetTester tester) async {
+      await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+
+      // Enter invalid email (no @ symbol)
+      await tester.enterText(find.byType(TextFormField).first, 'invalid-email');
+      await tester.pump();
+
+      // Tap sign in to trigger validation
+      final signInButton = find.text('Sign In');
+      await tester.tap(signInButton);
+      await tester.pump();
+
+      // Should show validation error
+      expect(find.text('Please enter a valid email'), findsOneWidget);
+    });
+
+    testWidgets('accepts email with plus sign', (WidgetTester tester) async {
+      await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+
+      // Enter email with + (valid for aliasing)
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'admin+29917@moustra',
+      );
+      await tester.enterText(find.byType(TextFormField).last, 'password123');
+      await tester.pump();
+
+      // Tap sign in to trigger validation
+      final signInButton = find.text('Sign In');
+      await tester.tap(signInButton);
+      await tester.pump();
+
+      // Should NOT show email validation error
+      expect(find.text('Please enter a valid email'), findsNothing);
+    });
+
+    testWidgets('validates password required', (WidgetTester tester) async {
+      await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+
+      // Enter valid email but no password
+      await tester.enterText(find.byType(TextFormField).first, 'test@test.com');
+      await tester.pump();
+
+      // Tap sign in to trigger validation
+      final signInButton = find.text('Sign In');
+      await tester.tap(signInButton);
+      await tester.pump();
+
+      // Should show validation error
+      expect(find.text('Password is required'), findsOneWidget);
     });
   });
 }

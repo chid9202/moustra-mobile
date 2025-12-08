@@ -3,11 +3,11 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
+import 'dart:async' as _i3;
+import 'dart:convert' as _i4;
+import 'dart:typed_data' as _i6;
 
-import 'package:auth0_flutter/auth0_flutter.dart' as _i3;
-import 'package:auth0_flutter_platform_interface/auth0_flutter_platform_interface.dart'
-    as _i2;
+import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i5;
 
@@ -26,240 +26,195 @@ import 'package:mockito/src/dummies.dart' as _i5;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
-class _FakeCredentials_0 extends _i1.SmartFake implements _i2.Credentials {
-  _FakeCredentials_0(Object parent, Invocation parentInvocation)
+class _FakeResponse_0 extends _i1.SmartFake implements _i2.Response {
+  _FakeResponse_0(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeDateTime_1 extends _i1.SmartFake implements DateTime {
-  _FakeDateTime_1(Object parent, Invocation parentInvocation)
+class _FakeStreamedResponse_1 extends _i1.SmartFake
+    implements _i2.StreamedResponse {
+  _FakeStreamedResponse_1(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeUserProfile_2 extends _i1.SmartFake implements _i2.UserProfile {
-  _FakeUserProfile_2(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-/// A class which mocks [CredentialsManager].
+/// A class which mocks [Client].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCredentialsManager extends _i1.Mock
-    implements _i3.CredentialsManager {
-  MockCredentialsManager() {
+class MockClient extends _i1.Mock implements _i2.Client {
+  MockClient() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<_i2.Credentials> credentials({
-    int? minTtl = 0,
-    Set<String>? scopes = const {},
-    Map<String, String>? parameters = const {},
-  }) =>
+  _i3.Future<_i2.Response> head(Uri? url, {Map<String, String>? headers}) =>
       (super.noSuchMethod(
-            Invocation.method(#credentials, [], {
-              #minTtl: minTtl,
-              #scopes: scopes,
-              #parameters: parameters,
-            }),
-            returnValue: _i4.Future<_i2.Credentials>.value(
-              _FakeCredentials_0(
+            Invocation.method(#head, [url], {#headers: headers}),
+            returnValue: _i3.Future<_i2.Response>.value(
+              _FakeResponse_0(
                 this,
-                Invocation.method(#credentials, [], {
-                  #minTtl: minTtl,
-                  #scopes: scopes,
-                  #parameters: parameters,
-                }),
+                Invocation.method(#head, [url], {#headers: headers}),
               ),
             ),
           )
-          as _i4.Future<_i2.Credentials>);
+          as _i3.Future<_i2.Response>);
 
   @override
-  _i4.Future<_i2.Credentials> renewCredentials({
-    Map<String, String>? parameters = const {},
-  }) =>
+  _i3.Future<_i2.Response> get(Uri? url, {Map<String, String>? headers}) =>
       (super.noSuchMethod(
-            Invocation.method(#renewCredentials, [], {#parameters: parameters}),
-            returnValue: _i4.Future<_i2.Credentials>.value(
-              _FakeCredentials_0(
+            Invocation.method(#get, [url], {#headers: headers}),
+            returnValue: _i3.Future<_i2.Response>.value(
+              _FakeResponse_0(
                 this,
-                Invocation.method(#renewCredentials, [], {
-                  #parameters: parameters,
-                }),
+                Invocation.method(#get, [url], {#headers: headers}),
               ),
             ),
           )
-          as _i4.Future<_i2.Credentials>);
+          as _i3.Future<_i2.Response>);
 
   @override
-  _i4.Future<bool> storeCredentials(_i2.Credentials? credentials) =>
-      (super.noSuchMethod(
-            Invocation.method(#storeCredentials, [credentials]),
-            returnValue: _i4.Future<bool>.value(false),
-          )
-          as _i4.Future<bool>);
-
-  @override
-  _i4.Future<bool> hasValidCredentials({int? minTtl = 0}) =>
-      (super.noSuchMethod(
-            Invocation.method(#hasValidCredentials, [], {#minTtl: minTtl}),
-            returnValue: _i4.Future<bool>.value(false),
-          )
-          as _i4.Future<bool>);
-
-  @override
-  _i4.Future<bool> clearCredentials() =>
-      (super.noSuchMethod(
-            Invocation.method(#clearCredentials, []),
-            returnValue: _i4.Future<bool>.value(false),
-          )
-          as _i4.Future<bool>);
-}
-
-/// A class which mocks [WebAuthentication].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockWebAuthentication extends _i1.Mock implements _i3.WebAuthentication {
-  MockWebAuthentication() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i4.Future<_i2.Credentials> login({
-    String? audience,
-    Set<String>? scopes = const {
-      'openid',
-      'profile',
-      'email',
-      'offline_access',
-    },
-    String? redirectUrl,
-    String? organizationId,
-    String? invitationUrl,
-    bool? useHTTPS = false,
-    List<String>? allowedBrowsers = const [],
-    bool? useEphemeralSession = false,
-    Map<String, String>? parameters = const {},
-    _i2.IdTokenValidationConfig? idTokenValidationConfig =
-        const _i2.IdTokenValidationConfig(),
-    _i2.SafariViewController? safariViewController,
+  _i3.Future<_i2.Response> post(
+    Uri? url, {
+    Map<String, String>? headers,
+    Object? body,
+    _i4.Encoding? encoding,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#login, [], {
-              #audience: audience,
-              #scopes: scopes,
-              #redirectUrl: redirectUrl,
-              #organizationId: organizationId,
-              #invitationUrl: invitationUrl,
-              #useHTTPS: useHTTPS,
-              #allowedBrowsers: allowedBrowsers,
-              #useEphemeralSession: useEphemeralSession,
-              #parameters: parameters,
-              #idTokenValidationConfig: idTokenValidationConfig,
-              #safariViewController: safariViewController,
-            }),
-            returnValue: _i4.Future<_i2.Credentials>.value(
-              _FakeCredentials_0(
+            Invocation.method(
+              #post,
+              [url],
+              {#headers: headers, #body: body, #encoding: encoding},
+            ),
+            returnValue: _i3.Future<_i2.Response>.value(
+              _FakeResponse_0(
                 this,
-                Invocation.method(#login, [], {
-                  #audience: audience,
-                  #scopes: scopes,
-                  #redirectUrl: redirectUrl,
-                  #organizationId: organizationId,
-                  #invitationUrl: invitationUrl,
-                  #useHTTPS: useHTTPS,
-                  #allowedBrowsers: allowedBrowsers,
-                  #useEphemeralSession: useEphemeralSession,
-                  #parameters: parameters,
-                  #idTokenValidationConfig: idTokenValidationConfig,
-                  #safariViewController: safariViewController,
-                }),
+                Invocation.method(
+                  #post,
+                  [url],
+                  {#headers: headers, #body: body, #encoding: encoding},
+                ),
               ),
             ),
           )
-          as _i4.Future<_i2.Credentials>);
+          as _i3.Future<_i2.Response>);
 
   @override
-  _i4.Future<void> logout({String? returnTo, bool? useHTTPS = false}) =>
+  _i3.Future<_i2.Response> put(
+    Uri? url, {
+    Map<String, String>? headers,
+    Object? body,
+    _i4.Encoding? encoding,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#logout, [], {
-              #returnTo: returnTo,
-              #useHTTPS: useHTTPS,
-            }),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
-          )
-          as _i4.Future<void>);
-}
-
-/// A class which mocks [Credentials].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockCredentials extends _i1.Mock implements _i2.Credentials {
-  MockCredentials() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  String get idToken =>
-      (super.noSuchMethod(
-            Invocation.getter(#idToken),
-            returnValue: _i5.dummyValue<String>(
-              this,
-              Invocation.getter(#idToken),
+            Invocation.method(
+              #put,
+              [url],
+              {#headers: headers, #body: body, #encoding: encoding},
+            ),
+            returnValue: _i3.Future<_i2.Response>.value(
+              _FakeResponse_0(
+                this,
+                Invocation.method(
+                  #put,
+                  [url],
+                  {#headers: headers, #body: body, #encoding: encoding},
+                ),
+              ),
             ),
           )
-          as String);
+          as _i3.Future<_i2.Response>);
 
   @override
-  String get accessToken =>
+  _i3.Future<_i2.Response> patch(
+    Uri? url, {
+    Map<String, String>? headers,
+    Object? body,
+    _i4.Encoding? encoding,
+  }) =>
       (super.noSuchMethod(
-            Invocation.getter(#accessToken),
-            returnValue: _i5.dummyValue<String>(
-              this,
-              Invocation.getter(#accessToken),
+            Invocation.method(
+              #patch,
+              [url],
+              {#headers: headers, #body: body, #encoding: encoding},
+            ),
+            returnValue: _i3.Future<_i2.Response>.value(
+              _FakeResponse_0(
+                this,
+                Invocation.method(
+                  #patch,
+                  [url],
+                  {#headers: headers, #body: body, #encoding: encoding},
+                ),
+              ),
             ),
           )
-          as String);
+          as _i3.Future<_i2.Response>);
 
   @override
-  DateTime get expiresAt =>
+  _i3.Future<_i2.Response> delete(
+    Uri? url, {
+    Map<String, String>? headers,
+    Object? body,
+    _i4.Encoding? encoding,
+  }) =>
       (super.noSuchMethod(
-            Invocation.getter(#expiresAt),
-            returnValue: _FakeDateTime_1(this, Invocation.getter(#expiresAt)),
-          )
-          as DateTime);
-
-  @override
-  Set<String> get scopes =>
-      (super.noSuchMethod(Invocation.getter(#scopes), returnValue: <String>{})
-          as Set<String>);
-
-  @override
-  _i2.UserProfile get user =>
-      (super.noSuchMethod(
-            Invocation.getter(#user),
-            returnValue: _FakeUserProfile_2(this, Invocation.getter(#user)),
-          )
-          as _i2.UserProfile);
-
-  @override
-  String get tokenType =>
-      (super.noSuchMethod(
-            Invocation.getter(#tokenType),
-            returnValue: _i5.dummyValue<String>(
-              this,
-              Invocation.getter(#tokenType),
+            Invocation.method(
+              #delete,
+              [url],
+              {#headers: headers, #body: body, #encoding: encoding},
+            ),
+            returnValue: _i3.Future<_i2.Response>.value(
+              _FakeResponse_0(
+                this,
+                Invocation.method(
+                  #delete,
+                  [url],
+                  {#headers: headers, #body: body, #encoding: encoding},
+                ),
+              ),
             ),
           )
-          as String);
+          as _i3.Future<_i2.Response>);
 
   @override
-  Map<String, dynamic> toMap() =>
+  _i3.Future<String> read(Uri? url, {Map<String, String>? headers}) =>
       (super.noSuchMethod(
-            Invocation.method(#toMap, []),
-            returnValue: <String, dynamic>{},
+            Invocation.method(#read, [url], {#headers: headers}),
+            returnValue: _i3.Future<String>.value(
+              _i5.dummyValue<String>(
+                this,
+                Invocation.method(#read, [url], {#headers: headers}),
+              ),
+            ),
           )
-          as Map<String, dynamic>);
+          as _i3.Future<String>);
+
+  @override
+  _i3.Future<_i6.Uint8List> readBytes(
+    Uri? url, {
+    Map<String, String>? headers,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#readBytes, [url], {#headers: headers}),
+            returnValue: _i3.Future<_i6.Uint8List>.value(_i6.Uint8List(0)),
+          )
+          as _i3.Future<_i6.Uint8List>);
+
+  @override
+  _i3.Future<_i2.StreamedResponse> send(_i2.BaseRequest? request) =>
+      (super.noSuchMethod(
+            Invocation.method(#send, [request]),
+            returnValue: _i3.Future<_i2.StreamedResponse>.value(
+              _FakeStreamedResponse_1(
+                this,
+                Invocation.method(#send, [request]),
+              ),
+            ),
+          )
+          as _i3.Future<_i2.StreamedResponse>);
+
+  @override
+  void close() => super.noSuchMethod(
+    Invocation.method(#close, []),
+    returnValueForMissingStub: null,
+  );
 }

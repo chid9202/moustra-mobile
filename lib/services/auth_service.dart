@@ -1,157 +1,185 @@
-import 'package:auth0_flutter/auth0_flutter.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:local_auth/local_auth.dart' as local_auth;
-import 'package:moustra/config/auth0.dart';
 import 'package:moustra/config/env.dart';
 import 'package:moustra/services/secure_store.dart';
 import 'package:moustra/stores/auth_store.dart';
 import 'dart:io' show Platform;
 
+/// Custom credentials class since we're not using auth0_flutter's webAuthentication
+class AppCredentials {
+  final String accessToken;
+  final String idToken;
+  final String? refreshToken;
+  final DateTime expiresAt;
+  final AppUserProfile? user;
+
+  AppCredentials({
+    required this.accessToken,
+    required this.idToken,
+    this.refreshToken,
+    required this.expiresAt,
+    this.user,
+  });
+
+  factory AppCredentials.fromTokenResponse(Map<String, dynamic> json) {
+    final expiresIn = json['expires_in'] as int? ?? 3600;
+    final expiresAt = DateTime.now().add(Duration(seconds: expiresIn));
+
+    AppUserProfile? user;
+    if (json['id_token'] != null) {
+      user = AppUserProfile.fromIdToken(json['id_token'] as String);
+    }
+
+    return AppCredentials(
+      accessToken: json['access_token'] as String,
+      idToken: json['id_token'] as String? ?? '',
+      refreshToken: json['refresh_token'] as String?,
+      expiresAt: expiresAt,
+      user: user,
+    );
+  }
+}
+
+/// User profile parsed from ID token
+class AppUserProfile {
+  final String? email;
+  final String? givenName;
+  final String? familyName;
+  final String? name;
+  final String? picture;
+  final String? sub;
+
+  AppUserProfile({
+    this.email,
+    this.givenName,
+    this.familyName,
+    this.name,
+    this.picture,
+    this.sub,
+  });
+
+  factory AppUserProfile.fromIdToken(String idToken) {
+    try {
+      // Decode JWT payload (middle part)
+      final parts = idToken.split('.');
+      if (parts.length != 3) {
+        return AppUserProfile();
+      }
+
+      // Add padding if needed for base64 decoding
+      String payload = parts[1];
+      while (payload.length % 4 != 0) {
+        payload += '=';
+      }
+
+      final decoded = utf8.decode(base64Url.decode(payload));
+      final Map<String, dynamic> claims = jsonDecode(decoded);
+
+      return AppUserProfile(
+        email: claims['email'] as String?,
+        givenName: claims['given_name'] as String?,
+        familyName: claims['family_name'] as String?,
+        name: claims['name'] as String?,
+        picture: claims['picture'] as String?,
+        sub: claims['sub'] as String?,
+      );
+    } catch (e) {
+      print('[AuthService] Error parsing ID token: $e');
+      return AppUserProfile();
+    }
+  }
+}
+
 class AuthService {
-  Credentials? _credentials;
-  CredentialsManager? _credentialsManager;
+  AppCredentials? _credentials;
   final local_auth.LocalAuthentication _localAuth =
       local_auth.LocalAuthentication();
 
   bool get isLoggedIn => _credentials != null;
-  UserProfile? get user => _credentials?.user;
+  AppUserProfile? get user => _credentials?.user;
   String? get accessToken => _credentials?.accessToken;
-  Credentials? get credentials => _credentials;
-
-  String get _logoutUrl => '${Env.auth0Scheme}://${Env.auth0Domain}/logout';
-
-  // Note: True passwordless Face ID is possible via Auth0 Universal Login with WebAuthn.
-  // This implementation uses biometrics as an unlock mechanism for stored credentials.
+  AppCredentials? get credentials => _credentials;
 
   Future<void> init() async {
-    _credentialsManager = auth0.credentialsManager;
-    // Check for stored refresh token but don't auto-refresh on init
+    // Check for stored tokens but don't auto-login
     // Biometric unlock will be required for security
     final hasRefreshToken = await SecureStore.hasRefreshToken();
     if (hasRefreshToken) {
-      // Optionally check if credentialsManager has valid credentials
-      // but we'll require biometric unlock for security
-      try {
-        final hasValidCreds = await _credentialsManager?.hasValidCredentials();
-        if (hasValidCreds == true) {
-          // Credentials exist but we'll require biometric unlock
-          // Don't set _credentials here - unlockWithBiometrics() will handle it
-        }
-      } catch (e) {
-        // Ignore errors, will require full login
-      }
+      // Tokens exist but we'll require biometric unlock
+      // Don't set _credentials here - unlockWithBiometrics() will handle it
     }
     _credentials = null;
     authState.value = false;
   }
 
-  Future<Credentials?> login() async {
+  /// Login with email and password using ROPG flow
+  /// Returns true on success, throws exception on failure
+  Future<bool> loginWithPassword(String email, String password) async {
     try {
-      final creds = await auth0
-          .webAuthentication(scheme: Env.auth0Scheme)
-          .login(
-            parameters: {
-              'scope': 'openid profile email offline_access',
-              if (Env.auth0Audience.isNotEmpty) 'audience': Env.auth0Audience,
-              if (Env.auth0Connection.isNotEmpty)
-                'connection': Env.auth0Connection,
-            },
+      final response = await http.post(
+        Uri.parse('https://${Env.auth0Domain}/oauth/token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'grant_type': 'http://auth0.com/oauth/grant-type/password-realm',
+          'client_id': Env.auth0ClientId,
+          'username': email,
+          'password': password,
+          'audience': Env.auth0Audience,
+          'scope': 'openid profile email offline_access',
+          'realm': Env.auth0Connection,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> tokenData = jsonDecode(response.body);
+        final creds = AppCredentials.fromTokenResponse(tokenData);
+
+        _credentials = creds;
+
+        // Store tokens securely
+        if (creds.refreshToken != null && creds.refreshToken!.isNotEmpty) {
+          await SecureStore.saveRefreshToken(creds.refreshToken!);
+        } else {
+          print(
+            '[AuthService] WARNING: Refresh token not available. Biometric unlock will not work. '
+            'Check Auth0 settings and offline_access scope.',
           );
-
-      _credentials = creds;
-
-      // Store credentials first
-      await _credentialsManager?.storeCredentials(creds);
-
-      // Store refresh token securely
-      String? refreshTokenToStore;
-
-      // First, try to get from the Credentials object directly
-      if (creds.refreshToken != null && creds.refreshToken!.isNotEmpty) {
-        refreshTokenToStore = creds.refreshToken!;
-      } else {
-        // Wait a brief moment for CredentialsManager to finish storing
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        // Try to get refresh token from credentials manager's stored credentials
-        // The refresh token might only be stored internally by CredentialsManager
-        try {
-          final storedCreds = await _credentialsManager?.credentials();
-          if (storedCreds?.refreshToken != null &&
-              storedCreds!.refreshToken!.isNotEmpty) {
-            refreshTokenToStore = storedCreds.refreshToken!;
-          } else {
-            // Last resort: try to inspect the credentials object more deeply
-            // Some SDKs store refresh token in a map representation
-            try {
-              final credsMap = creds.toMap();
-              if (credsMap.containsKey('refreshToken')) {
-                final tokenValue = credsMap['refreshToken'];
-                if (tokenValue is String && tokenValue.isNotEmpty) {
-                  refreshTokenToStore = tokenValue;
-                } else if (tokenValue != null) {
-                  refreshTokenToStore = tokenValue.toString();
-                }
-              }
-            } catch (e) {
-              print('[Face Login] Error extracting refresh token: $e');
-            }
-          }
-        } catch (e) {
-          print('[Face Login] Error getting stored credentials: $e');
         }
-      }
 
-      if (refreshTokenToStore != null && refreshTokenToStore.isNotEmpty) {
-        await SecureStore.saveRefreshToken(refreshTokenToStore);
+        await SecureStore.saveAccessToken(creds.accessToken);
+        await SecureStore.saveIdToken(creds.idToken);
+        await SecureStore.saveExpiresAt(creds.expiresAt.toIso8601String());
+
+        authState.value = isLoggedIn;
+        return true;
       } else {
-        print(
-          '[Face Login] WARNING: Refresh token not available. Biometric unlock will not work. '
-          'Check Auth0 settings and offline_access scope.',
-        );
+        // Parse error response
+        final Map<String, dynamic> errorData = jsonDecode(response.body);
+        final errorDescription =
+            errorData['error_description'] as String? ??
+            errorData['error'] as String? ??
+            'Login failed';
+        throw Exception(errorDescription);
       }
-
-      // Also store other tokens for reference
-      await SecureStore.saveAccessToken(creds.accessToken);
-      await SecureStore.saveIdToken(creds.idToken);
-      await SecureStore.saveExpiresAt(creds.expiresAt.toIso8601String());
-
-      authState.value = isLoggedIn;
-      return _credentials;
     } catch (e) {
-      print('Login error: $e');
+      print('[AuthService] Login error: $e');
       rethrow;
     }
   }
 
+  /// Logout - clears all stored credentials
   Future<void> logout() async {
     try {
-      await auth0
-          .webAuthentication(scheme: Env.auth0Scheme)
-          .logout(returnTo: _logoutUrl);
+      await SecureStore.clearAll();
     } catch (e) {
-      print('Logout error: $e');
-    } finally {
-      try {
-        await _credentialsManager?.clearCredentials();
-      } catch (e) {
-        print('Error clearing credentials: $e');
-      }
-      try {
-        await SecureStore.clearAll();
-      } catch (e) {
-        print('Error clearing secure storage: $e');
-      }
-      _credentials = null;
-      authState.value = false;
+      print('Error clearing secure storage: $e');
     }
+    _credentials = null;
+    authState.value = false;
   }
 
   Future<void> clearAll() async {
-    try {
-      await _credentialsManager?.clearCredentials();
-    } catch (e) {
-      print('Error clearing credentials: $e');
-    }
     try {
       await SecureStore.clearAll();
     } catch (e) {
@@ -184,8 +212,8 @@ class AuthService {
   }
 
   /// Unlock stored credentials using biometric authentication
-  /// Returns Credentials on success, null on failure/cancel
-  Future<Credentials?> unlockWithBiometrics() async {
+  /// Returns AppCredentials on success, null on failure/cancel
+  Future<AppCredentials?> unlockWithBiometrics() async {
     try {
       // Check if biometrics are available
       if (!await canUseBiometrics()) {
@@ -223,59 +251,58 @@ class AuthService {
       return await _refreshTokens();
     } catch (e) {
       // Handle any authentication errors (user cancelled, failed, etc.)
-      print('[Face Login] Biometric unlock error: $e');
+      print('[AuthService] Biometric unlock error: $e');
       return null;
     }
   }
 
   /// Refresh tokens using stored refresh token
-  /// Assumes Auth0 tenant has Refresh Token Rotation enabled
-  Future<Credentials?> _refreshTokens() async {
+  Future<AppCredentials?> _refreshTokens() async {
     try {
       final refreshToken = await SecureStore.getRefreshToken();
       if (refreshToken == null || refreshToken.isEmpty) {
         // No refresh token, clear storage and force full login
         await SecureStore.clearAll();
-        await _credentialsManager?.clearCredentials();
         return null;
       }
 
-      // Use Auth0 credentials manager to refresh
-      // This handles token refresh and rotation automatically
-      final hasValidCreds = await _credentialsManager?.hasValidCredentials();
-      if (hasValidCreds == true) {
-        // Get refreshed credentials
-        final creds = await _credentialsManager?.credentials();
-        if (creds != null) {
-          _credentials = creds;
+      // Call Auth0 token endpoint with refresh_token grant
+      final response = await http.post(
+        Uri.parse('https://${Env.auth0Domain}/oauth/token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'grant_type': 'refresh_token',
+          'client_id': Env.auth0ClientId,
+          'refresh_token': refreshToken,
+        }),
+      );
 
-          // Update stored tokens
-          if (creds.refreshToken != null && creds.refreshToken!.isNotEmpty) {
-            await SecureStore.saveRefreshToken(creds.refreshToken!);
-          }
-          await SecureStore.saveAccessToken(creds.accessToken);
-          await SecureStore.saveIdToken(creds.idToken);
-          await SecureStore.saveExpiresAt(creds.expiresAt.toIso8601String());
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> tokenData = jsonDecode(response.body);
+        final creds = AppCredentials.fromTokenResponse(tokenData);
 
-          authState.value = true;
-          return _credentials;
+        _credentials = creds;
+
+        // Update stored tokens (refresh token rotation may provide new token)
+        if (creds.refreshToken != null && creds.refreshToken!.isNotEmpty) {
+          await SecureStore.saveRefreshToken(creds.refreshToken!);
         }
+        await SecureStore.saveAccessToken(creds.accessToken);
+        await SecureStore.saveIdToken(creds.idToken);
+        await SecureStore.saveExpiresAt(creds.expiresAt.toIso8601String());
+
+        authState.value = true;
+        return _credentials;
+      } else {
+        // Refresh failed, clear tokens
+        print('[AuthService] Token refresh failed: ${response.body}');
+        await SecureStore.clearAll();
+        return null;
       }
-
-      // If credentials manager doesn't have valid credentials,
-      // we need to manually refresh using the refresh token
-      // This would require making an HTTP call to Auth0's token endpoint
-      // For now, return null to force full login if refresh fails
-
-      // Clear invalid tokens
-      await SecureStore.clearAll();
-      await _credentialsManager?.clearCredentials();
-      return null;
     } catch (e) {
-      print('Token refresh error: $e');
+      print('[AuthService] Token refresh error: $e');
       // Clear tokens on error to force full login
       await SecureStore.clearAll();
-      await _credentialsManager?.clearCredentials();
       return null;
     }
   }
