@@ -190,9 +190,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     Matrix4? savedMatrix = await getSavedTransformationMatrixFromStorage();
 
     // Fall back to in-memory store if SharedPreferences has no data
-    if (savedMatrix == null) {
-      savedMatrix = getSavedTransformationMatrix();
-    }
+    savedMatrix ??= getSavedTransformationMatrix();
 
     if (savedMatrix != null) {
       _transformationController.value = savedMatrix;
