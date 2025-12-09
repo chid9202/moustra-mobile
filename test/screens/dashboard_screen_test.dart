@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:moustra/screens/dashboard_screen.dart';
-import 'package:moustra/services/clients/dashboard_api.dart';
 import '../test_helpers/test_helpers.dart';
 
 void main() {
