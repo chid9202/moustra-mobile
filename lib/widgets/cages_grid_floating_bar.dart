@@ -73,29 +73,6 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
     });
   }
 
-  Widget _buildSearchTypeDropdown() {
-    return DropdownButton<String>(
-      value: widget.searchType,
-      underline: const SizedBox(),
-      isDense: true,
-      items: const [
-        DropdownMenuItem(
-          value: CagesGridConstants.searchTypeAnimalTag,
-          child: Text(CagesGridConstants.searchTypeAnimalTag),
-        ),
-        DropdownMenuItem(
-          value: CagesGridConstants.searchTypeCageTag,
-          child: Text(CagesGridConstants.searchTypeCageTag),
-        ),
-      ],
-      onChanged: (value) {
-        if (value != null) {
-          widget.onSearchTypeChanged(value);
-        }
-      },
-    );
-  }
-
   Widget _buildSearchField({double? maxWidth}) {
     return ConstrainedBox(
       constraints: BoxConstraints(minWidth: 80, maxWidth: maxWidth ?? 150),
@@ -185,7 +162,10 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildSearchTypeDropdown(),
+                  SearchTypeDropdown(
+                    widget.searchType,
+                    onSearchTypeChanged: widget.onSearchTypeChanged,
+                  ),
                   const SizedBox(width: 8),
                   _buildSearchField(maxWidth: 150),
                 ],
@@ -236,7 +216,10 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
               ),
               child: Row(
                 children: [
-                  _buildSearchTypeDropdown(),
+                  SearchTypeDropdown(
+                    widget.searchType,
+                    onSearchTypeChanged: widget.onSearchTypeChanged,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(child: _buildSearchField(maxWidth: double.infinity)),
                   IconButton(
@@ -371,6 +354,41 @@ class SettingsButton extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class SearchTypeDropdown extends StatelessWidget {
+  const SearchTypeDropdown(
+    this.searchType, {
+    required this.onSearchTypeChanged,
+    super.key,
+  });
+
+  final String searchType;
+  final void Function(String) onSearchTypeChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButton<String>(
+      value: searchType,
+      underline: const SizedBox(),
+      isDense: true,
+      items: const [
+        DropdownMenuItem(
+          value: CagesGridConstants.searchTypeAnimalTag,
+          child: Text(CagesGridConstants.searchTypeAnimalTag),
+        ),
+        DropdownMenuItem(
+          value: CagesGridConstants.searchTypeCageTag,
+          child: Text(CagesGridConstants.searchTypeCageTag),
+        ),
+      ],
+      onChanged: (value) {
+        if (value != null) {
+          onSearchTypeChanged(value);
+        }
+      },
     );
   }
 }
