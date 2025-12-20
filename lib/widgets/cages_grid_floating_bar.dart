@@ -73,59 +73,6 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
     });
   }
 
-  Widget _buildWideLayout() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // Left side: Rack selector and settings
-        Row(
-          children: [
-            RackSelector(
-              widget.racks,
-              onRackSelected: widget.onRackSelected,
-              selectedRack: widget.selectedRack,
-            ),
-            const SizedBox(width: 8),
-            SettingsButton(
-              onAddRack: widget.onAddRack,
-              onEditRack: widget.onEditRack,
-            ),
-          ],
-        ),
-        // Right side: Search and zoom
-        Row(
-          children: [
-            // Search bar
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SearchTypeDropdown(
-                    widget.searchType,
-                    onSearchTypeChanged: widget.onSearchTypeChanged,
-                  ),
-                  const SizedBox(width: 8),
-                  SearchField(
-                    _searchController,
-                    onSearchQueryChanged: widget.onSearchQueryChanged,
-                    maxWidth: 150,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
-            ZoomIndicator(widget.zoomLevel),
-          ],
-        ),
-      ],
-    );
-  }
-
   Widget _buildCompactLayout() {
     return AnimatedSize(
       duration: const Duration(milliseconds: 200),
@@ -213,7 +160,18 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
               ),
             ],
           ),
-          child: isCompact ? _buildCompactLayout() : _buildWideLayout(),
+          child: isCompact
+              ? _buildCompactLayout()
+              : WideLayout(
+                  searchController: _searchController,
+                  onRackSelected: widget.onRackSelected,
+                  onAddRack: widget.onAddRack,
+                  onEditRack: widget.onEditRack,
+                  searchType: widget.searchType,
+                  onSearchTypeChanged: widget.onSearchTypeChanged,
+                  onSearchQueryChanged: widget.onSearchQueryChanged,
+                  zoomLevel: widget.zoomLevel,
+                ),
         );
       },
     );
@@ -432,6 +390,84 @@ class SearchIconButton extends StatelessWidget {
       ),
       onPressed: toggleSearch,
       tooltip: 'Search',
+    );
+  }
+}
+
+class WideLayout extends StatelessWidget {
+  const WideLayout({
+    required this.searchController,
+    required this.onRackSelected,
+    required this.onAddRack,
+    required this.onEditRack,
+    required this.searchType,
+    required this.onSearchTypeChanged,
+    required this.onSearchQueryChanged,
+    required this.zoomLevel,
+    this.selectedRack,
+    this.racks,
+    super.key,
+  });
+
+  final TextEditingController searchController;
+  final void Function(RackSimpleDto) onRackSelected;
+  final VoidCallback onAddRack;
+  final VoidCallback onEditRack;
+  final String searchType;
+  final void Function(String) onSearchTypeChanged;
+  final void Function(String) onSearchQueryChanged;
+  final double zoomLevel;
+  final List<RackSimpleDto>? racks;
+  final RackSimpleDto? selectedRack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Left side: Rack selector and settings
+        Row(
+          children: [
+            RackSelector(
+              racks,
+              onRackSelected: onRackSelected,
+              selectedRack: selectedRack,
+            ),
+            const SizedBox(width: 8),
+            SettingsButton(onAddRack: onAddRack, onEditRack: onEditRack),
+          ],
+        ),
+        // Right side: Search and zoom
+        Row(
+          children: [
+            // Search bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SearchTypeDropdown(
+                    searchType,
+                    onSearchTypeChanged: onSearchTypeChanged,
+                  ),
+                  const SizedBox(width: 8),
+                  SearchField(
+                    searchController,
+                    onSearchQueryChanged: onSearchQueryChanged,
+                    maxWidth: 150,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            ZoomIndicator(zoomLevel),
+          ],
+        ),
+      ],
     );
   }
 }
