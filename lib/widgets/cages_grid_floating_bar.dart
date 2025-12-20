@@ -73,71 +73,6 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
     });
   }
 
-  Widget _buildCompactLayout() {
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeInOut,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Main row: Rack selector, settings, search icon, and zoom
-          Row(
-            children: [
-              Expanded(
-                child: RackSelector(
-                  widget.racks,
-                  onRackSelected: widget.onRackSelected,
-                  selectedRack: widget.selectedRack,
-                ),
-              ),
-              SettingsButton(
-                onAddRack: widget.onAddRack,
-                onEditRack: widget.onEditRack,
-              ),
-              SearchIconButton(widget.searchQuery, toggleSearch: _toggleSearch),
-              const SizedBox(width: 8),
-              ZoomIndicator(widget.zoomLevel),
-            ],
-          ),
-          // Expandable search row
-          if (_isSearchExpanded) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Row(
-                children: [
-                  SearchTypeDropdown(
-                    widget.searchType,
-                    onSearchTypeChanged: widget.onSearchTypeChanged,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: SearchField(
-                      _searchController,
-                      onSearchQueryChanged: widget.onSearchQueryChanged,
-                      maxWidth: double.infinity,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 20),
-                    onPressed: _toggleSearch,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    tooltip: 'Close search',
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -161,7 +96,21 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
             ],
           ),
           child: isCompact
-              ? _buildCompactLayout()
+              ? CompactLayout(
+                  searchController: _searchController,
+                  onRackSelected: widget.onRackSelected,
+                  onAddRack: widget.onAddRack,
+                  onEditRack: widget.onEditRack,
+                  searchType: widget.searchType,
+                  searchQuery: widget.searchQuery,
+                  onSearchTypeChanged: widget.onSearchTypeChanged,
+                  onSearchQueryChanged: widget.onSearchQueryChanged,
+                  toggleSearch: _toggleSearch,
+                  zoomLevel: widget.zoomLevel,
+                  selectedRack: widget.selectedRack,
+                  racks: widget.racks,
+                  isSearchExpanded: _isSearchExpanded,
+                )
               : WideLayout(
                   searchController: _searchController,
                   onRackSelected: widget.onRackSelected,
@@ -171,6 +120,8 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
                   onSearchTypeChanged: widget.onSearchTypeChanged,
                   onSearchQueryChanged: widget.onSearchQueryChanged,
                   zoomLevel: widget.zoomLevel,
+                  selectedRack: widget.selectedRack,
+                  racks: widget.racks,
                 ),
         );
       },
@@ -468,6 +419,102 @@ class WideLayout extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class CompactLayout extends StatelessWidget {
+  const CompactLayout({
+    required this.searchController,
+    required this.onRackSelected,
+    required this.onAddRack,
+    required this.onEditRack,
+    required this.searchType,
+    required this.searchQuery,
+    required this.onSearchTypeChanged,
+    required this.onSearchQueryChanged,
+    required this.toggleSearch,
+    required this.zoomLevel,
+    this.isSearchExpanded = false,
+    this.selectedRack,
+    this.racks,
+    super.key,
+  });
+
+  final bool isSearchExpanded;
+  final TextEditingController searchController;
+  final void Function(RackSimpleDto) onRackSelected;
+  final VoidCallback onAddRack;
+  final VoidCallback onEditRack;
+  final String searchType;
+  final String searchQuery;
+  final void Function(String) onSearchTypeChanged;
+  final void Function(String) onSearchQueryChanged;
+  final VoidCallback toggleSearch;
+  final double zoomLevel;
+  final List<RackSimpleDto>? racks;
+  final RackSimpleDto? selectedRack;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Main row: Rack selector, settings, search icon, and zoom
+          Row(
+            children: [
+              Expanded(
+                child: RackSelector(
+                  racks,
+                  onRackSelected: onRackSelected,
+                  selectedRack: selectedRack,
+                ),
+              ),
+              SettingsButton(onAddRack: onAddRack, onEditRack: onEditRack),
+              SearchIconButton(searchQuery, toggleSearch: toggleSearch),
+              const SizedBox(width: 8),
+              ZoomIndicator(zoomLevel),
+            ],
+          ),
+          // Expandable search row
+          if (isSearchExpanded) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                children: [
+                  SearchTypeDropdown(
+                    searchType,
+                    onSearchTypeChanged: onSearchTypeChanged,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: SearchField(
+                      searchController,
+                      onSearchQueryChanged: onSearchQueryChanged,
+                      maxWidth: double.infinity,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 20),
+                    onPressed: toggleSearch,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: 'Close search',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
