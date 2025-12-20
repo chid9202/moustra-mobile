@@ -73,41 +73,6 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
     });
   }
 
-  Widget _buildSettingsButton() {
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.settings),
-      onSelected: (value) {
-        if (value == 'add') {
-          widget.onAddRack();
-        } else if (value == 'edit') {
-          widget.onEditRack();
-        }
-      },
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'add',
-          child: Row(
-            children: [
-              Icon(Icons.add, size: 20),
-              SizedBox(width: 8),
-              Text('Add Rack'),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'edit',
-          child: Row(
-            children: [
-              Icon(Icons.edit, size: 20),
-              SizedBox(width: 8),
-              Text('Edit Rack'),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildSearchTypeDropdown() {
     return DropdownButton<String>(
       value: widget.searchType,
@@ -201,7 +166,10 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
               selectedRack: widget.selectedRack,
             ),
             const SizedBox(width: 8),
-            _buildSettingsButton(),
+            SettingsButton(
+              onAddRack: widget.onAddRack,
+              onEditRack: widget.onEditRack,
+            ),
           ],
         ),
         // Right side: Search and zoom
@@ -248,7 +216,10 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
                   selectedRack: widget.selectedRack,
                 ),
               ),
-              _buildSettingsButton(),
+              SettingsButton(
+                onAddRack: widget.onAddRack,
+                onEditRack: widget.onEditRack,
+              ),
               _buildSearchIconButton(),
               const SizedBox(width: 8),
               _buildZoomIndicator(),
@@ -353,6 +324,53 @@ class RackSelector extends StatelessWidget {
           }
         },
       ),
+    );
+  }
+}
+
+class SettingsButton extends StatelessWidget {
+  const SettingsButton({
+    required this.onAddRack,
+    required this.onEditRack,
+    super.key,
+  });
+
+  final VoidCallback onAddRack;
+  final VoidCallback onEditRack;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.settings),
+      onSelected: (value) {
+        if (value == 'add') {
+          onAddRack();
+        } else if (value == 'edit') {
+          onEditRack();
+        }
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'add',
+          child: Row(
+            children: [
+              Icon(Icons.add, size: 20),
+              SizedBox(width: 8),
+              Text('Add Rack'),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'edit',
+          child: Row(
+            children: [
+              Icon(Icons.edit, size: 20),
+              SizedBox(width: 8),
+              Text('Edit Rack'),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
