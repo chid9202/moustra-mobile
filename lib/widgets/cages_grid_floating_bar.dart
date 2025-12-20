@@ -73,23 +73,6 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
     });
   }
 
-  Widget _buildSearchField({double? maxWidth}) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(minWidth: 80, maxWidth: maxWidth ?? 150),
-      child: TextField(
-        controller: _searchController,
-        onChanged: widget.onSearchQueryChanged,
-        autofocus: true,
-        decoration: const InputDecoration(
-          hintText: 'Search...',
-          border: InputBorder.none,
-          isDense: true,
-          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        ),
-      ),
-    );
-  }
-
   Widget _buildZoomIndicator() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -167,7 +150,11 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
                     onSearchTypeChanged: widget.onSearchTypeChanged,
                   ),
                   const SizedBox(width: 8),
-                  _buildSearchField(maxWidth: 150),
+                  SearchField(
+                    _searchController,
+                    onSearchQueryChanged: widget.onSearchQueryChanged,
+                    maxWidth: 150,
+                  ),
                 ],
               ),
             ),
@@ -221,7 +208,13 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
                     onSearchTypeChanged: widget.onSearchTypeChanged,
                   ),
                   const SizedBox(width: 8),
-                  Expanded(child: _buildSearchField(maxWidth: double.infinity)),
+                  Expanded(
+                    child: SearchField(
+                      _searchController,
+                      onSearchQueryChanged: widget.onSearchQueryChanged,
+                      maxWidth: double.infinity,
+                    ),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.close, size: 20),
                     onPressed: _toggleSearch,
@@ -389,6 +382,37 @@ class SearchTypeDropdown extends StatelessWidget {
           onSearchTypeChanged(value);
         }
       },
+    );
+  }
+}
+
+class SearchField extends StatelessWidget {
+  const SearchField(
+    this._searchController, {
+    required this.onSearchQueryChanged,
+    required this.maxWidth,
+    super.key,
+  });
+
+  final TextEditingController _searchController;
+  final void Function(String) onSearchQueryChanged;
+  final double maxWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(minWidth: 80, maxWidth: maxWidth),
+      child: TextField(
+        controller: _searchController,
+        onChanged: onSearchQueryChanged,
+        autofocus: true,
+        decoration: const InputDecoration(
+          hintText: 'Search...',
+          border: InputBorder.none,
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        ),
+      ),
     );
   }
 }
