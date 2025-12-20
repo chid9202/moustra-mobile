@@ -160,6 +160,7 @@ class RackSelector extends StatelessWidget {
         items: racks!.map((rack) {
           return DropdownMenuItem<RackSimpleDto>(
             value: rack,
+            key: ValueKey('${rack.rackId}'),
             child: Text(rack.rackName ?? 'Unnamed Rack'),
           );
         }).toList(),
