@@ -279,10 +279,6 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     );
   }
 
-  Widget _buildAddCageButton() {
-    return AddCageButton(onTap: _handleAddCage);
-  }
-
   Future<void> _handleAddCage() async {
     final rackUuid = data.rackUuid;
     if (rackUuid == null) {
@@ -378,7 +374,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
 
                       // Show Plus button in the first empty slot if rack is not full
                       if (index == cagesLength && index < maxCages) {
-                        return _buildAddCageButton();
+                        return AddCageButton(onTap: _handleAddCage);
                       }
 
                       if (index >= cagesLength) {
