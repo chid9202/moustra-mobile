@@ -73,34 +73,6 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
     });
   }
 
-  Widget _buildZoomIndicator() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.zoom_in,
-            size: 16,
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            '${(widget.zoomLevel * 100).toStringAsFixed(0)}%',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSearchIconButton() {
     final hasActiveSearch = widget.searchQuery.isNotEmpty;
     return IconButton(
@@ -159,7 +131,7 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
               ),
             ),
             const SizedBox(width: 16),
-            _buildZoomIndicator(),
+            ZoomIndicator(widget.zoomLevel),
           ],
         ),
       ],
@@ -189,7 +161,7 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
               ),
               _buildSearchIconButton(),
               const SizedBox(width: 8),
-              _buildZoomIndicator(),
+              ZoomIndicator(widget.zoomLevel),
             ],
           ),
           // Expandable search row
@@ -412,6 +384,41 @@ class SearchField extends StatelessWidget {
           isDense: true,
           contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         ),
+      ),
+    );
+  }
+}
+
+class ZoomIndicator extends StatelessWidget {
+  const ZoomIndicator(this.zoomLevel, {super.key});
+
+  final double zoomLevel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.zoom_in,
+            size: 16,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${(zoomLevel * 100).toStringAsFixed(0)}%',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
+          ),
+        ],
       ),
     );
   }
