@@ -73,36 +73,6 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
     });
   }
 
-  Widget _buildRackSelector() {
-    if (widget.racks == null || widget.racks!.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: DropdownButton<RackSimpleDto>(
-        value: widget.selectedRack,
-        hint: const Text('Select Rack'),
-        underline: const SizedBox(),
-        isDense: true,
-        items: widget.racks!.map((rack) {
-          return DropdownMenuItem<RackSimpleDto>(
-            value: rack,
-            child: Text(rack.rackName ?? 'Unnamed Rack'),
-          );
-        }).toList(),
-        onChanged: (rack) {
-          if (rack != null) {
-            widget.onRackSelected(rack);
-          }
-        },
-      ),
-    );
-  }
-
   Widget _buildSettingsButton() {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.settings),
@@ -225,7 +195,11 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
         // Left side: Rack selector and settings
         Row(
           children: [
-            _buildRackSelector(),
+            RackSelector(
+              widget.racks,
+              onRackSelected: widget.onRackSelected,
+              selectedRack: widget.selectedRack,
+            ),
             const SizedBox(width: 8),
             _buildSettingsButton(),
           ],
@@ -267,7 +241,13 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
           // Main row: Rack selector, settings, search icon, and zoom
           Row(
             children: [
-              Expanded(child: _buildRackSelector()),
+              Expanded(
+                child: RackSelector(
+                  widget.racks,
+                  onRackSelected: widget.onRackSelected,
+                  selectedRack: widget.selectedRack,
+                ),
+              ),
               _buildSettingsButton(),
               _buildSearchIconButton(),
               const SizedBox(width: 8),
@@ -329,6 +309,50 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
           child: isCompact ? _buildCompactLayout() : _buildWideLayout(),
         );
       },
+    );
+  }
+}
+
+class RackSelector extends StatelessWidget {
+  const RackSelector(
+    this.racks, {
+    required this.selectedRack,
+    required this.onRackSelected,
+    super.key,
+  });
+
+  final List<RackSimpleDto>? racks;
+  final RackSimpleDto? selectedRack;
+  final Function(RackSimpleDto) onRackSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    if (racks == null || racks!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: DropdownButton<RackSimpleDto>(
+        value: selectedRack,
+        hint: const Text('Select Rack'),
+        underline: const SizedBox(),
+        isDense: true,
+        items: racks!.map((rack) {
+          return DropdownMenuItem<RackSimpleDto>(
+            value: rack,
+            child: Text(rack.rackName ?? 'Unnamed Rack'),
+          );
+        }).toList(),
+        onChanged: (rack) {
+          if (rack != null) {
+            onRackSelected(rack);
+          }
+        },
+      ),
     );
   }
 }
