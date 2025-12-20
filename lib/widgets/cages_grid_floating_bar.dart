@@ -73,18 +73,6 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
     });
   }
 
-  Widget _buildSearchIconButton() {
-    final hasActiveSearch = widget.searchQuery.isNotEmpty;
-    return IconButton(
-      icon: Icon(
-        Icons.search,
-        color: hasActiveSearch ? Theme.of(context).colorScheme.primary : null,
-      ),
-      onPressed: _toggleSearch,
-      tooltip: 'Search',
-    );
-  }
-
   Widget _buildWideLayout() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -159,7 +147,7 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
                 onAddRack: widget.onAddRack,
                 onEditRack: widget.onEditRack,
               ),
-              _buildSearchIconButton(),
+              SearchIconButton(widget.searchQuery, toggleSearch: _toggleSearch),
               const SizedBox(width: 8),
               ZoomIndicator(widget.zoomLevel),
             ],
@@ -420,6 +408,30 @@ class ZoomIndicator extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class SearchIconButton extends StatelessWidget {
+  const SearchIconButton(
+    this.searchQuery, {
+    required this.toggleSearch,
+    super.key,
+  });
+
+  final String searchQuery;
+  final VoidCallback toggleSearch;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasActiveSearch = searchQuery.isNotEmpty;
+    return IconButton(
+      icon: Icon(
+        Icons.search,
+        color: hasActiveSearch ? Theme.of(context).colorScheme.primary : null,
+      ),
+      onPressed: toggleSearch,
+      tooltip: 'Search',
     );
   }
 }
