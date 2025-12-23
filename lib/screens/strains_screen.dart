@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/cell_text.dart';
-import 'package:moustra/constants/list_constants/common.dart';
+import 'package:moustra/constants/list_constants/strain_filter_config.dart';
 import 'package:moustra/constants/list_constants/strain_list_constants.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/services/clients/strain_api.dart';
+import 'package:moustra/services/models/list_query_params.dart';
 import 'package:moustra/widgets/color_picker.dart';
+import 'package:moustra/widgets/filter_panel.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -19,21 +21,76 @@ class StrainsScreen extends StatefulWidget {
 
 class _StrainsScreenState extends State<StrainsScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
-  String? _sortField; // api field, e.g., strain_name
-  String _sortOrder = SortOrder.asc.name;
   final Set<String> _selected = <String>{};
   final MovableFabMenuController _fabController = MovableFabMenuController();
+
+  // Filter & Sort state
+  List<FilterParam> _activeFilters = [];
+  SortParam? _activeSort = StrainFilterConfig.defaultSort;
 
   @override
   void initState() {
     super.initState();
-    _goToPage(0);
+  }
+
+  void _onFiltersApplied(List<FilterParam> filters, SortParam? sort) {
+    setState(() {
+      _activeFilters = filters;
+      _activeSort = sort;
+    });
+    _controller.reload();
+  }
+
+  void _onFiltersClear() {
+    setState(() {
+      _activeFilters = [];
+      _activeSort = StrainFilterConfig.defaultSort;
+    });
+    _controller.reload();
+  }
+
+  ListQueryParams _buildQueryParams({
+    required int page,
+    required int pageSize,
+    String? searchTerm,
+  }) {
+    List<FilterParam> filters = List.from(_activeFilters);
+
+    if (searchTerm != null && searchTerm.isNotEmpty) {
+      filters.add(FilterParam(
+        field: 'strain_name',
+        operator: FilterOperators.contains,
+        value: searchTerm,
+      ));
+    }
+
+    List<SortParam> sorts = [];
+    if (_activeSort != null) {
+      sorts.add(_activeSort!);
+    }
+
+    return ListQueryParams(
+      page: page,
+      pageSize: pageSize,
+      filters: filters,
+      sorts: sorts,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Filter Panel
+        FilterPanel(
+          filterFields: StrainFilterConfig.filterFields,
+          sortFields: StrainFilterConfig.sortFields,
+          initialFilters: _activeFilters,
+          initialSort: _activeSort,
+          onApply: _onFiltersApplied,
+          onClear: _onFiltersClear,
+        ),
+        const Divider(height: 1),
         Expanded(
           child: Stack(
             children: [
@@ -41,10 +98,12 @@ class _StrainsScreenState extends State<StrainsScreen> {
                 controller: _controller,
                 searchPlaceholder: 'Try "Search strain B6"',
                 onSortChanged: (columnName, ascending) {
-                  _sortField = columnName;
-                  _sortOrder = ascending
-                      ? SortOrder.asc.name
-                      : SortOrder.desc.name;
+                  setState(() {
+                    _activeSort = SortParam(
+                      field: columnName,
+                      order: ascending ? SortOrder.asc : SortOrder.desc,
+                    );
+                  });
                   _controller.reload();
                 },
                 columns: StrainListColumn.getColumns(),
@@ -55,15 +114,12 @@ class _StrainsScreenState extends State<StrainsScreen> {
                   context: context,
                 ),
                 fetchPage: (page, pageSize) async {
-                  final pageData = await strainService.getStrainsPage(
+                  final params = _buildQueryParams(
                     page: page,
                     pageSize: pageSize,
-                    query: {
-                      if (_sortField != null)
-                        SortQueryParamKey.sort.name: _sortField!,
-                      if (_sortField != null)
-                        SortQueryParamKey.order.name: _sortOrder,
-                    },
+                  );
+                  final pageData = await strainService.getStrainsPageWithParams(
+                    params: params,
                   );
                   return PaginatedResult<StrainDto>(
                     count: pageData.count,
@@ -72,31 +128,29 @@ class _StrainsScreenState extends State<StrainsScreen> {
                 },
                 onFilterChanged:
                     (page, pageSize, searchTerm, {useAiSearch}) async {
-                      final pageData = useAiSearch == true
-                          ? await strainService.searchStrainsWithAi(
-                              prompt: searchTerm,
-                            )
-                          : await strainService.getStrainsPage(
-                              page: page,
-                              pageSize: pageSize,
-                              query: {
-                                if (_sortField != null)
-                                  SortQueryParamKey.sort.name: _sortField!,
-                                if (_sortField != null)
-                                  SortQueryParamKey.order.name: _sortOrder,
-                                if (searchTerm.isNotEmpty) ...{
-                                  SearchQueryParamKey.filter.name:
-                                      'strain_name',
-                                  SearchQueryParamKey.value.name: searchTerm,
-                                  SearchQueryParamKey.op.name: 'contains',
-                                },
-                              },
-                            );
-                      return PaginatedResult<StrainDto>(
-                        count: pageData.count,
-                        results: pageData.results,
-                      );
-                    },
+                  if (useAiSearch == true && searchTerm.isNotEmpty) {
+                    final pageData = await strainService.searchStrainsWithAi(
+                      prompt: searchTerm,
+                    );
+                    return PaginatedResult<StrainDto>(
+                      count: pageData.count,
+                      results: pageData.results,
+                    );
+                  }
+
+                  final params = _buildQueryParams(
+                    page: page,
+                    pageSize: pageSize,
+                    searchTerm: searchTerm,
+                  );
+                  final pageData = await strainService.getStrainsPageWithParams(
+                    params: params,
+                  );
+                  return PaginatedResult<StrainDto>(
+                    count: pageData.count,
+                    results: pageData.results,
+                  );
+                },
               ),
               Positioned.fill(
                 child: MovableFabMenu(
@@ -139,8 +193,6 @@ class _StrainsScreenState extends State<StrainsScreen> {
       }
     });
   }
-
-  Future<void> _goToPage(int zeroBasedPage) async {}
 
   Future<void> _mergeSelected() async {
     final strains = _selected.toList();

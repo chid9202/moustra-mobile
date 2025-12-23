@@ -6,6 +6,7 @@ import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/post_cage_dto.dart';
 import 'package:moustra/services/dtos/put_cage_dto.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
+import 'package:moustra/services/models/list_query_params.dart';
 
 class CageApi {
   static const String basePath = '/cage';
@@ -21,6 +22,22 @@ class CageApi {
       if (query != null) ...query,
     };
     final res = await apiClient.get(basePath, query: mergedQuery);
+    final Map<String, dynamic> data = jsonDecode(res.body);
+    return PaginatedResponseDto<CageDto>.fromJson(
+      data,
+      (j) => CageDto.fromJson(j),
+    );
+  }
+
+  /// Get cages page with advanced filtering and sorting support
+  Future<PaginatedResponseDto<CageDto>> getCagesPageWithParams({
+    required ListQueryParams params,
+  }) async {
+    final queryString = params.buildQueryString();
+    final res = await apiClient.getWithQueryString(
+      basePath,
+      queryString: queryString,
+    );
     final Map<String, dynamic> data = jsonDecode(res.body);
     return PaginatedResponseDto<CageDto>.fromJson(
       data,

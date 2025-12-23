@@ -4,6 +4,7 @@ import 'package:moustra/config/api_config.dart';
 import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
+import 'package:moustra/services/models/list_query_params.dart';
 
 class StrainApi {
   Future<PaginatedResponseDto<StrainDto>> getStrainsPage({
@@ -17,6 +18,22 @@ class StrainApi {
       if (query != null) ...query,
     };
     final res = await apiClient.get(ApiConfig.strains, query: mergedQuery);
+    final Map<String, dynamic> data = jsonDecode(res.body);
+    return PaginatedResponseDto<StrainDto>.fromJson(
+      data,
+      (j) => StrainDto.fromJson(j),
+    );
+  }
+
+  /// Get strains page with advanced filtering and sorting support
+  Future<PaginatedResponseDto<StrainDto>> getStrainsPageWithParams({
+    required ListQueryParams params,
+  }) async {
+    final queryString = params.buildQueryString();
+    final res = await apiClient.getWithQueryString(
+      ApiConfig.strains,
+      queryString: queryString,
+    );
     final Map<String, dynamic> data = jsonDecode(res.body);
     return PaginatedResponseDto<StrainDto>.fromJson(
       data,

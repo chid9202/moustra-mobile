@@ -63,6 +63,32 @@ class ApiClient {
     return base.replace(host: host, path: combinedPath, queryParameters: query);
   }
 
+  /// Build URI with raw query string (for repeated parameters)
+  Uri _buildUriWithQueryString(
+    String path, {
+    required String queryString,
+    bool withoutAccountPrefix = false,
+  }) {
+    final Uri base = Uri.parse(ApiConfig.baseUrl);
+    final String host = base.host;
+    var basePath = base.path.endsWith('/')
+        ? base.path.substring(0, base.path.length - 1)
+        : base.path;
+
+    if (!withoutAccountPrefix) {
+      basePath = '$basePath/account/${profileState.value?.accountUuid}';
+    }
+    final String addPath = path.startsWith('/') ? path : '/$path';
+    final String combinedPath = '$basePath$addPath';
+
+    // Build URI with query string manually
+    final baseUri = base.replace(host: host, path: combinedPath);
+    final uriString = queryString.isNotEmpty
+        ? '$baseUri?$queryString'
+        : baseUri.toString();
+    return Uri.parse(uriString);
+  }
+
   Future<Map<String, String>> _headers() async {
     final headers = <String, String>{'Accept': 'application/json'};
     final token = authService.accessToken;
@@ -80,6 +106,25 @@ class ApiClient {
     final uri = _buildUri(
       path,
       query: query,
+      withoutAccountPrefix: withoutAccountPrefix,
+    );
+    print('GET uri $uri');
+    final res = await httpClient.get(uri, headers: await _headers());
+    print('res ${res.statusCode}');
+    return res;
+  }
+
+  /// GET request with raw query string for repeated parameters support
+  /// Use this when you need to pass multiple values for the same key
+  /// (e.g., filter=a&filter=b&filter=c)
+  Future<http.Response> getWithQueryString(
+    String path, {
+    required String queryString,
+    bool withoutAccountPrefix = false,
+  }) async {
+    final uri = _buildUriWithQueryString(
+      path,
+      queryString: queryString,
       withoutAccountPrefix: withoutAccountPrefix,
     );
     print('GET uri $uri');

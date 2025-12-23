@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moustra/constants/list_constants/cage_filter_config.dart';
 import 'package:moustra/constants/list_constants/cage_list_constants.dart';
 import 'package:moustra/constants/list_constants/cell_text.dart';
-import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
+import 'package:moustra/services/models/list_query_params.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
+import 'package:moustra/widgets/filter_panel.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
@@ -21,6 +23,10 @@ class _CagesListScreenState extends State<CagesListScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
   final MovableFabMenuController _fabController = MovableFabMenuController();
 
+  // Filter & Sort state
+  List<FilterParam> _activeFilters = [];
+  SortParam? _activeSort = CageFilterConfig.defaultSort;
+
   @override
   void initState() {
     super.initState();
@@ -31,10 +37,64 @@ class _CagesListScreenState extends State<CagesListScreen> {
     super.dispose();
   }
 
+  void _onFiltersApplied(List<FilterParam> filters, SortParam? sort) {
+    setState(() {
+      _activeFilters = filters;
+      _activeSort = sort;
+    });
+    _controller.reload();
+  }
+
+  void _onFiltersClear() {
+    setState(() {
+      _activeFilters = [];
+      _activeSort = CageFilterConfig.defaultSort;
+    });
+    _controller.reload();
+  }
+
+  ListQueryParams _buildQueryParams({
+    required int page,
+    required int pageSize,
+    String? searchTerm,
+  }) {
+    List<FilterParam> filters = List.from(_activeFilters);
+
+    if (searchTerm != null && searchTerm.isNotEmpty) {
+      filters.add(FilterParam(
+        field: 'cage_tag',
+        operator: FilterOperators.contains,
+        value: searchTerm,
+      ));
+    }
+
+    List<SortParam> sorts = [];
+    if (_activeSort != null) {
+      sorts.add(_activeSort!);
+    }
+
+    return ListQueryParams(
+      page: page,
+      pageSize: pageSize,
+      filters: filters,
+      sorts: sorts,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Filter Panel
+        FilterPanel(
+          filterFields: CageFilterConfig.filterFields,
+          sortFields: CageFilterConfig.sortFields,
+          initialFilters: _activeFilters,
+          initialSort: _activeSort,
+          onApply: _onFiltersApplied,
+          onClear: _onFiltersClear,
+        ),
+        const Divider(height: 1),
         Expanded(
           child: Stack(
             children: [
@@ -42,25 +102,24 @@ class _CagesListScreenState extends State<CagesListScreen> {
                 controller: _controller,
                 searchPlaceholder: 'Try "Search cage C-101"',
                 onSortChanged: (columnName, ascending) {
-                  _sortField = columnName;
-                  _sortOrder = ascending
-                      ? SortOrder.asc.name
-                      : SortOrder.desc.name;
+                  setState(() {
+                    _activeSort = SortParam(
+                      field: columnName,
+                      order: ascending ? SortOrder.asc : SortOrder.desc,
+                    );
+                  });
                   _controller.reload();
                 },
                 columns: CageListColumn.getColumns(),
                 sourceBuilder: (rows) =>
                     _CageGridSource(records: rows, context: context),
                 fetchPage: (page, pageSize) async {
-                  final pageData = await cageApi.getCagesPage(
+                  final params = _buildQueryParams(
                     page: page,
                     pageSize: pageSize,
-                    query: {
-                      if (_sortField != null)
-                        SortQueryParamKey.sort.name: _sortField!,
-                      if (_sortField != null)
-                        SortQueryParamKey.order.name: _sortOrder,
-                    },
+                  );
+                  final pageData = await cageApi.getCagesPageWithParams(
+                    params: params,
                   );
                   return PaginatedResult<CageDto>(
                     count: pageData.count,
@@ -69,28 +128,28 @@ class _CagesListScreenState extends State<CagesListScreen> {
                 },
                 onFilterChanged:
                     (page, pageSize, searchTerm, {useAiSearch}) async {
-                      final pageData = useAiSearch == true
-                          ? await cageApi.searchCagesWithAi(prompt: searchTerm)
-                          : await cageApi.getCagesPage(
-                              page: page,
-                              pageSize: pageSize,
-                              query: {
-                                if (_sortField != null)
-                                  SortQueryParamKey.sort.name: _sortField!,
-                                if (_sortField != null)
-                                  SortQueryParamKey.order.name: _sortOrder,
-                                if (searchTerm.isNotEmpty) ...{
-                                  SearchQueryParamKey.filter.name: 'cage_tag',
-                                  SearchQueryParamKey.value.name: searchTerm,
-                                  SearchQueryParamKey.op.name: 'contains',
-                                },
-                              },
-                            );
-                      return PaginatedResult<CageDto>(
-                        count: pageData.count,
-                        results: pageData.results,
-                      );
-                    },
+                  if (useAiSearch == true && searchTerm.isNotEmpty) {
+                    final pageData =
+                        await cageApi.searchCagesWithAi(prompt: searchTerm);
+                    return PaginatedResult<CageDto>(
+                      count: pageData.count,
+                      results: pageData.results,
+                    );
+                  }
+
+                  final params = _buildQueryParams(
+                    page: page,
+                    pageSize: pageSize,
+                    searchTerm: searchTerm,
+                  );
+                  final pageData = await cageApi.getCagesPageWithParams(
+                    params: params,
+                  );
+                  return PaginatedResult<CageDto>(
+                    count: pageData.count,
+                    results: pageData.results,
+                  );
+                },
                 rowHeightEstimator: (index, row) => _estimateLines(row),
               ),
               Positioned.fill(
@@ -114,9 +173,6 @@ class _CagesListScreenState extends State<CagesListScreen> {
       ],
     );
   }
-
-  String? _sortField;
-  String _sortOrder = SortOrder.asc.name;
 
   int _estimateLines(CageDto c) {
     final List<dynamic> animals = (c.animals as List<dynamic>? ?? <dynamic>[]);
