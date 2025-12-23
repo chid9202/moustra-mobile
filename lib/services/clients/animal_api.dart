@@ -4,6 +4,7 @@ import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
+import 'package:moustra/services/models/list_query_params.dart';
 
 class AnimalApi {
   static const String basePath = '/animal';
@@ -19,6 +20,22 @@ class AnimalApi {
       if (query != null) ...query,
     };
     final res = await apiClient.get(basePath, query: mergedQuery);
+    final Map<String, dynamic> data = jsonDecode(res.body);
+    return PaginatedResponseDto<AnimalDto>.fromJson(
+      data,
+      (j) => AnimalDto.fromJson(j),
+    );
+  }
+
+  /// Get animals page with advanced filtering and sorting support
+  Future<PaginatedResponseDto<AnimalDto>> getAnimalsPageWithParams({
+    required ListQueryParams params,
+  }) async {
+    final queryString = params.buildQueryString();
+    final res = await apiClient.getWithQueryString(
+      basePath,
+      queryString: queryString,
+    );
     final Map<String, dynamic> data = jsonDecode(res.body);
     return PaginatedResponseDto<AnimalDto>.fromJson(
       data,

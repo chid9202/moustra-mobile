@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/animal_constants.dart';
 import 'package:moustra/constants/list_constants/cell_text.dart';
-import 'package:moustra/constants/list_constants/common.dart';
+import 'package:moustra/constants/list_constants/mating_filter_config.dart';
 import 'package:moustra/constants/list_constants/mating_list_constants.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
+import 'package:moustra/services/models/list_query_params.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
+import 'package:moustra/widgets/filter_panel.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -23,6 +25,10 @@ class _MatingsScreenState extends State<MatingsScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
   final MovableFabMenuController _fabController = MovableFabMenuController();
 
+  // Filter & Sort state
+  List<FilterParam> _activeFilters = [];
+  SortParam? _activeSort = MatingFilterConfig.defaultSort;
+
   @override
   void initState() {
     super.initState();
@@ -33,10 +39,64 @@ class _MatingsScreenState extends State<MatingsScreen> {
     super.dispose();
   }
 
+  void _onFiltersApplied(List<FilterParam> filters, SortParam? sort) {
+    setState(() {
+      _activeFilters = filters;
+      _activeSort = sort;
+    });
+    _controller.reload();
+  }
+
+  void _onFiltersClear() {
+    setState(() {
+      _activeFilters = [];
+      _activeSort = MatingFilterConfig.defaultSort;
+    });
+    _controller.reload();
+  }
+
+  ListQueryParams _buildQueryParams({
+    required int page,
+    required int pageSize,
+    String? searchTerm,
+  }) {
+    List<FilterParam> filters = List.from(_activeFilters);
+
+    if (searchTerm != null && searchTerm.isNotEmpty) {
+      filters.add(FilterParam(
+        field: 'mating_tag',
+        operator: FilterOperators.contains,
+        value: searchTerm,
+      ));
+    }
+
+    List<SortParam> sorts = [];
+    if (_activeSort != null) {
+      sorts.add(_activeSort!);
+    }
+
+    return ListQueryParams(
+      page: page,
+      pageSize: pageSize,
+      filters: filters,
+      sorts: sorts,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Filter Panel
+        FilterPanel(
+          filterFields: MatingFilterConfig.filterFields,
+          sortFields: MatingFilterConfig.sortFields,
+          initialFilters: _activeFilters,
+          initialSort: _activeSort,
+          onApply: _onFiltersApplied,
+          onClear: _onFiltersClear,
+        ),
+        const Divider(height: 1),
         Expanded(
           child: Stack(
             children: [
@@ -44,24 +104,24 @@ class _MatingsScreenState extends State<MatingsScreen> {
                 controller: _controller,
                 searchPlaceholder: 'Try "Search mating M-42"',
                 onSortChanged: (columnName, ascending) {
-                  _sortField = columnName;
-                  _sortOrder =
-                      ascending ? SortOrder.asc.name : SortOrder.desc.name;
+                  setState(() {
+                    _activeSort = SortParam(
+                      field: columnName,
+                      order: ascending ? SortOrder.asc : SortOrder.desc,
+                    );
+                  });
                   _controller.reload();
                 },
                 columns: MatingListColumn.getColumns(),
                 sourceBuilder: (rows) =>
                     _MatingGridSource(records: rows, context: context),
                 fetchPage: (page, pageSize) async {
-                  final pageData = await matingService.getMatingsPage(
+                  final params = _buildQueryParams(
                     page: page,
                     pageSize: pageSize,
-                    query: {
-                      if (_sortField != null)
-                        SortQueryParamKey.sort.name: _sortField!,
-                      if (_sortField != null)
-                        SortQueryParamKey.order.name: _sortOrder,
-                    },
+                  );
+                  final pageData = await matingService.getMatingsPageWithParams(
+                    params: params,
                   );
                   return PaginatedResult<MatingDto>(
                     count: pageData.count,
@@ -70,27 +130,13 @@ class _MatingsScreenState extends State<MatingsScreen> {
                 },
                 onFilterChanged:
                     (page, pageSize, searchTerm, {useAiSearch}) async {
-                  if (useAiSearch == true) {
-                    // AI search not supported for matings yet
-                    return PaginatedResult<MatingDto>(
-                      count: 0,
-                      results: [],
-                    );
-                  }
-                  final pageData = await matingService.getMatingsPage(
+                  final params = _buildQueryParams(
                     page: page,
                     pageSize: pageSize,
-                    query: {
-                      if (_sortField != null)
-                        SortQueryParamKey.sort.name: _sortField!,
-                      if (_sortField != null)
-                        SortQueryParamKey.order.name: _sortOrder,
-                      if (searchTerm.isNotEmpty) ...{
-                        SearchQueryParamKey.filter.name: 'mating_tag',
-                        SearchQueryParamKey.value.name: searchTerm,
-                        SearchQueryParamKey.op.name: 'contains',
-                      },
-                    },
+                    searchTerm: searchTerm,
+                  );
+                  final pageData = await matingService.getMatingsPageWithParams(
+                    params: params,
                   );
                   return PaginatedResult<MatingDto>(
                     count: pageData.count,
@@ -120,9 +166,6 @@ class _MatingsScreenState extends State<MatingsScreen> {
       ],
     );
   }
-
-  String? _sortField;
-  String _sortOrder = SortOrder.asc.name;
 
   int _estimateLines(MatingDto m) {
     final List<AnimalSummaryDto> animals = (m.animals ?? <AnimalSummaryDto>[]);
@@ -175,7 +218,6 @@ class _MatingGridSource extends DataGridSource {
             },
           ),
         ),
-        // cellText('${row.getCells()[1].value}', textAlign: Alignment.center),
         cellText(row.getCells()[1].value),
         cellText(row.getCells()[2].value),
         cellText(row.getCells()[3].value),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moustra/constants/list_constants/animal_filter_config.dart';
 import 'package:moustra/constants/list_constants/animal_list_constants.dart';
 import 'package:moustra/constants/list_constants/cell_text.dart';
-import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
+import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra/widgets/filter_panel.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
@@ -24,6 +26,10 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
   bool _isEndingAnimals = false;
   final MovableFabMenuController _fabController = MovableFabMenuController();
 
+  // Filter & Sort state
+  List<FilterParam> _activeFilters = [];
+  SortParam? _activeSort = AnimalFilterConfig.defaultSort;
+
   @override
   void initState() {
     super.initState();
@@ -34,10 +40,67 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     super.dispose();
   }
 
+  void _onFiltersApplied(List<FilterParam> filters, SortParam? sort) {
+    setState(() {
+      _activeFilters = filters;
+      _activeSort = sort;
+    });
+    _controller.reload();
+  }
+
+  void _onFiltersClear() {
+    setState(() {
+      _activeFilters = [];
+      _activeSort = AnimalFilterConfig.defaultSort;
+    });
+    _controller.reload();
+  }
+
+  ListQueryParams _buildQueryParams({
+    required int page,
+    required int pageSize,
+    String? searchTerm,
+  }) {
+    // Build filters list
+    List<FilterParam> filters = List.from(_activeFilters);
+
+    // Add search term as physical_tag filter if provided
+    if (searchTerm != null && searchTerm.isNotEmpty) {
+      filters.add(FilterParam(
+        field: 'physical_tag',
+        operator: FilterOperators.contains,
+        value: searchTerm,
+      ));
+    }
+
+    // Build sorts list
+    List<SortParam> sorts = [];
+    if (_activeSort != null) {
+      sorts.add(_activeSort!);
+    }
+
+    return ListQueryParams(
+      page: page,
+      pageSize: pageSize,
+      filters: filters,
+      sorts: sorts,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Filter Panel
+        FilterPanel(
+          filterFields: AnimalFilterConfig.filterFields,
+          sortFields: AnimalFilterConfig.sortFields,
+          initialFilters: _activeFilters,
+          initialSort: _activeSort,
+          onApply: _onFiltersApplied,
+          onClear: _onFiltersClear,
+        ),
+        const Divider(height: 1),
         Expanded(
           child: Stack(
             children: [
@@ -45,10 +108,13 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                 controller: _controller,
                 searchPlaceholder: 'Try "Search Animal in mating"',
                 onSortChanged: (columnName, ascending) {
-                  _sortField = columnName;
-                  _sortOrder = ascending
-                      ? SortOrder.asc.name
-                      : SortOrder.desc.name;
+                  // Update sort from column header click
+                  setState(() {
+                    _activeSort = SortParam(
+                      field: columnName,
+                      order: ascending ? SortOrder.asc : SortOrder.desc,
+                    );
+                  });
                   _controller.reload();
                 },
                 columns: AnimalListColumn.getColumns(
@@ -62,15 +128,12 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   isEndingMode: _isEndingMode,
                 ),
                 fetchPage: (page, pageSize) async {
-                  final pageData = await animalService.getAnimalsPage(
+                  final params = _buildQueryParams(
                     page: page,
                     pageSize: pageSize,
-                    query: {
-                      if (_sortField != null)
-                        SortQueryParamKey.sort.name: _sortField!,
-                      if (_sortField != null)
-                        SortQueryParamKey.order.name: _sortOrder,
-                    },
+                  );
+                  final pageData = await animalService.getAnimalsPageWithParams(
+                    params: params,
                   );
                   return PaginatedResult<AnimalDto>(
                     count: pageData.count,
@@ -80,31 +143,31 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                 pageSize: _pageSize,
                 onFilterChanged:
                     (page, pageSize, searchTerm, {useAiSearch}) async {
-                      final pageData = useAiSearch == true
-                          ? await animalService.searchAnimalsWithAi(
-                              prompt: searchTerm,
-                            )
-                          : await animalService.getAnimalsPage(
-                              page: page,
-                              pageSize: pageSize,
-                              query: {
-                                if (_sortField != null)
-                                  SortQueryParamKey.sort.name: _sortField!,
-                                if (_sortField != null)
-                                  SortQueryParamKey.order.name: _sortOrder,
-                                if (searchTerm.isNotEmpty) ...{
-                                  SearchQueryParamKey.filter.name:
-                                      'physical_tag',
-                                  SearchQueryParamKey.value.name: searchTerm,
-                                  SearchQueryParamKey.op.name: 'contains',
-                                },
-                              },
-                            );
-                      return PaginatedResult<AnimalDto>(
-                        count: pageData.count,
-                        results: pageData.results,
-                      );
-                    },
+                  if (useAiSearch == true && searchTerm.isNotEmpty) {
+                    // AI search
+                    final pageData = await animalService.searchAnimalsWithAi(
+                      prompt: searchTerm,
+                    );
+                    return PaginatedResult<AnimalDto>(
+                      count: pageData.count,
+                      results: pageData.results,
+                    );
+                  }
+
+                  // Regular search with filters
+                  final params = _buildQueryParams(
+                    page: page,
+                    pageSize: pageSize,
+                    searchTerm: searchTerm,
+                  );
+                  final pageData = await animalService.getAnimalsPageWithParams(
+                    params: params,
+                  );
+                  return PaginatedResult<AnimalDto>(
+                    count: pageData.count,
+                    results: pageData.results,
+                  );
+                },
               ),
               Positioned.fill(
                 child: MovableFabMenu(
@@ -219,9 +282,6 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
   void didUpdateWidget(covariant AnimalsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
   }
-
-  String? _sortField;
-  String _sortOrder = SortOrder.asc.name;
 }
 
 class _AnimalGridSource extends DataGridSource {

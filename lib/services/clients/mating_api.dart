@@ -5,6 +5,7 @@ import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/post_mating_dto.dart';
 import 'package:moustra/services/dtos/put_mating_dto.dart';
+import 'package:moustra/services/models/list_query_params.dart';
 
 class MatingApi {
   static const String basePath = '/mating';
@@ -20,6 +21,22 @@ class MatingApi {
       if (query != null) ...query,
     };
     final res = await apiClient.get(basePath, query: mergedQuery);
+    final Map<String, dynamic> data = jsonDecode(res.body);
+    return PaginatedResponseDto<MatingDto>.fromJson(
+      data,
+      (j) => MatingDto.fromJson(j),
+    );
+  }
+
+  /// Get matings page with advanced filtering and sorting support
+  Future<PaginatedResponseDto<MatingDto>> getMatingsPageWithParams({
+    required ListQueryParams params,
+  }) async {
+    final queryString = params.buildQueryString();
+    final res = await apiClient.getWithQueryString(
+      basePath,
+      queryString: queryString,
+    );
     final Map<String, dynamic> data = jsonDecode(res.body);
     return PaginatedResponseDto<MatingDto>.fromJson(
       data,
