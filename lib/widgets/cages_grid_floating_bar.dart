@@ -73,8 +73,77 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
     });
   }
 
-  Widget _buildRackSelector() {
-    if (widget.racks == null || widget.racks!.isEmpty) {
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < _compactBreakpoint;
+
+        return Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: isCompact ? 8 : 12,
+          ),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.95),
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: isCompact
+              ? CompactLayout(
+                  searchController: _searchController,
+                  onRackSelected: widget.onRackSelected,
+                  onAddRack: widget.onAddRack,
+                  onEditRack: widget.onEditRack,
+                  searchType: widget.searchType,
+                  searchQuery: widget.searchQuery,
+                  onSearchTypeChanged: widget.onSearchTypeChanged,
+                  onSearchQueryChanged: widget.onSearchQueryChanged,
+                  toggleSearch: _toggleSearch,
+                  zoomLevel: widget.zoomLevel,
+                  selectedRack: widget.selectedRack,
+                  racks: widget.racks,
+                  isSearchExpanded: _isSearchExpanded,
+                )
+              : WideLayout(
+                  searchController: _searchController,
+                  onRackSelected: widget.onRackSelected,
+                  onAddRack: widget.onAddRack,
+                  onEditRack: widget.onEditRack,
+                  searchType: widget.searchType,
+                  onSearchTypeChanged: widget.onSearchTypeChanged,
+                  onSearchQueryChanged: widget.onSearchQueryChanged,
+                  zoomLevel: widget.zoomLevel,
+                  selectedRack: widget.selectedRack,
+                  racks: widget.racks,
+                ),
+        );
+      },
+    );
+  }
+}
+
+class RackSelector extends StatelessWidget {
+  const RackSelector(
+    this.racks, {
+    required this.selectedRack,
+    required this.onRackSelected,
+    super.key,
+  });
+
+  final List<RackSimpleDto>? racks;
+  final RackSimpleDto? selectedRack;
+  final Function(RackSimpleDto) onRackSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    if (racks == null || racks!.isEmpty) {
       return const SizedBox.shrink();
     }
     return Container(
@@ -84,33 +153,46 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
         borderRadius: BorderRadius.circular(4),
       ),
       child: DropdownButton<RackSimpleDto>(
-        value: widget.selectedRack,
+        value: selectedRack,
         hint: const Text('Select Rack'),
         underline: const SizedBox(),
         isDense: true,
-        items: widget.racks!.map((rack) {
+        items: racks!.map((rack) {
           return DropdownMenuItem<RackSimpleDto>(
             value: rack,
+            key: ValueKey('${rack.rackId}'),
             child: Text(rack.rackName ?? 'Unnamed Rack'),
           );
         }).toList(),
         onChanged: (rack) {
           if (rack != null) {
-            widget.onRackSelected(rack);
+            onRackSelected(rack);
           }
         },
       ),
     );
   }
+}
 
-  Widget _buildSettingsButton() {
+class SettingsButton extends StatelessWidget {
+  const SettingsButton({
+    required this.onAddRack,
+    required this.onEditRack,
+    super.key,
+  });
+
+  final VoidCallback onAddRack;
+  final VoidCallback onEditRack;
+
+  @override
+  Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.settings),
       onSelected: (value) {
         if (value == 'add') {
-          widget.onAddRack();
+          onAddRack();
         } else if (value == 'edit') {
-          widget.onEditRack();
+          onEditRack();
         }
       },
       itemBuilder: (context) => [
@@ -137,10 +219,22 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
       ],
     );
   }
+}
 
-  Widget _buildSearchTypeDropdown() {
+class SearchTypeDropdown extends StatelessWidget {
+  const SearchTypeDropdown(
+    this.searchType, {
+    required this.onSearchTypeChanged,
+    super.key,
+  });
+
+  final String searchType;
+  final void Function(String) onSearchTypeChanged;
+
+  @override
+  Widget build(BuildContext context) {
     return DropdownButton<String>(
-      value: widget.searchType,
+      value: searchType,
       underline: const SizedBox(),
       isDense: true,
       items: const [
@@ -155,18 +249,32 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
       ],
       onChanged: (value) {
         if (value != null) {
-          widget.onSearchTypeChanged(value);
+          onSearchTypeChanged(value);
         }
       },
     );
   }
+}
 
-  Widget _buildSearchField({double? maxWidth}) {
+class SearchField extends StatelessWidget {
+  const SearchField(
+    this._searchController, {
+    required this.onSearchQueryChanged,
+    required this.maxWidth,
+    super.key,
+  });
+
+  final TextEditingController _searchController;
+  final void Function(String) onSearchQueryChanged;
+  final double maxWidth;
+
+  @override
+  Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(minWidth: 80, maxWidth: maxWidth ?? 150),
+      constraints: BoxConstraints(minWidth: 80, maxWidth: maxWidth),
       child: TextField(
         controller: _searchController,
-        onChanged: widget.onSearchQueryChanged,
+        onChanged: onSearchQueryChanged,
         autofocus: true,
         decoration: const InputDecoration(
           hintText: 'Search...',
@@ -177,8 +285,15 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
       ),
     );
   }
+}
 
-  Widget _buildZoomIndicator() {
+class ZoomIndicator extends StatelessWidget {
+  const ZoomIndicator(this.zoomLevel, {super.key});
+
+  final double zoomLevel;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -195,7 +310,7 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
           ),
           const SizedBox(width: 4),
           Text(
-            '${(widget.zoomLevel * 100).toStringAsFixed(0)}%',
+            '${(zoomLevel * 100).toStringAsFixed(0)}%',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -205,29 +320,73 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
       ),
     );
   }
+}
 
-  Widget _buildSearchIconButton() {
-    final hasActiveSearch = widget.searchQuery.isNotEmpty;
+class SearchIconButton extends StatelessWidget {
+  const SearchIconButton(
+    this.searchQuery, {
+    required this.toggleSearch,
+    super.key,
+  });
+
+  final String searchQuery;
+  final VoidCallback toggleSearch;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasActiveSearch = searchQuery.isNotEmpty;
     return IconButton(
       icon: Icon(
         Icons.search,
         color: hasActiveSearch ? Theme.of(context).colorScheme.primary : null,
       ),
-      onPressed: _toggleSearch,
+      onPressed: toggleSearch,
       tooltip: 'Search',
     );
   }
+}
 
-  Widget _buildWideLayout() {
+class WideLayout extends StatelessWidget {
+  const WideLayout({
+    required this.searchController,
+    required this.onRackSelected,
+    required this.onAddRack,
+    required this.onEditRack,
+    required this.searchType,
+    required this.onSearchTypeChanged,
+    required this.onSearchQueryChanged,
+    required this.zoomLevel,
+    this.selectedRack,
+    this.racks,
+    super.key,
+  });
+
+  final TextEditingController searchController;
+  final void Function(RackSimpleDto) onRackSelected;
+  final VoidCallback onAddRack;
+  final VoidCallback onEditRack;
+  final String searchType;
+  final void Function(String) onSearchTypeChanged;
+  final void Function(String) onSearchQueryChanged;
+  final double zoomLevel;
+  final List<RackSimpleDto>? racks;
+  final RackSimpleDto? selectedRack;
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         // Left side: Rack selector and settings
         Row(
           children: [
-            _buildRackSelector(),
+            RackSelector(
+              racks,
+              onRackSelected: onRackSelected,
+              selectedRack: selectedRack,
+            ),
             const SizedBox(width: 8),
-            _buildSettingsButton(),
+            SettingsButton(onAddRack: onAddRack, onEditRack: onEditRack),
           ],
         ),
         // Right side: Search and zoom
@@ -243,21 +402,62 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildSearchTypeDropdown(),
+                  SearchTypeDropdown(
+                    searchType,
+                    onSearchTypeChanged: onSearchTypeChanged,
+                  ),
                   const SizedBox(width: 8),
-                  _buildSearchField(maxWidth: 150),
+                  SearchField(
+                    searchController,
+                    onSearchQueryChanged: onSearchQueryChanged,
+                    maxWidth: 150,
+                  ),
                 ],
               ),
             ),
             const SizedBox(width: 16),
-            _buildZoomIndicator(),
+            ZoomIndicator(zoomLevel),
           ],
         ),
       ],
     );
   }
+}
 
-  Widget _buildCompactLayout() {
+class CompactLayout extends StatelessWidget {
+  const CompactLayout({
+    required this.searchController,
+    required this.onRackSelected,
+    required this.onAddRack,
+    required this.onEditRack,
+    required this.searchType,
+    required this.searchQuery,
+    required this.onSearchTypeChanged,
+    required this.onSearchQueryChanged,
+    required this.toggleSearch,
+    required this.zoomLevel,
+    this.isSearchExpanded = false,
+    this.selectedRack,
+    this.racks,
+    super.key,
+  });
+
+  final bool isSearchExpanded;
+  final TextEditingController searchController;
+  final void Function(RackSimpleDto) onRackSelected;
+  final VoidCallback onAddRack;
+  final VoidCallback onEditRack;
+  final String searchType;
+  final String searchQuery;
+  final void Function(String) onSearchTypeChanged;
+  final void Function(String) onSearchQueryChanged;
+  final VoidCallback toggleSearch;
+  final double zoomLevel;
+  final List<RackSimpleDto>? racks;
+  final RackSimpleDto? selectedRack;
+
+  @override
+  Widget build(BuildContext context) {
     return AnimatedSize(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
@@ -267,15 +467,21 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
           // Main row: Rack selector, settings, search icon, and zoom
           Row(
             children: [
-              Expanded(child: _buildRackSelector()),
-              _buildSettingsButton(),
-              _buildSearchIconButton(),
+              Expanded(
+                child: RackSelector(
+                  racks,
+                  onRackSelected: onRackSelected,
+                  selectedRack: selectedRack,
+                ),
+              ),
+              SettingsButton(onAddRack: onAddRack, onEditRack: onEditRack),
+              SearchIconButton(searchQuery, toggleSearch: toggleSearch),
               const SizedBox(width: 8),
-              _buildZoomIndicator(),
+              ZoomIndicator(zoomLevel),
             ],
           ),
           // Expandable search row
-          if (_isSearchExpanded) ...[
+          if (isSearchExpanded) ...[
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -285,12 +491,21 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
               ),
               child: Row(
                 children: [
-                  _buildSearchTypeDropdown(),
+                  SearchTypeDropdown(
+                    searchType,
+                    onSearchTypeChanged: onSearchTypeChanged,
+                  ),
                   const SizedBox(width: 8),
-                  Expanded(child: _buildSearchField(maxWidth: double.infinity)),
+                  Expanded(
+                    child: SearchField(
+                      searchController,
+                      onSearchQueryChanged: onSearchQueryChanged,
+                      maxWidth: double.infinity,
+                    ),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.close, size: 20),
-                    onPressed: _toggleSearch,
+                    onPressed: toggleSearch,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     tooltip: 'Close search',
@@ -301,34 +516,6 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
           ],
         ],
       ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < _compactBreakpoint;
-
-        return Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: isCompact ? 8 : 12,
-          ),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.95),
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: isCompact ? _buildCompactLayout() : _buildWideLayout(),
-        );
-      },
     );
   }
 }

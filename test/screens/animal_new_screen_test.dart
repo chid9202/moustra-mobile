@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/screens/animal_new_screen.dart';
-import '../test_helpers/test_helpers.dart';
 
 void main() {
   group('AnimalNewScreen', () {

@@ -1,9 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
-import 'package:moustra/services/dtos/account_dto.dart';
-import 'package:moustra/services/dtos/cage_dto.dart';
-import 'package:moustra/services/dtos/strain_dto.dart';
-import 'package:moustra/services/dtos/genotype_dto.dart';
 
 void main() {
   group('AnimalDto Tests', () {
