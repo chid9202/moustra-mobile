@@ -11,9 +11,14 @@ PutCageDto _$PutCageDtoFromJson(Map<String, dynamic> json) => PutCageDto(
   cageUuid: json['cageUuid'] as String,
   cageTag: json['cageTag'] as String,
   owner: AccountStoreDto.fromJson(json['owner']),
-  strain: StrainSummaryDto.fromJson(json['strain'] as Map<String, dynamic>),
-  setUpDate: DateTime.parse(json['setUpDate'] as String),
+  strain: json['strain'] == null
+      ? null
+      : StrainSummaryDto.fromJson(json['strain'] as Map<String, dynamic>),
+  setUpDate: json['setUpDate'] == null
+      ? null
+      : DateTime.parse(json['setUpDate'] as String),
   comment: json['comment'] as String?,
+  barcode: json['barcode'] as String?,
 );
 
 Map<String, dynamic> _$PutCageDtoToJson(PutCageDto instance) =>
@@ -22,7 +27,8 @@ Map<String, dynamic> _$PutCageDtoToJson(PutCageDto instance) =>
       'cageUuid': instance.cageUuid,
       'cageTag': instance.cageTag,
       'owner': instance.owner.toJson(),
-      'strain': instance.strain.toJson(),
-      'setUpDate': instance.setUpDate.toIso8601String(),
+      'strain': instance.strain?.toJson(),
+      'setUpDate': instance.setUpDate?.toIso8601String(),
       'comment': instance.comment,
+      'barcode': instance.barcode,
     };

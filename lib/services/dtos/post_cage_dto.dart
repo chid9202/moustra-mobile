@@ -8,16 +8,18 @@ part 'post_cage_dto.g.dart';
 class PostCageDto {
   final String cageTag;
   final AccountStoreDto owner;
-  final StrainSummaryDto strain;
-  final DateTime setUpDate;
+  final StrainSummaryDto? strain;
+  final DateTime? setUpDate;
   final String? comment;
+  final String? barcode;
 
   PostCageDto({
     required this.cageTag,
     required this.owner,
-    required this.strain,
-    required this.setUpDate,
+    this.strain,
+    this.setUpDate,
     this.comment,
+    this.barcode,
   });
 
   factory PostCageDto.fromJson(Map<String, dynamic> json) =>

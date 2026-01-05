@@ -22,6 +22,7 @@ CageDto _$CageDtoFromJson(Map<String, dynamic> json) => CageDto(
       const [],
   order: (json['order'] as num?)?.toInt() ?? 0,
   comment: json['comment'] as String?,
+  barcode: json['barcode'] as String?,
   createdDate: json['createdDate'] == null
       ? null
       : DateTime.parse(json['createdDate'] as String),
@@ -41,6 +42,7 @@ Map<String, dynamic> _$CageDtoToJson(CageDto instance) => <String, dynamic>{
   'animals': instance.animals.map((e) => e.toJson()).toList(),
   'order': instance.order,
   'comment': instance.comment,
+  'barcode': instance.barcode,
   'createdDate': instance.createdDate?.toIso8601String(),
   'endDate': instance.endDate?.toIso8601String(),
   'status': instance.status,

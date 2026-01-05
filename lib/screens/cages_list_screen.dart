@@ -11,6 +11,7 @@ import 'package:moustra/widgets/filter_panel.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
+import 'package:moustra/screens/barcode_scanner_screen.dart';
 
 class CagesListScreen extends StatefulWidget {
   const CagesListScreen({super.key});
@@ -158,6 +159,11 @@ class _CagesListScreenState extends State<CagesListScreen> {
                   heroTag: 'cages-fab-menu',
                   actions: [
                     FabMenuAction(
+                      label: 'Scan Barcode',
+                      icon: const Icon(Icons.qr_code_scanner),
+                      onPressed: _scanBarcode,
+                    ),
+                    FabMenuAction(
                       label: 'Add Cage',
                       icon: const Icon(Icons.add),
                       onPressed: () {
@@ -185,6 +191,91 @@ class _CagesListScreenState extends State<CagesListScreen> {
         .where((g) => g.isNotEmpty)
         .length;
     return (tags > gens ? tags : gens).clamp(1, 20);
+  }
+
+  Future<void> _scanBarcode() async {
+    try {
+      final String? barcode = await Navigator.of(context).push<String>(
+        MaterialPageRoute(
+          builder: (context) => const BarcodeScannerScreen(),
+        ),
+      );
+
+      if (barcode == null || !mounted) return;
+
+      // Show loading indicator
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      try {
+        final cage = await cageApi.getCageByBarcode(barcode);
+        if (!mounted) return;
+        
+        // Dismiss loading dialog - use rootNavigator to ensure we get the dialog
+        Navigator.of(context, rootNavigator: true).pop();
+        
+        // Small delay to ensure dialog is dismissed
+        await Future.delayed(const Duration(milliseconds: 50));
+        if (!mounted) return;
+        
+        context.go('/cages/${cage.cageUuid}');
+      } catch (e) {
+        if (!mounted) return;
+        
+        // Dismiss loading dialog - use rootNavigator to ensure we get the dialog
+        try {
+          Navigator.of(context, rootNavigator: true).pop();
+        } catch (_) {
+          // Dialog might already be dismissed
+        }
+        
+        // Small delay to ensure dialog is dismissed
+        await Future.delayed(const Duration(milliseconds: 50));
+        if (!mounted) return;
+        
+        // Show user-friendly error message
+        String errorMessage = 'Cage not found';
+        final errorString = e.toString();
+        if (errorString.contains('not found') || errorString.contains('404')) {
+          errorMessage = 'No cage found with barcode "$barcode"';
+        } else if (errorString.contains('Exception:')) {
+          errorMessage = errorString.replaceFirst('Exception: ', '');
+        } else {
+          errorMessage = 'Error: $errorString';
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      // Try to dismiss dialog if still showing
+      try {
+        Navigator.of(context, rootNavigator: true).pop();
+      } catch (_) {
+        // Ignore
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error scanning barcode: ${e.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
   }
 }
 

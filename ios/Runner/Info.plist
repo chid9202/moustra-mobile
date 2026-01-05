@@ -48,7 +48,7 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>Use Face ID to unlock your account and access stored credentials</string>
 	<key>NSCameraUsageDescription</key>
-	<string>This app may access the camera for biometric authentication and secure payment processing features.</string>
+	<string>This app uses the camera to scan barcodes for cage identification, as well as for biometric authentication and secure payment processing features.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
