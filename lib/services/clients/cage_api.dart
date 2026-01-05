@@ -62,6 +62,32 @@ class CageApi {
     return CageDto.fromJson(jsonDecode(res.body));
   }
 
+  Future<CageDto> getCageByBarcode(String barcode) async {
+    try {
+      final res = await apiClient.get('$basePath/barcode/$barcode');
+      if (res.statusCode == 404) {
+        throw Exception('Cage with barcode "$barcode" not found');
+      }
+      if (res.statusCode != 200) {
+        throw Exception('Failed to get cage by barcode (${res.statusCode})');
+      }
+      if (res.body.isEmpty) {
+        throw Exception('Empty response from server');
+      }
+      return CageDto.fromJson(jsonDecode(res.body));
+    } on FormatException catch (e) {
+      throw Exception('Invalid response format: ${e.message}');
+    } catch (e) {
+      // Re-throw if it's already our custom exception
+      if (e.toString().contains('not found') ||
+          e.toString().contains('Failed to get')) {
+        rethrow;
+      }
+      // Otherwise wrap it
+      throw Exception('Error getting cage by barcode: ${e.toString()}');
+    }
+  }
+
   Future<CageDto> createCage(PostCageDto payload) async {
     final res = await apiClient.post(basePath, body: payload);
     if (res.statusCode != 201) {
@@ -87,6 +113,7 @@ class CageApi {
   }
 
   Future<CageDto> putCage(String cageUuid, PutCageDto payload) async {
+    print(payload.toJson());
     final res = await apiClient.put('$basePath/$cageUuid', body: payload);
     if (res.statusCode != 200) {
       throw Exception('Failed to update cage ${res.body}');

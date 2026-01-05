@@ -10,18 +10,20 @@ class PutCageDto {
   final String cageUuid;
   final String cageTag;
   final AccountStoreDto owner;
-  final StrainSummaryDto strain;
-  final DateTime setUpDate;
+  final StrainSummaryDto? strain;
+  final DateTime? setUpDate;
   final String? comment;
+  final String? barcode;
 
   PutCageDto({
     required this.cageId,
     required this.cageUuid,
     required this.cageTag,
     required this.owner,
-    required this.strain,
-    required this.setUpDate,
+    this.strain,
+    this.setUpDate,
     this.comment,
+    this.barcode,
   });
 
   factory PutCageDto.fromJson(Map<String, dynamic> json) =>

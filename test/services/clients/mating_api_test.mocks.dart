@@ -76,6 +76,37 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
           as _i4.Future<_i2.Response>);
 
   @override
+  _i4.Future<_i2.Response> getWithQueryString(
+    String? path, {
+    required String? queryString,
+    bool? withoutAccountPrefix = false,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #getWithQueryString,
+              [path],
+              {
+                #queryString: queryString,
+                #withoutAccountPrefix: withoutAccountPrefix,
+              },
+            ),
+            returnValue: _i4.Future<_i2.Response>.value(
+              _FakeResponse_1(
+                this,
+                Invocation.method(
+                  #getWithQueryString,
+                  [path],
+                  {
+                    #queryString: queryString,
+                    #withoutAccountPrefix: withoutAccountPrefix,
+                  },
+                ),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.Response>);
+
+  @override
   _i4.Future<_i2.Response> post(
     String? path, {
     Object? body,

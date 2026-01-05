@@ -16,6 +16,7 @@ class CageDto {
   final List<AnimalSummaryDto> animals;
   final int? order;
   final String? comment;
+  final String? barcode;
   final DateTime? createdDate;
   final DateTime? endDate;
   final String status;
@@ -30,6 +31,7 @@ class CageDto {
     this.animals = const [],
     this.order = 0,
     this.comment,
+    this.barcode,
     this.createdDate,
     this.endDate,
     required this.status,

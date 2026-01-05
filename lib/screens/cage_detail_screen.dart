@@ -11,6 +11,7 @@ import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
+import 'package:moustra/screens/barcode_scanner_screen.dart';
 
 class CageDetailScreen extends StatefulWidget {
   final bool fromCageGrid;
@@ -25,6 +26,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
   final _formKey = GlobalKey<FormState>();
   final _cageTagController = TextEditingController();
   final _commentController = TextEditingController();
+  final _barcodeController = TextEditingController();
 
   StrainStoreDto? _selectedStrain;
   DateTime? _selectedSetUpDate;
@@ -72,6 +74,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
         setState(() {
           _cageTagController.text = cage.cageTag;
           _commentController.text = cage.comment ?? '';
+          _barcodeController.text = cage.barcode ?? '';
           _selectedStrain = cage.strain != null
               ? StrainStoreDto(
                   strainId: cage.strain!.strainId,
@@ -103,51 +106,102 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
   void dispose() {
     _cageTagController.dispose();
     _commentController.dispose();
+    _barcodeController.dispose();
     super.dispose();
   }
 
+  Future<void> _scanBarcode() async {
+    try {
+      final String? barcode = await Navigator.of(context).push<String>(
+        MaterialPageRoute(
+          builder: (context) => const BarcodeScannerScreen(),
+        ),
+      );
+
+      if (barcode != null && mounted) {
+        setState(() {
+          _barcodeController.text = barcode;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error scanning barcode: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _saveCage() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        final cageUuid = _cageUuid;
-        if (cageUuid == null || cageUuid == 'new') {
-          final cage = PostCageDto(
-            cageTag: _cageTagController.text,
-            owner: _selectedOwner ?? await AccountHelper.getDefaultOwner(),
-            strain: _selectedStrain!.toStrainSummaryDto(),
-            setUpDate: _selectedSetUpDate!,
-            comment: _commentController.text,
-          );
-          await CageApi().createCage(cage);
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    try {
+      final cageUuid = _cageUuid;
+      final owner = _selectedOwner ?? await AccountHelper.getDefaultOwner();
+      
+      if (cageUuid == null || cageUuid == 'new') {
+        final cage = PostCageDto(
+          cageTag: _cageTagController.text,
+          owner: owner,
+          strain: _selectedStrain?.toStrainSummaryDto(),
+          setUpDate: _selectedSetUpDate,
+          comment: _commentController.text.isEmpty ? null : _commentController.text,
+          barcode: _barcodeController.text.isEmpty ? null : _barcodeController.text,
+        );
+        await CageApi().createCage(cage);
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Cage created successfully!')),
           );
-        } else {
-          final cageData = _cageData!;
-          await CageApi().putCage(
-            cageUuid,
-            PutCageDto(
-              cageId: cageData.cageId,
-              cageUuid: cageUuid,
-              cageTag: _cageTagController.text,
-              owner: _selectedOwner ?? await AccountHelper.getDefaultOwner(),
-              strain: _selectedStrain!.toStrainSummaryDto(),
-              setUpDate: _selectedSetUpDate!,
-              comment: _commentController.text,
+        }
+      } else {
+        final cageData = _cageData;
+        if (cageData == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Error: Cage data not loaded'),
+              backgroundColor: Colors.red,
             ),
           );
+          return;
+        }
+        
+        await CageApi().putCage(
+          cageUuid,
+          PutCageDto(
+            cageId: cageData.cageId,
+            cageUuid: cageUuid,
+            cageTag: _cageTagController.text,
+            owner: owner,
+            strain: _selectedStrain?.toStrainSummaryDto(),
+            setUpDate: _selectedSetUpDate,
+            comment: _commentController.text.isEmpty ? null : _commentController.text,
+            barcode: _barcodeController.text.isEmpty ? null : _barcodeController.text,
+          ),
+        );
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Cage updated successfully!')),
           );
         }
-        // Navigate back to the appropriate page based on where we came from
+      }
+      
+      // Navigate back to the appropriate page based on where we came from
+      if (mounted) {
         if (widget.fromCageGrid) {
           context.go('/cages/grid');
         } else {
           context.go('/cages/list');
         }
-      } catch (e) {
-        print('Error saving cage: $e');
+      }
+    } catch (e) {
+      print('Error saving cage: $e');
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error saving cage: $e')));
@@ -228,13 +282,21 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                   });
                 },
                 labelText: 'Set Up Date',
-                hintText: 'Select set up date',
-                validator: (date) {
-                  if (date == null) {
-                    return 'Please select a set up date';
-                  }
-                  return null;
-                },
+                hintText: 'Select set up date (optional)',
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _barcodeController,
+                decoration: InputDecoration(
+                  labelText: 'Barcode',
+                  hintText: 'Enter or scan barcode',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.qr_code_scanner),
+                    onPressed: _scanBarcode,
+                    tooltip: 'Scan barcode',
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
