@@ -73,18 +73,9 @@ class SecureStore {
     }
   }
 
-  /// Clear all stored tokens (keeps saved login credentials)
+  /// Clear all stored tokens
   static Future<void> clearAll() async {
-    // Save login credentials before clearing
-    final savedEmail = await getSavedEmail();
-    final savedPassword = await getSavedPassword();
-
     await _storage.deleteAll();
-
-    // Restore saved login credentials if they existed
-    if (savedEmail != null && savedEmail.isNotEmpty) {
-      await saveLoginCredentials(savedEmail, savedPassword ?? '');
-    }
   }
 
   /// Save login credentials (email and password) for "Remember Me" feature

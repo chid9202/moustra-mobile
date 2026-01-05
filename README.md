@@ -40,30 +40,40 @@ https://login-dev.moustra.com/ios/com.moustra.app/callback
 
 ### Production Builds
 
-#### Using the Build Script (Recommended)
+#### iOS Build
 
-The script automatically uses `.env.production`:
+```bash
+flutter build ios --release --dart-define=ENV_FILENAME=.env.production
+```
+
+#### Android Build
+
+**App Bundle (for Google Play Store):**
+
+```bash
+# Use the build script (recommended - works around ARM Mac symbol stripping issue)
+./build_android.sh
+```
+
+**APK (for direct distribution):**
+
+```bash
+flutter build apk --release --dart-define=ENV_FILENAME=.env.production
+```
+
+Output: `build/app/outputs/flutter-apk/app-release.apk`
+
+**Note:** The `flutter build appbundle` command may show a symbol stripping error on ARM Macs, but the app bundle is still created successfully. The `build_android.sh` script handles this automatically.
+
+#### Using the Build Script (All Platforms)
 
 ```bash
 # Build for all platforms
 ./build_production.sh all
 
 # Build for specific platform
-flutter build ios --release --dart-define=ENV_FILENAME=.env.production
 ./build_production.sh android
-./build_production.sh appbundle
-```
-
-#### Manual Production Builds
-
-```bash
-# Copy production environment
-cp .env.production .env
-
-# Build
-flutter build ios --release
-flutter build apk --release
-flutter build appbundle --release
+./build_production.sh ios
 ```
 
 ## Development Commands

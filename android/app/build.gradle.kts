@@ -11,7 +11,8 @@ plugins {
 android {
     namespace = "com.moustra.app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Explicitly set NDK version to avoid symbol stripping issues on ARM Macs
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -36,7 +37,11 @@ android {
         manifestPlaceholders["auth0Domain"] = "login-dev.moustra.com"
         manifestPlaceholders["auth0Scheme"] = "com.moustra.app"
         applicationId = "com.moustra.app"
-
+        
+        // Disable native debug symbols to avoid stripping issues
+        ndk {
+            debugSymbolLevel = "NONE"
+        }
     }
 
     fun getSigningProperty(key: String): String? {
@@ -53,19 +58,33 @@ android {
     signingConfigs {
         create("release") {
             // Load credentials from the properties file using the function
-            storeFile = getSigningProperty("storeFile")?.let { file(it) }
-            storePassword = getSigningProperty("storePassword")
-            keyAlias = getSigningProperty("keyAlias")
-            keyPassword = getSigningProperty("keyPassword")
+            val storeFilePath = getSigningProperty("storeFile")
+            if (storeFilePath != null) {
+                storeFile = file(storeFilePath)
+                storePassword = getSigningProperty("storePassword")
+                keyAlias = getSigningProperty("keyAlias")
+                keyPassword = getSigningProperty("keyPassword")
+            }
         }
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            // signingConfig = signingConfigs.getByName("debug")
-            signingConfig = signingConfigs.getByName("release")
+            // Use release signing config if key.properties exists, otherwise use debug
+            val keystorePropertiesFile = rootProject.file("key.properties")
+            if (keystorePropertiesFile.exists() && getSigningProperty("storeFile") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                // Signing with debug keys when key.properties doesn't exist
+                signingConfig = signingConfigs.getByName("debug")
+            }
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
+    
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
         }
     }
 }

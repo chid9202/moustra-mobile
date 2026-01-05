@@ -66,11 +66,13 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
 
     // Add search term as physical_tag filter if provided
     if (searchTerm != null && searchTerm.isNotEmpty) {
-      filters.add(FilterParam(
-        field: 'physical_tag',
-        operator: FilterOperators.contains,
-        value: searchTerm,
-      ));
+      filters.add(
+        FilterParam(
+          field: 'physical_tag',
+          operator: FilterOperators.contains,
+          value: searchTerm,
+        ),
+      );
     }
 
     // Build sorts list
@@ -143,31 +145,29 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                 pageSize: _pageSize,
                 onFilterChanged:
                     (page, pageSize, searchTerm, {useAiSearch}) async {
-                  if (useAiSearch == true && searchTerm.isNotEmpty) {
-                    // AI search
-                    final pageData = await animalService.searchAnimalsWithAi(
-                      prompt: searchTerm,
-                    );
-                    return PaginatedResult<AnimalDto>(
-                      count: pageData.count,
-                      results: pageData.results,
-                    );
-                  }
+                      if (useAiSearch == true && searchTerm.isNotEmpty) {
+                        // AI search
+                        final pageData = await animalService
+                            .searchAnimalsWithAi(prompt: searchTerm);
+                        return PaginatedResult<AnimalDto>(
+                          count: pageData.count,
+                          results: pageData.results,
+                        );
+                      }
 
-                  // Regular search with filters
-                  final params = _buildQueryParams(
-                    page: page,
-                    pageSize: pageSize,
-                    searchTerm: searchTerm,
-                  );
-                  final pageData = await animalService.getAnimalsPageWithParams(
-                    params: params,
-                  );
-                  return PaginatedResult<AnimalDto>(
-                    count: pageData.count,
-                    results: pageData.results,
-                  );
-                },
+                      // Regular search with filters
+                      final params = _buildQueryParams(
+                        page: page,
+                        pageSize: pageSize,
+                        searchTerm: searchTerm,
+                      );
+                      final pageData = await animalService
+                          .getAnimalsPageWithParams(params: params);
+                      return PaginatedResult<AnimalDto>(
+                        count: pageData.count,
+                        results: pageData.results,
+                      );
+                    },
               ),
               Positioned.fill(
                 child: MovableFabMenu(
