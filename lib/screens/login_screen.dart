@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:moustra/services/auth_service.dart';
@@ -46,7 +47,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _checkBiometricAvailability();
-    _loadSavedCredentials();
     // Attempt automatic biometric unlock on login screen load if available
     _attemptAutoUnlock();
     _authListener = () {
@@ -73,6 +73,8 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     _autoUnlockTimer?.cancel();
+    // Dispose autofill context to ensure iOS saves credentials
+    TextInput.finishAutofillContext();
     WidgetsBinding.instance.removeObserver(this);
     if (_authListener != null) {
       authState.removeListener(_authListener!);
@@ -109,13 +111,17 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
             });
           }
         })
-        .then((_) {
+        .then((_) async {
           if (mounted) {
-            // Reset loading before navigation
-            setState(() {
-              _loading = false;
-            });
-            context.go('/dashboard');
+            // Give iOS time to process the autofill save request before navigating
+            await Future.delayed(const Duration(milliseconds: 300));
+            if (mounted) {
+              // Reset loading before navigation
+              setState(() {
+                _loading = false;
+              });
+              context.go('/dashboard');
+            }
           }
         });
   }
@@ -150,22 +156,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
       setState(() {
         _canUseBiometrics = canUse;
         _hasRefreshToken = hasRefresh;
-      });
-    }
-  }
-
-  /// Load saved credentials from secure storage
-  Future<void> _loadSavedCredentials() async {
-    final savedEmail = await SecureStore.getSavedEmail();
-    final savedPassword = await SecureStore.getSavedPassword();
-    if (mounted) {
-      setState(() {
-        if (savedEmail != null && savedEmail.isNotEmpty) {
-          _emailController.text = savedEmail;
-        }
-        if (savedPassword != null && savedPassword.isNotEmpty) {
-          _passwordController.text = savedPassword;
-        }
       });
     }
   }
@@ -243,6 +233,8 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     try {
       if (!mounted) return;
       await authService.loginWithPassword(email, password);
+      // Notify the system to save credentials for autofill
+      TextInput.finishAutofillContext(shouldSave: true);
       // If login succeeds, the auth listener will handle loading state
       // through _postLogin() until navigation completes
     } catch (e) {
@@ -258,16 +250,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
         });
       }
       return; // Don't save credentials if login failed
-    }
-
-    // Save credentials after successful login (separate try-catch so storage
-    // failures don't block the login flow)
-    try {
-      await SecureStore.saveLoginCredentials(email, password);
-    } catch (e) {
-      // Silently fail - credential saving is a convenience feature,
-      // not critical to the login flow
-      print('[LoginScreen] Failed to save credentials: $e');
     }
   }
 
@@ -302,228 +284,236 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
               constraints: const BoxConstraints(maxWidth: 400),
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Logo
-                      Image.asset(
-                        'assets/icons/app_icon.png',
-                        height: 100,
-                        width: 100,
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Title
-                      Text(
-                        'Welcome to Moustra',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
+                child: AutofillGroup(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Logo
+                        Image.asset(
+                          'assets/icons/app_icon.png',
+                          height: 100,
+                          width: 100,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
+                        const SizedBox(height: 24),
 
-                      // Subtitle
-                      Text(
-                        'Sign in to continue',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Error message
-                      if (_error != null) ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(8),
+                        // Title
+                        Text(
+                          'Welcome to Moustra',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
                           ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                color: colorScheme.onErrorContainer,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _error!,
-                                  style: TextStyle(
-                                    color: colorScheme.onErrorContainer,
-                                    fontSize: 14,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Subtitle
+                        Text(
+                          'Sign in to continue',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Error message
+                        if (_error != null) ...[
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: colorScheme.errorContainer,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  color: colorScheme.onErrorContainer,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _error!,
+                                    style: TextStyle(
+                                      color: colorScheme.onErrorContainer,
+                                      fontSize: 14,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Email field
+                        TextFormField(
+                          controller: _emailController,
+                          focusNode: _emailFocusNode,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autocorrect: false,
+                          enabled: !_loading && !_unlockLoading,
+                          autofillHints: const [AutofillHints.username],
+                          decoration: InputDecoration(
+                            labelText: 'Email',
+                            hintText: 'Enter your email',
+                            prefixIcon: const Icon(Icons.email_outlined),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            filled: true,
+                            fillColor: colorScheme.surfaceContainerHighest
+                                .withValues(alpha: 0.3),
+                          ),
+                          validator: _validateEmail,
+                          onFieldSubmitted: (_) {
+                            _passwordFocusNode.requestFocus();
+                          },
                         ),
                         const SizedBox(height: 16),
-                      ],
 
-                      // Email field
-                      TextFormField(
-                        controller: _emailController,
-                        focusNode: _emailFocusNode,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        autocorrect: false,
-                        enabled: !_loading && !_unlockLoading,
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          hintText: 'Enter your email',
-                          prefixIcon: const Icon(Icons.email_outlined),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          filled: true,
-                          fillColor: colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.3),
-                        ),
-                        validator: _validateEmail,
-                        onFieldSubmitted: (_) {
-                          _passwordFocusNode.requestFocus();
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Password field
-                      TextFormField(
-                        controller: _passwordController,
-                        focusNode: _passwordFocusNode,
-                        obscureText: _obscurePassword,
-                        textInputAction: TextInputAction.done,
-                        enabled: !_loading && !_unlockLoading,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          hintText: 'Enter your password',
-                          prefixIcon: const Icon(Icons.lock_outlined),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          filled: true,
-                          fillColor: colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.3),
-                        ),
-                        validator: _validatePassword,
-                        onFieldSubmitted: (_) => _handleLogin(),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Sign in button
-                      FilledButton(
-                        onPressed: (_loading || _unlockLoading)
-                            ? null
-                            : _handleLogin,
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: _loading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text(
-                                'Sign In',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                        // Password field
+                        TextFormField(
+                          controller: _passwordController,
+                          focusNode: _passwordFocusNode,
+                          obscureText: _obscurePassword,
+                          textInputAction: TextInputAction.done,
+                          enabled: !_loading && !_unlockLoading,
+                          autofillHints: const [AutofillHints.password],
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            hintText: 'Enter your password',
+                            prefixIcon: const Icon(Icons.lock_outlined),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
                               ),
-                      ),
-
-                      // Biometric unlock section
-                      if (_canUseBiometrics && _hasRefreshToken) ...[
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Divider(color: colorScheme.outlineVariant),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Text(
-                                'or',
-                                style: TextStyle(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontSize: 14,
-                                ),
-                              ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            Expanded(
-                              child: Divider(color: colorScheme.outlineVariant),
-                            ),
-                          ],
+                            filled: true,
+                            fillColor: colorScheme.surfaceContainerHighest
+                                .withValues(alpha: 0.3),
+                          ),
+                          validator: _validatePassword,
+                          onFieldSubmitted: (_) => _handleLogin(),
                         ),
                         const SizedBox(height: 24),
-                        OutlinedButton.icon(
+
+                        // Sign in button
+                        FilledButton(
                           onPressed: (_loading || _unlockLoading)
                               ? null
-                              : _handleUnlock,
-                          style: OutlinedButton.styleFrom(
+                              : _handleLogin,
+                          style: FilledButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            side: BorderSide(color: colorScheme.outline),
                           ),
-                          icon: _unlockLoading
-                              ? SizedBox(
+                          child: _loading
+                              ? const SizedBox(
                                   width: 20,
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: colorScheme.primary,
+                                    color: Colors.white,
                                   ),
                                 )
-                              : Icon(
-                                  Platform.isIOS
-                                      ? Icons.face
-                                      : Icons.fingerprint,
-                                  size: 24,
+                              : const Text(
+                                  'Sign In',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                          label: Text(
-                            Platform.isIOS
-                                ? 'Unlock with Face ID'
-                                : 'Unlock with Biometrics',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                        ),
+
+                        // Biometric unlock section
+                        if (_canUseBiometrics && _hasRefreshToken) ...[
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Divider(
+                                  color: colorScheme.outlineVariant,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Text(
+                                  'or',
+                                  style: TextStyle(
+                                    color: colorScheme.onSurfaceVariant,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Divider(
+                                  color: colorScheme.outlineVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          OutlinedButton.icon(
+                            onPressed: (_loading || _unlockLoading)
+                                ? null
+                                : _handleUnlock,
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              side: BorderSide(color: colorScheme.outline),
+                            ),
+                            icon: _unlockLoading
+                                ? SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: colorScheme.primary,
+                                    ),
+                                  )
+                                : Icon(
+                                    Platform.isIOS
+                                        ? Icons.face
+                                        : Icons.fingerprint,
+                                    size: 24,
+                                  ),
+                            label: Text(
+                              Platform.isIOS
+                                  ? 'Unlock with Face ID'
+                                  : 'Unlock with Biometrics',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
