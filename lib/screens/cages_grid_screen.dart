@@ -190,9 +190,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     Matrix4? savedMatrix = await getSavedTransformationMatrixFromStorage();
 
     // Fall back to in-memory store if SharedPreferences has no data
-    if (savedMatrix == null) {
-      savedMatrix = getSavedTransformationMatrix();
-    }
+    savedMatrix ??= getSavedTransformationMatrix();
 
     if (savedMatrix != null) {
       _transformationController.value = savedMatrix;
@@ -279,10 +277,6 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
         },
       ),
     );
-  }
-
-  Widget _buildAddCageButton() {
-    return AddCageButton(onTap: _handleAddCage);
   }
 
   Future<void> _handleAddCage() async {
@@ -380,7 +374,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
 
                       // Show Plus button in the first empty slot if rack is not full
                       if (index == cagesLength && index < maxCages) {
-                        return _buildAddCageButton();
+                        return AddCageButton(onTap: _handleAddCage);
                       }
 
                       if (index >= cagesLength) {
