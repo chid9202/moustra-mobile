@@ -6,6 +6,7 @@ import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
 import 'package:moustra/services/dtos/stores/cage_store_dto.dart';
 import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
+import 'package:moustra/services/dtos/note_dto.dart';
 
 part 'animal_dto.g.dart';
 
@@ -28,6 +29,7 @@ class AnimalDto {
   final DateTime? updatedDate;
   final AnimalSummaryDto? sire;
   final List<AnimalSummaryDto>? dam;
+  final List<NoteDto>? notes;
 
   AnimalDto({
     required this.eid,
@@ -47,6 +49,7 @@ class AnimalDto {
     this.updatedDate,
     this.sire,
     this.dam = const [],
+    this.notes,
   });
 
   factory AnimalDto.fromJson(Map<String, dynamic> json) =>

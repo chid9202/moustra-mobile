@@ -31,6 +31,9 @@ LitterDto _$LitterDtoFromJson(Map<String, dynamic> json) => LitterDto(
   dateOfBirth: json['dateOfBirth'] == null
       ? null
       : DateTime.parse(json['dateOfBirth'] as String),
+  notes: (json['notes'] as List<dynamic>?)
+      ?.map((e) => NoteDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$LitterDtoToJson(LitterDto instance) => <String, dynamic>{
@@ -44,6 +47,7 @@ Map<String, dynamic> _$LitterDtoToJson(LitterDto instance) => <String, dynamic>{
   'createdDate': instance.createdDate?.toIso8601String(),
   'comment': instance.comment,
   'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
+  'notes': instance.notes?.map((e) => e.toJson()).toList(),
 };
 
 LitterAnimalDto _$LitterAnimalDtoFromJson(Map<String, dynamic> json) =>

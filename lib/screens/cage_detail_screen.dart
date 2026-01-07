@@ -12,6 +12,8 @@ import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/screens/barcode_scanner_screen.dart';
+import 'package:moustra/widgets/note/note_list.dart';
+import 'package:moustra/services/dtos/note_entity_type.dart';
 
 class CageDetailScreen extends StatefulWidget {
   final bool fromCageGrid;
@@ -113,9 +115,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
   Future<void> _scanBarcode() async {
     try {
       final String? barcode = await Navigator.of(context).push<String>(
-        MaterialPageRoute(
-          builder: (context) => const BarcodeScannerScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const BarcodeScannerScreen()),
       );
 
       if (barcode != null && mounted) {
@@ -143,15 +143,19 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
     try {
       final cageUuid = _cageUuid;
       final owner = _selectedOwner ?? await AccountHelper.getDefaultOwner();
-      
+
       if (cageUuid == null || cageUuid == 'new') {
         final cage = PostCageDto(
           cageTag: _cageTagController.text,
           owner: owner,
           strain: _selectedStrain?.toStrainSummaryDto(),
           setUpDate: _selectedSetUpDate,
-          comment: _commentController.text.isEmpty ? null : _commentController.text,
-          barcode: _barcodeController.text.isEmpty ? null : _barcodeController.text,
+          comment: _commentController.text.isEmpty
+              ? null
+              : _commentController.text,
+          barcode: _barcodeController.text.isEmpty
+              ? null
+              : _barcodeController.text,
         );
         await CageApi().createCage(cage);
         if (mounted) {
@@ -170,7 +174,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
           );
           return;
         }
-        
+
         await CageApi().putCage(
           cageUuid,
           PutCageDto(
@@ -180,8 +184,12 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
             owner: owner,
             strain: _selectedStrain?.toStrainSummaryDto(),
             setUpDate: _selectedSetUpDate,
-            comment: _commentController.text.isEmpty ? null : _commentController.text,
-            barcode: _barcodeController.text.isEmpty ? null : _barcodeController.text,
+            comment: _commentController.text.isEmpty
+                ? null
+                : _commentController.text,
+            barcode: _barcodeController.text.isEmpty
+                ? null
+                : _barcodeController.text,
           ),
         );
         if (mounted) {
@@ -190,7 +198,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
           );
         }
       }
-      
+
       // Navigate back to the appropriate page based on where we came from
       if (mounted) {
         if (widget.fromCageGrid) {
@@ -309,6 +317,14 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                 maxLines: 3,
               ),
               const SizedBox(height: 32),
+
+              // Notes Section
+              if (_cageUuid != null && _cageUuid != 'new')
+                NoteList(
+                  entityUuid: _cageUuid,
+                  entityType: NoteEntityType.cage,
+                  initialNotes: _cageData?.notes,
+                ),
               SizedBox(
                 width: double.infinity,
                 child: MoustraButtonPrimary(

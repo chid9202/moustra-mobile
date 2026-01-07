@@ -18,6 +18,8 @@ import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/widgets/shared/button.dart';
+import 'package:moustra/widgets/note/note_list.dart';
+import 'package:moustra/services/dtos/note_entity_type.dart';
 
 class MatingDetailScreen extends StatefulWidget {
   final bool fromCageGrid;
@@ -348,6 +350,15 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
                 maxLines: 3,
               ),
               const SizedBox(height: 32),
+
+              // Notes Section
+              if (_matingUuid != null && _matingUuid != 'new')
+                NoteList(
+                  entityUuid: _matingUuid,
+                  entityType: NoteEntityType.mating,
+                  initialNotes: _matingData?.notes,
+                ),
+
               SizedBox(
                 width: double.infinity,
                 child: MoustraButtonPrimary(

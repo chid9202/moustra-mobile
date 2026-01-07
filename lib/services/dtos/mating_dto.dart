@@ -3,6 +3,7 @@ import 'package:moustra/services/dtos/account_dto.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
+import 'package:moustra/services/dtos/note_dto.dart';
 
 part 'mating_dto.g.dart';
 
@@ -22,6 +23,7 @@ class MatingDto {
   final AccountDto? disbandedBy;
   final DateTime? createdDate;
   final CageSummaryDto? cage;
+  final List<NoteDto>? notes;
 
   MatingDto({
     this.eid,
@@ -38,6 +40,7 @@ class MatingDto {
     this.disbandedBy,
     this.createdDate,
     this.cage,
+    this.notes,
   });
 
   factory MatingDto.fromJson(Map<String, dynamic> json) =>

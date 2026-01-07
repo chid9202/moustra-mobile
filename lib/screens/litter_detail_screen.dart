@@ -4,6 +4,7 @@ import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/services/clients/litter_api.dart';
 import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
+import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:moustra/services/dtos/post_litter_dto.dart';
 import 'package:moustra/services/dtos/put_litter_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
@@ -11,6 +12,8 @@ import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_mating.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
+import 'package:moustra/widgets/note/note_list.dart';
+import 'package:moustra/services/dtos/note_entity_type.dart';
 
 class LitterDetailScreen extends StatefulWidget {
   final String? matingUuid;
@@ -38,6 +41,7 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
   DateTime? _selectedDateOfBirth = DateTime.now();
   DateTime? _selectedWeanDate = DateTime.now().add(const Duration(days: 21));
   AccountStoreDto? _selectedOwner;
+  LitterDto? _litterData;
   bool _litterDataLoaded = false;
 
   String? get _litterUuid {
@@ -88,6 +92,7 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
     final litter = await litterService.getLitter(_litterUuid!);
     if (mounted) {
       setState(() {
+        _litterData = litter;
         _litterDataLoaded = true;
         _selectedMating = MatingDto(
           matingId: litter.mating?.matingId ?? 0,
@@ -318,6 +323,15 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                 maxLines: 3,
               ),
               const SizedBox(height: 32),
+
+              // Notes Section
+              if (_litterUuid != null && _litterUuid != 'new')
+                NoteList(
+                  entityUuid: _litterUuid,
+                  entityType: NoteEntityType.litter,
+                  initialNotes: _litterData?.notes,
+                ),
+
               SizedBox(
                 width: double.infinity,
                 child: MoustraButtonPrimary(
