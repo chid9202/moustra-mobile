@@ -41,6 +41,9 @@ MatingDto _$MatingDtoFromJson(Map<String, dynamic> json) => MatingDto(
   cage: json['cage'] == null
       ? null
       : CageSummaryDto.fromJson(json['cage'] as Map<String, dynamic>),
+  notes: (json['notes'] as List<dynamic>?)
+      ?.map((e) => NoteDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$MatingDtoToJson(MatingDto instance) => <String, dynamic>{
@@ -58,6 +61,7 @@ Map<String, dynamic> _$MatingDtoToJson(MatingDto instance) => <String, dynamic>{
   'disbandedBy': instance.disbandedBy?.toJson(),
   'createdDate': instance.createdDate?.toIso8601String(),
   'cage': instance.cage?.toJson(),
+  'notes': instance.notes?.map((e) => e.toJson()).toList(),
 };
 
 MatingSummaryDto _$MatingSummaryDtoFromJson(Map<String, dynamic> json) =>

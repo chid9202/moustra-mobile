@@ -21,6 +21,8 @@ import 'package:moustra/widgets/shared/select_owner.dart';
 import 'package:moustra/widgets/shared/select_sex.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/widgets/shared/button.dart';
+import 'package:moustra/widgets/note/note_list.dart';
+import 'package:moustra/services/dtos/note_entity_type.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
   final bool fromCageGrid;
@@ -356,6 +358,14 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
               ),
 
               const SizedBox(height: 32),
+
+              // Notes Section
+              if (_animalUuid != null && _animalUuid != 'new')
+                NoteList(
+                  entityUuid: _animalUuid,
+                  entityType: NoteEntityType.animal,
+                  initialNotes: _animalData?.notes,
+                ),
 
               // Save Button
               SizedBox(

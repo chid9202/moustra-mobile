@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:moustra/services/dtos/account_dto.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
+import 'package:moustra/services/dtos/note_dto.dart';
 
 part 'litter_dto.g.dart';
 
@@ -16,6 +17,7 @@ class LitterDto {
   final DateTime? createdDate;
   final String? comment;
   final DateTime? dateOfBirth;
+  final List<NoteDto>? notes;
 
   LitterDto({
     this.eid,
@@ -28,6 +30,7 @@ class LitterDto {
     this.createdDate,
     this.comment,
     this.dateOfBirth,
+    this.notes,
   });
 
   factory LitterDto.fromJson(Map<String, dynamic> json) =>

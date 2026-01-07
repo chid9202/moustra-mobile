@@ -50,6 +50,9 @@ AnimalDto _$AnimalDtoFromJson(Map<String, dynamic> json) => AnimalDto(
           ?.map((e) => AnimalSummaryDto.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  notes: (json['notes'] as List<dynamic>?)
+      ?.map((e) => NoteDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$AnimalDtoToJson(AnimalDto instance) => <String, dynamic>{
@@ -70,6 +73,7 @@ Map<String, dynamic> _$AnimalDtoToJson(AnimalDto instance) => <String, dynamic>{
   'updatedDate': instance.updatedDate?.toIso8601String(),
   'sire': instance.sire?.toJson(),
   'dam': instance.dam?.map((e) => e.toJson()).toList(),
+  'notes': instance.notes?.map((e) => e.toJson()).toList(),
 };
 
 AnimalSummaryDto _$AnimalSummaryDtoFromJson(Map<String, dynamic> json) =>

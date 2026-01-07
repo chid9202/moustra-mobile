@@ -61,20 +61,15 @@ flutter build ios --release --dart-define=ENV_FILENAME=.env.production
 flutter build apk --release --dart-define=ENV_FILENAME=.env.production
 ```
 
-Output: `build/app/outputs/flutter-apk/app-release.apk`
-
 **Note:** The `flutter build appbundle` command may show a symbol stripping error on ARM Macs, but the app bundle is still created successfully. The `build_android.sh` script handles this automatically.
 
 #### Using the Build Script (All Platforms)
 
 ```bash
-# Build for all platforms
-./build_production.sh all
-
-# Build for specific platform
 ./build_production.sh android
-./build_production.sh ios
 ```
+
+Output: `build/app/outputs/flutter-apk/app-release.apk`
 
 ## Development Commands
 
@@ -86,7 +81,7 @@ Clean everything and run:
 flutter clean
 adb uninstall com.moustra.app
 flutter pub get
-flutter run -d emulator-5556
+flutter run
 ```
 
 ### Code Generation
