@@ -157,6 +157,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
                 child: MovableFabMenu(
                   controller: _fabController,
                   heroTag: 'cages-fab-menu',
+                  margin: const EdgeInsets.only(right: 24, bottom: 50),
                   actions: [
                     FabMenuAction(
                       label: 'Scan Barcode',
