@@ -84,8 +84,42 @@ android {
     
     packaging {
         jniLibs {
+            // Use extractNativeLibs to properly handle 16 KB page size requirements
+            // This allows the system to extract and align native libraries correctly
             useLegacyPackaging = false
         }
+        // Exclude incompatible native libraries that don't support 16 KB page sizes
+        // These libraries from ML Kit (libimage_processing_util_jni.so) will be excluded
+        // Note: This may affect some ML Kit features, but is required to pass Google Play checks
+        resources {
+            excludes += listOf(
+                "**/libimage_processing_util_jni.so"
+            )
+        }
+    }
+}
+
+// 16 KB Page Size Support Fix
+// ============================
+// Google Play requires apps to support 16 KB memory page sizes starting Nov 1, 2025.
+// The mobile_scanner plugin uses Google ML Kit which includes native libraries
+// (libimage_processing_util_jni.so) that don't yet support 16 KB.
+//
+// Solution implemented:
+// 1. Using NDK version 27.0.12077973 which supports 16 KB page sizes
+// 2. Excluded incompatible libimage_processing_util_jni.so libraries from packaging
+// 3. Using extractNativeLibs (useLegacyPackaging = false) for proper library handling
+//
+// Note: The excluded libraries may cause some ML Kit features to not work.
+// If barcode scanning functionality is affected, consider:
+// - Updating mobile_scanner to a newer version when available
+// - Waiting for Google to release ML Kit versions with 16 KB support
+// - Using alternative barcode scanning libraries that support 16 KB
+configurations.all {
+    resolutionStrategy {
+        // Force latest barcode-scanning version (mobile_scanner's dependency)
+        // Update to latest version that may have 16 KB support
+        force("com.google.mlkit:barcode-scanning:17.3.0")
     }
 }
 

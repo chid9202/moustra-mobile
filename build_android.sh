@@ -3,23 +3,48 @@
 # Build Android App Bundle for production
 # This script works around the Flutter symbol stripping issue on ARM Macs
 # by using Gradle directly instead of flutter build appbundle
+#
+# IMPORTANT: The --dart-define=ENV_FILENAME=.env.production flag ensures
+# the app loads the production environment file at runtime.
 
 set -e
 
 echo "🚀 Building Android App Bundle for production..."
 echo ""
 
-# Step 1: Flutter build bundle (generates necessary files)
-echo "📦 Step 1: Generating Flutter assets..."
+# Step 1: Flutter build bundle (generates necessary files with production environment)
+# This compiles Dart code with ENV_FILENAME=.env.production baked in
+echo "📦 Step 1: Generating Flutter assets with production environment..."
 flutter build appbundle --release --dart-define=ENV_FILENAME=.env.production 2>&1 | grep -v "failed to strip" || true
 
-# Step 2: Build with Gradle directly (this works even when Flutter's post-processing fails)
-echo ""
-echo "🔨 Step 2: Building app bundle with Gradle..."
-cd android && ./gradlew bundleRelease
+# Check if Flutter build created the bundle successfully
+# If it did, we can use it directly (it already has the production environment)
+if [ -f "build/app/outputs/bundle/release/app-release.aab" ]; then
+    echo ""
+    echo "✅ Flutter build completed successfully with production environment!"
+    echo "📦 Using Flutter-generated bundle"
+    echo "   (ENV_FILENAME=.env.production was compiled into the Dart code)"
+    SKIP_GRADLE=true
+else
+    echo ""
+    echo "⚠️  Flutter build did not create bundle, using Gradle fallback..."
+    SKIP_GRADLE=false
+fi
+
+# Step 2: Build with Gradle directly (fallback if Flutter's post-processing fails)
+# IMPORTANT: If Flutter build succeeded, we skip this to preserve the production environment.
+# The Dart code was already compiled with ENV_FILENAME=.env.production, so the bundle is correct.
+# Only run Gradle if Flutter build failed to create the bundle.
+if [ "$SKIP_GRADLE" = false ]; then
+    echo ""
+    echo "🔨 Step 2: Building app bundle with Gradle..."
+    echo "⚠️  NOTE: Gradle will use the Dart code compiled in Step 1, which already has"
+    echo "   ENV_FILENAME=.env.production baked in, so the production environment is preserved."
+    cd android && ./gradlew bundleRelease
+    cd ..
+fi
 
 # Step 3: Verify the bundle was created
-cd ..
 if [ -f "build/app/outputs/bundle/release/app-release.aab" ]; then
     echo ""
     echo "✅ Build successful!"
