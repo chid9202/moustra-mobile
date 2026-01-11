@@ -62,11 +62,13 @@ class _CagesListScreenState extends State<CagesListScreen> {
     List<FilterParam> filters = List.from(_activeFilters);
 
     if (searchTerm != null && searchTerm.isNotEmpty) {
-      filters.add(FilterParam(
-        field: 'cage_tag',
-        operator: FilterOperators.contains,
-        value: searchTerm,
-      ));
+      filters.add(
+        FilterParam(
+          field: 'cage_tag',
+          operator: FilterOperators.contains,
+          value: searchTerm,
+        ),
+      );
     }
 
     List<SortParam> sorts = [];
@@ -129,28 +131,29 @@ class _CagesListScreenState extends State<CagesListScreen> {
                 },
                 onFilterChanged:
                     (page, pageSize, searchTerm, {useAiSearch}) async {
-                  if (useAiSearch == true && searchTerm.isNotEmpty) {
-                    final pageData =
-                        await cageApi.searchCagesWithAi(prompt: searchTerm);
-                    return PaginatedResult<CageDto>(
-                      count: pageData.count,
-                      results: pageData.results,
-                    );
-                  }
+                      if (useAiSearch == true && searchTerm.isNotEmpty) {
+                        final pageData = await cageApi.searchCagesWithAi(
+                          prompt: searchTerm,
+                        );
+                        return PaginatedResult<CageDto>(
+                          count: pageData.count,
+                          results: pageData.results,
+                        );
+                      }
 
-                  final params = _buildQueryParams(
-                    page: page,
-                    pageSize: pageSize,
-                    searchTerm: searchTerm,
-                  );
-                  final pageData = await cageApi.getCagesPageWithParams(
-                    params: params,
-                  );
-                  return PaginatedResult<CageDto>(
-                    count: pageData.count,
-                    results: pageData.results,
-                  );
-                },
+                      final params = _buildQueryParams(
+                        page: page,
+                        pageSize: pageSize,
+                        searchTerm: searchTerm,
+                      );
+                      final pageData = await cageApi.getCagesPageWithParams(
+                        params: params,
+                      );
+                      return PaginatedResult<CageDto>(
+                        count: pageData.count,
+                        results: pageData.results,
+                      );
+                    },
                 rowHeightEstimator: (index, row) => _estimateLines(row),
               ),
               Positioned.fill(
@@ -197,9 +200,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
   Future<void> _scanBarcode() async {
     try {
       final String? barcode = await Navigator.of(context).push<String>(
-        MaterialPageRoute(
-          builder: (context) => const BarcodeScannerScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const BarcodeScannerScreen()),
       );
 
       if (barcode == null || !mounted) return;
@@ -209,37 +210,35 @@ class _CagesListScreenState extends State<CagesListScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
       try {
         final cage = await cageApi.getCageByBarcode(barcode);
         if (!mounted) return;
-        
+
         // Dismiss loading dialog - use rootNavigator to ensure we get the dialog
         Navigator.of(context, rootNavigator: true).pop();
-        
+
         // Small delay to ensure dialog is dismissed
         await Future.delayed(const Duration(milliseconds: 50));
         if (!mounted) return;
-        
+
         context.go('/cages/${cage.cageUuid}');
       } catch (e) {
         if (!mounted) return;
-        
+
         // Dismiss loading dialog - use rootNavigator to ensure we get the dialog
         try {
           Navigator.of(context, rootNavigator: true).pop();
         } catch (_) {
           // Dialog might already be dismissed
         }
-        
+
         // Small delay to ensure dialog is dismissed
         await Future.delayed(const Duration(milliseconds: 50));
         if (!mounted) return;
-        
+
         // Show user-friendly error message
         String errorMessage = 'Cage not found';
         final errorString = e.toString();
@@ -250,7 +249,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
         } else {
           errorMessage = 'Error: $errorString';
         }
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
@@ -266,11 +265,13 @@ class _CagesListScreenState extends State<CagesListScreen> {
       } catch (_) {
         // Ignore
       }
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error scanning barcode: ${e.toString().replaceAll('Exception: ', '')}'),
+            content: Text(
+              'Error scanning barcode: ${e.toString().replaceAll('Exception: ', '')}',
+            ),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
