@@ -74,14 +74,9 @@ class _SingleNoteState extends State<SingleNote> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: BorderSide(
-          color: Theme.of(context).dividerColor,
-          width: 1,
-        ),
+        side: BorderSide(color: Theme.of(context).dividerColor, width: 1),
       ),
-      margin: EdgeInsets.only(
-        bottom: widget.isLast ? 0 : 8,
-      ),
+      margin: EdgeInsets.only(bottom: widget.isLast ? 0 : 8),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -135,7 +130,12 @@ class _SingleNoteState extends State<SingleNote> {
                                   creatorName,
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
-                                const Spacer(),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
                                 IconButton(
                                   onPressed: widget.onStartEdit,
                                   tooltip: 'Edit',

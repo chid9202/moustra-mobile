@@ -9,6 +9,9 @@
 
 set -e
 
+echo "🧹 Cleaning Flutter project..."
+flutter clean
+
 echo "🚀 Building Android App Bundle for production..."
 echo ""
 
