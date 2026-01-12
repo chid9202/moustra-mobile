@@ -236,10 +236,6 @@ class AuthService {
       // Show biometric prompt
       final authenticated = await _localAuth.authenticate(
         localizedReason: reason,
-        options: const local_auth.AuthenticationOptions(
-          biometricOnly: true,
-          stickyAuth: true,
-        ),
       );
 
       if (!authenticated) {

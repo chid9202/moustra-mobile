@@ -15,17 +15,14 @@ void main() {
     late ApiClient apiClient;
 
     setUpAll(() async {
-      // Initialize dotenv with test values
-      dotenv.testLoad(
-        fileInput: '''
-API_BASE_URL=https://test-api.example.com/api/v1
-AUTH0_DOMAIN=test-auth.example.com
-AUTH0_CLIENT_ID=test-client-id
-AUTH0_SCHEME=com.test.app
-AUTH0_AUDIENCE=https://test-api.example.com
-AUTH0_CONNECTION=Test-Connection
-''',
-      );
+      // Initialize dotenv - try loading .env file if it exists, otherwise use empty initialization
+      try {
+        await dotenv.load(fileName: '.env');
+      } catch (e) {
+        // If .env file doesn't exist or can't be loaded, initialize with empty values
+        // Env class will use fallback values
+        dotenv.env.clear();
+      }
       // Set up a mock profile state to avoid null accountUuid
       profileState.value = null;
     });

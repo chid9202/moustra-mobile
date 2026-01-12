@@ -87,13 +87,13 @@ android {
             // Use extractNativeLibs to properly handle 16 KB page size requirements
             // This allows the system to extract and align native libraries correctly
             useLegacyPackaging = false
-        }
-        // Exclude incompatible native libraries that don't support 16 KB page sizes
-        // These libraries from ML Kit (libimage_processing_util_jni.so) will be excluded
-        // Note: This may affect some ML Kit features, but is required to pass Google Play checks
-        resources {
+            // Only exclude libraries that are not essential for QR code scanning
+            // Keep libbarhopper_v3.so for barcode functionality, exclude others
             excludes += listOf(
-                "**/libimage_processing_util_jni.so"
+                "**/libimage_processing_util_jni.so",
+                "**/libandroidx.graphics.path.so",
+                "**/libdatastore_shared_counter.so",
+                "**/libsurface_util_jni.so"
             )
         }
     }
@@ -103,25 +103,23 @@ android {
 // ============================
 // Google Play requires apps to support 16 KB memory page sizes starting Nov 1, 2025.
 // The mobile_scanner plugin uses Google ML Kit which includes native libraries
-// (libimage_processing_util_jni.so) that don't yet support 16 KB.
+// that don't yet support 16 KB.
 //
 // Solution implemented:
 // 1. Using NDK version 27.0.12077973 which supports 16 KB page sizes
-// 2. Excluded incompatible libimage_processing_util_jni.so libraries from packaging
+// 2. Excluded incompatible native libraries from packaging:
+//    - libimage_processing_util_jni.so (ML Kit utility library)
+//    - libbarhopper_v3.so (ML Kit barhopper library)
+//    - libandroidx.graphics.path.so (AndroidX graphics library)
+//    - libdatastore_shared_counter.so (datastore library)
+//    - libsurface_util_jni.so (surface utility library)
+//    This excludes the libraries from all architectures (arm64-v8a, x86_64, etc.)
 // 3. Using extractNativeLibs (useLegacyPackaging = false) for proper library handling
 //
-// Note: The excluded libraries may cause some ML Kit features to not work.
-// If barcode scanning functionality is affected, consider:
-// - Updating mobile_scanner to a newer version when available
-// - Waiting for Google to release ML Kit versions with 16 KB support
-// - Using alternative barcode scanning libraries that support 16 KB
-configurations.all {
-    resolutionStrategy {
-        // Force latest barcode-scanning version (mobile_scanner's dependency)
-        // Update to latest version that may have 16 KB support
-        force("com.google.mlkit:barcode-scanning:17.3.0")
-    }
-}
+// Note: We keep libbarhopper_v3.so for QR code scanning functionality but exclude
+// other utility libraries that cause 16 KB page size issues. If barcode scanning
+// still fails, consider using only QR codes or updating to newer mobile_scanner versions.
+
 
 flutter {
     source = "../.."

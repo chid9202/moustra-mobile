@@ -8,11 +8,22 @@ class BarcodeScannerScreen extends StatefulWidget {
   State<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
 }
 
-class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with WidgetsBindingObserver {
+class _BarcodeScannerScreenState extends State<BarcodeScannerScreen>
+    with WidgetsBindingObserver {
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
     returnImage: false,
     facing: CameraFacing.back,
+    // Include common barcode formats but exclude complex ones that require problematic libraries
+    formats: const <BarcodeFormat>[
+      BarcodeFormat.qrCode,
+      BarcodeFormat.code128,
+      BarcodeFormat.code39,
+      BarcodeFormat.ean13,
+      BarcodeFormat.ean8,
+      BarcodeFormat.upcA,
+      BarcodeFormat.upcE,
+    ],
   );
   bool _isProcessing = false;
   final TextEditingController _manualEntryController = TextEditingController();
@@ -108,7 +119,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: Icon(_controller.torchEnabled ? Icons.flash_on : Icons.flash_off),
+            icon: Icon(
+              _controller.torchEnabled ? Icons.flash_on : Icons.flash_off,
+            ),
             onPressed: () {
               _controller.toggleTorch();
               setState(() {});
@@ -132,12 +145,16 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
             MobileScanner(
               controller: _controller,
               onDetect: _onBarcodeDetect,
-              errorBuilder: (context, error, child) {
+              errorBuilder: (context, error) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                      const Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.red,
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         'Camera Error',
@@ -147,7 +164,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32),
                         child: Text(
-                          error.errorDetails?.message ?? 'Unable to access camera',
+                          error.errorDetails?.message ??
+                              'Unable to access camera',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
@@ -314,23 +332,27 @@ class ScannerOverlay extends CustomPainter {
       ..color = Colors.black.withValues(alpha: 0.5);
 
     // Top rectangle
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, top),
-      overlayPaint,
-    );
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, top), overlayPaint);
     // Bottom rectangle
     canvas.drawRect(
-      Rect.fromLTWH(0, top + scanAreaSize, size.width, size.height - top - scanAreaSize),
+      Rect.fromLTWH(
+        0,
+        top + scanAreaSize,
+        size.width,
+        size.height - top - scanAreaSize,
+      ),
       overlayPaint,
     );
     // Left rectangle
-    canvas.drawRect(
-      Rect.fromLTWH(0, top, left, scanAreaSize),
-      overlayPaint,
-    );
+    canvas.drawRect(Rect.fromLTWH(0, top, left, scanAreaSize), overlayPaint);
     // Right rectangle
     canvas.drawRect(
-      Rect.fromLTWH(left + scanAreaSize, top, size.width - left - scanAreaSize, scanAreaSize),
+      Rect.fromLTWH(
+        left + scanAreaSize,
+        top,
+        size.width - left - scanAreaSize,
+        scanAreaSize,
+      ),
       overlayPaint,
     );
 
@@ -357,29 +379,54 @@ class ScannerOverlay extends CustomPainter {
     const double cornerLength = 30;
 
     // Top-left corner
-    canvas.drawLine(Offset(left, top), Offset(left + cornerLength, top), cornerPaint);
-    canvas.drawLine(Offset(left, top), Offset(left, top + cornerLength), cornerPaint);
+    canvas.drawLine(
+      Offset(left, top),
+      Offset(left + cornerLength, top),
+      cornerPaint,
+    );
+    canvas.drawLine(
+      Offset(left, top),
+      Offset(left, top + cornerLength),
+      cornerPaint,
+    );
 
     // Top-right corner
-    canvas.drawLine(Offset(left + scanAreaSize, top), 
-        Offset(left + scanAreaSize - cornerLength, top), cornerPaint);
-    canvas.drawLine(Offset(left + scanAreaSize, top), 
-        Offset(left + scanAreaSize, top + cornerLength), cornerPaint);
+    canvas.drawLine(
+      Offset(left + scanAreaSize, top),
+      Offset(left + scanAreaSize - cornerLength, top),
+      cornerPaint,
+    );
+    canvas.drawLine(
+      Offset(left + scanAreaSize, top),
+      Offset(left + scanAreaSize, top + cornerLength),
+      cornerPaint,
+    );
 
     // Bottom-left corner
-    canvas.drawLine(Offset(left, top + scanAreaSize), 
-        Offset(left + cornerLength, top + scanAreaSize), cornerPaint);
-    canvas.drawLine(Offset(left, top + scanAreaSize), 
-        Offset(left, top + scanAreaSize - cornerLength), cornerPaint);
+    canvas.drawLine(
+      Offset(left, top + scanAreaSize),
+      Offset(left + cornerLength, top + scanAreaSize),
+      cornerPaint,
+    );
+    canvas.drawLine(
+      Offset(left, top + scanAreaSize),
+      Offset(left, top + scanAreaSize - cornerLength),
+      cornerPaint,
+    );
 
     // Bottom-right corner
-    canvas.drawLine(Offset(left + scanAreaSize, top + scanAreaSize), 
-        Offset(left + scanAreaSize - cornerLength, top + scanAreaSize), cornerPaint);
-    canvas.drawLine(Offset(left + scanAreaSize, top + scanAreaSize), 
-        Offset(left + scanAreaSize, top + scanAreaSize - cornerLength), cornerPaint);
+    canvas.drawLine(
+      Offset(left + scanAreaSize, top + scanAreaSize),
+      Offset(left + scanAreaSize - cornerLength, top + scanAreaSize),
+      cornerPaint,
+    );
+    canvas.drawLine(
+      Offset(left + scanAreaSize, top + scanAreaSize),
+      Offset(left + scanAreaSize, top + scanAreaSize - cornerLength),
+      cornerPaint,
+    );
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
