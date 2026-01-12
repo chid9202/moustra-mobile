@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:async';
-import 'dart:io' show Platform;
 import 'package:moustra/services/auth_service.dart';
-import 'package:moustra/services/secure_store.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/services/clients/profile_api.dart';
 import 'package:moustra/services/dtos/profile_dto.dart';
@@ -34,21 +31,14 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   final _passwordFocusNode = FocusNode();
 
   bool _loading = false;
-  bool _unlockLoading = false;
   String? _error;
   VoidCallback? _authListener;
-  bool _canUseBiometrics = false;
-  bool _hasRefreshToken = false;
-  Timer? _autoUnlockTimer;
   bool _obscurePassword = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkBiometricAvailability();
-    // Attempt automatic biometric unlock on login screen load if available
-    _attemptAutoUnlock();
     _authListener = () {
       if (!mounted) return;
       if (authService.isLoggedIn) {
@@ -72,8 +62,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    _autoUnlockTimer?.cancel();
-    // Dispose autofill context to ensure iOS saves credentials
+    // Dispose autofill context to ensure credentials are saved
     TextInput.finishAutofillContext();
     WidgetsBinding.instance.removeObserver(this);
     if (_authListener != null) {
@@ -113,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
         })
         .then((_) async {
           if (mounted) {
-            // Give iOS time to process the autofill save request before navigating
+            // Give time to process the autofill save request before navigating
             await Future.delayed(const Duration(milliseconds: 300));
             if (mounted) {
               // Reset loading before navigation
@@ -130,7 +119,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
       await authService.init();
-      await _checkBiometricAvailability();
       if (!mounted) return;
       if (authService.isLoggedIn) {
         setState(() {
@@ -146,72 +134,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
       setState(() {
         _loading = false;
       });
-    }
-  }
-
-  Future<void> _checkBiometricAvailability() async {
-    final canUse = await authService.canUseBiometrics();
-    final hasRefresh = await SecureStore.hasRefreshToken();
-    if (mounted) {
-      setState(() {
-        _canUseBiometrics = canUse;
-        _hasRefreshToken = hasRefresh;
-      });
-    }
-  }
-
-  /// Attempt automatic biometric unlock when login screen loads
-  /// Only attempts if biometrics are available and refresh token exists
-  Future<void> _attemptAutoUnlock() async {
-    // Use post-frame callback to ensure widget is fully rendered
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Wait a brief moment for any animations to complete
-      _autoUnlockTimer = Timer(const Duration(milliseconds: 800), () async {
-        if (!mounted) return;
-
-        final canUse = await authService.canUseBiometrics();
-        final hasRefresh = await SecureStore.hasRefreshToken();
-        final isLoggedIn = authService.isLoggedIn;
-
-        if (!mounted) return;
-
-        if (canUse && hasRefresh && !isLoggedIn) {
-          // Attempt automatic unlock
-          await authService.unlockWithBiometrics();
-          // If unlock succeeds, the auth listener will handle navigation
-        }
-      });
-    });
-  }
-
-  Future<void> _handleUnlock() async {
-    if (!mounted) return;
-    setState(() {
-      _unlockLoading = true;
-      _error = null;
-    });
-    try {
-      if (!mounted) return;
-      final creds = await authService.unlockWithBiometrics();
-      if (creds == null) {
-        // User cancelled or biometric failed - don't show error
-        if (mounted) {
-          setState(() {
-            _unlockLoading = false;
-          });
-        }
-        return;
-      }
-      // If unlock succeeds, the auth listener will handle loading state
-      // through _postLogin() until navigation completes
-      // Don't reset _unlockLoading here to keep the button showing loading state
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = 'Biometric unlock failed: ${e.toString()}';
-          _unlockLoading = false;
-        });
-      }
     }
   }
 
@@ -360,8 +282,8 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           autocorrect: false,
-                          enabled: !_loading && !_unlockLoading,
-                          autofillHints: const [AutofillHints.username],
+                          enabled: !_loading,
+                          autofillHints: const [AutofillHints.email],
                           decoration: InputDecoration(
                             labelText: 'Email',
                             hintText: 'Enter your email',
@@ -386,7 +308,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                           focusNode: _passwordFocusNode,
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.done,
-                          enabled: !_loading && !_unlockLoading,
+                          enabled: !_loading,
                           autofillHints: const [AutofillHints.password],
                           decoration: InputDecoration(
                             labelText: 'Password',
@@ -418,9 +340,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
 
                         // Sign in button
                         FilledButton(
-                          onPressed: (_loading || _unlockLoading)
-                              ? null
-                              : _handleLogin,
+                          onPressed: _loading ? null : _handleLogin,
                           style: FilledButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -444,74 +364,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                                   ),
                                 ),
                         ),
-
-                        // Biometric unlock section
-                        if (_canUseBiometrics && _hasRefreshToken) ...[
-                          const SizedBox(height: 24),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                  color: colorScheme.outlineVariant,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                child: Text(
-                                  'or',
-                                  style: TextStyle(
-                                    color: colorScheme.onSurfaceVariant,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(
-                                  color: colorScheme.outlineVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          OutlinedButton.icon(
-                            onPressed: (_loading || _unlockLoading)
-                                ? null
-                                : _handleUnlock,
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              side: BorderSide(color: colorScheme.outline),
-                            ),
-                            icon: _unlockLoading
-                                ? SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: colorScheme.primary,
-                                    ),
-                                  )
-                                : Icon(
-                                    Platform.isIOS
-                                        ? Icons.face
-                                        : Icons.fingerprint,
-                                    size: 24,
-                                  ),
-                            label: Text(
-                              Platform.isIOS
-                                  ? 'Unlock with Face ID'
-                                  : 'Unlock with Biometrics',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ),
