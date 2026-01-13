@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:moustra/screens/login_screen.dart';
 import '../test_helpers/test_helpers.dart';
 
 void main() {
+  setUpAll(() async {
+    // Initialize dotenv - try loading .env file if it exists, otherwise use empty initialization
+    try {
+      await dotenv.load(fileName: '.env');
+    } catch (e) {
+      // If .env file doesn't exist or can't be loaded, initialize with empty values
+      // Env class will use fallback values
+      dotenv.env.clear();
+    }
+  });
+
   group('LoginScreen', () {
     testWidgets('renders correctly with default state', (
       WidgetTester tester,
@@ -18,6 +30,7 @@ void main() {
 
     testWidgets('displays app icon', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
 
       // Check for app icon
       final image = find.byType(Image);
@@ -29,6 +42,7 @@ void main() {
 
     testWidgets('shows sign in button', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
 
       final signInButton = find.text('Sign In');
       expect(signInButton, findsOneWidget);
@@ -42,6 +56,7 @@ void main() {
 
     testWidgets('shows email and password fields', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
 
       // Check for email field
       expect(find.text('Email'), findsOneWidget);
@@ -53,6 +68,7 @@ void main() {
 
     testWidgets('has proper layout structure', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
 
       // Check for main scaffold
       expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
@@ -71,6 +87,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
 
       final welcomeText = find.text('Welcome to Moustra');
       expect(welcomeText, findsOneWidget);
@@ -82,6 +99,7 @@ void main() {
 
     testWidgets('displays subtitle', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
 
       expect(find.text('Sign in to continue'), findsOneWidget);
     });
@@ -90,6 +108,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
 
       // Check for SizedBox widgets (spacing)
       expect(find.byType(SizedBox), findsAtLeastNWidgets(3));
@@ -97,10 +116,13 @@ void main() {
 
     testWidgets('handles sign in button tap', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
 
       // First fill in email and password
-      await tester.enterText(find.byType(TextFormField).first, 'test@test.com');
-      await tester.enterText(find.byType(TextFormField).last, 'password123');
+      final textFields = find.byType(TextFormField);
+      expect(textFields, findsNWidgets(2));
+      await tester.enterText(textFields.first, 'test@test.com');
+      await tester.enterText(textFields.last, 'password123');
       await tester.pump();
 
       final signInButton = find.text('Sign In');
@@ -115,6 +137,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
 
       // Check for semantic structure
       expect(find.byType(Semantics), findsAtLeastNWidgets(1));
@@ -145,6 +168,7 @@ void main() {
       // and trigger a loading condition
 
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
 
       // Initially no loading indicator should be shown
       expect(find.byType(CircularProgressIndicator), findsNothing);
@@ -154,6 +178,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
 
       // Check for constrained box with max width
       final constrainedBoxes = find.byType(ConstrainedBox);
@@ -175,6 +200,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
 
       // Verify the screen can be built and disposed
       expect(find.byType(LoginScreen), findsOneWidget);
@@ -188,6 +214,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
 
       // Find the visibility toggle button
       final visibilityIcon = find.byIcon(Icons.visibility_outlined);
@@ -195,7 +222,7 @@ void main() {
 
       // Tap to toggle visibility
       await tester.tap(visibilityIcon);
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       // Should now show visibility_off icon
       expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
@@ -203,15 +230,20 @@ void main() {
 
     testWidgets('validates email format', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
+
+      // Find email field (first TextFormField)
+      final emailFields = find.byType(TextFormField);
+      expect(emailFields, findsNWidgets(2)); // Email and password fields
 
       // Enter invalid email (no @ symbol)
-      await tester.enterText(find.byType(TextFormField).first, 'invalid-email');
+      await tester.enterText(emailFields.first, 'invalid-email');
       await tester.pump();
 
       // Tap sign in to trigger validation
       final signInButton = find.text('Sign In');
       await tester.tap(signInButton);
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       // Should show validation error
       expect(find.text('Please enter a valid email'), findsOneWidget);
@@ -219,19 +251,21 @@ void main() {
 
     testWidgets('accepts email with plus sign', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
+
+      // Find email and password fields
+      final textFields = find.byType(TextFormField);
+      expect(textFields, findsNWidgets(2));
 
       // Enter email with + (valid for aliasing)
-      await tester.enterText(
-        find.byType(TextFormField).first,
-        'admin+29917@moustra',
-      );
-      await tester.enterText(find.byType(TextFormField).last, 'password123');
+      await tester.enterText(textFields.first, 'admin+29917@moustra');
+      await tester.enterText(textFields.last, 'password123');
       await tester.pump();
 
       // Tap sign in to trigger validation
       final signInButton = find.text('Sign In');
       await tester.tap(signInButton);
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       // Should NOT show email validation error
       expect(find.text('Please enter a valid email'), findsNothing);
@@ -239,15 +273,20 @@ void main() {
 
     testWidgets('validates password required', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const LoginScreen());
+      await tester.pumpAndSettle();
+
+      // Find email field
+      final textFields = find.byType(TextFormField);
+      expect(textFields, findsNWidgets(2));
 
       // Enter valid email but no password
-      await tester.enterText(find.byType(TextFormField).first, 'test@test.com');
+      await tester.enterText(textFields.first, 'test@test.com');
       await tester.pump();
 
       // Tap sign in to trigger validation
       final signInButton = find.text('Sign In');
       await tester.tap(signInButton);
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       // Should show validation error
       expect(find.text('Password is required'), findsOneWidget);
