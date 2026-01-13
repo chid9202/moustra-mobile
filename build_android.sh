@@ -18,7 +18,7 @@ echo ""
 # Step 1: Flutter build bundle (generates necessary files with production environment)
 # This compiles Dart code with ENV_FILENAME=.env.production baked in
 echo "📦 Step 1: Generating Flutter assets with production environment..."
-flutter build appbundle --release --dart-define=ENV_FILENAME=.env.production 2>&1 | grep -v "failed to strip" || true
+AUTH0_DOMAIN=login.moustra.com AUTH0_SCHEME=com.moustra.app flutter build appbundle --release --dart-define=ENV_FILENAME=.env.production 2>&1 | grep -v "failed to strip" || true
 
 # Check if Flutter build created the bundle successfully
 # If it did, we can use it directly (it already has the production environment)

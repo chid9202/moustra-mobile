@@ -36,3 +36,9 @@ Future<List<AnimalStoreDto>> getAnimalsHookByUuids(List<String> uuids) async {
           .toList() ??
       [];
 }
+
+Future<void> refreshAnimalStore() async {
+  // Fetch full list to maintain integrity
+  final value = await StoreApi<AnimalStoreDto>().getStore(StoreKeys.animal);
+  animalStore.value = value;
+}

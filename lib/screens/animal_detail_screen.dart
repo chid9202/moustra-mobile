@@ -142,6 +142,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
         print(_selectedGenotypes.map((e) => e.toJson()).toList());
         // return;
         // Update existing animal
+        final previousCage = _animalData?.cage?.cageUuid;
+        final previousStrain = _animalData?.strain?.strainUuid;
+        
         await AnimalApi().putAnimal(
           animalUuid,
           AnimalDto(
@@ -161,6 +164,16 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
             genotypes: _selectedGenotypes,
           ),
         );
+        // Refresh related stores
+        await refreshAnimalStore();
+        // Refresh cage store if cage changed
+        if (previousCage != _selectedCage?.cageUuid) {
+          await refreshCageStore();
+        }
+        // Refresh strain store if strain changed
+        if (previousStrain != _selectedStrain?.strainUuid) {
+          await refreshStrainStore();
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Animal updated successfully!')),
         );

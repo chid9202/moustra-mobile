@@ -25,3 +25,9 @@ Future<CageStoreDto?> getCageHook(String? uuid) async {
   await useCageStore();
   return cageStore.value?.firstWhere((cage) => cage.cageUuid == uuid);
 }
+
+Future<void> refreshCageStore() async {
+  // Fetch full list to maintain integrity
+  final value = await StoreApi<CageStoreDto>().getStore(StoreKeys.cage);
+  cageStore.value = value;
+}

@@ -7,6 +7,8 @@ import 'package:moustra/services/dtos/post_cage_dto.dart';
 import 'package:moustra/services/dtos/put_cage_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
+import 'package:moustra/stores/cage_store.dart';
+import 'package:moustra/stores/animal_store.dart';
 import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
@@ -158,6 +160,9 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
               : _barcodeController.text,
         );
         await CageApi().createCage(cage);
+        // Refresh related stores
+        await refreshCageStore();
+        await refreshAnimalStore();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Cage created successfully!')),
@@ -192,6 +197,9 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                 : _barcodeController.text,
           ),
         );
+        // Refresh related stores
+        await refreshCageStore();
+        await refreshAnimalStore();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Cage updated successfully!')),

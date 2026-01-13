@@ -48,6 +48,12 @@ flutter build ios --release --dart-define=ENV_FILENAME=.env.production
 # Output: `build/app/outputs/flutter-apk/app-release.apk`
 ```
 
+### Production Run
+
+```bash
+flutter run --release --dart-define=ENV_FILENAME=.env.production
+```
+
 ## Development Commands
 
 ### Clean Build

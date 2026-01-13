@@ -8,6 +8,8 @@ import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:moustra/services/dtos/post_litter_dto.dart';
 import 'package:moustra/services/dtos/put_litter_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
+import 'package:moustra/stores/animal_store.dart';
+import 'package:moustra/stores/strain_store.dart';
 import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_mating.dart';
@@ -151,6 +153,9 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
             ),
           );
         }
+        // Refresh related stores
+        await refreshAnimalStore();
+        await refreshStrainStore();
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Litter created successfully!')),
