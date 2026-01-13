@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/services/clients/profile_api.dart';
@@ -172,6 +173,33 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
         });
       }
       return; // Don't save credentials if login failed
+    }
+  }
+
+  Future<void> _handleSocialLogin(String connection) async {
+    if (!mounted) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      if (!mounted) return;
+      await authService.loginWithSocial(connection);
+      // If login succeeds, the auth listener will handle loading state
+      // through _postLogin() until navigation completes
+    } catch (e) {
+      if (mounted) {
+        String errorMessage = e.toString();
+        // Clean up the error message
+        if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.substring(11);
+        }
+        setState(() {
+          _error = errorMessage;
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -364,6 +392,60 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                                   ),
                                 ),
                         ),
+                        const SizedBox(height: 16),
+
+                        // Divider with "or"
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Divider(
+                                color: colorScheme.outlineVariant,
+                                thickness: 1,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: Text(
+                                'OR',
+                                style: TextStyle(
+                                  color: colorScheme.onSurfaceVariant,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Divider(
+                                color: colorScheme.outlineVariant,
+                                thickness: 1,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Google Sign In button
+                        _SocialLoginButton(
+                          onPressed: _loading
+                              ? null
+                              : () => _handleSocialLogin('google-oauth2'),
+                          label: 'Continue with Google',
+                          icon: _GoogleIcon(),
+                          colorScheme: colorScheme,
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Microsoft Sign In button
+                        _SocialLoginButton(
+                          onPressed: _loading
+                              ? null
+                              : () => _handleSocialLogin('windowslive'),
+                          label: 'Continue with Microsoft',
+                          icon: _MicrosoftIcon(),
+                          colorScheme: colorScheme,
+                        ),
                       ],
                     ),
                   ),
@@ -372,6 +454,82 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Custom social login button widget
+class _SocialLoginButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final String label;
+  final Widget icon;
+  final ColorScheme colorScheme;
+
+  const _SocialLoginButton({
+    required this.onPressed,
+    required this.label,
+    required this.icon,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        side: BorderSide(color: colorScheme.outline, width: 1),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(width: 20, height: 20, child: icon),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Google logo widget
+class _GoogleIcon extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.asset('assets/icons/google.svg', width: 20, height: 20);
+  }
+}
+
+/// Microsoft logo widget (4 colored squares)
+class _MicrosoftIcon extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 20,
+      height: 20,
+      child: GridView.count(
+        crossAxisCount: 2,
+        padding: EdgeInsets.zero,
+        mainAxisSpacing: 1.5,
+        crossAxisSpacing: 1.5,
+        physics: const NeverScrollableScrollPhysics(),
+        children: [
+          Container(color: const Color(0xFFF25022)), // Red
+          Container(color: const Color(0xFF7FBA00)), // Green
+          Container(color: const Color(0xFF00A4EF)), // Blue
+          Container(color: const Color(0xFFFFB900)), // Yellow
+        ],
       ),
     );
   }

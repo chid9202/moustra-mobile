@@ -23,6 +23,52 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
+    // Helper function to read .env files
+    // For production builds, use .env.production; otherwise use .env
+    // Fails the build if the file or key is missing
+    fun getEnvProperty(key: String): String {
+        // Determine which .env file to use
+        // Check for explicit property first, then check if .env.production exists
+        val isProduction = project.findProperty("production")?.toString()?.toBoolean() == true ||
+                          rootProject.file("../.env.production").exists()
+        
+        val envFile = if (isProduction) {
+            rootProject.file("../.env.production")
+        } else {
+            rootProject.file("../.env")
+        }
+        
+        // Fail if file doesn't exist
+        if (!envFile.exists()) {
+            throw GradleException("Required .env file not found: ${envFile.absolutePath}")
+        }
+        
+        // Read and parse the file
+        try {
+            envFile.readLines().forEach { line ->
+                // Skip comments and empty lines
+                val trimmed = line.trim()
+                if (trimmed.isNotEmpty() && !trimmed.startsWith("#")) {
+                    val parts = trimmed.split("=", limit = 2)
+                    if (parts.size == 2 && parts[0].trim() == key) {
+                        val value = parts[1].trim()
+                        if (value.isEmpty()) {
+                            throw GradleException("Environment variable $key is empty in ${envFile.name}")
+                        }
+                        return value
+                    }
+                }
+            }
+        } catch (e: GradleException) {
+            throw e
+        } catch (e: Exception) {
+            throw GradleException("Error reading .env file ${envFile.absolutePath}: ${e.message}", e)
+        }
+        
+        // Key not found - fail the build
+        throw GradleException("Required environment variable $key not found in ${envFile.name}")
+    }
+
     defaultConfig {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
@@ -30,12 +76,13 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        
+
         // Auth0 configuration
-        // These values should match your .env file
-        // The scheme should match AUTH0_SCHEME in .env
-        manifestPlaceholders["auth0Domain"] = "login-dev.moustra.com"
-        manifestPlaceholders["auth0Scheme"] = "com.moustra.app"
+        // The scheme is used in AndroidManifest.xml for callback URL intent filters
+        // Read from .env.production (preferred) or .env file
+        // Falls back to "com.moustra.app" if not found
+        manifestPlaceholders["auth0Scheme"] = getEnvProperty("AUTH0_SCHEME")
+        manifestPlaceholders["auth0Domain"] = getEnvProperty("AUTH0_DOMAIN")
         applicationId = "com.moustra.app"
         
         // Disable native debug symbols to avoid stripping issues

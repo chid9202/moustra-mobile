@@ -4,9 +4,8 @@ import 'package:local_auth/local_auth.dart' as local_auth;
 import 'package:moustra/config/env.dart';
 import 'package:moustra/services/secure_store.dart';
 import 'package:moustra/stores/auth_store.dart';
+import 'package:auth0_flutter/auth0_flutter.dart';
 import 'dart:io' show Platform;
-
-/// Custom credentials class since we're not using auth0_flutter's webAuthentication
 class AppCredentials {
   final String accessToken;
   final String idToken;
@@ -95,6 +94,11 @@ class AuthService {
   AppCredentials? _credentials;
   final local_auth.LocalAuthentication _localAuth =
       local_auth.LocalAuthentication();
+  late final Auth0 _auth0;
+
+  AuthService() {
+    _auth0 = Auth0(Env.auth0Domain, Env.auth0ClientId);
+  }
 
   bool get isLoggedIn => _credentials != null;
   AppUserProfile? get user => _credentials?.user;
@@ -111,6 +115,69 @@ class AuthService {
     }
     _credentials = null;
     authState.value = false;
+  }
+
+  /// Login with social provider (Google or Microsoft) using webAuthentication
+  /// Returns true on success, throws exception on failure
+  Future<bool> loginWithSocial(String connection) async {
+    try {
+      final credentials = await _auth0
+          .webAuthentication(scheme: Env.auth0Scheme)
+          .login(parameters: {
+        'connection': connection,
+        'audience': Env.auth0Audience,
+        'scope': 'openid profile email offline_access',
+      });
+
+      // Convert auth0_flutter credentials to AppCredentials
+      // Use default expiration of 3600 seconds (1 hour) if not available
+      final expiresAt = DateTime.now().add(const Duration(seconds: 3600));
+
+      final idToken = credentials.idToken;
+      final user = idToken.isNotEmpty
+          ? AppUserProfile.fromIdToken(idToken)
+          : null;
+
+      final creds = AppCredentials(
+        accessToken: credentials.accessToken,
+        idToken: idToken,
+        refreshToken: credentials.refreshToken,
+        expiresAt: expiresAt,
+        user: user,
+      );
+
+      _credentials = creds;
+
+      // Store tokens securely
+      if (creds.refreshToken != null && creds.refreshToken!.isNotEmpty) {
+        await SecureStore.saveRefreshToken(creds.refreshToken!);
+      } else {
+        print(
+          '[AuthService] WARNING: Refresh token not available. Biometric unlock will not work. '
+          'Check Auth0 settings and offline_access scope.',
+        );
+      }
+
+      await SecureStore.saveAccessToken(creds.accessToken);
+      await SecureStore.saveIdToken(creds.idToken);
+      await SecureStore.saveExpiresAt(creds.expiresAt.toIso8601String());
+
+      authState.value = isLoggedIn;
+      return true;
+    } catch (e) {
+      print('[AuthService] Social login error: $e');
+      // Convert auth0_flutter exceptions to user-friendly messages
+      String errorMessage = e.toString();
+      if (errorMessage.contains('user_cancelled') ||
+          errorMessage.contains('User cancelled')) {
+        throw Exception('Login cancelled');
+      } else if (errorMessage.contains('network')) {
+        throw Exception('Network error. Please check your connection.');
+      } else if (errorMessage.contains('access_denied')) {
+        throw Exception('Access denied. Please try again.');
+      }
+      rethrow;
+    }
   }
 
   /// Login with email and password using ROPG flow

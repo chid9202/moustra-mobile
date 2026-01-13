@@ -1,7 +1,20 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:moustra/services/auth_service.dart';
+
 void main() {
+  setUpAll(() async {
+    // Initialize dotenv - try loading .env file if it exists, otherwise use empty initialization
+    try {
+      await dotenv.load(fileName: '.env');
+    } catch (e) {
+      // If .env file doesn't exist or can't be loaded, initialize with empty values
+      // Env class will use fallback values
+      dotenv.env.clear();
+    }
+  });
+
   group('AppCredentials', () {
     test('should parse token response correctly', () {
       // Arrange
@@ -20,10 +33,7 @@ void main() {
       expect(credentials.accessToken, 'test-access-token');
       expect(credentials.refreshToken, 'test-refresh-token');
       expect(credentials.idToken, isNotEmpty);
-      expect(
-        credentials.expiresAt.isAfter(DateTime.now()),
-        true,
-      );
+      expect(credentials.expiresAt.isAfter(DateTime.now()), true);
     });
 
     test('should handle missing refresh token', () {
