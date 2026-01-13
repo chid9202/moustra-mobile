@@ -10,6 +10,9 @@ import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
 import 'package:moustra/services/dtos/stores/cage_store_dto.dart';
 import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
+import 'package:moustra/stores/animal_store.dart';
+import 'package:moustra/stores/cage_store.dart';
+import 'package:moustra/stores/strain_store.dart';
 import 'package:moustra/helpers/animal_helper.dart';
 import 'package:moustra/widgets/shared/multi_select_animal.dart';
 import 'package:moustra/widgets/shared/select_animal.dart';
@@ -175,6 +178,10 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
             comment: _commentController.text,
           );
           await MatingApi().createMating(mating);
+          // Refresh related stores
+          await refreshAnimalStore();
+          await refreshCageStore();
+          await refreshStrainStore();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Mating created successfully!')),
           );
@@ -192,6 +199,10 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
               comment: _commentController.text,
             ),
           );
+          // Refresh related stores
+          await refreshAnimalStore();
+          await refreshCageStore();
+          await refreshStrainStore();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Mating updated successfully!')),
           );

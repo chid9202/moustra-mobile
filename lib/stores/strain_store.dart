@@ -26,3 +26,9 @@ Future<StrainStoreDto?> getStrainHook(String? uuid) async {
   await useStrainStore();
   return strainStore.value?.firstWhere((strain) => strain.strainUuid == uuid);
 }
+
+Future<void> refreshStrainStore() async {
+  // Fetch full list to maintain integrity
+  final value = await StoreApi<StrainStoreDto>().getStore(StoreKeys.strain);
+  strainStore.value = value;
+}
