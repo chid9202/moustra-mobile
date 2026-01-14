@@ -13,3 +13,4 @@ class PlatformHelper {
     return 'Unknown';
   }
 }
+

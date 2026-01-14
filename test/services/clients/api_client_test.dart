@@ -258,5 +258,8 @@ void main() {
         verify(mockHttpClient.get(any, headers: anyNamed('headers'))).called(1);
       });
     });
+
+    // Note: uploadFile method is tested indirectly through AttachmentApi tests
+    // as it uses MultipartRequest.send() which is difficult to mock at this level
   });
 }
