@@ -201,6 +201,37 @@ class ApiClient {
     print('res ${res.statusCode}');
     return res;
   }
+
+  /// Upload a file using multipart/form-data
+  Future<http.StreamedResponse> uploadFile(
+    String path, {
+    required File file,
+    String fileFieldName = 'file',
+    Map<String, String>? fields,
+  }) async {
+    final uri = _buildUri(path);
+    print('UPLOAD path $uri');
+
+    final request = http.MultipartRequest('POST', uri);
+
+    // Add authorization header
+    final token = authService.accessToken;
+    if (token != null && token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+
+    // Add the file
+    request.files.add(await http.MultipartFile.fromPath(fileFieldName, file.path));
+
+    // Add any additional fields
+    if (fields != null) {
+      request.fields.addAll(fields);
+    }
+
+    final res = await request.send();
+    print('res ${res.statusCode}');
+    return res;
+  }
 }
 
 final ApiClient apiClient = ApiClient();

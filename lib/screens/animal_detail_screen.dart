@@ -23,6 +23,7 @@ import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/widgets/note/note_list.dart';
 import 'package:moustra/services/dtos/note_entity_type.dart';
+import 'package:moustra/widgets/attachment/attachment_list.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
   final bool fromCageGrid;
@@ -379,6 +380,14 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                   entityType: NoteEntityType.animal,
                   initialNotes: _animalData?.notes,
                 ),
+
+              const SizedBox(height: 16),
+
+              // Attachments Section
+              if (_animalUuid != null && _animalUuid != 'new')
+                AttachmentList(animalUuid: _animalUuid),
+
+              const SizedBox(height: 16),
 
               // Save Button
               SizedBox(

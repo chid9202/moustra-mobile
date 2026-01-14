@@ -4,6 +4,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
+import 'dart:io' as _i5;
 
 import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
@@ -31,6 +32,12 @@ class _FakeClient_0 extends _i1.SmartFake implements _i2.Client {
 
 class _FakeResponse_1 extends _i1.SmartFake implements _i2.Response {
   _FakeResponse_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeStreamedResponse_2 extends _i1.SmartFake
+    implements _i2.StreamedResponse {
+  _FakeStreamedResponse_2(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -191,4 +198,30 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
             ),
           )
           as _i4.Future<_i2.Response>);
+
+  @override
+  _i4.Future<_i2.StreamedResponse> uploadFile(
+    String? path, {
+    required _i5.File? file,
+    String? fileFieldName = 'file',
+    Map<String, String>? fields,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #uploadFile,
+              [path],
+              {#file: file, #fileFieldName: fileFieldName, #fields: fields},
+            ),
+            returnValue: _i4.Future<_i2.StreamedResponse>.value(
+              _FakeStreamedResponse_2(
+                this,
+                Invocation.method(
+                  #uploadFile,
+                  [path],
+                  {#file: file, #fileFieldName: fileFieldName, #fields: fields},
+                ),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.StreamedResponse>);
 }
