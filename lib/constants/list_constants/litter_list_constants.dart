@@ -6,6 +6,7 @@ import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum LitterListColumn implements ListColumn<LitterDto> {
+  select('', 'select'),
   edit('Edit', 'edit'),
   // eid('EID', 'eid'),
   litterTag('Litter Tag', 'litter_tag'),
@@ -24,8 +25,15 @@ enum LitterListColumn implements ListColumn<LitterDto> {
   @override
   String get enumName => name;
 
-  static List<GridColumn> getColumns() {
+  static List<GridColumn> getColumns({bool includeSelect = false}) {
     return [
+      GridColumn(
+        columnName: LitterListColumn.select.field,
+        width: selectColumnWidth,
+        label: const SizedBox.shrink(),
+        allowSorting: false,
+        visible: includeSelect,
+      ),
       GridColumn(
         columnName: LitterListColumn.edit.field,
         width: editColumnWidth,
@@ -86,6 +94,10 @@ enum LitterListColumn implements ListColumn<LitterDto> {
   static DataGridRow getDataGridRow(LitterDto litter) {
     return DataGridRow(
       cells: [
+        DataGridCell<String>(
+          columnName: LitterListColumn.select.name,
+          value: litter.litterUuid,
+        ),
         DataGridCell<String>(
           columnName: LitterListColumn.edit.name,
           value: litter.litterUuid,

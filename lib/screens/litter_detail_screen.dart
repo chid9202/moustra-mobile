@@ -120,14 +120,22 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
     super.dispose();
   }
 
+  int _parseIntOrDefault(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return 0;
+    }
+    return int.tryParse(trimmed) ?? 0;
+  }
+
   void _saveLitter() async {
     if (_formKey.currentState!.validate()) {
       try {
         final litter = PostLitterDto(
           mating: _selectedMating!.matingUuid,
-          numberOfMale: int.parse(_numberOfMalesController.text),
-          numberOfFemale: int.parse(_numberOfFemalesController.text),
-          numberOfUnknown: int.parse(_numberOfUnknownController.text),
+          numberOfMale: _parseIntOrDefault(_numberOfMalesController.text),
+          numberOfFemale: _parseIntOrDefault(_numberOfFemalesController.text),
+          numberOfUnknown: _parseIntOrDefault(_numberOfUnknownController.text),
           litterTag: _litterTagController.text,
           dateOfBirth: _selectedDateOfBirth!,
           weanDate: _selectedWeanDate,
@@ -247,6 +255,16 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                           border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.number,
+                        onEditingComplete: () {
+                          if (_numberOfMalesController.text.trim().isEmpty) {
+                            _numberOfMalesController.text = '0';
+                          }
+                        },
+                        onTapOutside: (_) {
+                          if (_numberOfMalesController.text.trim().isEmpty) {
+                            _numberOfMalesController.text = '0';
+                          }
+                        },
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -259,6 +277,16 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                           border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.number,
+                        onEditingComplete: () {
+                          if (_numberOfFemalesController.text.trim().isEmpty) {
+                            _numberOfFemalesController.text = '0';
+                          }
+                        },
+                        onTapOutside: (_) {
+                          if (_numberOfFemalesController.text.trim().isEmpty) {
+                            _numberOfFemalesController.text = '0';
+                          }
+                        },
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -271,6 +299,16 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                           border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.number,
+                        onEditingComplete: () {
+                          if (_numberOfUnknownController.text.trim().isEmpty) {
+                            _numberOfUnknownController.text = '0';
+                          }
+                        },
+                        onTapOutside: (_) {
+                          if (_numberOfUnknownController.text.trim().isEmpty) {
+                            _numberOfUnknownController.text = '0';
+                          }
+                        },
                       ),
                     ),
                   ],

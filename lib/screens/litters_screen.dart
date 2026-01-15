@@ -21,6 +21,9 @@ class LittersScreen extends StatefulWidget {
 class _LittersScreenState extends State<LittersScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
   final MovableFabMenuController _fabController = MovableFabMenuController();
+  final Set<String> _selected = <String>{};
+  bool _isEndingMode = false;
+  bool _isEndingLitters = false;
 
   // Filter & Sort state
   List<FilterParam> _activeFilters = [];
@@ -104,9 +107,16 @@ class _LittersScreenState extends State<LittersScreen> {
                   });
                   _controller.reload();
                 },
-                columns: LitterListColumn.getColumns(),
-                sourceBuilder: (rows) =>
-                    _LitterGridSource(records: rows, context: context),
+                columns: LitterListColumn.getColumns(
+                  includeSelect: _isEndingMode,
+                ),
+                sourceBuilder: (rows) => _LitterGridSource(
+                  records: rows,
+                  context: context,
+                  selected: _selected,
+                  onToggle: _onToggleSelected,
+                  isEndingMode: _isEndingMode,
+                ),
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
                     page: page,
@@ -142,12 +152,50 @@ class _LittersScreenState extends State<LittersScreen> {
                   heroTag: 'litters-fab-menu',
                   margin: const EdgeInsets.only(right: 24, bottom: 50),
                   actions: [
+                    if (_isEndingMode)
+                      FabMenuAction(
+                        label: _isEndingLitters
+                            ? 'Ending...'
+                            : 'End Selected Litters',
+                        icon: _isEndingLitters
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Icon(Icons.stop_circle_outlined),
+                        onPressed: _selected.isNotEmpty && !_isEndingLitters
+                            ? _showEndDatePicker
+                            : null,
+                        enabled: _selected.isNotEmpty && !_isEndingLitters,
+                        closeOnTap: false,
+                      )
+                    else
+                      FabMenuAction(
+                        label: 'Add Litter',
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                          context.go('/litters/new');
+                        },
+                      ),
                     FabMenuAction(
-                      label: 'Add Litter',
-                      icon: const Icon(Icons.add),
+                      label: _isEndingMode ? 'Cancel End Mode' : 'End Litters',
+                      icon: Icon(
+                        _isEndingMode
+                            ? Icons.close
+                            : Icons.stop_circle_outlined,
+                      ),
                       onPressed: () {
-                        context.go('/litters/new');
+                        setState(() {
+                          _isEndingMode = !_isEndingMode;
+                          if (!_isEndingMode) {
+                            _selected.clear();
+                          }
+                        });
                       },
+                      closeOnTap: false,
                     ),
                   ],
                 ),
@@ -158,12 +206,85 @@ class _LittersScreenState extends State<LittersScreen> {
       ],
     );
   }
+
+  void _onToggleSelected(String uuid, bool selected) {
+    setState(() {
+      if (selected) {
+        _selected.add(uuid);
+      } else {
+        _selected.remove(uuid);
+      }
+    });
+  }
+
+  Future<void> _showEndDatePicker() async {
+    DateTime selectedDate = DateTime.now();
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2099),
+      helpText: 'Select End Date',
+    );
+
+    if (picked != null) {
+      await _endSelectedLitters(picked);
+    }
+  }
+
+  Future<void> _endSelectedLitters(DateTime endDate) async {
+    if (_selected.isEmpty) {
+      return;
+    }
+    try {
+      setState(() {
+        _isEndingLitters = true;
+      });
+      await litterService.endLitters(_selected.toList(), endDate);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _controller.reload();
+        _selected.clear();
+        _isEndingMode = false;
+        _isEndingLitters = false;
+      });
+      _fabController.close();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Litters ended successfully!')),
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isEndingLitters = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to end litters. Please try again.'),
+        ),
+      );
+    }
+  }
 }
 
 class _LitterGridSource extends DataGridSource {
   final List<LitterDto> records;
   final BuildContext context;
-  _LitterGridSource({required this.records, required this.context}) {
+  final Set<String> selected;
+  final void Function(String uuid, bool selected) onToggle;
+  final bool isEndingMode;
+
+  _LitterGridSource({
+    required this.records,
+    required this.context,
+    required this.selected,
+    required this.onToggle,
+    required this.isEndingMode,
+  }) {
     _rows = records.map(LitterListColumn.getDataGridRow).toList();
   }
 
@@ -174,26 +295,51 @@ class _LitterGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final String uuid = row.getCells()[0].value as String;
-    return DataGridRowAdapter(
-      cells: [
-        Center(
-          child: IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: 'Edit',
-            onPressed: () {
-              context.go('/litters/$uuid');
-            },
-          ),
+    final Map<String, Object?> values = {
+      for (final cell in row.getCells()) cell.columnName: cell.value,
+    };
+    final String? uuid = values[LitterListColumn.select.name] as String?;
+    final bool isChecked = uuid != null && selected.contains(uuid);
+    final List<Widget> cells = [];
+
+    // Select checkbox column
+    cells.add(
+      Center(
+        child: Checkbox(
+          value: isChecked,
+          onChanged: uuid == null
+              ? null
+              : (v) {
+                  onToggle(uuid, v ?? false);
+                },
         ),
-        cellText(row.getCells()[1].value),
-        cellText(row.getCells()[2].value),
-        cellText('${row.getCells()[3].value}'),
-        cellText(row.getCells()[4].value),
-        cellText(row.getCells()[5].value),
-        cellText(row.getCells()[6].value),
-        cellText(row.getCells()[7].value),
-      ],
+      ),
     );
+
+    // Edit column
+    cells.add(
+      Center(
+        child: IconButton(
+          icon: const Icon(Icons.edit),
+          tooltip: 'Edit',
+          onPressed: uuid == null
+              ? null
+              : () {
+                  context.go('/litters/$uuid');
+                },
+        ),
+      ),
+    );
+
+    // Data columns
+    cells.add(cellText(values[LitterListColumn.litterTag.name] as String?));
+    cells.add(cellText(values[LitterListColumn.litterStrain.name] as String?));
+    cells.add(cellText('${values[LitterListColumn.numberOfPups.name] ?? ''}'));
+    cells.add(cellText(values[LitterListColumn.wean.name] as String?));
+    cells.add(cellText(values[LitterListColumn.dob.name] as String?));
+    cells.add(cellText(values[LitterListColumn.owner.name] as String?));
+    cells.add(cellText(values[LitterListColumn.created.name] as String?));
+
+    return DataGridRowAdapter(cells: cells);
   }
 }
