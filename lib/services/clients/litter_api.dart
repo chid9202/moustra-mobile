@@ -69,6 +69,20 @@ class LitterApi {
     }
     return;
   }
+
+  Future endLitters(List<String> litterUuids, DateTime endDate) async {
+    final res = await apiClient.put(
+      '$basePath/end',
+      query: {'litters': litterUuids.join(',')},
+      body: {
+        'litters': litterUuids,
+        'end_date': endDate.toIso8601String().split('T')[0],
+      },
+    );
+    if (res.statusCode != 200) {
+      throw Exception('Failed to end litters: ${res.body}');
+    }
+  }
 }
 
 final LitterApi litterService = LitterApi();

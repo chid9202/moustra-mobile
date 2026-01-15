@@ -8756,15 +8756,29 @@ components:
           type: boolean
         enable_teams_notifications:
           type: boolean
+        slack_channel_notifications:
+          type: boolean
+        slack_dm_notifications:
+          type: boolean
         slack_channel_id:
           type: string
           nullable: true
+        slack_workspace_id:
+          type: string
+          readOnly: true
+        slack_connected_at:
+          type: string
+          format: date-time
+          readOnly: true
         teams_team_id:
           type: string
           nullable: true
         teams_channel_id:
           type: string
           nullable: true
+      required:
+      - slack_connected_at
+      - slack_workspace_id
     PutLitterEndSLR:
       type: object
       properties:
