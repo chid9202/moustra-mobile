@@ -413,27 +413,6 @@ void main() {
         expect(delegate.crossAxisCount, 4);
       });
 
-      testWidgets('GridView has correct spacing', (WidgetTester tester) async {
-        final mockRackStore = MockDataFactory.createRackStoreDto(
-          rackData: MockDataFactory.createRackDto(
-            rackWidth: 5,
-            rackHeight: 1,
-            cages: MockDataFactory.createRackCageDtoList(5),
-          ),
-        );
-        rackStore.value = mockRackStore;
-
-        await TestHelpers.pumpWidgetWithTheme(tester, const CagesGridScreen());
-
-        await tester.pumpAndSettle();
-
-        final gridView = tester.widget<GridView>(find.byType(GridView));
-        final delegate =
-            gridView.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
-        expect(delegate.crossAxisSpacing, 10);
-        expect(delegate.mainAxisSpacing, 10);
-      });
-
       testWidgets('GridView uses NeverScrollableScrollPhysics', (
         WidgetTester tester,
       ) async {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:moustra/widgets/cage/animal_card.dart';
-import 'package:moustra/widgets/cage/cage_header_menu.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/constants/cages_grid_constants.dart';
 
@@ -22,61 +21,43 @@ class CageDetailedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final animals = cage.animals ?? [];
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: cage.cageTag ?? '',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (cage.strain?.strainName != null) ...[
-                      const TextSpan(text: ' '),
-                      TextSpan(
-                        text: cage.strain!.strainName!,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-            CageHeaderMenu(cageUuid: cage.cageUuid),
-          ],
+
+    if (animals.isEmpty) {
+      return Center(
+        child: Text(
+          'No animals',
+          style: TextStyle(color: Colors.grey.shade400, fontSize: 48),
         ),
-        if (animals.isNotEmpty)
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: animals
-                    .map(
-                      (animal) => AnimalCard(
-                        animal: animal,
-                        hasMating: _hasMating(animal),
-                        cage: cage,
-                        zoomLevel: zoomLevel,
-                        searchQuery: searchQuery,
-                        searchType: searchType,
-                      ),
-                    )
-                    .toList(),
-              ),
+      );
+    }
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: CagesGridConstants.maxCageHeight),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Animals list
+          Flexible(
+            child: ListView.separated(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              itemCount: animals.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 6),
+              itemBuilder: (context, index) {
+                final animal = animals[index];
+                return AnimalCard(
+                  animal: animal,
+                  hasMating: _hasMating(animal),
+                  cage: cage,
+                  zoomLevel: zoomLevel,
+                  searchQuery: searchQuery,
+                  searchType: searchType,
+                );
+              },
             ),
           ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -87,4 +68,3 @@ class CageDetailedView extends StatelessWidget {
         false;
   }
 }
-

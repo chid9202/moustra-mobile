@@ -43,148 +43,137 @@ class _AnimalCardState extends State<AnimalCard> {
     return false;
   }
 
+  Color _getGenderColor() {
+    final sex = widget.animal.sex?.toUpperCase();
+    if (sex == 'M') return Colors.blue.shade600;
+    if (sex == 'F') return Colors.pink.shade400;
+    return Colors.grey;
+  }
+
+  Color _getGenderBackgroundColor() {
+    final sex = widget.animal.sex?.toUpperCase();
+    if (sex == 'M') return Colors.blue.shade50;
+    if (sex == 'F') return Colors.pink.shade50;
+    return Colors.grey.shade100;
+  }
+
+  Widget _buildGenderBadge({double size = 36}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: _getGenderBackgroundColor(),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _getGenderColor(), width: 1.5),
+      ),
+      child: Center(
+        child: Text(
+          widget.animal.sex ?? '?',
+          style: TextStyle(
+            fontSize: size * 0.5,
+            fontWeight: FontWeight.bold,
+            color: _getGenderColor(),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCardContent({bool forFeedback = false}) {
     final shouldHighlight = _shouldHighlight();
     final content = Container(
-      padding: const EdgeInsets.all(8.0),
-      margin: const EdgeInsets.symmetric(vertical: 2.0),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
       decoration: BoxDecoration(
         border: Border.all(
           color: shouldHighlight
               ? Colors.yellow.shade700
-              : Colors.grey.shade300,
+              : Colors.grey.shade200,
           width: shouldHighlight ? 2.0 : 1.0,
         ),
-        borderRadius: BorderRadius.circular(4.0),
-        color: shouldHighlight ? Colors.yellow.shade100 : null,
+        borderRadius: BorderRadius.circular(8.0),
+        color: shouldHighlight ? Colors.yellow.shade50 : Colors.grey.shade50,
       ),
       child: Row(
         children: [
-          // Left: Gender with large font
-          if (forFeedback)
-            SizedBox(
-              width: 60,
-              child: Center(
-                child: Text(
-                  widget.animal.sex ?? 'U',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            )
-          else
-            Expanded(
-              flex: 1,
-              child: Center(
-                child: Text(
-                  widget.animal.sex ?? 'U',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+          // Left: Gender badge
+          _buildGenderBadge(size: forFeedback ? 40 : 36),
+          const SizedBox(width: 10),
           // Middle: Physical tag and genotypes
-          if (forFeedback)
-            SizedBox(
-              width: 180,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Physical tag with bold font and heart icon if has mating
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          _getCardTitle(),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (widget.animal.litter != null) ...[
-                        const SizedBox(width: 4),
-                        const Icon(Icons.favorite, color: Colors.red, size: 16),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  // Genotypes using formatGenotypes method
-                  Text(
-                    _formatGenotypes(),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ],
-              ),
-            )
-          else
-            Expanded(
-              flex: 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Physical tag with bold font and heart icon if has mating
-                  Row(
-                    children: [
-                      Text(
-                        _getCardTitle(),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Physical tag with bold font and icons
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        widget.animal.physicalTag ?? 'No tag',
                         style: const TextStyle(
                           fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      if (widget.animal.litter != null) ...[
-                        const SizedBox(width: 4),
-                        const Icon(Icons.favorite, color: Colors.red, size: 16),
-                      ],
+                    ),
+                    if (widget.hasMating) ...[
+                      const SizedBox(width: 4),
+                      Icon(Icons.favorite, color: Colors.red.shade400, size: 14),
                     ],
+                    if (widget.animal.litter != null) ...[
+                      const SizedBox(width: 4),
+                      Icon(Icons.child_care, color: Colors.orange.shade400, size: 14),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 3),
+                // Genotypes
+                Text(
+                  _formatGenotypes(),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w400,
                   ),
-                  const SizedBox(height: 2),
-                  // Genotypes using formatGenotypes method
-                  Text(
-                    _formatGenotypes(),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ],
             ),
-          // Right: Menu icon
+          ),
+          // Right: Menu or drag indicator
           if (forFeedback)
-            const SizedBox(
-              width: 60,
-              child: Center(child: Icon(Icons.drag_indicator, size: 24)),
+            const Padding(
+              padding: EdgeInsets.only(left: 8),
+              child: Icon(Icons.drag_indicator, size: 20, color: Colors.grey),
             )
           else
-            Expanded(
-              flex: 1,
-              child: Center(
-                child: _moving
-                    ? const CircularProgressIndicator()
-                    : AnimalMenu(
-                        cage: widget.cage,
-                        animal: widget.animal,
-                        onMovingStateChanged: (bool value) {
-                          setState(() {
-                            _moving = value;
-                          });
-                        },
-                      ),
-              ),
+            SizedBox(
+              width: 32,
+              child: _moving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : AnimalMenu(
+                      cage: widget.cage,
+                      animal: widget.animal,
+                      onMovingStateChanged: (bool value) {
+                        setState(() {
+                          _moving = value;
+                        });
+                      },
+                    ),
             ),
         ],
       ),
     );
 
     if (forFeedback) {
-      return SizedBox(width: 300, child: content);
+      return SizedBox(width: 280, child: content);
     }
 
     return content;
@@ -245,11 +234,4 @@ class _AnimalCardState extends State<AnimalCard> {
         .join(', ');
   }
 
-  String _getCardTitle() {
-    var physicalTag = widget.animal.physicalTag ?? 'No tag';
-    if (widget.hasMating) {
-      physicalTag += ' 💕';
-    }
-    return physicalTag;
-  }
 }

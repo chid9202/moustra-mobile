@@ -10,14 +10,21 @@ class CagesGridConstants {
   static const double maxScale = 4.0;
 
   // Grid dimensions
-  static const double gridViewWidth = 4500.0;
+  static const double cageWidth = 400; // Individual cage width
   static const double gridViewHeight = 8000.0;
-  static const double gridTopPadding = 250.0;
+  static const double gridTopPadding = 16.0;
 
   // Grid spacing
-  static const double crossAxisSpacing = 10.0;
-  static const double mainAxisSpacing = 10.0;
-  static const double childAspectRatio = 1.0;
+  static const double crossAxisSpacing = 16.0;
+  static const double mainAxisSpacing = 16.0;
+
+  // Calculate grid view width based on rack width
+  static double getGridViewWidth(int rackWidth) {
+    return (cageWidth * rackWidth) + (crossAxisSpacing * (rackWidth - 1));
+  }
+
+  static const double childAspectRatio = 0.8; // Taller cells to fit 5 animals
+  static const double maxCageHeight = 800.0; // Maximum height for a cage
   static const double zoomFitPaddingMargin = 40.0;
 
   // FAB and floating bar margins

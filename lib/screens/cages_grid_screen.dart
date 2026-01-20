@@ -75,7 +75,10 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     await _restoreSavedPosition();
   }
 
-  Future<void> _loadRackData({String? rackUuid}) async {
+  Future<void> _loadRackData({
+    String? rackUuid,
+    List<double>? preservedMatrix,
+  }) async {
     if (mounted) {
       setState(() {
         _isLoadingRack = true;
@@ -86,7 +89,8 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
       final newRackData = await rackApi.getRack(rackUuid: rackUuid);
       rackStore.value = RackStoreDto(
         rackData: newRackData,
-        transformationMatrix: rackStore.value?.transformationMatrix,
+        transformationMatrix:
+            preservedMatrix ?? rackStore.value?.transformationMatrix,
       );
       // Update selected rack if we have racks list
       if (newRackData.racks != null && newRackData.racks!.isNotEmpty) {
@@ -158,29 +162,34 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   }
 
   void _onTransformationChanged() {
-    final currentZoomLevel = UtilHelper.getScaleFromMatrix(
-      _transformationController.value,
-    );
-
-    // Update zoom level with debouncing to avoid too many rebuilds
-    _rebuildTimer?.cancel();
-    _rebuildTimer = Timer(
-      const Duration(milliseconds: CagesGridConstants.rebuildTimerMs),
-      () {
-        if (mounted) {
-          setState(() {
-            _currentZoomLevel = currentZoomLevel;
-          });
-        }
-      },
-    );
-
     // Debounce saveTransformationMatrix to avoid updating store on every frame
     _saveMatrixTimer?.cancel();
     _saveMatrixTimer = Timer(
       const Duration(milliseconds: CagesGridConstants.saveMatrixTimerMs),
       () {
         saveTransformationMatrix(_transformationController.value);
+      },
+    );
+
+    // Update zoom level less frequently (only for UI display, not view switching)
+    // Since compact view is disabled, we don't need frequent updates
+    _rebuildTimer?.cancel();
+    _rebuildTimer = Timer(
+      const Duration(
+        milliseconds: 200,
+      ), // Increased from 50ms for better performance
+      () {
+        if (mounted) {
+          final currentZoomLevel = UtilHelper.getScaleFromMatrix(
+            _transformationController.value,
+          );
+          // Only rebuild if zoom level changed significantly (for floating bar display)
+          if ((currentZoomLevel - _currentZoomLevel).abs() > 0.05) {
+            setState(() {
+              _currentZoomLevel = currentZoomLevel;
+            });
+          }
+        }
       },
     );
   }
@@ -216,9 +225,9 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   void _zoomToFitScreen(BuildContext context) {
     final viewportWidth = MediaQuery.of(context).size.width;
 
-    // GridView child width is 2500px
-    // Calculate scale to fit the grid width in viewport with some padding
-    const gridViewWidth = CagesGridConstants.gridViewWidth;
+    // Calculate grid view width based on rack width and cage width
+    final rackWidth = data.rackWidth ?? CagesGridConstants.defaultRackWidth;
+    final gridViewWidth = CagesGridConstants.getGridViewWidth(rackWidth);
     const paddingMargin =
         CagesGridConstants.zoomFitPaddingMargin; // 20px on each side
 
@@ -273,7 +282,13 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
       builder: (context) => AddOrUpdateRackDialog(
         rackData: isEdit ? data : null,
         onSuccess: ({String? rackUuid}) async {
-          await _loadRackData(rackUuid: rackUuid);
+          // Invalidate rack store before refetching
+          final preservedMatrix = rackStore.value?.transformationMatrix;
+          rackStore.value = null;
+          await _loadRackData(
+            rackUuid: rackUuid,
+            preservedMatrix: preservedMatrix,
+          );
         },
       ),
     );
@@ -330,124 +345,143 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
         final rackHeight =
             data.rackHeight ?? CagesGridConstants.defaultRackHeight;
         final maxCages = rackWidth * rackHeight;
+        final gridViewWidth = CagesGridConstants.getGridViewWidth(rackWidth);
 
-        return Stack(
+        return Column(
           children: [
-            // Loading overlay
-            if (_isLoadingRack)
-              Positioned.fill(
-                child: Container(
-                  color: Colors.white.withOpacity(
-                    CagesGridConstants.loadingOverlayOpacity,
-                  ),
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-              ),
-            InteractiveViewer(
-              constrained: false,
-              transformationController: _transformationController,
-              minScale: CagesGridConstants.minScale,
-              maxScale: CagesGridConstants.maxScale,
-              scaleEnabled: true,
-              panEnabled: true,
-              trackpadScrollCausesScale: true,
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  top: CagesGridConstants.gridTopPadding,
-                ),
-                child: SizedBox(
-                  width: CagesGridConstants.gridViewWidth,
-                  height: CagesGridConstants.gridViewHeight,
-                  child: GridView.builder(
-                    controller: _scrollController,
-                    itemCount: maxCages,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: rackWidth,
-                      crossAxisSpacing: CagesGridConstants.crossAxisSpacing,
-                      mainAxisSpacing: CagesGridConstants.mainAxisSpacing,
-                      childAspectRatio: CagesGridConstants.childAspectRatio,
+            // Bar at the top (not floating)
+            CagesGridFloatingBar(
+              racks: data.racks,
+              selectedRack: _selectedRack,
+              onRackSelected: _switchRack,
+              onAddRack: () => _showRackDialog(isEdit: false),
+              onEditRack: () => _showRackDialog(isEdit: true),
+              searchType: _searchType,
+              searchQuery: _searchQuery,
+              onSearchTypeChanged: (value) {
+                setState(() {
+                  _searchType = value;
+                  _searchQuery = ''; // Clear search when switching type
+                });
+              },
+              onSearchQueryChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+              zoomLevel: _currentZoomLevel,
+            ),
+            // Interactive viewer area
+            Expanded(
+              child: Stack(
+                children: [
+                  InteractiveViewer(
+                    boundaryMargin: const EdgeInsets.all(24),
+                    constrained: false,
+                    transformationController: _transformationController,
+                    minScale: CagesGridConstants.minScale,
+                    maxScale: CagesGridConstants.maxScale,
+                    scaleEnabled: true,
+                    panEnabled: true,
+                    trackpadScrollCausesScale: true,
+                    // Wrap in RepaintBoundary to isolate repaints during pan/zoom
+                    child: RepaintBoundary(
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: SizedBox(
+                          width: gridViewWidth,
+                          height: CagesGridConstants.gridViewHeight,
+                          child: GridView.builder(
+                            controller: _scrollController,
+                            itemCount: maxCages,
+                            physics: const NeverScrollableScrollPhysics(),
+                            // Performance optimizations
+                            addAutomaticKeepAlives: false,
+                            addRepaintBoundaries: true,
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: rackWidth,
+                                  crossAxisSpacing:
+                                      CagesGridConstants.crossAxisSpacing,
+                                  mainAxisSpacing:
+                                      CagesGridConstants.mainAxisSpacing,
+                                  childAspectRatio:
+                                      CagesGridConstants.childAspectRatio,
+                                ),
+                            itemBuilder: (context, index) {
+                              // Check if index is within bounds of the cages array
+                              final cagesLength = data.cages?.length ?? 0;
+
+                              // Show Plus button in the first empty slot if rack is not full
+                              if (index == cagesLength && index < maxCages) {
+                                return ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxHeight: CagesGridConstants.maxCageHeight,
+                                  ),
+                                  child: AddCageButton(onTap: _handleAddCage),
+                                );
+                              }
+
+                              if (index >= cagesLength) {
+                                return const SizedBox.shrink();
+                              }
+                              final resultItem = data.cages?[index];
+                              if (resultItem == null)
+                                return const SizedBox.shrink();
+                              return CageInteractiveView(
+                                cage: resultItem,
+                                zoomLevel: _currentZoomLevel,
+                                rackData: data,
+                                searchQuery: _searchQuery.isNotEmpty
+                                    ? _searchQuery
+                                    : null,
+                                searchType: _searchType,
+                              );
+                            },
+                          ),
+                        ),
+                      ),
                     ),
-                    itemBuilder: (context, index) {
-                      // Check if index is within bounds of the cages array
-                      final cagesLength = data.cages?.length ?? 0;
-
-                      // Show Plus button in the first empty slot if rack is not full
-                      if (index == cagesLength && index < maxCages) {
-                        return AddCageButton(onTap: _handleAddCage);
-                      }
-
-                      if (index >= cagesLength) {
-                        return Container();
-                      }
-                      final resultItem = data.cages?[index];
-                      if (resultItem == null) return Container();
-                      return CageInteractiveView(
-                        cage: resultItem,
-                        zoomLevel: _currentZoomLevel,
-                        rackData: data,
-                        searchQuery: _searchQuery.isNotEmpty
-                            ? _searchQuery
-                            : null,
-                        searchType: _searchType,
-                      );
-                    },
                   ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: MovableFabMenu(
-                controller: _fabController,
-                heroTag: 'cages-grid-zoom-menu',
-                margin: EdgeInsets.only(
-                  right: CagesGridConstants.fabMenuMargin,
-                  bottom: CagesGridConstants.fabMenuMargin,
-                ),
-                actions: [
-                  FabMenuAction(
-                    label: 'Fit to Screen',
-                    icon: const Icon(Icons.fit_screen),
-                    onPressed: () => _zoomToFitScreen(context),
+                  // FAB menu
+                  Positioned.fill(
+                    child: MovableFabMenu(
+                      controller: _fabController,
+                      heroTag: 'cages-grid-zoom-menu',
+                      margin: EdgeInsets.only(
+                        right: CagesGridConstants.fabMenuMargin,
+                        bottom: CagesGridConstants.fabMenuMargin,
+                      ),
+                      actions: [
+                        FabMenuAction(
+                          label: 'Fit to Screen',
+                          icon: const Icon(Icons.fit_screen),
+                          onPressed: () => _zoomToFitScreen(context),
+                        ),
+                        FabMenuAction(
+                          label: 'Default View',
+                          icon: const Icon(Icons.zoom_out_map),
+                          onPressed: _zoomToDefaultView,
+                        ),
+                        FabMenuAction(
+                          label: 'Compact View',
+                          icon: const Icon(Icons.view_compact),
+                          onPressed: _zoomToCompactView,
+                        ),
+                      ],
+                    ),
                   ),
-                  FabMenuAction(
-                    label: 'Default View',
-                    icon: const Icon(Icons.zoom_out_map),
-                    onPressed: _zoomToDefaultView,
-                  ),
-                  FabMenuAction(
-                    label: 'Compact View',
-                    icon: const Icon(Icons.view_compact),
-                    onPressed: _zoomToCompactView,
-                  ),
+                  // Loading overlay
+                  if (_isLoadingRack)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.white.withOpacity(
+                          CagesGridConstants.loadingOverlayOpacity,
+                        ),
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
+                    ),
                 ],
-              ),
-            ),
-            // Floating bar at the top - placed last to appear on top
-            Positioned(
-              top: CagesGridConstants.floatingBarMargin,
-              left: CagesGridConstants.floatingBarMargin,
-              right: CagesGridConstants.floatingBarMargin,
-              child: CagesGridFloatingBar(
-                racks: data.racks,
-                selectedRack: _selectedRack,
-                onRackSelected: _switchRack,
-                onAddRack: () => _showRackDialog(isEdit: false),
-                onEditRack: () => _showRackDialog(isEdit: true),
-                searchType: _searchType,
-                searchQuery: _searchQuery,
-                onSearchTypeChanged: (value) {
-                  setState(() {
-                    _searchType = value;
-                    _searchQuery = ''; // Clear search when switching type
-                  });
-                },
-                onSearchQueryChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
-                zoomLevel: _currentZoomLevel,
               ),
             ),
           ],
