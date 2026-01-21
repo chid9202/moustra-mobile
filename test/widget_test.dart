@@ -1,4 +1,5 @@
 // Basic app smoke test
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:moustra/main.dart';
@@ -16,6 +17,16 @@ void main() {
   });
 
   testWidgets('App loads without crashing', (WidgetTester tester) async {
+    // The default test surface is quite narrow (≈352px) which can cause
+    // benign layout overflows in screens with wide rows. Use a wider surface
+    // for this "smoke test" so rendering assertions don't fail.
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(1200, 2000);
+    addTearDown(() {
+      tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+    });
+
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();

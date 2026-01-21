@@ -22,6 +22,7 @@ import 'package:moustra/screens/dashboard_screen.dart';
 import 'package:moustra/screens/settings_screen.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:moustra/screens/login_screen.dart';
+import 'package:moustra/screens/signup_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   refreshListenable: authState,
@@ -30,6 +31,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/login',
       pageBuilder: (context, state) => const MaterialPage(child: LoginScreen()),
+    ),
+    GoRoute(
+      path: '/signup',
+      pageBuilder: (context, state) => const MaterialPage(child: SignupScreen()),
     ),
     GoRoute(
       path: '/logout',
@@ -197,17 +202,17 @@ final GoRouter appRouter = GoRouter(
   ],
   redirect: (context, state) {
     final path = state.uri.path;
-    final onLogin = path == '/login';
+    final onAuthPage = path == '/login' || path == '/signup';
     print('path $path');
 
     if (!authService.isLoggedIn) {
       print('not logged in');
-      return onLogin
+      return onAuthPage
           ? null
           : '/login?from=${Uri.encodeComponent(state.uri.toString())}';
     }
-    if (onLogin) {
-      print('on login');
+    if (onAuthPage) {
+      print('on auth page');
       // Wait for profile to be loaded before redirecting to dashboard
       final hasAccount = profileState.value?.accountUuid != null;
       return hasAccount ? '/dashboard' : null;

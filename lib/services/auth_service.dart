@@ -6,6 +6,7 @@ import 'package:moustra/services/secure_store.dart';
 import 'package:moustra/stores/auth_store.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'dart:io' show Platform;
+
 class AppCredentials {
   final String accessToken;
   final String idToken;
@@ -123,11 +124,13 @@ class AuthService {
     try {
       final credentials = await _auth0
           .webAuthentication(scheme: Env.auth0Scheme)
-          .login(parameters: {
-        'connection': connection,
-        'audience': Env.auth0Audience,
-        'scope': 'openid profile email offline_access',
-      });
+          .login(
+            parameters: {
+              'connection': connection,
+              'audience': Env.auth0Audience,
+              'scope': 'openid profile email offline_access',
+            },
+          );
 
       // Convert auth0_flutter credentials to AppCredentials
       // Use default expiration of 3600 seconds (1 hour) if not available
@@ -176,6 +179,64 @@ class AuthService {
       } else if (errorMessage.contains('access_denied')) {
         throw Exception('Access denied. Please try again.');
       }
+      rethrow;
+    }
+  }
+
+  /// Sign up with email and password, then auto-login
+  /// Returns true on success, throws exception on failure
+  Future<bool> signUpWithPassword(String email, String password) async {
+    try {
+      // 1. Create user via /dbconnections/signup
+      final signupResponse = await http.post(
+        Uri.parse('https://${Env.auth0Domain}/dbconnections/signup'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'client_id': Env.auth0ClientId,
+          'email': email,
+          'password': password,
+          'connection': Env.auth0Connection,
+        }),
+      );
+      if (signupResponse.statusCode != 200) {
+        // Parse error response
+        final Map<String, dynamic> errorData = jsonDecode(signupResponse.body);
+        final errorCode = errorData['code']?.toString() ?? '';
+
+        // Map Auth0 error codes to user-friendly messages
+        if (errorCode == 'user_exists') {
+          throw Exception('An account with this email already exists');
+        } else if (errorCode == 'invalid_password' ||
+            errorCode == 'password_strength_error') {
+          // Use the pre-formatted policy string from Auth0
+          final policy = errorData['policy'] as String?;
+          if (policy != null && policy.isNotEmpty) {
+            throw Exception('Password requirements:\n$policy');
+          }
+          throw Exception(
+            errorData['message'] as String? ?? 'Password is too weak',
+          );
+        } else if (errorCode == 'invalid_signup') {
+          throw Exception('Sign up is not available. Please contact support.');
+        }
+
+        // Generic error handling
+        String errorDescription = 'Sign up failed';
+        final desc = errorData['description'];
+        if (desc is String) {
+          errorDescription = desc;
+        } else if (errorData['message'] is String) {
+          errorDescription = errorData['message'] as String;
+        } else if (errorData['error'] is String) {
+          errorDescription = errorData['error'] as String;
+        }
+        throw Exception(errorDescription);
+      }
+
+      // 2. Auto-login after successful signup
+      return await loginWithPassword(email, password);
+    } catch (e) {
+      print('[AuthService] Sign up error: $e');
       rethrow;
     }
   }

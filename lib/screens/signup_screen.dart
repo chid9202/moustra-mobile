@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/services/clients/profile_api.dart';
@@ -17,14 +16,14 @@ import 'package:moustra/stores/rack_store.dart';
 import 'package:moustra/stores/setting_store.dart';
 import 'package:moustra/stores/strain_store.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
+class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -36,10 +35,28 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   VoidCallback? _authListener;
   bool _obscurePassword = true;
 
+  // Password policy state
+  bool _hasMinLength = false;
+  bool _hasLowerCase = false;
+  bool _hasUpperCase = false;
+  bool _hasNumber = false;
+  bool _hasSpecialChar = false;
+
+  int get _characterTypesCount {
+    int count = 0;
+    if (_hasLowerCase) count++;
+    if (_hasUpperCase) count++;
+    if (_hasNumber) count++;
+    if (_hasSpecialChar) count++;
+    return count;
+  }
+
+  bool get _hasEnoughCharacterTypes => _characterTypesCount >= 3;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
+    _passwordController.addListener(_validatePasswordPolicy);
     _authListener = () {
       if (!mounted) return;
       if (authService.isLoggedIn) {
@@ -51,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
           firstName: authService.user?.givenName ?? '',
           lastName: authService.user?.familyName ?? '',
         );
-        _postLogin(req);
+        _postSignup(req);
       } else {
         setState(() {
           _loading = false;
@@ -63,9 +80,8 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    // Dispose autofill context to ensure credentials are saved
     TextInput.finishAutofillContext();
-    WidgetsBinding.instance.removeObserver(this);
+    _passwordController.removeListener(_validatePasswordPolicy);
     if (_authListener != null) {
       authState.removeListener(_authListener!);
     }
@@ -76,7 +92,18 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  void _postLogin(ProfileRequestDto request) {
+  void _validatePasswordPolicy() {
+    final password = _passwordController.text;
+    setState(() {
+      _hasMinLength = password.length >= 8;
+      _hasLowerCase = password.contains(RegExp(r'[a-z]'));
+      _hasUpperCase = password.contains(RegExp(r'[A-Z]'));
+      _hasNumber = password.contains(RegExp(r'[0-9]'));
+      _hasSpecialChar = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+    });
+  }
+
+  void _postSignup(ProfileRequestDto request) {
     profileService
         .getProfile(request)
         .then((profile) {
@@ -103,10 +130,8 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
         })
         .then((_) async {
           if (mounted) {
-            // Give time to process the autofill save request before navigating
             await Future.delayed(const Duration(milliseconds: 300));
             if (mounted) {
-              // Reset loading before navigation
               setState(() {
                 _loading = false;
               });
@@ -116,31 +141,17 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
         });
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.resumed) {
-      await authService.init();
-      if (!mounted) return;
-      if (authService.isLoggedIn) {
-        setState(() {
-          _loading = true;
-        });
-        final req = ProfileRequestDto(
-          email: authService.user?.email ?? '',
-          firstName: authService.user?.givenName ?? '',
-          lastName: authService.user?.familyName ?? '',
-        );
-        _postLogin(req);
-      }
-      setState(() {
-        _loading = false;
-      });
-    }
-  }
-
-  Future<void> _handleLogin() async {
+  Future<void> _handleSignup() async {
     // Validate form first
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // Check password policy
+    if (!_hasMinLength || !_hasEnoughCharacterTypes) {
+      setState(() {
+        _error = 'Please meet all password requirements';
+      });
       return;
     }
 
@@ -155,43 +166,16 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
 
     try {
       if (!mounted) return;
-      await authService.loginWithPassword(email, password);
+      await authService.signUpWithPassword(email, password);
       // Notify the system to save credentials for autofill
       TextInput.finishAutofillContext(shouldSave: true);
-      // If login succeeds, the auth listener will handle loading state
-      // through _postLogin() until navigation completes
+      // If signup succeeds, the auth listener will handle loading state
+      // through _postSignup() until navigation completes
     } catch (e) {
       if (mounted) {
         String errorMessage = e.toString();
         // Clean up the error message
-        if (errorMessage.startsWith('Exception: ')) {
-          errorMessage = errorMessage.substring(11);
-        }
-        setState(() {
-          _error = errorMessage;
-          _loading = false;
-        });
-      }
-      return; // Don't save credentials if login failed
-    }
-  }
-
-  Future<void> _handleSocialLogin(String connection) async {
-    if (!mounted) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
-    try {
-      if (!mounted) return;
-      await authService.loginWithSocial(connection);
-      // If login succeeds, the auth listener will handle loading state
-      // through _postLogin() until navigation completes
-    } catch (e) {
-      if (mounted) {
-        String errorMessage = e.toString();
-        // Clean up the error message
+        print(errorMessage);
         if (errorMessage.startsWith('Exception: ')) {
           errorMessage = errorMessage.substring(11);
         }
@@ -207,7 +191,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     if (value == null || value.isEmpty) {
       return 'Email is required';
     }
-    // Allow + in email (for aliasing) and domains without TLD (for local/internal domains)
     final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+$');
     if (!emailRegex.hasMatch(value)) {
       return 'Please enter a valid email';
@@ -251,7 +234,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
 
                         // Title
                         Text(
-                          'Welcome to Moustra',
+                          'Create Account',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -263,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
 
                         // Subtitle
                         Text(
-                          'Sign in to continue',
+                          'Sign up to get started',
                           style: TextStyle(
                             fontSize: 16,
                             color: colorScheme.onSurfaceVariant,
@@ -281,11 +264,15 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  color: colorScheme.onErrorContainer,
-                                  size: 20,
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Icon(
+                                    Icons.error_outline,
+                                    color: colorScheme.onErrorContainer,
+                                    size: 20,
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
@@ -294,6 +281,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                                     style: TextStyle(
                                       color: colorScheme.onErrorContainer,
                                       fontSize: 14,
+                                      height: 1.4,
                                     ),
                                   ),
                                 ),
@@ -337,7 +325,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.done,
                           enabled: !_loading,
-                          autofillHints: const [AutofillHints.password],
+                          autofillHints: const [AutofillHints.newPassword],
                           decoration: InputDecoration(
                             labelText: 'Password',
                             hintText: 'Enter your password',
@@ -362,13 +350,24 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                                 .withValues(alpha: 0.3),
                           ),
                           validator: _validatePassword,
-                          onFieldSubmitted: (_) => _handleLogin(),
+                          onFieldSubmitted: (_) => _handleSignup(),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Password Policy Widget
+                        _PasswordPolicyWidget(
+                          hasMinLength: _hasMinLength,
+                          hasLowerCase: _hasLowerCase,
+                          hasUpperCase: _hasUpperCase,
+                          hasNumber: _hasNumber,
+                          hasSpecialChar: _hasSpecialChar,
+                          hasEnoughCharacterTypes: _hasEnoughCharacterTypes,
                         ),
                         const SizedBox(height: 24),
 
-                        // Sign in button
+                        // Sign up button
                         FilledButton(
-                          onPressed: _loading ? null : _handleLogin,
+                          onPressed: _loading ? null : _handleSignup,
                           style: FilledButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -385,76 +384,22 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                                   ),
                                 )
                               : const Text(
-                                  'Sign In',
+                                  'Sign Up',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                         ),
-                        const SizedBox(height: 16),
-
-                        // Divider with "or"
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Divider(
-                                color: colorScheme.outlineVariant,
-                                thickness: 1,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Text(
-                                'OR',
-                                style: TextStyle(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: Divider(
-                                color: colorScheme.outlineVariant,
-                                thickness: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Google Sign In button
-                        _SocialLoginButton(
-                          onPressed: _loading
-                              ? null
-                              : () => _handleSocialLogin('google-oauth2'),
-                          label: 'Continue with Google',
-                          icon: _GoogleIcon(),
-                          colorScheme: colorScheme,
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Microsoft Sign In button
-                        _SocialLoginButton(
-                          onPressed: _loading
-                              ? null
-                              : () => _handleSocialLogin('windowslive'),
-                          label: 'Continue with Microsoft',
-                          icon: _MicrosoftIcon(),
-                          colorScheme: colorScheme,
-                        ),
                         const SizedBox(height: 24),
 
-                        // Link to sign up
+                        // Link to login
                         Wrap(
                           alignment: WrapAlignment.center,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
-                              "Don't have an account? ",
+                              'Already have an account? ',
                               style: TextStyle(
                                 color: colorScheme.onSurfaceVariant,
                                 fontSize: 14,
@@ -463,14 +408,14 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                             TextButton(
                               onPressed: _loading
                                   ? null
-                                  : () => context.go('/signup'),
+                                  : () => context.go('/login'),
                               style: TextButton.styleFrom(
                                 padding: EdgeInsets.zero,
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                               child: Text(
-                                'Sign up',
+                                'Log in',
                                 style: TextStyle(
                                   color: colorScheme.primary,
                                   fontSize: 14,
@@ -493,42 +438,74 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   }
 }
 
-/// Custom social login button widget
-class _SocialLoginButton extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final String label;
-  final Widget icon;
-  final ColorScheme colorScheme;
+/// Password policy validation widget
+class _PasswordPolicyWidget extends StatelessWidget {
+  final bool hasMinLength;
+  final bool hasLowerCase;
+  final bool hasUpperCase;
+  final bool hasNumber;
+  final bool hasSpecialChar;
+  final bool hasEnoughCharacterTypes;
 
-  const _SocialLoginButton({
-    required this.onPressed,
-    required this.label,
-    required this.icon,
-    required this.colorScheme,
+  const _PasswordPolicyWidget({
+    required this.hasMinLength,
+    required this.hasLowerCase,
+    required this.hasUpperCase,
+    required this.hasNumber,
+    required this.hasSpecialChar,
+    required this.hasEnoughCharacterTypes,
   });
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        side: BorderSide(color: colorScheme.outline, width: 1),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 20, height: 20, child: icon),
-          const SizedBox(width: 12),
-          Flexible(
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              overflow: TextOverflow.ellipsis,
+          Text(
+            'Your password must contain:',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _PolicyItem(text: 'At least 8 characters', isValid: hasMinLength),
+          const SizedBox(height: 8),
+          _PolicyItem(
+            text: 'At least 3 of the following:',
+            isValid: hasEnoughCharacterTypes,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 24),
+            child: Column(
+              children: [
+                const SizedBox(height: 4),
+                _PolicyItem(
+                  text: 'Lower case letters (a-z)',
+                  isValid: hasLowerCase,
+                ),
+                const SizedBox(height: 4),
+                _PolicyItem(
+                  text: 'Upper case letters (A-Z)',
+                  isValid: hasUpperCase,
+                ),
+                const SizedBox(height: 4),
+                _PolicyItem(text: 'Numbers (0-9)', isValid: hasNumber),
+                const SizedBox(height: 4),
+                _PolicyItem(
+                  text: 'Special characters (e.g. !@#\$%^&*)',
+                  isValid: hasSpecialChar,
+                ),
+              ],
             ),
           ),
         ],
@@ -537,34 +514,45 @@ class _SocialLoginButton extends StatelessWidget {
   }
 }
 
-/// Google logo widget
-class _GoogleIcon extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SvgPicture.asset('assets/icons/google.svg', width: 20, height: 20);
-  }
-}
+/// Individual policy item with checkmark or bullet
+class _PolicyItem extends StatelessWidget {
+  final String text;
+  final bool isValid;
 
-/// Microsoft logo widget (4 colored squares)
-class _MicrosoftIcon extends StatelessWidget {
+  const _PolicyItem({required this.text, required this.isValid});
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 20,
-      height: 20,
-      child: GridView.count(
-        crossAxisCount: 2,
-        padding: EdgeInsets.zero,
-        mainAxisSpacing: 1.5,
-        crossAxisSpacing: 1.5,
-        physics: const NeverScrollableScrollPhysics(),
-        children: [
-          Container(color: const Color(0xFFF25022)), // Red
-          Container(color: const Color(0xFF7FBA00)), // Green
-          Container(color: const Color(0xFF00A4EF)), // Blue
-          Container(color: const Color(0xFFFFB900)), // Yellow
-        ],
-      ),
+    final validColor = Colors.green.shade600;
+    final invalidColor = Theme.of(context).colorScheme.onSurfaceVariant;
+
+    return Row(
+      children: [
+        if (isValid)
+          Icon(Icons.check, size: 18, color: validColor)
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: invalidColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              color: isValid ? validColor : invalidColor,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
