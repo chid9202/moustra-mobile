@@ -86,5 +86,9 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Moustra needs access to your Photo Library so you can upload images to your lab records (e.g., animals, cages, genotyping results).</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Moustra needs permission to save exported images (e.g., labels or reports) to your Photo Library.</string>
 </dict>
 </plist>

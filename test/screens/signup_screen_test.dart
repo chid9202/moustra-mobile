@@ -26,7 +26,9 @@ void main() {
       });
     }
 
-    testWidgets('renders correctly with default state', (WidgetTester tester) async {
+    testWidgets('renders correctly with default state', (
+      WidgetTester tester,
+    ) async {
       await setLargeScreen(tester);
       await TestHelpers.pumpWidgetWithTheme(tester, const SignupScreen());
       await tester.pumpAndSettle();
@@ -47,7 +49,9 @@ void main() {
       expect(find.byType(TextFormField), findsNWidgets(2));
     });
 
-    testWidgets('password visibility toggle works', (WidgetTester tester) async {
+    testWidgets('password visibility toggle works', (
+      WidgetTester tester,
+    ) async {
       await setLargeScreen(tester);
       await TestHelpers.pumpWidgetWithTheme(tester, const SignupScreen());
       await tester.pumpAndSettle();
@@ -149,4 +153,3 @@ void main() {
     });
   });
 }
-
