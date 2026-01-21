@@ -53,3 +53,22 @@ app.*.map.json
 .env.production
 # Note: .env.production and .env.example should be committed
 # but ensure no sensitive data is in .env.production before committing
+
+android/android-secret.json
+android/key.properties
+android/*.keystore
+android/*.jks
+
+# iOS signing
+ios/*.p12
+ios/*.mobileprovision
+ios/*.cer
+
+# Fastlane
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/screenshots/**/*.png
+ios/fastlane/test_output
+android/fastlane/report.xml
+android/fastlane/Preview.html
+**/fastlane/README.md

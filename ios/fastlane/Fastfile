@@ -1,0 +1,94 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+  # Helper to get version from pubspec.yaml
+  def get_version_from_pubspec
+    pubspec = File.read("../../pubspec.yaml")
+    version_line = pubspec.match(/version:\s*(\d+\.\d+\.\d+)\+(\d+)/)
+    if version_line
+      { version: version_line[1], build: version_line[2].to_i }
+    else
+      { version: "1.0.0", build: 1 }
+    end
+  end
+
+  desc "Build the iOS app (production)"
+  lane :build do
+    version_info = get_version_from_pubspec
+
+    # Sync version with pubspec.yaml
+    increment_version_number(
+      version_number: version_info[:version],
+      xcodeproj: "Runner.xcodeproj"
+    )
+    increment_build_number(
+      build_number: version_info[:build],
+      xcodeproj: "Runner.xcodeproj"
+    )
+
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "Moustra.ipa"
+    )
+  end
+
+  desc "Push a new beta build to TestFlight"
+  lane :beta do
+    build
+
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      changelog: "Bug fixes and improvements"
+    )
+
+    UI.success("Successfully uploaded to TestFlight! 🚀")
+  end
+
+  desc "Push a new release build to the App Store"
+  lane :release do
+    build
+
+    upload_to_app_store(
+      submit_for_review: false,
+      automatic_release: false,
+      skip_screenshots: true,
+      skip_metadata: false,
+      precheck_include_in_app_purchases: false
+    )
+
+    UI.success("Successfully uploaded to App Store Connect! 🎉")
+  end
+
+  desc "Download metadata and screenshots from App Store Connect"
+  lane :sync_metadata do
+    download_metadata
+    download_screenshots
+  end
+
+  desc "Upload only metadata and screenshots to App Store Connect"
+  lane :upload_metadata do
+    upload_to_app_store(
+      skip_binary_upload: true,
+      skip_screenshots: false,
+      skip_metadata: false
+    )
+  end
+end

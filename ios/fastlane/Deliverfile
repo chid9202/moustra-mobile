@@ -1,0 +1,36 @@
+# The Deliverfile allows you to store various App Store Connect metadata
+# For more information, check out the docs
+# https://docs.fastlane.tools/actions/deliver/
+
+# App Store Connect metadata
+app_identifier("com.moustra.app")
+username("chid9202@gmail.com")
+
+# Submission settings
+submit_for_review(false)
+automatic_release(false)
+phased_release(true)
+
+# Skip binary upload when only updating metadata
+# skip_binary_upload(true)
+
+# Skip screenshots during upload (upload separately with upload_metadata lane)
+skip_screenshots(true)
+
+# Price tier (0 = free)
+price_tier(0)
+
+# App rating configuration
+app_rating_config_path("./fastlane/rating_config.json")
+
+# Precheck settings
+precheck_include_in_app_purchases(false)
+
+# Force the language for metadata
+force(false)
+
+# Run precheck before submitting to App Store
+run_precheck_before_submit(true)
+
+# Overwrite any existing screenshots (be careful!)
+overwrite_screenshots(false)

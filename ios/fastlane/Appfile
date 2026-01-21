@@ -1,0 +1,8 @@
+app_identifier("com.moustra.app") # The bundle identifier of your app
+apple_id("chid9202@gmail.com") # Your Apple Developer Portal username
+
+itc_team_id("128210158") # App Store Connect Team ID
+team_id("2423798F5D") # Developer Portal Team ID
+
+# For more information about the Appfile, see:
+#     https://docs.fastlane.tools/advanced/#appfile

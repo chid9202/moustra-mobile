@@ -1,0 +1,1 @@
+Moustra is an intelligent mouse colony management platform designed for research laboratories. It replaces outdated spreadsheets with a visual, AI-powered system that makes managing animals, cages, and breeding plans simple and accurate.
