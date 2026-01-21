@@ -49,6 +49,10 @@
 	<string>Use Face ID to unlock your account and access stored credentials</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app uses the camera to scan barcodes for cage identification, as well as for biometric authentication and secure payment processing features.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Moustra needs access to your Photo Library so you can upload images to your lab records (e.g., animals, cages, genotyping results).</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Moustra needs permission to save exported images (e.g., labels or reports) to your Photo Library.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -86,9 +90,5 @@
 			</dict>
 		</dict>
 	</dict>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Moustra needs access to your Photo Library so you can upload images to your lab records (e.g., animals, cages, genotyping results).</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Moustra needs permission to save exported images (e.g., labels or reports) to your Photo Library.</string>
 </dict>
 </plist>
