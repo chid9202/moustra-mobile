@@ -8,14 +8,14 @@ class NoteDto {
   final String noteUuid;
   final String content;
   final DateTime createdDate;
-  final AccountDto createdBy;
+  final AccountDto? createdBy;
   final DateTime? updatedDate;
 
   NoteDto({
     required this.noteUuid,
     required this.content,
     required this.createdDate,
-    required this.createdBy,
+    this.createdBy,
     this.updatedDate,
   });
 
@@ -23,4 +23,3 @@ class NoteDto {
       _$NoteDtoFromJson(json);
   Map<String, dynamic> toJson() => _$NoteDtoToJson(this);
 }
-

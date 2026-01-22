@@ -5,17 +5,21 @@ import 'package:intl/intl.dart';
 import 'package:moustra/services/dtos/account_dto.dart';
 
 class NoteHelper {
-  static String getCreatorName(AccountDto account) {
-    if (account.user.firstName.isNotEmpty &&
-        account.user.lastName.isNotEmpty) {
+  static String getCreatorName(AccountDto? account) {
+    if (account == null) {
+      return 'System';
+    }
+    if (account.user.firstName.isNotEmpty && account.user.lastName.isNotEmpty) {
       return '${account.user.firstName} ${account.user.lastName}';
     }
     return 'Unknown';
   }
 
-  static String getInitials(AccountDto account) {
-    if (account.user.firstName.isNotEmpty &&
-        account.user.lastName.isNotEmpty) {
+  static String getInitials(AccountDto? account) {
+    if (account == null) {
+      return 'SY';
+    }
+    if (account.user.firstName.isNotEmpty && account.user.lastName.isNotEmpty) {
       final first = account.user.firstName[0].toUpperCase();
       final last = account.user.lastName[0].toUpperCase();
       return '$first$last';
@@ -42,11 +46,11 @@ class NoteHelper {
 
   static String extractErrorMessage(dynamic error) {
     final errorString = error.toString();
-    
+
     // Try to extract error from response body if it's a structured error
     if (errorString.contains('Exception:')) {
       final message = errorString.replaceFirst('Exception: ', '');
-      
+
       // Try to parse JSON error if present
       if (message.contains('{') && message.contains('}')) {
         try {
@@ -54,7 +58,7 @@ class NoteHelper {
           final jsonEnd = message.lastIndexOf('}') + 1;
           final jsonStr = message.substring(jsonStart, jsonEnd);
           final json = jsonDecode(jsonStr);
-          
+
           // Try content validation error first
           if (json is Map<String, dynamic>) {
             if (json['content'] != null && json['content'] is List) {
@@ -75,11 +79,10 @@ class NoteHelper {
           // If JSON parsing fails, continue with string extraction
         }
       }
-      
+
       return message;
     }
-    
+
     return errorString;
   }
 }
-

@@ -1,4 +1,3 @@
-import 'package:moustra/config/env.dart';
 import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/error_report_dto.dart';
 import 'package:moustra/stores/profile_store.dart';
@@ -7,11 +6,6 @@ class ErrorReportService {
   /// Report an error to the backend (only in production)
   /// This is a fire-and-forget operation that won't block or throw errors
   static void reportError({required String subject, required String message}) {
-    // Only report in production
-    if (!Env.isProduction) {
-      return;
-    }
-
     // Get account UUID - if not available, skip reporting
     final accountUuid = profileState.value?.accountUuid;
     if (accountUuid == null || accountUuid.isEmpty) {

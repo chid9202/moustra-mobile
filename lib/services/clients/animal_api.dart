@@ -5,6 +5,7 @@ import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra/services/utils/safe_json_converter.dart';
 
 class AnimalApi {
   static const String basePath = '/animal';
@@ -57,7 +58,12 @@ class AnimalApi {
 
   Future<AnimalDto> getAnimal(String animalUuid) async {
     final res = await apiClient.get('$basePath/$animalUuid');
-    return AnimalDto.fromJson(jsonDecode(res.body));
+    final json = jsonDecode(res.body) as Map<String, dynamic>;
+    return safeFromJson(
+      json: json,
+      fromJson: AnimalDto.fromJson,
+      dtoName: 'AnimalDto',
+    );
   }
 
   Future<AnimalDto> putAnimal(String animalUuid, AnimalDto payload) async {
