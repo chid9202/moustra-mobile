@@ -43,7 +43,6 @@ class LabSettingDto {
 class LabSettingOwnerDto {
   final int accountId;
   final String accountUuid;
-  final String accountName;
   final LabSettingUserDto user;
   final String status;
   final String role;
@@ -56,7 +55,6 @@ class LabSettingOwnerDto {
   LabSettingOwnerDto({
     required this.accountId,
     required this.accountUuid,
-    required this.accountName,
     required this.user,
     required this.status,
     required this.role,
@@ -71,7 +69,6 @@ class LabSettingOwnerDto {
     return LabSettingOwnerDto(
       accountId: json['accountId'] as int? ?? 0,
       accountUuid: json['accountUuid'] as String? ?? '',
-      accountName: json['accountName'] as String? ?? '',
       user: json['user'] != null
           ? LabSettingUserDto.fromJson(json['user'] as Map<String, dynamic>)
           : LabSettingUserDto(
@@ -99,7 +96,6 @@ class LabSettingOwnerDto {
   Map<String, dynamic> toJson() => <String, dynamic>{
     'accountId': accountId,
     'accountUuid': accountUuid,
-    'accountName': accountName,
     'user': user.toJson(),
     'status': status,
     'role': role,

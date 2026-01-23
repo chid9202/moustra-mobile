@@ -7,7 +7,6 @@ part 'user_detail_dto.g.dart';
 class UserDetailDto {
   final int accountId;
   final String accountUuid;
-  final String accountName;
   final UserDto user;
   final String status;
   final String role;
@@ -20,7 +19,6 @@ class UserDetailDto {
   UserDetailDto({
     required this.accountId,
     required this.accountUuid,
-    required this.accountName,
     required this.user,
     required this.status,
     required this.role,

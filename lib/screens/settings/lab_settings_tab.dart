@@ -105,7 +105,6 @@ class _LabSettingsTabState extends State<LabSettingsTab> {
         ownerDto = LabSettingOwnerDto(
           accountId: _selectedOwner!.accountId,
           accountUuid: _selectedOwner!.accountUuid,
-          accountName: '',
           user: LabSettingUserDto(
             email: _selectedOwner!.user.email,
             firstName: _selectedOwner!.user.firstName,

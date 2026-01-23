@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/user_list_dto.dart';
 import 'package:moustra/services/dtos/user_detail_dto.dart';
+import 'package:moustra/services/utils/safe_json_converter.dart';
 
 class UsersApi {
   final ApiClient apiClient;
@@ -15,7 +16,11 @@ class UsersApi {
     }
     final List<dynamic> jsonList = jsonDecode(res.body);
     return jsonList
-        .map((json) => UserListDto.fromJson(json as Map<String, dynamic>))
+        .map((json) => safeFromJson<UserListDto>(
+              json: json as Map<String, dynamic>,
+              fromJson: UserListDto.fromJson,
+              dtoName: 'UserListDto',
+            ))
         .toList();
   }
 
