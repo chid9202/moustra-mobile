@@ -16,11 +16,13 @@ class UsersApi {
     }
     final List<dynamic> jsonList = jsonDecode(res.body);
     return jsonList
-        .map((json) => safeFromJson<UserListDto>(
-              json: json as Map<String, dynamic>,
-              fromJson: UserListDto.fromJson,
-              dtoName: 'UserListDto',
-            ))
+        .map(
+          (json) => safeFromJson<UserListDto>(
+            json: json as Map<String, dynamic>,
+            fromJson: UserListDto.fromJson,
+            dtoName: 'UserListDto',
+          ),
+        )
         .toList();
   }
 
