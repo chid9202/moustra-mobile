@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
           useSettingStore();
         })
         .catchError((e) {
-          print(e);
+          debugPrint(e);
           if (mounted) {
             setState(() {
               _loading = false;

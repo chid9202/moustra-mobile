@@ -145,7 +145,7 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
         });
       }
     } catch (e) {
-      print('Error loading mating: $e');
+      debugPrint('Error loading mating: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -214,7 +214,7 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
           context.go('/matings');
         }
       } catch (e) {
-        print('Error saving mating: $e');
+        debugPrint('Error saving mating: $e');
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error saving mating: $e')));

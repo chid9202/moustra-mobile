@@ -96,7 +96,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
         });
       }
     } catch (e) {
-      print('Error loading cage: $e');
+      debugPrint('Error loading cage: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -216,7 +216,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
         }
       }
     } catch (e) {
-      print('Error saving cage: $e');
+      debugPrint('Error saving cage: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,

@@ -31,7 +31,7 @@ Future<AlleleStoreDto> postAlleleHook(String alleleName) async {
   final newAllele = await alleleApi.postAllele(alleleName);
   // Fetch full list to maintain integrity
   final value = await StoreApi<AlleleStoreDto>().getStore(StoreKeys.allele);
-  print('Allele store updated after create, new count: ${value.length}');
+  debugPrint('Allele store updated after create, new count: ${value.length}');
   alleleStore.value = value;
   return newAllele;
 }
@@ -40,6 +40,6 @@ Future<void> deleteAlleleHook(String alleleUuid) async {
   await alleleApi.deleteAllele(alleleUuid);
   // Fetch full list to maintain integrity
   final value = await StoreApi<AlleleStoreDto>().getStore(StoreKeys.allele);
-  print('Allele store updated after delete, new count: ${value.length}');
+  debugPrint('Allele store updated after delete, new count: ${value.length}');
   alleleStore.value = value;
 }

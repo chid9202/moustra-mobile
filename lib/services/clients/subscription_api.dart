@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
 import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/subscription_dto.dart';
 
@@ -37,17 +38,17 @@ class SubscriptionApi {
     if (res.statusCode != 200) {
       throw Exception('Failed to create payment intent: ${res.body}');
     }
-    print('Payment intent response body: ${res.body}');
+    debugPrint('Payment intent response body: ${res.body}');
     try {
       final Map<String, dynamic> data = jsonDecode(res.body);
-      print('Parsed payment intent data: $data');
+      debugPrint('Parsed payment intent data: $data');
       final paymentIntent = PaymentIntentResponse.fromJson(data);
-      print('PaymentIntentResponse created successfully');
+      debugPrint('PaymentIntentResponse created successfully');
       return paymentIntent;
     } catch (e, stackTrace) {
-      print('Error parsing payment intent response: $e');
-      print('Stack trace: $stackTrace');
-      print('Response body: ${res.body}');
+      debugPrint('Error parsing payment intent response: $e');
+      debugPrint('Stack trace: $stackTrace');
+      debugPrint('Response body: ${res.body}');
       rethrow;
     }
   }
@@ -85,9 +86,9 @@ class SubscriptionApi {
       final Map<String, dynamic> data = jsonDecode(res.body);
       return SubscriptionResponseDto.fromJson(data);
     } catch (e, stackTrace) {
-      print('Error parsing subscription response: $e');
-      print('Stack trace: $stackTrace');
-      print('Response body: ${res.body}');
+      debugPrint('Error parsing subscription response: $e');
+      debugPrint('Stack trace: $stackTrace');
+      debugPrint('Response body: ${res.body}');
       rethrow;
     }
   }

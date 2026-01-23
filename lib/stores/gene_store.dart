@@ -31,7 +31,7 @@ Future<GeneStoreDto> postGeneHook(String geneName) async {
   final newGene = await geneApi.postGene(geneName);
   // Fetch full list to maintain integrity
   final value = await StoreApi<GeneStoreDto>().getStore(StoreKeys.gene);
-  print('Gene store updated after create, new count: ${value.length}');
+  debugPrint('Gene store updated after create, new count: ${value.length}');
   geneStore.value = value;
   return newGene;
 }
@@ -40,6 +40,6 @@ Future<void> deleteGeneHook(String geneUuid) async {
   await geneApi.deleteGene(geneUuid);
   // Fetch full list to maintain integrity
   final value = await StoreApi<GeneStoreDto>().getStore(StoreKeys.gene);
-  print('Gene store updated after delete, new count: ${value.length}');
+  debugPrint('Gene store updated after delete, new count: ${value.length}');
   geneStore.value = value;
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:moustra/config/api_config.dart';
@@ -108,9 +109,9 @@ class ApiClient {
       query: query,
       withoutAccountPrefix: withoutAccountPrefix,
     );
-    print('GET uri $uri');
+    debugPrint('GET uri $uri');
     final res = await httpClient.get(uri, headers: await _headers());
-    print('res ${res.statusCode}');
+    debugPrint('res ${res.statusCode}');
     return res;
   }
 
@@ -127,9 +128,9 @@ class ApiClient {
       queryString: queryString,
       withoutAccountPrefix: withoutAccountPrefix,
     );
-    print('GET uri $uri');
+    debugPrint('GET uri $uri');
     final res = await httpClient.get(uri, headers: await _headers());
-    print('res ${res.statusCode}');
+    debugPrint('res ${res.statusCode}');
     return res;
   }
 
@@ -144,7 +145,7 @@ class ApiClient {
       query: query,
       withoutAccountPrefix: withoutAccountPrefix,
     );
-    print('POST path $uri');
+    debugPrint('POST path $uri');
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
     final res = await httpClient.post(
@@ -152,7 +153,7 @@ class ApiClient {
       headers: headers,
       body: jsonEncode(body),
     );
-    print('res ${res.statusCode}');
+    debugPrint('res ${res.statusCode}');
     return res;
   }
 
@@ -162,7 +163,7 @@ class ApiClient {
     bool withoutAccountPrefix = false,
   }) async {
     final uri = _buildUri(path, withoutAccountPrefix: withoutAccountPrefix);
-    print('POST (no auth) path $uri');
+    debugPrint('POST (no auth) path $uri');
     final headers = <String, String>{
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -172,7 +173,7 @@ class ApiClient {
       headers: headers,
       body: jsonEncode(body),
     );
-    print('res ${res.statusCode}');
+    debugPrint('res ${res.statusCode}');
     return res;
   }
 
@@ -182,7 +183,7 @@ class ApiClient {
     Map<String, String>? query,
   }) async {
     final uri = _buildUri(path, query: query);
-    print('PUT path $uri');
+    debugPrint('PUT path $uri');
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
     final res = await httpClient.put(
@@ -190,15 +191,15 @@ class ApiClient {
       headers: headers,
       body: jsonEncode(body),
     );
-    print('res ${res.statusCode}');
+    debugPrint('res ${res.statusCode}');
     return res;
   }
 
   Future<http.Response> delete(String path) async {
-    print('DELETE path $path');
+    debugPrint('DELETE path $path');
     final uri = _buildUri(path);
     final res = await httpClient.delete(uri, headers: await _headers());
-    print('res ${res.statusCode}');
+    debugPrint('res ${res.statusCode}');
     return res;
   }
 
@@ -210,7 +211,7 @@ class ApiClient {
     Map<String, String>? fields,
   }) async {
     final uri = _buildUri(path);
-    print('UPLOAD path $uri');
+    debugPrint('UPLOAD path $uri');
 
     final request = http.MultipartRequest('POST', uri);
 
@@ -221,7 +222,9 @@ class ApiClient {
     }
 
     // Add the file
-    request.files.add(await http.MultipartFile.fromPath(fileFieldName, file.path));
+    request.files.add(
+      await http.MultipartFile.fromPath(fileFieldName, file.path),
+    );
 
     // Add any additional fields
     if (fields != null) {
@@ -229,7 +232,7 @@ class ApiClient {
     }
 
     final res = await request.send();
-    print('res ${res.statusCode}');
+    debugPrint('res ${res.statusCode}');
     return res;
   }
 }

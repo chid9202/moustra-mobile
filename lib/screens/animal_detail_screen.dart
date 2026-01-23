@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/services/clients/animal_api.dart';
@@ -116,7 +118,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
         });
       }
     } catch (e) {
-      print('Error loading animal: $e');
+      debugPrint('Error loading animal: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -140,12 +142,14 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
         if (animalUuid == null) {
           return;
         }
-        print(_selectedGenotypes.map((e) => e.toJson()).toList());
+        debugPrint(
+          _selectedGenotypes.map((e) => jsonEncode(e.toJson())).toString(),
+        );
         // return;
         // Update existing animal
         final previousCage = _animalData?.cage?.cageUuid;
         final previousStrain = _animalData?.strain?.strainUuid;
-        
+
         await AnimalApi().putAnimal(
           animalUuid,
           AnimalDto(
@@ -185,7 +189,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
           context.go('/animals');
         }
       } catch (e) {
-        print('Error saving animal: $e - ${e.toString()}');
+        debugPrint('Error saving animal: $e - ${e.toString()}');
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error saving animal: $e')));

@@ -44,7 +44,7 @@ class _SelectCageState extends State<SelectCage> {
 
   @override
   Widget build(BuildContext context) {
-    print('widget.selectedCage: ${widget.selectedCage}');
+    debugPrint('widget.selectedCage: ${widget.selectedCage}');
     void showCagePicker() {
       CageStoreDto? tempSelectedCage = widget.selectedCage;
 

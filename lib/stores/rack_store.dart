@@ -16,7 +16,9 @@ Future<RackStoreDto> useRackStore() async {
   if (rackStore.value == null) {
     // Try to load transformation matrix from SharedPreferences first
     final savedMatrix = await _loadTransformationMatrixFromStorage();
-    final savedMatrixList = savedMatrix != null ? _matrix4ToList(savedMatrix) : null;
+    final savedMatrixList = savedMatrix != null
+        ? _matrix4ToList(savedMatrix)
+        : null;
 
     rackApi.getRack().then((value) {
       rackStore.value = RackStoreDto(
@@ -77,12 +79,17 @@ Future<void> _saveTransformationMatrixToStorage(Matrix4 matrix) async {
   } on PlatformException catch (e) {
     // Silently handle platform channel errors (common during hot reload/startup)
     // In-memory storage still works as fallback
-    if (e.code != 'channel-error' && !(e.message?.contains('channel') ?? false)) {
-      print('[rack_store] Error saving transformation matrix to storage: $e');
+    if (e.code != 'channel-error' &&
+        !(e.message?.contains('channel') ?? false)) {
+      debugPrint(
+        '[rack_store] Error saving transformation matrix to storage: $e',
+      );
     }
   } catch (e) {
     // Only log unexpected errors
-    print('[rack_store] Unexpected error saving transformation matrix: $e');
+    debugPrint(
+      '[rack_store] Unexpected error saving transformation matrix: $e',
+    );
   }
 }
 
@@ -106,13 +113,18 @@ Future<Matrix4?> _loadTransformationMatrixFromStorage() async {
   } on PlatformException catch (e) {
     // Silently handle platform channel errors (common during hot reload/startup)
     // In-memory storage still works as fallback
-    if (e.code != 'channel-error' && !(e.message?.contains('channel') ?? false)) {
-      print('[rack_store] Error loading transformation matrix from storage: $e');
+    if (e.code != 'channel-error' &&
+        !(e.message?.contains('channel') ?? false)) {
+      debugPrint(
+        '[rack_store] Error loading transformation matrix from storage: $e',
+      );
     }
     return null;
   } catch (e) {
     // Only log unexpected errors
-    print('[rack_store] Unexpected error loading transformation matrix: $e');
+    debugPrint(
+      '[rack_store] Unexpected error loading transformation matrix: $e',
+    );
     return null;
   }
 }

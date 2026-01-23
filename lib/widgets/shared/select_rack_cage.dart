@@ -39,7 +39,7 @@ class _SelectRackCageState extends State<SelectRackCage> {
 
   @override
   Widget build(BuildContext context) {
-    print('widget.selectedCage: ${widget.selectedCage?.cageTag}');
+    debugPrint('widget.selectedCage: ${widget.selectedCage?.cageTag}');
 
     final widgets = <Widget>[
       TextFormField(
@@ -79,7 +79,7 @@ class _SelectRackCageState extends State<SelectRackCage> {
           groupValue: selection,
           // ignore: deprecated_member_use
           onChanged: (RackCageDto? value) {
-            print('selected ${value?.cageTag}');
+            debugPrint('selected ${value?.cageTag}');
             setState(() {
               selection = value;
             });

@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Secure storage wrapper for authentication tokens.
@@ -22,7 +23,7 @@ class SecureStore {
     try {
       await _storage.write(key: _keyRefreshToken, value: token);
     } catch (e) {
-      print('[SecureStore] ERROR saving refresh token: $e');
+      debugPrint('[SecureStore] ERROR saving refresh token: $e');
       rethrow;
     }
   }
@@ -68,7 +69,7 @@ class SecureStore {
       final token = await getRefreshToken();
       return token != null && token.isNotEmpty;
     } catch (e) {
-      print('[SecureStore] Error checking refresh token: $e');
+      debugPrint('[SecureStore] Error checking refresh token: $e');
       return false;
     }
   }

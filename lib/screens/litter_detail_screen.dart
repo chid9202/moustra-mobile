@@ -68,7 +68,7 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
           });
         }
       } catch (e) {
-        print('Error loading mating: $e');
+        debugPrint('Error loading mating: $e');
       }
     }
   }
@@ -176,7 +176,7 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
           context.go('/litters');
         }
       } catch (e) {
-        print('Error saving litter: $e');
+        debugPrint('Error saving litter: $e');
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error saving litter: $e')));

@@ -93,9 +93,9 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
       await Stripe.instance.presentPaymentSheet();
 
       // Payment successful - confirm subscription on backend
-      print('Confirming subscription');
+      debugPrint('Confirming subscription');
       await subscriptionApi.confirmSubscription();
-      print('Subscription confirmed successfully');
+      debugPrint('Subscription confirmed successfully');
 
       // If subscription confirmation is successful (200), update plan to Professional in store
       final profile = widget.profile;
@@ -153,16 +153,16 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
         );
       }
     } catch (e, stackTrace) {
-      print('Subscription error: $e');
-      print('Error type: ${e.runtimeType}');
-      print('Stack trace: $stackTrace');
+      debugPrint('Subscription error: $e');
+      debugPrint('Error type: ${e.runtimeType}');
+      debugPrint('Stack trace: $stackTrace');
 
       if (mounted) {
         String errorMessage = 'Payment failed';
         if (e is StripeException) {
           errorMessage = e.error.message ?? 'Payment failed';
-          print('Stripe error code: ${e.error.code}');
-          print('Stripe error type: ${e.error.type}');
+          debugPrint('Stripe error code: ${e.error.code}');
+          debugPrint('Stripe error type: ${e.error.type}');
         } else if (e.toString().contains('StripeConfigException') ||
             e.toString().contains('Stripe configuration')) {
           errorMessage = 'Stripe configuration error: ${e.toString()}';
@@ -326,4 +326,3 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
     );
   }
 }
-

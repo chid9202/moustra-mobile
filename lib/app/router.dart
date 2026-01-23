@@ -34,7 +34,8 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/signup',
-      pageBuilder: (context, state) => const MaterialPage(child: SignupScreen()),
+      pageBuilder: (context, state) =>
+          const MaterialPage(child: SignupScreen()),
     ),
     GoRoute(
       path: '/logout',
@@ -203,21 +204,21 @@ final GoRouter appRouter = GoRouter(
   redirect: (context, state) {
     final path = state.uri.path;
     final onAuthPage = path == '/login' || path == '/signup';
-    print('path $path');
+    debugPrint('path $path');
 
     if (!authService.isLoggedIn) {
-      print('not logged in');
+      debugPrint('not logged in');
       return onAuthPage
           ? null
           : '/login?from=${Uri.encodeComponent(state.uri.toString())}';
     }
     if (onAuthPage) {
-      print('on auth page');
+      debugPrint('on auth page');
       // Wait for profile to be loaded before redirecting to dashboard
       final hasAccount = profileState.value?.accountUuid != null;
       return hasAccount ? '/dashboard' : null;
     }
-    print('logged in');
+    debugPrint('logged in');
     return null;
   },
 );

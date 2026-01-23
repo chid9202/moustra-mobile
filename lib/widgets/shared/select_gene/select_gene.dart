@@ -330,10 +330,10 @@ class _SelectGeneState extends State<SelectGene> {
             TextButton(
               onPressed: () async {
                 if (controller.text.trim().isNotEmpty) {
-                  print('Creating gene: ${controller.text}');
+                  debugPrint('Creating gene: ${controller.text}');
                   Navigator.of(context).pop();
                   await postGeneHook(controller.text);
-                  print('Gene creation completed');
+                  debugPrint('Gene creation completed');
                 }
               },
               child: const Text('Add'),
@@ -367,10 +367,10 @@ class _SelectGeneState extends State<SelectGene> {
             TextButton(
               onPressed: () async {
                 if (controller.text.trim().isNotEmpty) {
-                  print('Creating allele: ${controller.text}');
+                  debugPrint('Creating allele: ${controller.text}');
                   Navigator.of(context).pop();
                   await postAlleleHook(controller.text);
-                  print('Allele creation completed');
+                  debugPrint('Allele creation completed');
                 }
               },
               child: const Text('Add'),

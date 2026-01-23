@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/widgets.dart';
 import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
@@ -93,7 +94,7 @@ class CageApi {
     if (res.statusCode != 201) {
       throw Exception('Failed to create cage ${res.body}');
     }
-    print(jsonDecode(res.body));
+    debugPrint(jsonDecode(res.body));
     return CageDto.fromJson(jsonDecode(res.body));
   }
 
@@ -113,7 +114,7 @@ class CageApi {
   }
 
   Future<CageDto> putCage(String cageUuid, PutCageDto payload) async {
-    print(payload.toJson());
+    debugPrint(jsonEncode(payload.toJson()));
     final res = await apiClient.put('$basePath/$cageUuid', body: payload);
     if (res.statusCode != 200) {
       throw Exception('Failed to update cage ${res.body}');

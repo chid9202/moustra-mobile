@@ -114,7 +114,7 @@ class AlleleList extends StatelessWidget {
                                 await deleteAlleleHook(allele!.alleleUuid);
                                 onAlleleDeleted(allele.alleleUuid);
                               } catch (e) {
-                                print('Error deleting allele: $e');
+                                debugPrint('Error deleting allele: $e');
                               }
                             },
                             icon: const Icon(

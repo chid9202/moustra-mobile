@@ -120,7 +120,7 @@ class _SignupScreenState extends State<SignupScreen> {
           useSettingStore();
         })
         .catchError((e) {
-          print(e);
+          debugPrint(e);
           if (mounted) {
             setState(() {
               _loading = false;
@@ -175,7 +175,7 @@ class _SignupScreenState extends State<SignupScreen> {
       if (mounted) {
         String errorMessage = e.toString();
         // Clean up the error message
-        print(errorMessage);
+        debugPrint(errorMessage);
         if (errorMessage.startsWith('Exception: ')) {
           errorMessage = errorMessage.substring(11);
         }

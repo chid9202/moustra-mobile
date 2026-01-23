@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/error_report_dto.dart';
 import 'package:moustra/stores/profile_store.dart';
@@ -6,7 +7,7 @@ class ErrorReportService {
   /// Report an error to the backend (only in production)
   /// This is a fire-and-forget operation that won't block or throw errors
   static void reportError({required String subject, required String message}) {
-    print('reportError: $subject, $message');
+    debugPrint('reportError: $subject, $message');
     // Get account UUID - if not available, skip reporting
     final accountUuid = profileState.value?.accountUuid;
     if (accountUuid == null || accountUuid.isEmpty) {
@@ -33,7 +34,7 @@ class ErrorReportService {
 /// Helper function to report errors manually from catch blocks
 /// Usage: reportError(error: e, stackTrace: stackTrace);
 void reportError({required Object error, StackTrace? stackTrace}) {
-  print('reportError manually: $error, $stackTrace');
+  debugPrint('reportError manually: $error, $stackTrace');
   final subject = error.runtimeType.toString();
   final buffer = StringBuffer();
   buffer.writeln('Error: ${error.toString()}');

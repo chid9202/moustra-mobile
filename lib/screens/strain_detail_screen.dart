@@ -90,7 +90,7 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
         });
       }
     } catch (e) {
-      print('Error loading strain: $e');
+      debugPrint('Error loading strain: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,

@@ -79,7 +79,7 @@ class _SubscriptionTabState extends State<SubscriptionTab> {
         // Don't show error if subscription doesn't exist (404 or similar)
         // Only show error for unexpected failures
         if (e.toString().contains('404') == false) {
-          print('Failed to load subscription: $e');
+          debugPrint('Failed to load subscription: $e');
         }
       }
     }
@@ -106,7 +106,7 @@ class _SubscriptionTabState extends State<SubscriptionTab> {
         // Backend should have updated the plan after cancellation
         profileState.value = updatedProfile;
       } catch (e) {
-        print('Failed to refresh profile after cancellation: $e');
+        debugPrint('Failed to refresh profile after cancellation: $e');
       }
     }
     // The existing logic in build() will automatically switch to plans screen

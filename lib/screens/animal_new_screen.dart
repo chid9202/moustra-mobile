@@ -53,7 +53,7 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
           });
         }
       } catch (e) {
-        print('Error loading cage: $e');
+        debugPrint('Error loading cage: $e');
       }
     }
   }
@@ -129,7 +129,7 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
           }
         }
       } catch (e) {
-        print('Error saving animals: $e');
+        debugPrint('Error saving animals: $e');
         if (mounted) {
           ScaffoldMessenger.of(
             context,
