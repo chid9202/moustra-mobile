@@ -63,8 +63,11 @@ void main() {
 
         // Get the TextField widget and verify autofocus is false
         final textField = tester.widget<TextField>(textFieldFinder);
-        expect(textField.autofocus, isFalse,
-            reason: 'Search field should not auto-focus on load');
+        expect(
+          textField.autofocus,
+          isFalse,
+          reason: 'Search field should not auto-focus on load',
+        );
       },
     );
 
@@ -133,8 +136,11 @@ void main() {
 
         // Verify autofocus is still false after rebuild
         final updatedTextField = tester.widget<TextField>(textFieldFinder);
-        expect(updatedTextField.autofocus, isFalse,
-            reason: 'Search field should not auto-focus after widget rebuild');
+        expect(
+          updatedTextField.autofocus,
+          isFalse,
+          reason: 'Search field should not auto-focus after widget rebuild',
+        );
       },
     );
   });
