@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+
 import 'package:moustra/services/clients/api_client.dart';
-import 'package:moustra/services/clients/attachment_api.dart';
 import 'package:moustra/services/dtos/attachment_dto.dart';
 
 import 'attachment_api_test.mocks.dart';
@@ -181,13 +181,17 @@ void main() {
         testFile.writeAsStringSync('test content');
 
         final mockStreamedResponse = http.StreamedResponse(
-          Stream.value(utf8.encode(jsonEncode({
-            'attachmentUuid': 'new-uuid',
-            'fileName': 'test_file.txt',
-            'fileSize': 12,
-            'attachmentType': null,
-            'createdDate': '2023-01-01T00:00:00Z',
-          }))),
+          Stream.value(
+            utf8.encode(
+              jsonEncode({
+                'attachmentUuid': 'new-uuid',
+                'fileName': 'test_file.txt',
+                'fileSize': 12,
+                'attachmentType': null,
+                'createdDate': '2023-01-01T00:00:00Z',
+              }),
+            ),
+          ),
           201,
         );
 
@@ -225,13 +229,17 @@ void main() {
         testFile.writeAsStringSync('test content');
 
         final mockStreamedResponse = http.StreamedResponse(
-          Stream.value(utf8.encode(jsonEncode({
-            'attachmentUuid': 'new-uuid',
-            'fileName': 'test_file.txt',
-            'fileSize': 12,
-            'attachmentType': attachmentType,
-            'createdDate': '2023-01-01T00:00:00Z',
-          }))),
+          Stream.value(
+            utf8.encode(
+              jsonEncode({
+                'attachmentUuid': 'new-uuid',
+                'fileName': 'test_file.txt',
+                'fileSize': 12,
+                'attachmentType': attachmentType,
+                'createdDate': '2023-01-01T00:00:00Z',
+              }),
+            ),
+          ),
           201,
         );
 
@@ -326,7 +334,8 @@ void main() {
 
         // Act & Assert
         expect(
-          () => attachmentApi.deleteAnimalAttachment(animalUuid, attachmentUuid),
+          () =>
+              attachmentApi.deleteAnimalAttachment(animalUuid, attachmentUuid),
           throwsA(isA<Exception>()),
         );
       });

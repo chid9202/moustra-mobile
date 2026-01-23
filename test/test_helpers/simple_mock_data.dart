@@ -6,7 +6,6 @@ import 'package:moustra/services/dtos/stores/allele_store_dto.dart';
 import 'package:moustra/services/dtos/stores/background_store_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/services/dtos/account_dto.dart';
-import 'package:moustra/services/dtos/genotype_dto.dart';
 
 /// Simplified mock data factory for creating test data objects
 /// This version works with the actual DTO structures

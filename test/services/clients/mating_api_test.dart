@@ -1,16 +1,16 @@
 import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+
 import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/post_mating_dto.dart';
 import 'package:moustra/services/dtos/put_mating_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
-import 'package:moustra/services/dtos/stores/cage_store_dto.dart';
-import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
 import 'package:moustra/services/dtos/account_dto.dart';
 
 import 'mating_api_test.mocks.dart';

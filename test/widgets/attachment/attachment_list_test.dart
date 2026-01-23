@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+
 import 'package:moustra/services/clients/attachment_api.dart';
 import 'package:moustra/services/dtos/attachment_dto.dart';
 import 'package:moustra/widgets/attachment/attachment_list.dart';
-import '../../test_helpers/test_helpers.dart';
 
 import 'attachment_list_test.mocks.dart';
+import '../../test_helpers/test_helpers.dart';
 
 @GenerateMocks([AttachmentApi])
 void main() {
@@ -18,7 +19,9 @@ void main() {
       mockAttachmentApi = MockAttachmentApi();
     });
 
-    testWidgets('renders with header and add button', (WidgetTester tester) async {
+    testWidgets('renders with header and add button', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       const animalUuid = 'test-animal-uuid';
       final initialAttachments = <AttachmentDto>[];
@@ -148,9 +151,7 @@ void main() {
 
       await TestHelpers.pumpWidgetWithTheme(
         tester,
-        AttachmentList(
-          animalUuid: animalUuid,
-        ),
+        AttachmentList(animalUuid: animalUuid),
       );
 
       // Wait for async operations
@@ -222,11 +223,7 @@ void main() {
       // Arrange
       const animalUuid = 'test-animal-uuid';
       final initialAttachments = [
-        AttachmentDto(
-          attachmentUuid: 'uuid-1',
-          fileName: null,
-          fileSize: 1024,
-        ),
+        AttachmentDto(attachmentUuid: 'uuid-1', fileName: null, fileSize: 1024),
       ];
 
       await TestHelpers.pumpWidgetWithTheme(
