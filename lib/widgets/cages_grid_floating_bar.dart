@@ -270,7 +270,7 @@ class SearchField extends StatelessWidget {
       child: TextField(
         controller: _searchController,
         onChanged: onSearchQueryChanged,
-        autofocus: true,
+        autofocus: false,
         decoration: const InputDecoration(
           hintText: 'Search...',
           border: InputBorder.none,
