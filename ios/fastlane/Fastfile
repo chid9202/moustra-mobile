@@ -66,11 +66,14 @@ platform :ios do
   lane :release do
     build
 
+    # skip_metadata: true avoids App Store Connect API errors with pricing/territories
+    # (availableInNewTerritories, prices, availableTerritories - deprecated by Apple).
+    # Only the IPA is uploaded; manage metadata in App Store Connect or use upload_metadata lane.
     upload_to_app_store(
-      submit_for_review: false,
-      automatic_release: false,
+      submit_for_review: true,
+      automatic_release: true,
       skip_screenshots: true,
-      skip_metadata: false,
+      skip_metadata: true,
       precheck_include_in_app_purchases: false
     )
 

@@ -54,6 +54,7 @@ ios/build/
 .env
 .env.backup
 .env.production
+.env.test
 # Note: .env.production and .env.example should be committed
 # but ensure no sensitive data is in .env.production before committing
 

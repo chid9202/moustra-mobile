@@ -18,13 +18,13 @@ phased_release(true)
 skip_screenshots(true)
 
 # Price tier (0 = free)
-price_tier(0)
+# price_tier(0)
 
 # App rating configuration
 app_rating_config_path("./fastlane/rating_config.json")
 
 # Precheck settings
-precheck_include_in_app_purchases(false)
+# precheck_include_in_app_purchases(false)
 
 # Force the language for metadata
 force(false)
