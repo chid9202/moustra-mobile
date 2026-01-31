@@ -35,7 +35,13 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
     animalsToWean =
         (widget.data['animalsToWean'] as List<dynamic>? ?? <dynamic>[]);
 
-    strains = animalByAge.cast<Map<String, dynamic>>();
+    strains = animalByAge.cast<Map<String, dynamic>>()
+      ..sort((a, b) {
+        const allUuid = '00000000-0000-0000-0000-000000000000';
+        if ((a['strainUuid'] ?? '') == allUuid) return -1;
+        if ((b['strainUuid'] ?? '') == allUuid) return 1;
+        return 0;
+      });
   }
 
   @override
@@ -156,14 +162,13 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
     leftTitles: AxisTitles(
       sideTitles: SideTitles(
         showTitles: true,
-        interval: 30,
-        reservedSize: 10,
+        reservedSize: 24,
         getTitlesWidget: (value, meta) {
-          if (value == meta.max) {
+          if (value == meta.max || value != value.roundToDouble()) {
             return Container();
           }
-          return Align(
-            alignment: Alignment.centerRight,
+          return Transform.rotate(
+            angle: -0.5,
             child: Text(
               value.toInt().toString(),
               style: const TextStyle(fontSize: 12),
