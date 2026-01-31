@@ -15,6 +15,14 @@
 
 default_platform(:ios)
 
+# App Store Connect API Key
+app_store_connect_api_key(
+  key_id: "HG69G96CXV",
+  issuer_id: "37b32ed6-1d8d-4556-a872-81b9e4197348",
+  key_filepath: "./fastlane/keys/AuthKey_HG69G96CXV.p8",
+  in_house: false
+)
+
 platform :ios do
   # Helper to get version from pubspec.yaml
   def get_version_from_pubspec
@@ -40,6 +48,12 @@ platform :ios do
       build_number: version_info[:build],
       xcodeproj: "Runner.xcodeproj"
     )
+
+    # CRITICAL: Run Flutter build with production environment
+    # This ensures .env.production is used instead of default .env (dev)
+    Dir.chdir("../..") do
+      sh("flutter build ios --release --dart-define=ENV_FILENAME=.env.production --no-codesign")
+    end
 
     build_app(
       workspace: "Runner.xcworkspace",
