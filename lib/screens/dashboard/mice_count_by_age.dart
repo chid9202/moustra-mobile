@@ -125,8 +125,8 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
     touchTooltipData: BarTouchTooltipData(
       fitInsideVertically: true,
       fitInsideHorizontally: true,
-      getTooltipColor: (group) => Colors.blueGrey,
-      tooltipPadding: EdgeInsets.zero,
+      getTooltipColor: (group) => const Color(0xFF2D3142),
+      tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       tooltipMargin: 8,
       getTooltipItem:
           (
@@ -135,9 +135,11 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
             BarChartRodData rod,
             int rodIndex,
           ) {
-            String barName = '${group.x} week(s)';
+            final count = rod.toY;
+            final weeks = group.x;
             return BarTooltipItem(
-              '${rod.toY.toStringAsFixed(0)}\n',
+              '${count.toStringAsFixed(0)}'
+              ' ${count == 1 ? 'mouse' : 'mice'}\n',
               const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -145,11 +147,11 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
               ),
               children: <TextSpan>[
                 TextSpan(
-                  text: barName,
+                  text: '$weeks week${weeks == 1 ? '' : 's'} old',
                   style: const TextStyle(
                     color: Colors.white70,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ],
@@ -164,7 +166,7 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
         showTitles: true,
         reservedSize: 24,
         getTitlesWidget: (value, meta) {
-          if (value == meta.max || value != value.roundToDouble()) {
+          if (value != value.roundToDouble()) {
             return Container();
           }
           return Transform.rotate(
@@ -214,12 +216,12 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
     );
     final ageData = (selected['ageData'] as List<dynamic>? ?? <dynamic>[]);
     return ageData.map((e) {
-    final int week = (e['ageInWeeks'] as int? ?? 0);
-    final int count = (e['count'] as int? ?? 0);
-    return BarChartGroupData(
-      x: week,
-      barRods: [BarChartRodData(toY: count.toDouble())],
-    );
+      final int week = (e['ageInWeeks'] as int? ?? 0);
+      final int count = (e['count'] as int? ?? 0);
+      return BarChartGroupData(
+        x: week,
+        barRods: [BarChartRodData(toY: count.toDouble())],
+      );
     }).toList();
   }
 }
