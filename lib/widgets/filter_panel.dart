@@ -279,30 +279,37 @@ class _FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _buildSortRow(ThemeData theme) {
-    return Row(
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Text('Sort by: ', style: theme.textTheme.titleSmall),
-        const SizedBox(width: 8),
-        Expanded(
-          child: DropdownButtonFormField<String>(
-            initialValue: _sortField,
-            isDense: true,
-            decoration: const InputDecoration(
-              isDense: true,
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              border: OutlineInputBorder(),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Sort by: ', style: theme.textTheme.titleSmall),
+            const SizedBox(width: 8),
+            IntrinsicWidth(
+              child: DropdownButtonFormField<String>(
+                initialValue: _sortField,
+                isDense: true,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  border: OutlineInputBorder(),
+                ),
+                items: widget.sortFields.map((f) {
+                  return DropdownMenuItem(value: f.field, child: Text(f.label));
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _sortField = value;
+                  });
+                },
+              ),
             ),
-            items: widget.sortFields.map((f) {
-              return DropdownMenuItem(value: f.field, child: Text(f.label));
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _sortField = value;
-              });
-            },
-          ),
+          ],
         ),
-        const SizedBox(width: 8),
         SegmentedButton<SortOrder>(
           segments: const [
             ButtonSegment(
