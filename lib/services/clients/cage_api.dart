@@ -135,6 +135,15 @@ class CageApi {
     );
     return RackDto.fromJson(jsonDecode(res.body));
   }
+
+  /// Move cage to a specific x,y position (sparse grid positioning)
+  Future<RackDto> moveCageByPosition(String cageUuid, int x, int y) async {
+    final res = await apiClient.put(
+      '$basePath/$cageUuid/order',
+      body: {'x': x, 'y': y},
+    );
+    return RackDto.fromJson(jsonDecode(res.body));
+  }
 }
 
 final CageApi cageApi = CageApi();

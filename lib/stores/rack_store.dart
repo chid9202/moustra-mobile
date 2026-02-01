@@ -170,6 +170,17 @@ Future<void> moveCage(String cageUuid, int order) async {
   );
 }
 
+/// Move cage to a specific x,y position (sparse grid positioning)
+Future<void> moveCageByPosition(String cageUuid, int x, int y) async {
+  final currentStore = rackStore.value;
+  if (currentStore == null) return;
+  final newRack = await cageApi.moveCageByPosition(cageUuid, x, y);
+  rackStore.value = RackStoreDto(
+    rackData: newRack,
+    transformationMatrix: currentStore.transformationMatrix,
+  );
+}
+
 Future<void> moveAnimal(String animalUuid, String cageUuid) async {
   final currentStore = rackStore.value;
   if (currentStore == null) return;

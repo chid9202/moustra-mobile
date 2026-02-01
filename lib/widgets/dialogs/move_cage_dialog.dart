@@ -34,13 +34,21 @@ class _MoveCageDialogState extends State<MoveCageDialog> {
   }
 
   void _initializeForm() {
+    // Use xPosition/yPosition if available (sparse grid), otherwise calculate from order
+    if (widget.cage.xPosition != null && widget.cage.yPosition != null) {
+      // Convert 0-indexed to 1-indexed for display
+      _rowController.text = (widget.cage.yPosition! + 1).toString();
+      _columnController.text = (widget.cage.xPosition! + 1).toString();
+      return;
+    }
+
+    // Fallback: Calculate from sorted order
     final rackData = rackStore.value?.rackData;
     if (rackData == null) return;
 
     final rackWidth = rackData.rackWidth ?? 5;
     final rackHeight = rackData.rackHeight ?? 1;
 
-    // Calculate current position from the cage's index in the sorted displayedCages array
     List<RackCageDto> displayedCages = [];
     if (rackData.cages != null) {
       displayedCages = List<RackCageDto>.from(rackData.cages!);
@@ -62,11 +70,8 @@ class _MoveCageDialogState extends State<MoveCageDialog> {
       final currentColumn0Indexed = currentPositionIndex % rackWidth;
 
       // Convert to 1-indexed for display and form
-      final currentRow = currentRow0Indexed + 1;
-      final currentColumn = currentColumn0Indexed + 1;
-
-      _rowController.text = currentRow.toString();
-      _columnController.text = currentColumn.toString();
+      _rowController.text = (currentRow0Indexed + 1).toString();
+      _columnController.text = (currentColumn0Indexed + 1).toString();
     } else {
       _rowController.text = '1';
       _columnController.text = '1';
@@ -74,6 +79,12 @@ class _MoveCageDialogState extends State<MoveCageDialog> {
   }
 
   int _getCurrentRow() {
+    // Use yPosition if available (sparse grid)
+    if (widget.cage.yPosition != null) {
+      return widget.cage.yPosition! + 1;  // Convert to 1-indexed
+    }
+
+    // Fallback: Calculate from sorted order
     final rackData = rackStore.value?.rackData;
     if (rackData == null) return 1;
 
@@ -104,6 +115,12 @@ class _MoveCageDialogState extends State<MoveCageDialog> {
   }
 
   int _getCurrentColumn() {
+    // Use xPosition if available (sparse grid)
+    if (widget.cage.xPosition != null) {
+      return widget.cage.xPosition! + 1;  // Convert to 1-indexed
+    }
+
+    // Fallback: Calculate from sorted order
     final rackData = rackStore.value?.rackData;
     if (rackData == null) return 1;
 
@@ -164,30 +181,44 @@ class _MoveCageDialogState extends State<MoveCageDialog> {
 
     // Check if the new position is the same as current position
     if (isValid && rowValue != null && columnValue != null) {
-      // Convert 1-indexed form values to 0-indexed for calculation
-      final newRow0Indexed = rowValue - 1;
-      final newColumn0Indexed = columnValue - 1;
-      final newPositionIndex = newRow0Indexed * rackWidth + newColumn0Indexed;
+      // Convert 1-indexed form values to 0-indexed for comparison
+      final newX = columnValue - 1;
+      final newY = rowValue - 1;
 
-      List<RackCageDto> displayedCages = [];
-      if (rackData.cages != null) {
-        displayedCages = List<RackCageDto>.from(rackData.cages!);
-        displayedCages.sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
-        if (displayedCages.length > rackHeight * rackWidth) {
-          displayedCages.removeRange(
-            rackHeight * rackWidth,
-            displayedCages.length,
-          );
+      // Compare against current position (using x/y if available)
+      final currentX = widget.cage.xPosition;
+      final currentY = widget.cage.yPosition;
+
+      if (currentX != null && currentY != null) {
+        // Direct x/y comparison for sparse grid
+        if (newX == currentX && newY == currentY) {
+          _rowError = 'New position must be different from current position';
+          isValid = false;
         }
-      }
+      } else {
+        // Fallback: Compare using order-based index
+        final newPositionIndex = newY * rackWidth + newX;
 
-      final currentPositionIndex = displayedCages.indexWhere(
-        (cage) => cage.cageUuid == widget.cage.cageUuid,
-      );
+        List<RackCageDto> displayedCages = [];
+        if (rackData.cages != null) {
+          displayedCages = List<RackCageDto>.from(rackData.cages!);
+          displayedCages.sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
+          if (displayedCages.length > rackHeight * rackWidth) {
+            displayedCages.removeRange(
+              rackHeight * rackWidth,
+              displayedCages.length,
+            );
+          }
+        }
 
-      if (newPositionIndex == currentPositionIndex) {
-        _rowError = 'New position must be different from current position';
-        isValid = false;
+        final currentPositionIndex = displayedCages.indexWhere(
+          (cage) => cage.cageUuid == widget.cage.cageUuid,
+        );
+
+        if (newPositionIndex == currentPositionIndex) {
+          _rowError = 'New position must be different from current position';
+          isValid = false;
+        }
       }
     }
 
@@ -203,50 +234,19 @@ class _MoveCageDialogState extends State<MoveCageDialog> {
     final rackData = rackStore.value?.rackData;
     if (rackData == null) return;
 
-    final rackWidth = rackData.rackWidth ?? 5;
-    final rackHeight = rackData.rackHeight ?? 1;
-
-    // Convert 1-indexed form values to 0-indexed for calculation
+    // Convert 1-indexed form values to 0-indexed for API (x = column, y = row)
     final rowValue = int.parse(_rowController.text);
     final columnValue = int.parse(_columnController.text);
-    final newRow0Indexed = rowValue - 1;
-    final newColumn0Indexed = columnValue - 1;
-    final newPositionIndex = newRow0Indexed * rackWidth + newColumn0Indexed;
-
-    // Find the cage currently at the target position
-    List<RackCageDto> displayedCages = [];
-    if (rackData.cages != null) {
-      displayedCages = List<RackCageDto>.from(rackData.cages!);
-      displayedCages.sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
-      if (displayedCages.length > rackHeight * rackWidth) {
-        displayedCages.removeRange(
-          rackHeight * rackWidth,
-          displayedCages.length,
-        );
-      }
-    }
-
-    final targetCage = newPositionIndex < displayedCages.length
-        ? displayedCages[newPositionIndex]
-        : null;
-
-    // Calculate new order based on the target cage's order (100-gap based system)
-    // If target position has a cage with order 200, new order should be 201
-    int newOrder;
-    if (targetCage != null && targetCage.order != null) {
-      newOrder = targetCage.order! + 1;
-    } else {
-      // Fallback: if no cage at target position, calculate based on position index
-      // Using 100-gap system: position 0 = 100, position 1 = 200, etc.
-      newOrder = (newPositionIndex + 1) * 100;
-    }
+    final x = columnValue - 1;  // x = column (0-indexed)
+    final y = rowValue - 1;      // y = row (0-indexed)
 
     setState(() {
       isLoading = true;
     });
 
     try {
-      await moveCage(widget.cage.cageUuid, newOrder);
+      // Use position-based API for sparse grid positioning
+      await moveCageByPosition(widget.cage.cageUuid, x, y);
       if (mounted) {
         Navigator.of(context).pop(true);
         ScaffoldMessenger.of(context).showSnackBar(
