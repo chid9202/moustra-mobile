@@ -200,6 +200,8 @@ class RackCageDto {
   final List<RackCageAnimalDto>? animals;
   final RackCageMatingDto? mating;
   final int? order;
+  final int? xPosition;
+  final int? yPosition;
   final String? status;
 
   RackCageDto({
@@ -211,6 +213,8 @@ class RackCageDto {
     this.animals,
     this.mating,
     this.order,
+    this.xPosition,
+    this.yPosition,
     this.status,
   });
 
@@ -231,6 +235,17 @@ class RackSimpleDto {
   factory RackSimpleDto.fromJson(Map<String, dynamic> json) =>
       _$RackSimpleDtoFromJson(json);
   Map<String, dynamic> toJson() => _$RackSimpleDtoToJson(this);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RackSimpleDto &&
+          runtimeType == other.runtimeType &&
+          rackId == other.rackId &&
+          rackUuid == other.rackUuid;
+
+  @override
+  int get hashCode => rackId.hashCode ^ rackUuid.hashCode;
 }
 
 // Main Rack DTO

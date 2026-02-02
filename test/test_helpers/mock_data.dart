@@ -250,13 +250,23 @@ class MockDataFactory {
   }
 
   /// Creates a mock RackCageDto
-  static RackCageDto createRackCageDto({String? cageTag, String? strainName}) {
+  static RackCageDto createRackCageDto({
+    String? cageTag,
+    String? cageUuid,
+    String? strainName,
+    int? xPosition,
+    int? yPosition,
+    int? order,
+  }) {
     return RackCageDto(
       cageTag: cageTag ?? 'C001',
-      cageUuid: 'test-cage-uuid',
+      cageUuid: cageUuid ?? 'test-cage-uuid',
       strain: strainName != null
           ? RackCageStrainDto(strainName: strainName)
           : null,
+      xPosition: xPosition,
+      yPosition: yPosition,
+      order: order,
     );
   }
 
@@ -265,7 +275,27 @@ class MockDataFactory {
     return List.generate(count, (index) {
       return createRackCageDto(
         cageTag: 'C${(index + 1).toString().padLeft(3, '0')}',
+        cageUuid: 'test-cage-uuid-$index',
         strainName: 'Test Strain ${index + 1}',
+      );
+    });
+  }
+
+  /// Creates a list of mock RackCageDto objects with x,y positions
+  static List<RackCageDto> createRackCageDtoListWithPositions(
+    int count, {
+    required int rackWidth,
+  }) {
+    return List.generate(count, (index) {
+      final x = index % rackWidth;
+      final y = index ~/ rackWidth;
+      return createRackCageDto(
+        cageTag: 'C${(index + 1).toString().padLeft(3, '0')}',
+        cageUuid: 'test-cage-uuid-$index',
+        strainName: 'Test Strain ${index + 1}',
+        xPosition: x,
+        yPosition: y,
+        order: index,
       );
     });
   }

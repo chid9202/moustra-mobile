@@ -16,6 +16,8 @@ class CageDto {
   final StrainSummaryDto? strain;
   final List<AnimalSummaryDto> animals;
   final int? order;
+  final int? xPosition;
+  final int? yPosition;
   final String? comment;
   final String? barcode;
   final DateTime? createdDate;
@@ -32,6 +34,8 @@ class CageDto {
     this.strain,
     this.animals = const [],
     this.order = 0,
+    this.xPosition,
+    this.yPosition,
     this.comment,
     this.barcode,
     this.createdDate,

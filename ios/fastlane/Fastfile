@@ -94,6 +94,29 @@ platform :ios do
     UI.success("Successfully uploaded to App Store Connect! 🎉")
   end
 
+  desc "Promote existing TestFlight build to App Store (submit for review)"
+  lane :promote do |options|
+    version_info = get_version_from_pubspec
+    build_number = options[:build] || version_info[:build].to_s
+
+    UI.message("Promoting build #{version_info[:version]} (#{build_number}) to App Store...")
+
+    upload_to_app_store(
+      skip_binary_upload: true,
+      build_number: build_number,
+      submit_for_review: true,
+      automatic_release: true,
+      skip_screenshots: true,
+      skip_metadata: true,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        add_id_info_uses_idfa: false
+      }
+    )
+
+    UI.success("Successfully submitted build #{build_number} for App Store review! 🎉")
+  end
+
   desc "Download metadata and screenshots from App Store Connect"
   lane :sync_metadata do
     download_metadata

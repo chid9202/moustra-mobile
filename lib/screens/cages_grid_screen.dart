@@ -409,11 +409,36 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
                                       CagesGridConstants.childAspectRatio,
                                 ),
                             itemBuilder: (context, index) {
-                              // Check if index is within bounds of the cages array
-                              final cagesLength = data.cages?.length ?? 0;
+                              // Calculate x, y from index
+                              final x = index % rackWidth;
+                              final y = index ~/ rackWidth;
+                              
+                              // Check if cages have xPosition/yPosition set
+                              final cages = data.cages ?? [];
+                              final hasPositions = cages.isNotEmpty && 
+                                  cages.any((c) => c.xPosition != null && c.yPosition != null);
+                              
+                              // Find cage by position if available, otherwise use index
+                              RackCageDto? resultItem;
+                              if (hasPositions) {
+                                resultItem = cages.cast<RackCageDto?>().firstWhere(
+                                  (c) => c?.xPosition == x && c?.yPosition == y,
+                                  orElse: () => null,
+                                );
+                              } else {
+                                resultItem = index < cages.length ? cages[index] : null;
+                              }
+                              
+                              // Check if this is the first empty slot for add button
+                              final cagesLength = cages.length;
+                              final isAddButtonSlot = resultItem == null && 
+                                  (hasPositions 
+                                    ? index == cagesLength  // Show after last cage by index
+                                    : index == cagesLength) &&
+                                  index < maxCages;
 
                               // Show Plus button in the first empty slot if rack is not full
-                              if (index == cagesLength && index < maxCages) {
+                              if (isAddButtonSlot) {
                                 return ConstrainedBox(
                                   constraints: BoxConstraints(
                                     maxHeight: CagesGridConstants.maxCageHeight,
@@ -422,12 +447,9 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
                                 );
                               }
 
-                              if (index >= cagesLength) {
+                              if (resultItem == null) {
                                 return const SizedBox.shrink();
                               }
-                              final resultItem = data.cages?[index];
-                              if (resultItem == null)
-                                return const SizedBox.shrink();
                               return CageInteractiveView(
                                 cage: resultItem,
                                 zoomLevel: _currentZoomLevel,

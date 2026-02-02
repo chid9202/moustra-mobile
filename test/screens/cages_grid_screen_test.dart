@@ -463,6 +463,168 @@ void main() {
       });
     });
 
+    group('Position-Based Grid Rendering', () {
+      testWidgets('renders cages at correct positions when xPosition/yPosition are set', (
+        WidgetTester tester,
+      ) async {
+        // Create cages with specific positions
+        final cages = [
+          MockDataFactory.createRackCageDto(
+            cageTag: 'C001',
+            cageUuid: 'uuid-1',
+            xPosition: 0,
+            yPosition: 0,
+          ),
+          MockDataFactory.createRackCageDto(
+            cageTag: 'C002',
+            cageUuid: 'uuid-2',
+            xPosition: 2,
+            yPosition: 0,
+          ),
+          MockDataFactory.createRackCageDto(
+            cageTag: 'C003',
+            cageUuid: 'uuid-3',
+            xPosition: 1,
+            yPosition: 1,
+          ),
+        ];
+        final mockRackStore = MockDataFactory.createRackStoreDto(
+          rackData: MockDataFactory.createRackDto(
+            rackWidth: 3,
+            rackHeight: 2,
+            cages: cages,
+          ),
+        );
+        rackStore.value = mockRackStore;
+
+        await TestHelpers.pumpWidgetWithTheme(tester, const CagesGridScreen());
+        await tester.pumpAndSettle();
+
+        // Should render 3 CageInteractiveView widgets
+        expect(find.byType(CageInteractiveView), findsNWidgets(3));
+      });
+
+      testWidgets('renders cages using index when xPosition/yPosition are null (legacy mode)', (
+        WidgetTester tester,
+      ) async {
+        // Create cages without positions (legacy mode)
+        final cages = MockDataFactory.createRackCageDtoList(4);
+        final mockRackStore = MockDataFactory.createRackStoreDto(
+          rackData: MockDataFactory.createRackDto(
+            rackWidth: 2,
+            rackHeight: 2,
+            cages: cages,
+          ),
+        );
+        rackStore.value = mockRackStore;
+
+        await TestHelpers.pumpWidgetWithTheme(tester, const CagesGridScreen());
+        await tester.pumpAndSettle();
+
+        // Should render 4 CageInteractiveView widgets in legacy mode
+        expect(find.byType(CageInteractiveView), findsNWidgets(4));
+      });
+
+      testWidgets('handles sparse grid with positioned cages', (
+        WidgetTester tester,
+      ) async {
+        // Create cages at non-consecutive positions (sparse grid)
+        final cages = [
+          MockDataFactory.createRackCageDto(
+            cageTag: 'C001',
+            cageUuid: 'uuid-1',
+            xPosition: 0,
+            yPosition: 0,
+          ),
+          MockDataFactory.createRackCageDto(
+            cageTag: 'C002',
+            cageUuid: 'uuid-2',
+            xPosition: 4,
+            yPosition: 0,
+          ),
+        ];
+        final mockRackStore = MockDataFactory.createRackStoreDto(
+          rackData: MockDataFactory.createRackDto(
+            rackWidth: 5,
+            rackHeight: 1,
+            cages: cages,
+          ),
+        );
+        rackStore.value = mockRackStore;
+
+        await TestHelpers.pumpWidgetWithTheme(tester, const CagesGridScreen());
+        await tester.pumpAndSettle();
+
+        // Should render 2 CageInteractiveView widgets
+        expect(find.byType(CageInteractiveView), findsNWidgets(2));
+      });
+
+      testWidgets('renders add button in correct slot with positioned cages', (
+        WidgetTester tester,
+      ) async {
+        // Create 2 cages with positions in a 3x2 grid (6 total slots)
+        final cages = [
+          MockDataFactory.createRackCageDto(
+            cageTag: 'C001',
+            cageUuid: 'uuid-1',
+            xPosition: 0,
+            yPosition: 0,
+          ),
+          MockDataFactory.createRackCageDto(
+            cageTag: 'C002',
+            cageUuid: 'uuid-2',
+            xPosition: 1,
+            yPosition: 0,
+          ),
+        ];
+        final mockRackStore = MockDataFactory.createRackStoreDto(
+          rackData: MockDataFactory.createRackDto(
+            rackWidth: 3,
+            rackHeight: 2,
+            cages: cages,
+          ),
+        );
+        rackStore.value = mockRackStore;
+
+        await TestHelpers.pumpWidgetWithTheme(tester, const CagesGridScreen());
+        await tester.pumpAndSettle();
+
+        // Should render 2 CageInteractiveView widgets
+        expect(find.byType(CageInteractiveView), findsNWidgets(2));
+        // Should have an add button (IconButton with add icon)
+        expect(find.byIcon(Icons.add), findsOneWidget);
+      });
+
+      testWidgets('uses createRackCageDtoListWithPositions for sequential positioning', (
+        WidgetTester tester,
+      ) async {
+        // Use the helper that creates positioned cages
+        final cages = MockDataFactory.createRackCageDtoListWithPositions(
+          6,
+          rackWidth: 3,
+        );
+        final mockRackStore = MockDataFactory.createRackStoreDto(
+          rackData: MockDataFactory.createRackDto(
+            rackWidth: 3,
+            rackHeight: 2,
+            cages: cages,
+          ),
+        );
+        rackStore.value = mockRackStore;
+
+        await TestHelpers.pumpWidgetWithTheme(tester, const CagesGridScreen());
+        await tester.pumpAndSettle();
+
+        // Should render 6 CageInteractiveView widgets
+        expect(find.byType(CageInteractiveView), findsNWidgets(6));
+        // Grid should have correct dimensions
+        final gridView = tester.widget<GridView>(find.byType(GridView));
+        final delegate =
+            gridView.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
+        expect(delegate.crossAxisCount, 3);
+      });
+    });
+
     group('Edge Cases', () {
       testWidgets('handles null rackWidth (defaults to 5)', (
         WidgetTester tester,

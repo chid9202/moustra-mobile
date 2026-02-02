@@ -233,6 +233,8 @@ RackCageDto _$RackCageDtoFromJson(Map<String, dynamic> json) => RackCageDto(
       ? null
       : RackCageMatingDto.fromJson(json['mating'] as Map<String, dynamic>),
   order: (json['order'] as num?)?.toInt(),
+  xPosition: (json['xPosition'] as num?)?.toInt(),
+  yPosition: (json['yPosition'] as num?)?.toInt(),
   status: json['status'] as String?,
 );
 
@@ -246,6 +248,8 @@ Map<String, dynamic> _$RackCageDtoToJson(RackCageDto instance) =>
       'animals': instance.animals?.map((e) => e.toJson()).toList(),
       'mating': instance.mating?.toJson(),
       'order': instance.order,
+      'xPosition': instance.xPosition,
+      'yPosition': instance.yPosition,
       'status': instance.status,
     };
 
