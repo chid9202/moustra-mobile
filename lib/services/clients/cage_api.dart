@@ -101,11 +101,17 @@ class CageApi {
   Future<RackDto> createCageInRack({
     required String cageTag,
     required String rackUuid,
+    int? xPosition,
+    int? yPosition,
   }) async {
-    final res = await apiClient.post(
-      basePath,
-      body: {'cageTag': cageTag, 'rack': rackUuid},
-    );
+    final body = <String, dynamic>{
+      'cageTag': cageTag,
+      'rack': rackUuid,
+    };
+    if (xPosition != null) body['xPosition'] = xPosition;
+    if (yPosition != null) body['yPosition'] = yPosition;
+    
+    final res = await apiClient.post(basePath, body: body);
     if (res.statusCode != 201) {
       throw Exception('Failed to create cage in rack: ${res.body}');
     }
@@ -129,11 +135,18 @@ class CageApi {
     }
   }
 
-  Future<RackDto> moveCage(String cageUuid, int order) async {
+  Future<RackDto> moveCage(
+    String cageUuid, {
+    required int x,
+    required int y,
+  }) async {
     final res = await apiClient.put(
       '$basePath/$cageUuid/order',
-      body: {'order': order},
+      body: {'x': x, 'y': y},
     );
+    if (res.statusCode != 200) {
+      throw Exception('Failed to move cage: ${res.body}');
+    }
     return RackDto.fromJson(jsonDecode(res.body));
   }
 }

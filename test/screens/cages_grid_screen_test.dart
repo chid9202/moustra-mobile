@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/screens/cages_grid_screen.dart';
 import 'package:moustra/stores/rack_store.dart';
 import 'package:moustra/widgets/cage/cage_interactive_view.dart';
+import 'package:moustra/widgets/cage/empty_cage_slot.dart';
 import '../test_helpers/test_helpers.dart';
 import '../test_helpers/mock_data.dart';
 
@@ -162,6 +163,8 @@ void main() {
         expect(find.byType(GridView), findsOneWidget);
         // But no CageInteractiveView widgets
         expect(find.byType(CageInteractiveView), findsNothing);
+        // All 5 positions should show EmptyCageSlot widgets
+        expect(find.byType(EmptyCageSlot), findsNWidgets(5));
       });
 
       testWidgets('handles null individual cage items', (
@@ -557,9 +560,11 @@ void main() {
 
         // Should render 2 CageInteractiveView widgets
         expect(find.byType(CageInteractiveView), findsNWidgets(2));
+        // Should render 3 EmptyCageSlot widgets for the empty positions
+        expect(find.byType(EmptyCageSlot), findsNWidgets(3));
       });
 
-      testWidgets('renders add button in correct slot with positioned cages', (
+      testWidgets('renders EmptyCageSlot in all empty positions with positioned cages', (
         WidgetTester tester,
       ) async {
         // Create 2 cages with positions in a 3x2 grid (6 total slots)
@@ -591,8 +596,10 @@ void main() {
 
         // Should render 2 CageInteractiveView widgets
         expect(find.byType(CageInteractiveView), findsNWidgets(2));
-        // Should have an add button (IconButton with add icon)
-        expect(find.byIcon(Icons.add), findsOneWidget);
+        // Should have EmptyCageSlot in all 4 empty positions (6 total - 2 cages = 4 empty)
+        expect(find.byType(EmptyCageSlot), findsNWidgets(4));
+        // Each EmptyCageSlot has an add icon
+        expect(find.byIcon(Icons.add), findsNWidgets(4));
       });
 
       testWidgets('uses createRackCageDtoListWithPositions for sequential positioning', (

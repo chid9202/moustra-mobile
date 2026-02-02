@@ -172,12 +172,30 @@ void removeCageFromRack(String cageUuid) {
   );
 }
 
-Future<void> moveCage(String cageUuid, int order) async {
+Future<void> moveCage(
+  String cageUuid, {
+  required int x,
+  required int y,
+}) async {
   final currentStore = rackStore.value;
   if (currentStore == null) return;
-  final newRack = await cageApi.moveCage(cageUuid, order);
+  final newRack = await cageApi.moveCage(
+    cageUuid,
+    x: x,
+    y: y,
+  );
+  // Preserve the racks list from current store if not in response
+  final updatedRackData = RackDto(
+    rackId: newRack.rackId,
+    rackUuid: newRack.rackUuid,
+    rackName: newRack.rackName,
+    rackWidth: newRack.rackWidth,
+    rackHeight: newRack.rackHeight,
+    cages: newRack.cages,
+    racks: newRack.racks ?? currentStore.rackData.racks,
+  );
   rackStore.value = RackStoreDto(
-    rackData: newRack,
+    rackData: updatedRackData,
     transformationMatrix: currentStore.transformationMatrix,
   );
 }
@@ -186,8 +204,18 @@ Future<void> moveAnimal(String animalUuid, String cageUuid) async {
   final currentStore = rackStore.value;
   if (currentStore == null) return;
   final newRack = await animalService.moveAnimal(animalUuid, cageUuid);
+  // Preserve the racks list from current store if not in response
+  final updatedRackData = RackDto(
+    rackId: newRack.rackId,
+    rackUuid: newRack.rackUuid,
+    rackName: newRack.rackName,
+    rackWidth: newRack.rackWidth,
+    rackHeight: newRack.rackHeight,
+    cages: newRack.cages,
+    racks: newRack.racks ?? currentStore.rackData.racks,
+  );
   rackStore.value = RackStoreDto(
-    rackData: newRack,
+    rackData: updatedRackData,
     transformationMatrix: currentStore.transformationMatrix,
   );
 }

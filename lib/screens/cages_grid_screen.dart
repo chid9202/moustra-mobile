@@ -13,7 +13,7 @@ import 'package:moustra/services/clients/rack_api.dart';
 import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/constants/cages_grid_constants.dart';
 import 'package:moustra/widgets/dialogs/add_or_update_rack.dart';
-import 'package:moustra/widgets/cage/add_cage_button.dart';
+import 'package:moustra/widgets/cage/empty_cage_slot.dart';
 
 class CagesGridScreen extends StatefulWidget {
   const CagesGridScreen({super.key});
@@ -294,7 +294,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     );
   }
 
-  Future<void> _handleAddCage() async {
+  Future<void> _handleAddCage({required int x, required int y}) async {
     final rackUuid = data.rackUuid;
     if (rackUuid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -307,7 +307,12 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     }
 
     try {
-      await cageApi.createCageInRack(cageTag: 'New Cage', rackUuid: rackUuid);
+      await cageApi.createCageInRack(
+        cageTag: 'New Cage',
+        rackUuid: rackUuid,
+        xPosition: x,
+        yPosition: y,
+      );
       // Fetch the current rack again after successful creation
       await _loadRackData(rackUuid: rackUuid);
       if (mounted) {
@@ -429,26 +434,16 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
                                 resultItem = index < cages.length ? cages[index] : null;
                               }
                               
-                              // Check if this is the first empty slot for add button
-                              final cagesLength = cages.length;
-                              final isAddButtonSlot = resultItem == null && 
-                                  (hasPositions 
-                                    ? index == cagesLength  // Show after last cage by index
-                                    : index == cagesLength) &&
-                                  index < maxCages;
-
-                              // Show Plus button in the first empty slot if rack is not full
-                              if (isAddButtonSlot) {
+                              // Show empty slot for any position without a cage
+                              if (resultItem == null) {
                                 return ConstrainedBox(
                                   constraints: BoxConstraints(
                                     maxHeight: CagesGridConstants.maxCageHeight,
                                   ),
-                                  child: AddCageButton(onTap: _handleAddCage),
+                                  child: EmptyCageSlot(
+                                    onTap: () => _handleAddCage(x: x, y: y),
+                                  ),
                                 );
-                              }
-
-                              if (resultItem == null) {
-                                return const SizedBox.shrink();
                               }
                               return CageInteractiveView(
                                 cage: resultItem,

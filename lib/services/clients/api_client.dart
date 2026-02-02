@@ -145,15 +145,20 @@ class ApiClient {
       query: query,
       withoutAccountPrefix: withoutAccountPrefix,
     );
+    final encodedBody = jsonEncode(body);
     debugPrint('POST path $uri');
+    debugPrint('POST body $encodedBody');
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
     final res = await httpClient.post(
       uri,
       headers: headers,
-      body: jsonEncode(body),
+      body: encodedBody,
     );
     debugPrint('res ${res.statusCode}');
+    if (res.statusCode >= 400) {
+      debugPrint('POST error response: ${res.body}');
+    }
     return res;
   }
 
@@ -183,15 +188,20 @@ class ApiClient {
     Map<String, String>? query,
   }) async {
     final uri = _buildUri(path, query: query);
+    final encodedBody = jsonEncode(body);
     debugPrint('PUT path $uri');
+    debugPrint('PUT body $encodedBody');
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
     final res = await httpClient.put(
       uri,
       headers: headers,
-      body: jsonEncode(body),
+      body: encodedBody,
     );
     debugPrint('res ${res.statusCode}');
+    if (res.statusCode >= 400) {
+      debugPrint('PUT error response: ${res.body}');
+    }
     return res;
   }
 
