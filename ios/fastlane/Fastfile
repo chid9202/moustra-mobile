@@ -51,9 +51,11 @@ platform :ios do
 
     # CRITICAL: Run Flutter build with production environment
     # This ensures .env.production is used instead of default .env (dev)
-    Dir.chdir("../..") do
-      sh("flutter build ios --release --dart-define=ENV_FILENAME=.env.production --no-codesign")
-    end
+    # NOTE: Flutter build should be run separately before fastlane:
+    # flutter build ios --release --dart-define=ENV_FILENAME=.env.production --no-codesign
+    # Dir.chdir("../..") do
+    #   sh("flutter build ios --release --dart-define=ENV_FILENAME=.env.production --no-codesign")
+    # end
 
     build_app(
       workspace: "Runner.xcworkspace",
@@ -69,6 +71,17 @@ platform :ios do
     build
 
     upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      changelog: "Bug fixes and improvements"
+    )
+
+    UI.success("Successfully uploaded to TestFlight! 🚀")
+  end
+
+  desc "Upload existing IPA to TestFlight (skip build)"
+  lane :upload_only do
+    upload_to_testflight(
+      ipa: "./build/Moustra.ipa",
       skip_waiting_for_build_processing: true,
       changelog: "Bug fixes and improvements"
     )
