@@ -61,21 +61,22 @@ void main() {
       
       debugPrint('✅ Backend x/y positioning verified!');
       
-      // 4. Test the moveCage API (order-based positioning)
-      final originalOrder = firstCage.order ?? 100;
-      
-      // Move to a new order position (shift by 1 for testing)
-      final newOrder = originalOrder + 1;
-      
-      debugPrint('Moving cage from order $originalOrder to order $newOrder');
-      
+      // 4. Test the moveCage API (x/y positioning)
+      final originalX = firstCage.xPosition ?? 100;
+      final originalY = firstCage.yPosition ?? 100;
+
+      // Move to a new x position (shift by 1 for testing)
+      final newX = originalX + 1;
+
+      debugPrint('Moving cage from x=$originalX to x=$newX');
+
       try {
-        await cageApi.moveCage(firstCage.cageUuid, newOrder);
+        await cageApi.moveCage(firstCage.cageUuid, x: newX, y: originalY);
         debugPrint('✅ moveCage API call succeeded!');
-        
+
         // Refresh rack data to verify the change
-        final newRackData = await cageApi.moveCage(firstCage.cageUuid, originalOrder);
-        debugPrint('✅ Restored original order');
+        final newRackData = await cageApi.moveCage(firstCage.cageUuid, x: originalX, y: originalY);
+        debugPrint('✅ Restored original position');
         
         // Update the store with new rack data
         rackStore.value = RackStoreDto(
