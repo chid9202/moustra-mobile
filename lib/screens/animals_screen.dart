@@ -200,7 +200,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                         label: 'Create Animals',
                         icon: const Icon(Icons.add),
                         onPressed: () {
-                          context.go('/animals/new');
+                          context.go('/animal/new');
                         },
                       ),
                     FabMenuAction(
@@ -335,7 +335,7 @@ class _AnimalGridSource extends DataGridSource {
           onPressed: uuid == null
               ? null
               : () {
-                  context.go('/animals/$uuid');
+                  context.go('/animal/$uuid');
                 },
         ),
       ),

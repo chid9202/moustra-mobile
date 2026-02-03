@@ -118,7 +118,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             ),
           );
           // Navigate back to users list
-          context.go('/users');
+          context.go('/user');
         }
       } else if (widget.userUuid != null) {
         final userData = PutUserDetailDto(
@@ -140,7 +140,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          context.go('/users');
+          context.go('/user');
         }
       }
     } catch (e) {
@@ -168,7 +168,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         title: Text(widget.isNew ? 'Invite User' : 'User Details'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/users'),
+          onPressed: () => context.go('/user'),
         ),
       ),
       body: SingleChildScrollView(

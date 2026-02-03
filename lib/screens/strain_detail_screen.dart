@@ -229,7 +229,7 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
             const SnackBar(content: Text('Strain updated successfully!')),
           );
         }
-        context.go('/strains');
+        context.go('/strain');
       } catch (e) {
         ScaffoldMessenger.of(
           context,
@@ -247,7 +247,7 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            context.go('/strains');
+            context.go('/strain');
           },
           icon: const Icon(Icons.arrow_back),
         ),

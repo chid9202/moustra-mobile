@@ -177,7 +177,7 @@ class _LittersScreenState extends State<LittersScreen> {
                         label: 'Add Litter',
                         icon: const Icon(Icons.add),
                         onPressed: () {
-                          context.go('/litters/new');
+                          context.go('/litter/new');
                         },
                       ),
                     FabMenuAction(
@@ -325,7 +325,7 @@ class _LitterGridSource extends DataGridSource {
           onPressed: uuid == null
               ? null
               : () {
-                  context.go('/litters/$uuid');
+                  context.go('/litter/$uuid');
                 },
         ),
       ),

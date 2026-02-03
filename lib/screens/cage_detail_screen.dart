@@ -210,9 +210,9 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
       // Navigate back to the appropriate page based on where we came from
       if (mounted) {
         if (widget.fromCageGrid) {
-          context.go('/cages/grid');
+          context.go('/cage/grid');
         } else {
-          context.go('/cages/list');
+          context.go('/cage/list');
         }
       }
     } catch (e) {
@@ -239,9 +239,9 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
           onPressed: () {
             // Navigate back to the appropriate page based on where we came from
             if (widget.fromCageGrid) {
-              context.go('/cages/grid');
+              context.go('/cage/grid');
             } else {
-              context.go('/cages/list');
+              context.go('/cage/list');
             }
           },
           icon: const Icon(Icons.arrow_back),

@@ -154,7 +154,7 @@ class _MatingsScreenState extends State<MatingsScreen> {
                       label: 'Create Mating',
                       icon: const Icon(Icons.add),
                       onPressed: () {
-                        context.go('/matings/new');
+                        context.go('/mating/new');
                       },
                     ),
                   ],
@@ -214,7 +214,7 @@ class _MatingGridSource extends DataGridSource {
             icon: const Icon(Icons.edit),
             tooltip: 'Edit',
             onPressed: () {
-              context.go('/matings/$uuid');
+              context.go('/mating/$uuid');
             },
           ),
         ),

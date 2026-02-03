@@ -17,27 +17,27 @@ class _AppMenuState extends State<AppMenu> {
     if (routePath == '/dashboard' || routePath == '/') {
       return currentPath == '/dashboard' || currentPath == '/';
     }
-    if (routePath == '/cages/list') {
-      return currentPath == '/cages/list';
+    if (routePath == '/cage/list') {
+      return currentPath == '/cage/list';
     }
-    if (routePath == '/cages/grid') {
-      return currentPath == '/cages/grid';
+    if (routePath == '/cage/grid') {
+      return currentPath == '/cage/grid';
     }
     // For other routes, check if current path starts with the route path
-    if (routePath == '/strains') {
-      return currentPath.startsWith('/strains');
+    if (routePath == '/strain') {
+      return currentPath.startsWith('/strain');
     }
-    if (routePath == '/animals') {
-      return currentPath.startsWith('/animals');
+    if (routePath == '/animal') {
+      return currentPath.startsWith('/animal');
     }
-    if (routePath == '/matings') {
-      return currentPath.startsWith('/matings');
+    if (routePath == '/mating') {
+      return currentPath.startsWith('/mating');
     }
-    if (routePath == '/litters') {
-      return currentPath.startsWith('/litters');
+    if (routePath == '/litter') {
+      return currentPath.startsWith('/litter');
     }
-    if (routePath == '/users') {
-      return currentPath.startsWith('/users');
+    if (routePath == '/user') {
+      return currentPath.startsWith('/user');
     }
     if (routePath == '/settings') {
       return currentPath.startsWith('/settings');
@@ -46,7 +46,7 @@ class _AppMenuState extends State<AppMenu> {
   }
 
   bool _isCageActive(String currentPath) {
-    return currentPath.startsWith('/cages');
+    return currentPath.startsWith('/cage');
   }
 
   @override
@@ -147,100 +147,100 @@ class _AppMenuState extends State<AppMenu> {
             contentPadding: const EdgeInsets.only(left: 24.0),
             leading: Icon(
               Icons.list,
-              color: _isActive('/cages/list', currentPath)
+              color: _isActive('/cage/list', currentPath)
                   ? Theme.of(context).primaryColor
                   : null,
             ),
-            selected: _isActive('/cages/list', currentPath),
+            selected: _isActive('/cage/list', currentPath),
             title: const Text('List View'),
             onTap: () {
               Navigator.of(context).pop();
-              context.go('/cages/list');
+              context.go('/cage/list');
             },
           ),
           ListTile(
             contentPadding: const EdgeInsets.only(left: 24.0),
             leading: Icon(
               Icons.grid_view,
-              color: _isActive('/cages/grid', currentPath)
+              color: _isActive('/cage/grid', currentPath)
                   ? Theme.of(context).primaryColor
                   : null,
             ),
-            selected: _isActive('/cages/grid', currentPath),
+            selected: _isActive('/cage/grid', currentPath),
             title: const Text('Grid View'),
             onTap: () {
               Navigator.of(context).pop();
-              context.go('/cages/grid');
+              context.go('/cage/grid');
             },
           ),
           ListTile(
             leading: Icon(
               Icons.science,
-              color: _isActive('/strains', currentPath)
+              color: _isActive('/strain', currentPath)
                   ? Theme.of(context).primaryColor
                   : null,
             ),
-            selected: _isActive('/strains', currentPath),
+            selected: _isActive('/strain', currentPath),
             title: const Text('Strain'),
             onTap: () {
               Navigator.of(context).pop();
-              context.go('/strains');
+              context.go('/strain');
             },
           ),
           ListTile(
             leading: Icon(
               Icons.pets,
-              color: _isActive('/animals', currentPath)
+              color: _isActive('/animal', currentPath)
                   ? Theme.of(context).primaryColor
                   : null,
             ),
-            selected: _isActive('/animals', currentPath),
+            selected: _isActive('/animal', currentPath),
             title: const Text('Animal'),
             onTap: () {
               Navigator.of(context).pop();
-              context.go('/animals');
+              context.go('/animal');
             },
           ),
           ListTile(
             leading: Icon(
               Icons.favorite,
-              color: _isActive('/matings', currentPath)
+              color: _isActive('/mating', currentPath)
                   ? Theme.of(context).primaryColor
                   : null,
             ),
-            selected: _isActive('/matings', currentPath),
+            selected: _isActive('/mating', currentPath),
             title: const Text('Mating'),
             onTap: () {
               Navigator.of(context).pop();
-              context.go('/matings');
+              context.go('/mating');
             },
           ),
           ListTile(
             leading: Icon(
               Icons.loyalty,
-              color: _isActive('/litters', currentPath)
+              color: _isActive('/litter', currentPath)
                   ? Theme.of(context).primaryColor
                   : null,
             ),
-            selected: _isActive('/litters', currentPath),
+            selected: _isActive('/litter', currentPath),
             title: const Text('Litter'),
             onTap: () {
               Navigator.of(context).pop();
-              context.go('/litters');
+              context.go('/litter');
             },
           ),
           ListTile(
             leading: Icon(
               Icons.people,
-              color: _isActive('/users', currentPath)
+              color: _isActive('/user', currentPath)
                   ? Theme.of(context).primaryColor
                   : null,
             ),
-            selected: _isActive('/users', currentPath),
+            selected: _isActive('/user', currentPath),
             title: const Text('Users'),
             onTap: () {
               Navigator.of(context).pop();
-              context.go('/users');
+              context.go('/user');
             },
           ),
           ListTile(

@@ -184,9 +184,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
         );
         // Navigate back to the appropriate page based on where we came from
         if (widget.fromCageGrid) {
-          context.go('/cages/grid');
+          context.go('/cage/grid');
         } else {
-          context.go('/animals');
+          context.go('/animal');
         }
       } catch (e) {
         debugPrint('Error saving animal: $e - ${e.toString()}');
@@ -211,9 +211,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
           onPressed: () {
             // Navigate back to the appropriate page based on where we came from
             if (widget.fromCageGrid) {
-              context.go('/cages/grid');
+              context.go('/cage/grid');
             } else {
-              context.go('/animals');
+              context.go('/animal');
             }
           },
           icon: const Icon(Icons.arrow_back),

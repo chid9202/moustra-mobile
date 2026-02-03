@@ -197,7 +197,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
                       icon: const Icon(Icons.add),
                       onPressed: () {
                         if (context.mounted) {
-                          context.go('/strains/new');
+                          context.go('/strain/new');
                         }
                       },
                     ),
@@ -287,7 +287,7 @@ class _StrainGridSource extends DataGridSource {
             icon: const Icon(Icons.edit),
             tooltip: 'Edit',
             onPressed: () {
-              context.go('/strains/$uuid');
+              context.go('/strain/$uuid');
             },
           ),
         ),

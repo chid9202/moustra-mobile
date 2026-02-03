@@ -48,13 +48,13 @@ class CageHeaderMenu extends StatelessWidget {
       case 'open_cage':
         // Wait for popup menu to fully close before navigating
         Future.delayed(const Duration(milliseconds: 300), () {
-          appRouter.go('/cages/$cageUuid?fromCageGrid=true');
+          appRouter.go('/cage/$cageUuid?fromCageGrid=true');
         });
         break;
       case 'add_animals':
         // Wait for popup menu to fully close before navigating
         Future.delayed(const Duration(milliseconds: 300), () {
-          appRouter.go('/animals/new?cageUuid=$cageUuid&fromCageGrid=true');
+          appRouter.go('/animal/new?cageUuid=$cageUuid&fromCageGrid=true');
         });
         break;
       case 'move_cage':

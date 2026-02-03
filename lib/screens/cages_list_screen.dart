@@ -7,6 +7,7 @@ import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/services/models/list_query_params.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
+import 'package:moustra/helpers/util_helper.dart';
 import 'package:moustra/widgets/filter_panel.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
@@ -171,7 +172,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
                       label: 'Add Cage',
                       icon: const Icon(Icons.add),
                       onPressed: () {
-                        context.go('/cages/new');
+                        context.go('/cage/new');
                       },
                     ),
                   ],
@@ -199,13 +200,21 @@ class _CagesListScreenState extends State<CagesListScreen> {
 
   Future<void> _scanBarcode() async {
     try {
-      final String? barcode = await Navigator.of(context).push<String>(
+      final String? scannedValue = await Navigator.of(context).push<String>(
         MaterialPageRoute(builder: (context) => const BarcodeScannerScreen()),
       );
 
-      if (barcode == null || !mounted) return;
+      if (scannedValue == null || !mounted) return;
 
-      // Show loading indicator
+      // Check if scanned value is a URL with cage UUID
+      final cageUuidFromUrl = UtilHelper.extractCageUuidFromUrl(scannedValue);
+      if (cageUuidFromUrl != null) {
+        // Direct navigation - no API call needed
+        context.go('/cage/$cageUuidFromUrl');
+        return;
+      }
+
+      // Not a URL - treat as barcode and look up via API
       if (!mounted) return;
       showDialog(
         context: context,
@@ -214,7 +223,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
       );
 
       try {
-        final cage = await cageApi.getCageByBarcode(barcode);
+        final cage = await cageApi.getCageByBarcode(scannedValue);
         if (!mounted) return;
 
         // Dismiss loading dialog - use rootNavigator to ensure we get the dialog
@@ -224,7 +233,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
         await Future.delayed(const Duration(milliseconds: 50));
         if (!mounted) return;
 
-        context.go('/cages/${cage.cageUuid}');
+        context.go('/cage/${cage.cageUuid}');
       } catch (e) {
         if (!mounted) return;
 
@@ -243,7 +252,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
         String errorMessage = 'Cage not found';
         final errorString = e.toString();
         if (errorString.contains('not found') || errorString.contains('404')) {
-          errorMessage = 'No cage found with barcode "$barcode"';
+          errorMessage = 'No cage found with barcode "$scannedValue"';
         } else if (errorString.contains('Exception:')) {
           errorMessage = errorString.replaceFirst('Exception: ', '');
         } else {
@@ -304,7 +313,7 @@ class _CageGridSource extends DataGridSource {
             icon: const Icon(Icons.edit),
             tooltip: 'Edit',
             onPressed: () {
-              context.go('/cages/$uuid');
+              context.go('/cage/$uuid');
             },
           ),
         ),

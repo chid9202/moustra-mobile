@@ -2,6 +2,17 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 class UtilHelper {
+  /// Extracts cage UUID from a URL like https://app.moustra.com/cage/{uuid}
+  /// or https://app.moustra.com/cages/{uuid}
+  /// Returns null if the string is not a matching URL.
+  static String? extractCageUuidFromUrl(String value) {
+    // Match URLs containing /cage/{uuid} or /cages/{uuid}
+    // UUID format: 8-4-4-4-12 hex characters
+    final regex = RegExp(r'/cages?/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:[/?#]|$)');
+    final match = regex.firstMatch(value);
+    return match?.group(1);
+  }
+
   /// Gets the display lab name by ensuring it ends with "Lab" (case insensitive)
   /// If the last word is not "lab", it adds "Lab" to the end
   static String getDisplayLabName(String labName) {

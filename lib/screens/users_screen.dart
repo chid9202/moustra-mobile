@@ -44,7 +44,7 @@ class _UsersScreenState extends State<UsersScreen> {
                   variant: ButtonVariant.primary,
                   onPressed: () {
                     if (context.mounted) {
-                      context.go('/users/new');
+                      context.go('/user/new');
                     }
                   },
                 ),
@@ -103,7 +103,7 @@ class _UserGridSource extends DataGridSource {
                   .where((user) => user.accountId == row.getCells()[0].value)
                   .first
                   .accountUuid;
-              context.go('/users/$accountUuid');
+              context.go('/user/$accountUuid');
             },
           ),
         ),

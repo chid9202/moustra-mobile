@@ -60,37 +60,37 @@ final GoRouter appRouter = GoRouter(
               const MaterialPage(child: DashboardScreen()),
         ),
         GoRoute(
-          path: '/strains',
+          path: '/strain',
           pageBuilder: (context, state) =>
               const MaterialPage(child: StrainsScreen()),
         ),
         GoRoute(
-          path: '/strains/:strainUuid',
+          path: '/strain/:strainUuid',
           pageBuilder: (context, state) =>
               const MaterialPage(child: StrainDetailScreen()),
         ),
         GoRoute(
-          path: '/strains/new',
+          path: '/strain/new',
           pageBuilder: (context, state) =>
               const MaterialPage(child: StrainDetailScreen()),
         ),
         GoRoute(
-          path: '/cages/list',
+          path: '/cage/list',
           pageBuilder: (context, state) =>
               const MaterialPage(child: CagesListScreen()),
         ),
         GoRoute(
-          path: '/cages/grid',
+          path: '/cage/grid',
           pageBuilder: (context, state) =>
               const MaterialPage(child: CagesGridScreen()),
         ),
         GoRoute(
-          path: '/cages/new',
+          path: '/cage/new',
           pageBuilder: (context, state) =>
               const MaterialPage(child: CageDetailScreen()),
         ),
         GoRoute(
-          path: '/cages/:cageUuid',
+          path: '/cage/:cageUuid',
           pageBuilder: (context, state) {
             final fromCageGrid =
                 state.uri.queryParameters['fromCageGrid'] == 'true';
@@ -100,12 +100,12 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/litters',
+          path: '/litter',
           pageBuilder: (context, state) =>
               const MaterialPage(child: LittersScreen()),
         ),
         GoRoute(
-          path: '/litters/new',
+          path: '/litter/new',
           pageBuilder: (context, state) {
             final matingUuid = state.uri.queryParameters['matingUuid'];
             final fromCageGrid =
@@ -119,7 +119,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/litters/:litterUuid',
+          path: '/litter/:litterUuid',
           pageBuilder: (context, state) {
             final fromCageGrid =
                 state.uri.queryParameters['fromCageGrid'] == 'true';
@@ -129,12 +129,12 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/animals',
+          path: '/animal',
           pageBuilder: (context, state) =>
               const MaterialPage(child: AnimalsScreen()),
         ),
         GoRoute(
-          path: '/animals/new',
+          path: '/animal/new',
           pageBuilder: (context, state) {
             final cageUuid = state.uri.queryParameters['cageUuid'];
             final fromCageGrid =
@@ -148,7 +148,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/animals/:animalUuid',
+          path: '/animal/:animalUuid',
           pageBuilder: (context, state) {
             final fromCageGrid =
                 state.uri.queryParameters['fromCageGrid'] == 'true';
@@ -158,17 +158,17 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/matings',
+          path: '/mating',
           pageBuilder: (context, state) =>
               const MaterialPage(child: MatingsScreen()),
         ),
         GoRoute(
-          path: '/matings/new',
+          path: '/mating/new',
           pageBuilder: (context, state) =>
               const MaterialPage(child: MatingDetailScreen()),
         ),
         GoRoute(
-          path: '/matings/:matingUuid',
+          path: '/mating/:matingUuid',
           pageBuilder: (context, state) {
             final fromCageGrid =
                 state.uri.queryParameters['fromCageGrid'] == 'true';
@@ -178,17 +178,17 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/users',
+          path: '/user',
           pageBuilder: (context, state) =>
               const MaterialPage(child: UsersScreen()),
         ),
         GoRoute(
-          path: '/users/new',
+          path: '/user/new',
           pageBuilder: (context, state) =>
               const MaterialPage(child: UserDetailScreen(isNew: true)),
         ),
         GoRoute(
-          path: '/users/:userUuid',
+          path: '/user/:userUuid',
           pageBuilder: (context, state) => MaterialPage(
             child: UserDetailScreen(userUuid: state.pathParameters['userUuid']),
           ),

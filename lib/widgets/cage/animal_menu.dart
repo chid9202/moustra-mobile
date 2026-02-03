@@ -46,7 +46,7 @@ class AnimalMenu extends StatelessWidget {
         // Wait for popup menu to fully close before navigating
         // Use a delay to ensure the popup menu route is fully disposed
         Future.delayed(const Duration(milliseconds: 300), () {
-          appRouter.go('/animals/${animal.animalUuid}?fromCageGrid=true');
+          appRouter.go('/animal/${animal.animalUuid}?fromCageGrid=true');
         });
         break;
       case 'end':

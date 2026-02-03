@@ -209,9 +209,9 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
         }
         // Navigate back to the appropriate page based on where we came from
         if (widget.fromCageGrid) {
-          context.go('/cages/grid');
+          context.go('/cage/grid');
         } else {
-          context.go('/matings');
+          context.go('/mating');
         }
       } catch (e) {
         debugPrint('Error saving mating: $e');
@@ -237,9 +237,9 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
           onPressed: () {
             // Navigate back to the appropriate page based on where we came from
             if (widget.fromCageGrid) {
-              context.go('/cages/grid');
+              context.go('/cage/grid');
             } else {
-              context.go('/matings');
+              context.go('/mating');
             }
           },
           icon: const Icon(Icons.arrow_back),

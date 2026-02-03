@@ -171,9 +171,9 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
 
         // Navigate back to the appropriate page based on where we came from
         if (widget.fromCageGrid) {
-          context.go('/cages/grid');
+          context.go('/cage/grid');
         } else {
-          context.go('/litters');
+          context.go('/litter');
         }
       } catch (e) {
         debugPrint('Error saving litter: $e');
@@ -200,9 +200,9 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
           onPressed: () {
             // Navigate back to the appropriate page based on where we came from
             if (widget.fromCageGrid) {
-              context.go('/cages/grid');
+              context.go('/cage/grid');
             } else {
-              context.go('/litters');
+              context.go('/litter');
             }
           },
           icon: const Icon(Icons.arrow_back),
