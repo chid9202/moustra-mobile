@@ -16,6 +16,9 @@ PutLitterDto _$PutLitterDtoFromJson(Map<String, dynamic> json) => PutLitterDto(
       : DateTime.parse(json['weanDate'] as String),
   owner: json['owner'] == null ? null : AccountStoreDto.fromJson(json['owner']),
   litterTag: json['litterTag'] as String?,
+  strain: json['strain'] == null
+      ? null
+      : StrainStoreDto.fromJson(json['strain']),
 );
 
 Map<String, dynamic> _$PutLitterDtoToJson(PutLitterDto instance) =>

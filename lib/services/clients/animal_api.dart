@@ -113,6 +113,15 @@ class AnimalApi {
       '${res.body}',
     );
   }
+
+  /// Batch update animals with a PATCH request.
+  /// Used to update strain on multiple animals at once.
+  Future<void> patchAnimals(List<Map<String, dynamic>> updates) async {
+    final res = await apiClient.patch(basePath, body: updates);
+    if (res.statusCode != 200) {
+      throw Exception('Failed to patch animals: ${res.body}');
+    }
+  }
 }
 
 final AnimalApi animalService = AnimalApi();

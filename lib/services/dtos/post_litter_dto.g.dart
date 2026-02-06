@@ -19,6 +19,9 @@ PostLitterDto _$PostLitterDtoFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['weanDate'] as String),
       owner: AccountStoreDto.fromJson(json['owner']),
       comment: json['comment'] as String?,
+      strain: json['strain'] == null
+          ? null
+          : StrainStoreDto.fromJson(json['strain']),
     );
 
 Map<String, dynamic> _$PostLitterDtoToJson(PostLitterDto instance) =>
