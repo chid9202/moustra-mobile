@@ -333,7 +333,7 @@ class _LitterGridSource extends DataGridSource {
 
     // Data columns
     cells.add(cellText(values[LitterListColumn.litterTag.name] as String?));
-    cells.add(cellText(values[LitterListColumn.litterStrain.name] as String?));
+    cells.add(cellText(values[LitterListColumn.strain.name] as String?));
     cells.add(cellText('${values[LitterListColumn.numberOfPups.name] ?? ''}'));
     cells.add(cellText(values[LitterListColumn.wean.name] as String?));
     cells.add(cellText(values[LitterListColumn.dob.name] as String?));

@@ -100,7 +100,7 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
           matingId: litter.mating?.matingId ?? 0,
           matingUuid: litter.mating?.matingUuid ?? '',
           matingTag: litter.mating?.matingTag ?? '',
-          litterStrain: litter.mating?.litterStrain,
+          litterStrain: litter.strain,
         );
         _litterTagController.text = litter.litterTag ?? '';
         _selectedDateOfBirth = litter.dateOfBirth;
