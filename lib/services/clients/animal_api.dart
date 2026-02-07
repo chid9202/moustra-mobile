@@ -118,7 +118,7 @@ class AnimalApi {
   /// Used to update strain on multiple animals at once.
   Future<void> patchAnimals(List<Map<String, dynamic>> updates) async {
     final res = await apiClient.patch(basePath, body: updates);
-    if (res.statusCode != 200) {
+    if (res.statusCode != 200 && res.statusCode != 204) {
       throw Exception('Failed to patch animals: ${res.body}');
     }
   }
