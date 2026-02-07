@@ -193,6 +193,8 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
           'strainId': _selectedStrain!.strainId,
           'strainUuid': _selectedStrain!.strainUuid,
           'strainName': _selectedStrain!.strainName,
+          'weanAge': _selectedStrain!.weanAge,
+          'genotypes': [],
         },
       }).toList();
       
