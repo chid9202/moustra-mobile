@@ -504,6 +504,43 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
               ),
               const SizedBox(height: 32),
 
+              // Pubs Section
+              if (_litterUuid != null && _litterUuid != 'new' && _litterData?.animals != null && _litterData!.animals.isNotEmpty) ...[
+                Text(
+                  'Pubs (${_litterData!.animals.length})',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _litterData!.animals.length,
+                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final animal = _litterData!.animals[index];
+                      return ListTile(
+                        leading: Icon(
+                          animal.sex == 'M' ? Icons.male : 
+                          animal.sex == 'F' ? Icons.female : Icons.question_mark,
+                          color: animal.sex == 'M' ? Colors.blue : 
+                                 animal.sex == 'F' ? Colors.pink : Colors.grey,
+                        ),
+                        title: Text(animal.physicalTag ?? 'No tag'),
+                        subtitle: Text('ID: ${animal.animalId}'),
+                        onTap: () {
+                          context.push('/animal/${animal.animalUuid}');
+                        },
+                        trailing: const Icon(Icons.chevron_right),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
               // Notes Section
               if (_litterUuid != null && _litterUuid != 'new')
                 NoteList(
