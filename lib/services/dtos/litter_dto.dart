@@ -48,6 +48,7 @@ class LitterAnimalDto {
   final String? physicalTag;
   final String? sex;
   final DateTime? dateOfBirth;
+  final StrainSummaryDto? strain;
 
   LitterAnimalDto({
     required this.animalId,
@@ -55,6 +56,7 @@ class LitterAnimalDto {
     this.physicalTag,
     this.sex,
     this.dateOfBirth,
+    this.strain,
   });
 
   factory LitterAnimalDto.fromJson(Map<String, dynamic> json) =>

@@ -63,6 +63,9 @@ LitterAnimalDto _$LitterAnimalDtoFromJson(Map<String, dynamic> json) =>
       dateOfBirth: json['dateOfBirth'] == null
           ? null
           : DateTime.parse(json['dateOfBirth'] as String),
+      strain: json['strain'] == null
+          ? null
+          : StrainSummaryDto.fromJson(json['strain'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$LitterAnimalDtoToJson(LitterAnimalDto instance) =>
@@ -72,4 +75,5 @@ Map<String, dynamic> _$LitterAnimalDtoToJson(LitterAnimalDto instance) =>
       'physicalTag': instance.physicalTag,
       'sex': instance.sex,
       'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
+      'strain': instance.strain?.toJson(),
     };

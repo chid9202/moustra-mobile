@@ -521,6 +521,11 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                     separatorBuilder: (context, index) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final animal = _litterData!.animals[index];
+                      final dobText = animal.dateOfBirth != null 
+                          ? 'DOB: ${animal.dateOfBirth!.month}/${animal.dateOfBirth!.day}/${animal.dateOfBirth!.year}'
+                          : '';
+                      final strainText = animal.strain?.strainName ?? '';
+                      final subtitleParts = [dobText, strainText].where((s) => s.isNotEmpty).toList();
                       return ListTile(
                         leading: Icon(
                           animal.sex == 'M' ? Icons.male : 
@@ -529,9 +534,9 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                                  animal.sex == 'F' ? Colors.pink : Colors.grey,
                         ),
                         title: Text(animal.physicalTag ?? 'No tag'),
-                        subtitle: Text('ID: ${animal.animalId}'),
+                        subtitle: subtitleParts.isNotEmpty ? Text(subtitleParts.join(' • ')) : null,
                         onTap: () {
-                          context.push('/animal/${animal.animalUuid}');
+                          context.go('/animal/${animal.animalUuid}');
                         },
                         trailing: const Icon(Icons.chevron_right),
                       );
