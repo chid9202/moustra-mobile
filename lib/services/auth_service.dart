@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:local_auth/local_auth.dart' as local_auth;
 
 import 'package:moustra/config/env.dart';
+import 'package:moustra/services/error_context_service.dart';
 import 'package:moustra/services/secure_store.dart';
 import 'package:moustra/stores/auth_store.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
@@ -309,6 +310,8 @@ class AuthService {
     }
     _credentials = null;
     authState.value = false;
+    // Clear error context to prevent stale user data in error reports
+    errorContextService.clear();
   }
 
   Future<void> clearAll() async {
@@ -319,6 +322,8 @@ class AuthService {
     }
     _credentials = null;
     authState.value = false;
+    // Clear error context to prevent stale user data in error reports
+    errorContextService.clear();
   }
 
   /// Check if device supports biometrics and if biometrics are enrolled

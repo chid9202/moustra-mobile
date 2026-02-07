@@ -16,6 +16,9 @@ LitterDto _$LitterDtoFromJson(Map<String, dynamic> json) => LitterDto(
   mating: json['mating'] == null
       ? null
       : MatingSummaryDto.fromJson(json['mating'] as Map<String, dynamic>),
+  strain: json['strain'] == null
+      ? null
+      : StrainSummaryDto.fromJson(json['strain'] as Map<String, dynamic>),
   owner: json['owner'] == null
       ? null
       : AccountDto.fromJson(json['owner'] as Map<String, dynamic>),
@@ -42,6 +45,7 @@ Map<String, dynamic> _$LitterDtoToJson(LitterDto instance) => <String, dynamic>{
   'litterTag': instance.litterTag,
   'weanDate': instance.weanDate?.toIso8601String(),
   'mating': instance.mating?.toJson(),
+  'strain': instance.strain?.toJson(),
   'owner': instance.owner?.toJson(),
   'animals': instance.animals.map((e) => e.toJson()).toList(),
   'createdDate': instance.createdDate?.toIso8601String(),
@@ -59,6 +63,9 @@ LitterAnimalDto _$LitterAnimalDtoFromJson(Map<String, dynamic> json) =>
       dateOfBirth: json['dateOfBirth'] == null
           ? null
           : DateTime.parse(json['dateOfBirth'] as String),
+      strain: json['strain'] == null
+          ? null
+          : StrainSummaryDto.fromJson(json['strain'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$LitterAnimalDtoToJson(LitterAnimalDto instance) =>
@@ -68,4 +75,5 @@ Map<String, dynamic> _$LitterAnimalDtoToJson(LitterAnimalDto instance) =>
       'physicalTag': instance.physicalTag,
       'sex': instance.sex,
       'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
+      'strain': instance.strain?.toJson(),
     };

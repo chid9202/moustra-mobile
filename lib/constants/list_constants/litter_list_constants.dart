@@ -10,7 +10,7 @@ enum LitterListColumn implements ListColumn<LitterDto> {
   edit('Edit', 'edit'),
   // eid('EID', 'eid'),
   litterTag('Litter Tag', 'litter_tag'),
-  litterStrain('Litter Strain', 'litter_strain'),
+  strain('Strain', 'strain'),
   numberOfPups('Number of Pups', ''),
   wean('Wean Date', 'wean_date'),
   dob('Date of Birth', 'date_of_birth'),
@@ -53,9 +53,9 @@ enum LitterListColumn implements ListColumn<LitterDto> {
         allowSorting: true,
       ),
       GridColumn(
-        columnName: LitterListColumn.litterStrain.field,
+        columnName: LitterListColumn.strain.field,
         width: 200,
-        label: Center(child: Text(LitterListColumn.litterStrain.label)),
+        label: Center(child: Text(LitterListColumn.strain.label)),
         allowSorting: true,
       ),
       GridColumn(
@@ -111,8 +111,8 @@ enum LitterListColumn implements ListColumn<LitterDto> {
           value: litter.litterTag,
         ),
         DataGridCell<String>(
-          columnName: LitterListColumn.litterStrain.name,
-          value: litter.mating?.litterStrain?.strainName,
+          columnName: LitterListColumn.strain.name,
+          value: litter.strain?.strainName,
         ),
         DataGridCell<int>(
           columnName: LitterListColumn.numberOfPups.name,

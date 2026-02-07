@@ -53,14 +53,12 @@ class MatingSummaryDto {
   final int? matingId;
   final String matingUuid;
   final String? matingTag;
-  final StrainSummaryDto? litterStrain;
   final List<MatingSummaryAnimalDto>? animals;
 
   MatingSummaryDto({
     this.matingId,
     required this.matingUuid,
     this.matingTag,
-    this.litterStrain,
     this.animals = const [],
   });
 

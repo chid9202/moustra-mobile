@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/helpers/account_helper.dart';
+import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/clients/litter_api.dart';
 import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
@@ -8,12 +9,14 @@ import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:moustra/services/dtos/post_litter_dto.dart';
 import 'package:moustra/services/dtos/put_litter_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
+import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
 import 'package:moustra/stores/animal_store.dart';
 import 'package:moustra/stores/strain_store.dart';
 import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_mating.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
+import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/widgets/note/note_list.dart';
 import 'package:moustra/services/dtos/note_entity_type.dart';
 
@@ -43,6 +46,8 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
   DateTime? _selectedDateOfBirth = DateTime.now();
   DateTime? _selectedWeanDate = DateTime.now().add(const Duration(days: 21));
   AccountStoreDto? _selectedOwner;
+  StrainStoreDto? _selectedStrain;
+  StrainStoreDto? _originalStrain; // Track original strain to detect changes
   LitterDto? _litterData;
   bool _litterDataLoaded = false;
 
@@ -93,6 +98,18 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
   void _loadLitterData() async {
     final litter = await litterService.getLitter(_litterUuid!);
     if (mounted) {
+      // Convert strain from StrainSummaryDto to StrainStoreDto if available
+      StrainStoreDto? strainStoreDto;
+      if (litter.strain != null) {
+        strainStoreDto = StrainStoreDto(
+          strainId: litter.strain!.strainId,
+          strainUuid: litter.strain!.strainUuid,
+          strainName: litter.strain!.strainName,
+          weanAge: litter.strain!.weanAge,
+          genotypes: [],
+        );
+      }
+      
       setState(() {
         _litterData = litter;
         _litterDataLoaded = true;
@@ -100,12 +117,14 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
           matingId: litter.mating?.matingId ?? 0,
           matingUuid: litter.mating?.matingUuid ?? '',
           matingTag: litter.mating?.matingTag ?? '',
-          litterStrain: litter.mating?.litterStrain,
+          litterStrain: litter.strain,
         );
         _litterTagController.text = litter.litterTag ?? '';
         _selectedDateOfBirth = litter.dateOfBirth;
         _selectedWeanDate = litter.weanDate;
         _selectedOwner = litter.owner?.toAccountStoreDto();
+        _selectedStrain = strainStoreDto;
+        _originalStrain = strainStoreDto;
       });
     }
   }
@@ -128,6 +147,76 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
     return int.tryParse(trimmed) ?? 0;
   }
 
+  /// Check if the strain has changed from the original
+  bool _strainChanged() {
+    final oldUuid = _originalStrain?.strainUuid;
+    final newUuid = _selectedStrain?.strainUuid;
+    return oldUuid != newUuid;
+  }
+
+  /// Show dialog asking if user wants to update all pups' strains
+  Future<bool?> _showUpdatePupsStrainDialog() async {
+    final pupCount = _litterData?.animals.length ?? 0;
+    if (pupCount == 0) return null;
+
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Update Animal Strains?'),
+        content: Text(
+          'You changed the litter strain to "${_selectedStrain?.strainName}". '
+          'Would you like to update all $pupCount pubs in this litter to the same strain?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('No, Keep Current'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Yes, Update All'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Update all pups' strains to match the litter strain
+  Future<void> _updatePupsStrain() async {
+    if (_litterData?.animals == null || _litterData!.animals.isEmpty) return;
+    if (_selectedStrain == null) return;
+
+    try {
+      final updates = _litterData!.animals.map((animal) => {
+        'animalUuid': animal.animalUuid,
+        'strain': {
+          'strainId': _selectedStrain!.strainId,
+          'strainUuid': _selectedStrain!.strainUuid,
+          'strainName': _selectedStrain!.strainName,
+          'weanAge': _selectedStrain!.weanAge,
+          'genotypes': [],
+        },
+      }).toList();
+      
+      await animalService.patchAnimals(updates);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Updated strain for ${_litterData!.animals.length} pubs'),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error updating pup strains: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update pub strains')),
+        );
+      }
+    }
+  }
+
   void _saveLitter() async {
     if (_formKey.currentState!.validate()) {
       try {
@@ -143,9 +232,12 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
           comment: _commentController.text.isEmpty
               ? null
               : _commentController.text,
+          strain: _selectedStrain,
         );
 
-        if (_litterUuid == null || _litterUuid == 'new') {
+        final isNew = _litterUuid == null || _litterUuid == 'new';
+        
+        if (isNew) {
           await litterService.createLitter(litter);
         } else {
           await litterService.putLitter(
@@ -158,28 +250,45 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
               weanDate: _selectedWeanDate,
               owner: _selectedOwner,
               litterTag: _litterTagController.text,
+              strain: _selectedStrain,
             ),
           );
+          
+          // Check if strain changed and there are pups to update
+          if (_strainChanged() && 
+              _litterData?.animals != null && 
+              _litterData!.animals.isNotEmpty &&
+              _selectedStrain != null) {
+            final shouldUpdate = await _showUpdatePupsStrainDialog();
+            if (shouldUpdate == true) {
+              await _updatePupsStrain();
+            }
+          }
         }
+        
         // Refresh related stores
         await refreshAnimalStore();
         await refreshStrainStore();
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Litter created successfully!')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(isNew ? 'Litter created successfully!' : 'Litter updated successfully!')),
+          );
 
-        // Navigate back to the appropriate page based on where we came from
-        if (widget.fromCageGrid) {
-          context.go('/cage/grid');
-        } else {
-          context.go('/litter');
+          // Navigate back to the appropriate page based on where we came from
+          if (widget.fromCageGrid) {
+            context.go('/cage/grid');
+          } else {
+            context.go('/litter');
+          }
         }
       } catch (e) {
         debugPrint('Error saving litter: $e');
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving litter: $e')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error saving litter: $e')),
+          );
+        }
       }
     }
   }
@@ -221,6 +330,22 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                 onChanged: (mating) {
                   setState(() {
                     _selectedMating = mating;
+                    // Inherit strain from mating if available
+                    if (mating?.litterStrain != null) {
+                      _selectedStrain = StrainStoreDto(
+                        strainId: mating!.litterStrain!.strainId,
+                        strainUuid: mating.litterStrain!.strainUuid,
+                        strainName: mating.litterStrain!.strainName,
+                        weanAge: mating.litterStrain!.weanAge,
+                        genotypes: [],
+                      );
+                      // Also update wean date based on strain's weanAge
+                      if (mating.litterStrain!.weanAge != null) {
+                        _selectedWeanDate = DateTime.now().add(
+                          Duration(days: mating.litterStrain!.weanAge!),
+                        );
+                      }
+                    }
                   });
                 },
                 label: 'Mating',
@@ -356,6 +481,20 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                 },
               ),
               const SizedBox(height: 16),
+              SelectStrain(
+                selectedStrain: _selectedStrain,
+                onChanged: (strain) {
+                  setState(() {
+                    _selectedStrain = strain;
+                    // If strain has weanAge and we're creating new, update wean date
+                    if (strain?.weanAge != null && (_litterUuid == null || _litterUuid == 'new')) {
+                      _selectedWeanDate = DateTime.now().add(Duration(days: strain!.weanAge!));
+                    }
+                  });
+                },
+                label: 'Strain',
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _commentController,
                 decoration: const InputDecoration(
@@ -366,6 +505,48 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                 maxLines: 3,
               ),
               const SizedBox(height: 32),
+
+              // Pubs Section
+              if (_litterUuid != null && _litterUuid != 'new' && _litterData?.animals != null && _litterData!.animals.isNotEmpty) ...[
+                Text(
+                  'Pubs (${_litterData!.animals.length})',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _litterData!.animals.length,
+                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final animal = _litterData!.animals[index];
+                      final dobText = animal.dateOfBirth != null 
+                          ? 'DOB: ${animal.dateOfBirth!.month}/${animal.dateOfBirth!.day}/${animal.dateOfBirth!.year}'
+                          : '';
+                      final strainText = animal.strain?.strainName ?? '';
+                      final subtitleParts = [dobText, strainText].where((s) => s.isNotEmpty).toList();
+                      return ListTile(
+                        leading: Icon(
+                          animal.sex == 'M' ? Icons.male : 
+                          animal.sex == 'F' ? Icons.female : Icons.question_mark,
+                          color: animal.sex == 'M' ? Colors.blue : 
+                                 animal.sex == 'F' ? Colors.pink : Colors.grey,
+                        ),
+                        title: Text(animal.physicalTag ?? 'No tag'),
+                        subtitle: subtitleParts.isNotEmpty ? Text(subtitleParts.join(' • ')) : null,
+                        onTap: () {
+                          context.go('/animal/${animal.animalUuid}');
+                        },
+                        trailing: const Icon(Icons.chevron_right),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // Notes Section
               if (_litterUuid != null && _litterUuid != 'new')

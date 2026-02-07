@@ -69,11 +69,6 @@ MatingSummaryDto _$MatingSummaryDtoFromJson(Map<String, dynamic> json) =>
       matingId: (json['matingId'] as num?)?.toInt(),
       matingUuid: json['matingUuid'] as String,
       matingTag: json['matingTag'] as String?,
-      litterStrain: json['litterStrain'] == null
-          ? null
-          : StrainSummaryDto.fromJson(
-              json['litterStrain'] as Map<String, dynamic>,
-            ),
       animals:
           (json['animals'] as List<dynamic>?)
               ?.map(
@@ -89,7 +84,6 @@ Map<String, dynamic> _$MatingSummaryDtoToJson(MatingSummaryDto instance) =>
       'matingId': instance.matingId,
       'matingUuid': instance.matingUuid,
       'matingTag': instance.matingTag,
-      'litterStrain': instance.litterStrain?.toJson(),
       'animals': instance.animals?.map((e) => e.toJson()).toList(),
     };
 

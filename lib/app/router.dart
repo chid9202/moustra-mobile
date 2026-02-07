@@ -21,11 +21,16 @@ import 'package:moustra/screens/user_detail_screen.dart';
 import 'package:moustra/screens/dashboard_screen.dart';
 import 'package:moustra/screens/settings_screen.dart';
 import 'package:moustra/services/auth_service.dart';
+import 'package:moustra/services/error_context_service.dart';
 import 'package:moustra/screens/login_screen.dart';
 import 'package:moustra/screens/signup_screen.dart';
 
+/// Navigation observer for tracking error context
+final errorContextNavigationObserver = ErrorContextNavigationObserver();
+
 final GoRouter appRouter = GoRouter(
   refreshListenable: authState,
+  observers: [errorContextNavigationObserver],
   routes: [
     // Login routes without AppBar
     GoRoute(

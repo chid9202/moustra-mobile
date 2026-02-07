@@ -11,7 +11,7 @@ class LitterFilterConfig {
       operators: FilterOperators.textOperators,
     ),
     FilterFieldDefinition(
-      field: 'litter_strain',
+      field: 'strain',
       label: 'Strain',
       type: FilterFieldType.text,
       operators: FilterOperators.textOperators,
@@ -50,7 +50,7 @@ class LitterFilterConfig {
   static const List<SortFieldDefinition> sortFields = [
     SortFieldDefinition(field: 'created_date', label: 'Created Date'),
     SortFieldDefinition(field: 'litter_tag', label: 'Litter Tag'),
-    SortFieldDefinition(field: 'litter_strain', label: 'Strain'),
+    SortFieldDefinition(field: 'strain', label: 'Strain'),
     SortFieldDefinition(field: 'date_of_birth', label: 'Date of Birth'),
     SortFieldDefinition(field: 'wean_date', label: 'Wean Date'),
     SortFieldDefinition(field: 'owner', label: 'Owner'),

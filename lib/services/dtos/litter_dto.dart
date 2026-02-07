@@ -2,6 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:moustra/services/dtos/account_dto.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/services/dtos/note_dto.dart';
+import 'package:moustra/services/dtos/strain_dto.dart';
 
 part 'litter_dto.g.dart';
 
@@ -12,6 +13,7 @@ class LitterDto {
   final String? litterTag;
   final DateTime? weanDate;
   final MatingSummaryDto? mating;
+  final StrainSummaryDto? strain;
   final AccountDto? owner;
   final List<LitterAnimalDto> animals;
   final DateTime? createdDate;
@@ -25,6 +27,7 @@ class LitterDto {
     this.litterTag,
     this.weanDate,
     this.mating,
+    this.strain,
     this.owner,
     this.animals = const [],
     this.createdDate,
@@ -45,6 +48,7 @@ class LitterAnimalDto {
   final String? physicalTag;
   final String? sex;
   final DateTime? dateOfBirth;
+  final StrainSummaryDto? strain;
 
   LitterAnimalDto({
     required this.animalId,
@@ -52,6 +56,7 @@ class LitterAnimalDto {
     this.physicalTag,
     this.sex,
     this.dateOfBirth,
+    this.strain,
   });
 
   factory LitterAnimalDto.fromJson(Map<String, dynamic> json) =>

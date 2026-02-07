@@ -200,6 +200,23 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
           as _i4.Future<_i2.Response>);
 
   @override
+  _i4.Future<_i2.Response> patch(
+    String? path, {
+    Object? body,
+    Map<String, String>? query,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#patch, [path], {#body: body, #query: query}),
+            returnValue: _i4.Future<_i2.Response>.value(
+              _FakeResponse_1(
+                this,
+                Invocation.method(#patch, [path], {#body: body, #query: query}),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.Response>);
+
+  @override
   _i4.Future<_i2.StreamedResponse> uploadFile(
     String? path, {
     required _i5.File? file,

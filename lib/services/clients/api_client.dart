@@ -213,6 +213,29 @@ class ApiClient {
     return res;
   }
 
+  Future<http.Response> patch(
+    String path, {
+    Object? body,
+    Map<String, String>? query,
+  }) async {
+    final uri = _buildUri(path, query: query);
+    final encodedBody = jsonEncode(body);
+    debugPrint('PATCH path $uri');
+    debugPrint('PATCH body $encodedBody');
+    final headers = await _headers();
+    headers['Content-Type'] = 'application/json';
+    final res = await httpClient.patch(
+      uri,
+      headers: headers,
+      body: encodedBody,
+    );
+    debugPrint('res ${res.statusCode}');
+    if (res.statusCode >= 400) {
+      debugPrint('PATCH error response: ${res.body}');
+    }
+    return res;
+  }
+
   /// Upload a file using multipart/form-data
   Future<http.StreamedResponse> uploadFile(
     String path, {
