@@ -189,7 +189,11 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
     try {
       final updates = _litterData!.animals.map((animal) => {
         'animalUuid': animal.animalUuid,
-        'strain': {'strain_uuid': _selectedStrain!.strainUuid},
+        'strain': {
+          'strainId': _selectedStrain!.strainId,
+          'strainUuid': _selectedStrain!.strainUuid,
+          'strainName': _selectedStrain!.strainName,
+        },
       }).toList();
       
       await animalService.patchAnimals(updates);
