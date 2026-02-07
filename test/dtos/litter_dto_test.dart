@@ -175,6 +175,56 @@ void main() {
       expect(animalDto.animalUuid, 'animal-uuid');
       expect(animalDto.physicalTag, null);
       expect(animalDto.sex, null);
+      expect(animalDto.strain, null);
+    });
+
+    test('should create LitterAnimalDto with strain from JSON', () {
+      // Arrange
+      final json = {
+        'animalId': 1,
+        'animalUuid': 'animal-uuid',
+        'physicalTag': 'A001',
+        'sex': 'male',
+        'dateOfBirth': '2023-01-15',
+        'strain': {
+          'strainId': 123,
+          'strainUuid': 'strain-uuid',
+          'strainName': 'C57BL/6',
+          'color': '#000000',
+        },
+      };
+
+      // Act
+      final animalDto = LitterAnimalDto.fromJson(json);
+
+      // Assert
+      expect(animalDto.animalId, 1);
+      expect(animalDto.animalUuid, 'animal-uuid');
+      expect(animalDto.physicalTag, 'A001');
+      expect(animalDto.sex, 'male');
+      expect(animalDto.strain, isNotNull);
+      expect(animalDto.strain?.strainId, 123);
+      expect(animalDto.strain?.strainUuid, 'strain-uuid');
+      expect(animalDto.strain?.strainName, 'C57BL/6');
+    });
+
+    test('should convert LitterAnimalDto with strain to JSON', () {
+      // Arrange
+      final animalDto = LitterAnimalDto(
+        animalId: 1,
+        animalUuid: 'animal-uuid',
+        physicalTag: 'A001',
+        sex: 'female',
+      );
+
+      // Act
+      final json = animalDto.toJson();
+
+      // Assert
+      expect(json['animalId'], 1);
+      expect(json['animalUuid'], 'animal-uuid');
+      expect(json['physicalTag'], 'A001');
+      expect(json['sex'], 'female');
     });
   });
 }

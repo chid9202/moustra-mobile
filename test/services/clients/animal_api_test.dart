@@ -81,6 +81,13 @@ class TestableAnimalApi {
     );
     return RackDto.fromJson(jsonDecode(res.body));
   }
+
+  Future<void> patchAnimals(List<Map<String, dynamic>> updates) async {
+    final res = await apiClient.patch(basePath, body: updates);
+    if (res.statusCode != 200 && res.statusCode != 204) {
+      throw Exception('Failed to patch animals: ${res.body}');
+    }
+  }
 }
 
 @GenerateMocks([ApiClient])
@@ -432,6 +439,95 @@ void main() {
             body: {'animal': animalUuid, 'cage': cageUuid},
           ),
         ).called(1);
+      });
+    });
+
+    group('patchAnimals', () {
+      test('should patch animals successfully with 200 status', () async {
+        // Arrange
+        final updates = [
+          {
+            'animalUuid': 'uuid-1',
+            'strain': {
+              'strainId': 123,
+              'strainUuid': 'strain-uuid',
+              'strainName': 'C57BL/6',
+              'weanAge': 21,
+              'genotypes': [],
+            },
+          },
+          {
+            'animalUuid': 'uuid-2',
+            'strain': {
+              'strainId': 123,
+              'strainUuid': 'strain-uuid',
+              'strainName': 'C57BL/6',
+              'weanAge': 21,
+              'genotypes': [],
+            },
+          },
+        ];
+
+        final mockResponse = http.Response('', 200);
+
+        when(
+          mockApiClient.patch(any, body: anyNamed('body')),
+        ).thenAnswer((_) async => mockResponse);
+
+        // Act & Assert - should not throw
+        await animalApi.patchAnimals(updates);
+
+        verify(
+          mockApiClient.patch('/animal', body: updates),
+        ).called(1);
+      });
+
+      test('should patch animals successfully with 204 status', () async {
+        // Arrange
+        final updates = [
+          {
+            'animalUuid': 'uuid-1',
+            'strain': {
+              'strainId': 123,
+              'strainUuid': 'strain-uuid',
+              'strainName': 'C57BL/6',
+              'weanAge': 21,
+              'genotypes': [],
+            },
+          },
+        ];
+
+        final mockResponse = http.Response('', 204);
+
+        when(
+          mockApiClient.patch(any, body: anyNamed('body')),
+        ).thenAnswer((_) async => mockResponse);
+
+        // Act & Assert - should not throw
+        await animalApi.patchAnimals(updates);
+
+        verify(
+          mockApiClient.patch('/animal', body: updates),
+        ).called(1);
+      });
+
+      test('should throw exception on non-200/204 status', () async {
+        // Arrange
+        final updates = [
+          {'animalUuid': 'uuid-1', 'strain': {}},
+        ];
+
+        final mockResponse = http.Response('Bad Request', 400);
+
+        when(
+          mockApiClient.patch(any, body: anyNamed('body')),
+        ).thenAnswer((_) async => mockResponse);
+
+        // Act & Assert
+        expect(
+          () => animalApi.patchAnimals(updates),
+          throwsA(isA<Exception>()),
+        );
       });
     });
   });
