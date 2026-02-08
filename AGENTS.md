@@ -17,6 +17,9 @@ This document is the single source of truth for AI agents working on the Moustra
 9. [Environment Configuration](#environment-configuration)
 10. [Common Tasks](#common-tasks)
 11. [Troubleshooting](#troubleshooting)
+12. [Related Documentation](#related-documentation)
+13. [Advanced Patterns](#advanced-patterns)
+14. [Mobile vs Web Feature Gaps](#mobile-vs-web-feature-gaps)
 
 ---
 
@@ -575,6 +578,250 @@ When implementing a new feature:
 
 - [FEATURES.md](FEATURES.md) - Complete feature list
 - [MISSING-FEATURES.md](MISSING-FEATURES.md) - Features not yet implemented
+- [docs/MOBILE-FLOWS.md](docs/MOBILE-FLOWS.md) - Authentication and mobile-specific flows
+- [docs/FEATURE-PARITY.md](docs/FEATURE-PARITY.md) - Mobile vs web feature comparison
 - [DEPLOYMENT.md](DEPLOYMENT.md) - Deployment guide
 - [TESTING.md](TESTING.md) - Detailed testing guide
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution workflow
+
+---
+
+## Advanced Patterns
+
+### Authentication Architecture
+
+The app uses a layered authentication approach:
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   UI Layer                          │
+│  LoginScreen / SignupScreen                         │
+└────────────────────┬────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────┐
+│                AuthService                          │
+│  - loginWithPassword()                              │
+│  - loginWithSocial()                                │
+│  - signUpWithPassword()                             │
+│  - unlockWithBiometrics()                           │
+│  - logout()                                         │
+└────────────────────┬────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────┐
+│                SecureStore                          │
+│  - Access/Refresh/ID tokens                         │
+│  - flutter_secure_storage (encrypted)               │
+└────────────────────┬────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────┐
+│             Auth0 (External)                        │
+│  - ROPG for password login                          │
+│  - webAuthentication for social                     │
+└─────────────────────────────────────────────────────┘
+```
+
+### Global Store Initialization
+
+After login, stores are initialized in parallel for performance:
+
+```dart
+// In login_screen.dart _postLogin()
+useAccountStore();    // Fire and forget
+useAnimalStore();     // All run in parallel
+useCageStore();
+useStrainStore();
+// ...
+```
+
+Each store follows the lazy-init pattern:
+```dart
+Future<void> useStrainStore() async {
+  if (strainStore.value != null) return; // Already loaded
+  strainStore.value = await storeApi.getStrains();
+}
+```
+
+### Error Context Service
+
+The app automatically collects error context for debugging:
+
+```dart
+// lib/services/error_context_service.dart
+- Current route tracking via ErrorContextNavigationObserver
+- Navigation breadcrumbs (last 10 routes)
+- User profile snapshot
+- App state at time of error
+```
+
+Usage:
+```dart
+reportError(
+  error: e,
+  stackTrace: stackTrace,
+  context: 'User action: saving animal',
+);
+```
+
+### File Upload Pattern
+
+Multipart file uploads use a dedicated method:
+
+```dart
+// ApiClient.uploadFile()
+Future<http.StreamedResponse> uploadFile(
+  String path, {
+  required File file,
+  String fileFieldName = 'file',
+  Map<String, String>? fields,
+}) async {
+  final request = http.MultipartRequest('POST', uri);
+  request.headers['Authorization'] = 'Bearer $token';
+  request.files.add(await http.MultipartFile.fromPath(fileFieldName, file.path));
+  return await request.send();
+}
+```
+
+### Platform-Specific Configuration
+
+**iOS Info.plist keys:**
+- `NSFaceIDUsageDescription` - Biometric auth
+- `NSCameraUsageDescription` - Barcode scanning
+- `NSPhotoLibraryUsageDescription` - File uploads
+- `CFBundleURLSchemes` - Auth0 callback + deep links
+
+**Android AndroidManifest.xml:**
+- `USE_BIOMETRIC` / `USE_FINGERPRINT` - Biometric auth
+- `CAMERA` - Barcode scanning
+- Intent filters for Auth0 callback and app links
+
+### Deep Link Configuration
+
+Android supports App Links for `app.moustra.com`:
+```xml
+<intent-filter android:autoVerify="true">
+    <data android:scheme="https" android:host="app.moustra.com"/>
+</intent-filter>
+```
+
+iOS uses custom URL scheme:
+```xml
+<string>com.moustra.app</string>
+```
+
+### Screen Navigation Pattern
+
+All screens use consistent back navigation handling:
+
+```dart
+// For screens accessed from cage grid
+GoRoute(
+  path: '/cage/:cageUuid',
+  pageBuilder: (context, state) {
+    final fromCageGrid = state.uri.queryParameters['fromCageGrid'] == 'true';
+    return MaterialPage(
+      child: CageDetailScreen(fromCageGrid: fromCageGrid),
+    );
+  },
+),
+```
+
+This allows conditional "return to grid" behavior after edits.
+
+### Barcode Scanner Integration
+
+The scanner returns scanned value via Navigator.pop:
+
+```dart
+// Opening scanner
+final barcode = await Navigator.push<String>(
+  context,
+  MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
+);
+if (barcode != null) {
+  // Use barcode
+}
+
+// In scanner, on detection
+Navigator.of(context).pop(code);
+```
+
+### Widget Reuse Strategy
+
+Common patterns are extracted to `lib/widgets/shared/`:
+
+| Widget | Purpose |
+|--------|---------|
+| `select_animal.dart` | Animal picker dropdown |
+| `select_cage.dart` | Cage picker dropdown |
+| `select_strain.dart` | Strain picker with color |
+| `select_date.dart` | Date picker with formatting |
+| `select_mating.dart` | Mating picker for litters |
+| `multi_select_animal.dart` | Multi-animal selection |
+| `button.dart` | Styled button variants |
+
+### Syncfusion DataGrid Usage
+
+List screens use Syncfusion DataGrid for tables:
+
+```dart
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+
+// Common pattern in animals_screen.dart, cages_list_screen.dart, etc.
+SfDataGrid(
+  source: _dataSource,
+  columns: [
+    GridColumn(columnName: 'tag', label: Text('Tag')),
+    // ...
+  ],
+  allowSorting: true,
+  allowFiltering: true,
+)
+```
+
+### Form Validation Pattern
+
+Forms use AutofillGroup for credential saving:
+
+```dart
+AutofillGroup(
+  child: Form(
+    key: _formKey,
+    child: Column(
+      children: [
+        TextFormField(
+          autofillHints: const [AutofillHints.email],
+          validator: _validateEmail,
+        ),
+        TextFormField(
+          autofillHints: const [AutofillHints.password],
+          validator: _validatePassword,
+        ),
+      ],
+    ),
+  ),
+)
+
+// On successful submit:
+TextInput.finishAutofillContext(shouldSave: true);
+```
+
+---
+
+## Mobile vs Web Feature Gaps
+
+Key features missing from mobile (see [docs/FEATURE-PARITY.md](docs/FEATURE-PARITY.md)):
+
+**High Priority:**
+- Create animals from litter (wean flow)
+- End litter(s) batch operation
+- User invitation acceptance via deep link
+
+**Medium Priority:**
+- Cage utilization metrics
+- Password reset flow
+- Animal family tree visualization
+
+**Not Planned for Mobile:**
+- CSV import/data migration
+- AI Chat
+- Advanced table customization
