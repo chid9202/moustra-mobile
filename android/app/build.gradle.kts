@@ -12,7 +12,7 @@ android {
     namespace = "com.moustra.app"
     compileSdk = flutter.compileSdkVersion
     // Explicitly set NDK version to avoid symbol stripping issues on ARM Macs
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -111,7 +111,7 @@ android {
 // that don't yet support 16 KB.
 //
 // Solution implemented:
-// 1. Using NDK version 27.0.12077973 which supports 16 KB page sizes
+// 1. Using NDK version 28.2.13676358 which supports 16 KB page sizes
 // 2. Excluded incompatible native libraries from packaging:
 //    - libimage_processing_util_jni.so (ML Kit utility library)
 //    - libbarhopper_v3.so (ML Kit barhopper library)
