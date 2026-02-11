@@ -17,7 +17,7 @@ class MoustraAppBar extends StatelessWidget implements PreferredSizeWidget {
       flexibleSpace: Container(
         alignment: Alignment.bottomCenter,
         child: GestureDetector(
-          onTap: () => context.go('/dashboard'),
+          onTap: () => context.go('/cage/grid'),
           child: Image.asset(
             'assets/icons/app_icon.png',
             height: 64,

@@ -105,44 +105,46 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  void _postLogin(ProfileRequestDto request) {
-    profileService
-        .getProfile(request)
-        .then((profile) {
-          profileState.value = profile;
-          // Initialize all stores in parallel without awaiting
-          useAccountStore();
-          useAnimalStore();
-          useCageStore();
-          useStrainStore();
-          useGeneStore();
-          useAlleleStore();
-          useRackStore();
-          useBackgroundStore();
-          useSettingStore();
-        })
-        .catchError((e) {
-          debugPrint(e);
-          if (mounted) {
-            setState(() {
-              _loading = false;
-              _error = 'Failed to load profile: $e';
-            });
-          }
-        })
-        .then((_) async {
-          if (mounted) {
-            // Give time to process the autofill save request before navigating
-            await Future.delayed(const Duration(milliseconds: 300));
-            if (mounted) {
-              // Reset loading before navigation
-              setState(() {
-                _loading = false;
-              });
-              context.go('/dashboard');
-            }
-          }
+  Future<void> _postLogin(ProfileRequestDto request) async {
+    try {
+      final profile = await profileService.getProfile(request);
+      profileState.value = profile;
+      // Initialize all stores in parallel without awaiting
+      useAccountStore();
+      useAnimalStore();
+      useCageStore();
+      useStrainStore();
+      useGeneStore();
+      useAlleleStore();
+      useRackStore();
+      useBackgroundStore();
+      useSettingStore();
+
+      if (mounted) {
+        // Give time to process the autofill save request before navigating
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (mounted) {
+          setState(() {
+            _loading = false;
+          });
+          context.go('/cage/grid');
+        }
+      }
+    } catch (e) {
+      debugPrint('Post-login error: $e');
+      // Log out so the user can retry login with a clean auth state
+      await authService.logout();
+      if (mounted) {
+        String errorMessage = e.toString();
+        if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.substring(11);
+        }
+        setState(() {
+          _loading = false;
+          _error = errorMessage;
         });
+      }
+    }
   }
 
   @override

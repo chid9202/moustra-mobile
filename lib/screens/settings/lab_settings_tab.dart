@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:moustra/services/clients/lab_setting_api.dart';
 import 'package:moustra/services/dtos/lab_setting_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
@@ -184,6 +185,10 @@ class _LabSettingsTabState extends State<LabSettingsTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Colony Setup Wizard Card
+            _buildWizardCard(context),
+            const SizedBox(height: 16),
+
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -302,6 +307,64 @@ class _LabSettingsTabState extends State<LabSettingsTab> {
               onPressed: _saveSettings,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWizardCard(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+      child: InkWell(
+        onTap: () => context.go('/colony-wizard'),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.science_outlined,
+                  color: theme.colorScheme.onPrimary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Colony Setup Wizard',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Set up strains, racks, cages, and animals step by step',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
         ),
       ),
     );

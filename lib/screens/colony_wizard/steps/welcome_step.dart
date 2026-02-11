@@ -29,7 +29,7 @@ class _WelcomeStepState extends State<WelcomeStep> {
   }
 
   void _onSkip() {
-    context.go('/dashboard');
+    context.go('/cage/grid');
   }
 
   void _onGetStarted() {

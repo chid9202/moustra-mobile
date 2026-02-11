@@ -6,6 +6,7 @@ import 'package:moustra/screens/cage_detail_screen.dart';
 import 'package:moustra/screens/litter_detail_screen.dart';
 import 'package:moustra/screens/mating_detail_screen.dart';
 import 'package:moustra/screens/strain_detail_screen.dart';
+import 'package:moustra/screens/colony_wizard/colony_wizard_screen.dart';
 import 'package:moustra/stores/auth_store.dart';
 import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/widgets/app_bar.dart';
@@ -50,6 +51,12 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(path: '/', redirect: (context, state) => '/login'),
+    // Colony Wizard - full screen without app shell
+    GoRoute(
+      path: '/colony-wizard',
+      pageBuilder: (context, state) =>
+          const MaterialPage(child: ColonyWizardScreen()),
+    ),
     ShellRoute(
       pageBuilder: (context, state, child) => MaterialPage(
         child: Scaffold(
@@ -219,9 +226,9 @@ final GoRouter appRouter = GoRouter(
     }
     if (onAuthPage) {
       debugPrint('on auth page');
-      // Wait for profile to be loaded before redirecting to dashboard
+      // Wait for profile to be loaded before redirecting to racks (matching web)
       final hasAccount = profileState.value?.accountUuid != null;
-      return hasAccount ? '/dashboard' : null;
+      return hasAccount ? '/cage/grid' : null;
     }
     debugPrint('logged in');
     return null;

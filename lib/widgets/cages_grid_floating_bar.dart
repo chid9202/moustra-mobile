@@ -152,11 +152,15 @@ class RackSelector extends StatelessWidget {
         hint: const Text('Select Rack'),
         underline: const SizedBox(),
         isDense: true,
+        isExpanded: true,
         items: racks!.map((rack) {
           return DropdownMenuItem<RackSimpleDto>(
             value: rack,
             key: ValueKey('${rack.rackId}'),
-            child: Text(rack.rackName ?? 'Unnamed Rack'),
+            child: Text(
+              rack.rackName ?? 'Unnamed Rack',
+              overflow: TextOverflow.ellipsis,
+            ),
           );
         }).toList(),
         onChanged: (rack) {
@@ -370,22 +374,27 @@ class WideLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         // Left side: Rack selector and settings
-        Row(
-          children: [
-            RackSelector(
-              racks,
-              onRackSelected: onRackSelected,
-              selectedRack: selectedRack,
-            ),
-            const SizedBox(width: 8),
-            SettingsButton(onAddRack: onAddRack, onEditRack: onEditRack),
-          ],
+        Expanded(
+          child: Row(
+            children: [
+              Flexible(
+                child: RackSelector(
+                  racks,
+                  onRackSelected: onRackSelected,
+                  selectedRack: selectedRack,
+                ),
+              ),
+              const SizedBox(width: 8),
+              SettingsButton(onAddRack: onAddRack, onEditRack: onEditRack),
+            ],
+          ),
         ),
+        const SizedBox(width: 8),
         // Right side: Search and zoom
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Search bar
             Container(

@@ -117,7 +117,7 @@ class _ReviewStepState extends State<ReviewStep> {
     // Reset wizard state
     wizardState.reset();
     // Navigate to dashboard
-    context.go('/dashboard');
+    context.go('/cage/grid');
   }
 
   @override

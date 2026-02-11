@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/services/clients/store_api.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
+import 'package:moustra/stores/profile_store.dart';
 
 final accountStore = ValueNotifier<List<AccountStoreDto>?>(null);
 
@@ -18,12 +19,21 @@ Future<List<AccountStoreDto>> getAccountsHook() async {
   return accountStore.value ?? [];
 }
 
-Future<AccountStoreDto?> getAccountHook(String? uuid) async {
-  if (uuid == null || uuid == '') {
-    return null;
-  }
+/// Get account by UUID. If uuid is null/empty, returns current user's account.
+Future<AccountStoreDto?> getAccountHook([String? uuid]) async {
   await useAccountStore();
+  
+  // If no UUID provided, get current user's account
+  final targetUuid = (uuid == null || uuid.isEmpty)
+      ? profileState.value?.accountUuid
+      : uuid;
+  
+  if (targetUuid == null || targetUuid.isEmpty) {
+    return accountStore.value?.firstOrNull;
+  }
+  
   return accountStore.value?.firstWhere(
-    (account) => account.accountUuid == uuid,
+    (account) => account.accountUuid == targetUuid,
+    orElse: () => accountStore.value!.first,
   );
 }

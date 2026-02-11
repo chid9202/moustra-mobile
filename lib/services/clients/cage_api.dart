@@ -119,6 +119,41 @@ class CageApi {
     return RackDto.fromJson(jsonDecode(res.body));
   }
 
+  /// Create cage with animals, mating, and litter (wizard mode)
+  Future<RackDto> createCageWithAnimals({
+    required String cageTag,
+    required String rackUuid,
+    int? xPosition,
+    int? yPosition,
+    String? strainUuid,
+    List<Map<String, dynamic>>? newAnimals,
+    String? matingTag,
+    String? litterStrainUuid,
+    Map<String, int>? litter,
+  }) async {
+    final body = <String, dynamic>{
+      'cageTag': cageTag,
+      'rack': rackUuid,
+    };
+    if (xPosition != null) body['xPosition'] = xPosition;
+    if (yPosition != null) body['yPosition'] = yPosition;
+    if (strainUuid != null) body['strain'] = strainUuid;
+    if (newAnimals != null && newAnimals.isNotEmpty) {
+      body['newAnimals'] = newAnimals;
+    }
+    if (matingTag != null && matingTag.isNotEmpty) {
+      body['matingTag'] = matingTag;
+    }
+    if (litterStrainUuid != null) body['litterStrain'] = litterStrainUuid;
+    if (litter != null) body['litter'] = litter;
+    
+    final res = await apiClient.post(basePath, body: body);
+    if (res.statusCode != 201) {
+      throw Exception('Failed to create cage with animals: ${res.body}');
+    }
+    return RackDto.fromJson(jsonDecode(res.body));
+  }
+
   Future<CageDto> putCage(String cageUuid, PutCageDto payload) async {
     debugPrint(jsonEncode(payload.toJson()));
     final res = await apiClient.put('$basePath/$cageUuid', body: payload);

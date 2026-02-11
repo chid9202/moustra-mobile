@@ -10,6 +10,11 @@ class ProfileApi {
       body: body,
       withoutAccountPrefix: true,
     );
+    if (res.statusCode != 200) {
+      throw Exception(
+        'Login failed. The server returned an error (${res.statusCode}). Please try again.',
+      );
+    }
     final Map<String, dynamic> data = jsonDecode(res.body);
     return ProfileResponseDto.fromJson(data);
   }

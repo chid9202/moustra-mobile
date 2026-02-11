@@ -27,7 +27,6 @@ class _StrainsScreenState extends State<StrainsScreen> {
   // Filter & Sort state
   List<FilterParam> _activeFilters = [];
   SortParam? _activeSort = StrainFilterConfig.defaultSort;
-  bool _showInactiveOnly = false;
 
   @override
   void initState() {
@@ -65,15 +64,6 @@ class _StrainsScreenState extends State<StrainsScreen> {
       ));
     }
 
-    // Add inactive filter if toggled
-    if (_showInactiveOnly) {
-      filters.add(FilterParam(
-        field: 'is_active',
-        operator: FilterOperators.equals,
-        value: 'false',
-      ));
-    }
-
     List<SortParam> sorts = [];
     if (_activeSort != null) {
       sorts.add(_activeSort!);
@@ -91,38 +81,14 @@ class _StrainsScreenState extends State<StrainsScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Filter Panel with inactive toggle
-        Row(
-          children: [
-            Expanded(
-              child: FilterPanel(
-                filterFields: StrainFilterConfig.filterFields,
-                sortFields: StrainFilterConfig.sortFields,
-                initialFilters: _activeFilters,
-                initialSort: _activeSort,
-                onApply: _onFiltersApplied,
-                onClear: _onFiltersClear,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Checkbox(
-                    value: _showInactiveOnly,
-                    onChanged: (value) {
-                      setState(() {
-                        _showInactiveOnly = value ?? false;
-                      });
-                      _controller.reload();
-                    },
-                  ),
-                  const Text('Inactive Only'),
-                ],
-              ),
-            ),
-          ],
+        // Filter Panel
+        FilterPanel(
+          filterFields: StrainFilterConfig.filterFields,
+          sortFields: StrainFilterConfig.sortFields,
+          initialFilters: _activeFilters,
+          initialSort: _activeSort,
+          onApply: _onFiltersApplied,
+          onClear: _onFiltersClear,
         ),
         const Divider(height: 1),
         Expanded(

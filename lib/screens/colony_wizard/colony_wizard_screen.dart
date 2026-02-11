@@ -55,7 +55,7 @@ class _ColonyWizardScreenState extends State<ColonyWizardScreen> {
   }
 
   void _onClose() {
-    context.go('/dashboard');
+    context.go('/cage/grid');
   }
 
   void _onBack() {

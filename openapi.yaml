@@ -4,83 +4,7 @@ info:
   version: 1.0.0
   description: API documentation for Moustra SaaS product
 paths:
-  /api/v1/account:
-    get:
-      operationId: v1_account_list
-      summary: List accounts
-      tags:
-      - Account
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AccountSLR'
-          description: ''
-    post:
-      operationId: v1_account_create
-      description: Register account (Sign up)
-      summary: Register account
-      tags:
-      - Account
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AccountRegister'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AccountRegister'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AccountRegister'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                type: string
-                format: uuid
-          description: ''
-        '400':
-          description: No response body
   /api/v1/account-invite/{invite}:
-    get:
-      operationId: account_invite_get
-      description: Activate account invite
-      summary: Activate account invite
-      parameters:
-      - in: path
-        name: invite
-        schema:
-          type: string
-          format: uuid
-        description: Invite UUID
-        required: true
-      tags:
-      - Account Invite
-      security:
-      - jwtAuth: []
-      - {}
-      deprecated: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AccountSLR'
-          description: ''
-        '400':
-          description: No response body
     post:
       operationId: account_invite_post
       description: Activate lab user invite
@@ -101,33 +25,6 @@ paths:
       responses:
         '200':
           description: No response body
-        '400':
-          description: No response body
-  /api/v1/account-invite/{invite}/resend:
-    post:
-      operationId: account_invite_resend_post
-      summary: Resend account invite
-      parameters:
-      - in: path
-        name: invite
-        schema:
-          type: string
-          format: uuid
-        description: Invite UUID
-        required: true
-      tags:
-      - Account Invite
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                type: string
-                format: uuid
-          description: ''
         '400':
           description: No response body
   /api/v1/account/{account_uuid}:
@@ -156,7 +53,7 @@ paths:
         '404':
           description: No response body
     post:
-      operationId: v1_account_create_2
+      operationId: v1_account_create
       summary: Create account
       parameters:
       - in: path
@@ -305,74 +202,6 @@ paths:
           description: ''
         '403':
           description: No response body
-  /api/v1/account/{account_uuid}/ai/gel/analyze:
-    post:
-      operationId: v1_account_ai_gel_analyze_create
-      summary: Analyze gel image with AI
-      parameters:
-      - in: path
-        name: account_uuid
-        schema:
-          type: string
-          format: uuid
-        description: Account UUID
-        required: true
-      tags:
-      - AI
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                labeled_image:
-                  type: string
-                  format: binary
-                gel_analyze_payload:
-                  type: string
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-          description: ''
-        '400':
-          description: No response body
-  /api/v1/account/{account_uuid}/ai/gel/analyze/{ai_gel_image_uuid}:
-    get:
-      operationId: v1_account_ai_gel_analyze_retrieve
-      summary: Get AI gel analyze result
-      parameters:
-      - in: path
-        name: account_uuid
-        schema:
-          type: string
-          format: uuid
-        description: Account UUID
-        required: true
-      - in: path
-        name: ai_gel_image_uuid
-        schema:
-          type: string
-          format: uuid
-        description: AI Gel Image UUID
-        required: true
-      tags:
-      - AI
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-          description: ''
-        '404':
-          description: No response body
   /api/v1/account/{account_uuid}/ai/suggestion/{suggestion_uuid}:
     put:
       operationId: v1_account_ai_suggestion_update
@@ -418,32 +247,6 @@ paths:
         '400':
           description: No response body
   /api/v1/account/{account_uuid}/allele:
-    get:
-      operationId: v1_account_allele_list
-      summary: List alleles
-      parameters:
-      - in: path
-        name: account_uuid
-        schema:
-          type: string
-          format: uuid
-        description: Account UUID
-        required: true
-      tags:
-      - Allele
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AlleleSLR'
-          description: ''
-        '404':
-          description: No response body
     post:
       operationId: v1_account_allele_create
       summary: Create allele
@@ -1779,7 +1582,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CageOrderRequest'
-        required: true
       security:
       - jwtAuth: []
       responses:
@@ -2041,77 +1843,6 @@ paths:
         '400':
           description: No response body
         '404':
-          description: No response body
-  /api/v1/account/{account_uuid}/data-migration/{data_migration_uuid}/process:
-    post:
-      operationId: data_migration_process_post
-      summary: Process data migration (deprecated)
-      parameters:
-      - in: path
-        name: account_uuid
-        schema:
-          type: string
-          format: uuid
-        description: Account UUID
-        required: true
-      - in: path
-        name: data_migration_uuid
-        schema:
-          type: string
-          format: uuid
-        description: Data Migration UUID
-        required: true
-      tags:
-      - Data Migration
-      security:
-      - jwtAuth: []
-      deprecated: true
-      responses:
-        '200':
-          description: No response body
-  /api/v1/account/{account_uuid}/data-migration/ai:
-    post:
-      operationId: v1_account_data_migration_ai_create
-      description: |-
-        Upload file and start background AI migration processing.
-
-        Accepts:
-            - file: Excel or CSV file
-
-        Returns:
-            DataMigration object with status "processing"
-      summary: Create AI data migration (deprecated)
-      parameters:
-      - in: path
-        name: account_uuid
-        schema:
-          type: string
-          format: uuid
-        description: Account UUID
-        required: true
-      tags:
-      - Data Migration
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DataMigrationSLR'
-          description: ''
-        '400':
-          description: No response body
-        '500':
           description: No response body
   /api/v1/account/{account_uuid}/data-migration/analyze:
     post:
@@ -4000,6 +3731,75 @@ paths:
           description: ''
         '400':
           description: No response body
+    delete:
+      operationId: v1_account_rack_destroy
+      summary: Delete rack (soft delete)
+      parameters:
+      - in: path
+        name: account_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Account UUID
+        required: true
+      - in: path
+        name: rack_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Rack UUID
+        required: true
+      tags:
+      - Rack
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+        '404':
+          description: No response body
+  /api/v1/account/{account_uuid}/sample-data:
+    post:
+      operationId: v1_account_sample_data_create
+      description: Creates sample data (strains, genes, alleles, cages, animals, matings,
+        litters) for the account's lab. This endpoint can only be called once per
+        lab - subsequent calls will be rejected.
+      summary: Spawn sample dataset
+      parameters:
+      - in: path
+        name: account_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Account UUID
+        required: true
+      tags:
+      - Account
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Sample data created successfully
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Sample data already exists for this lab
+          description: ''
+        '404':
+          description: No response body
   /api/v1/account/{account_uuid}/settings:
     get:
       operationId: v1_account_settings_retrieve
@@ -5306,160 +5106,6 @@ paths:
       responses:
         '302':
           description: No response body
-  /api/v1/reset-password:
-    get:
-      operationId: v1_reset_password_retrieve
-      summary: Validate reset password token
-      parameters:
-      - in: path
-        name: token_uuid
-        schema:
-          type: string
-          format: uuid
-        description: Token UUID
-        required: true
-      tags:
-      - Account
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-        '400':
-          description: No response body
-    post:
-      operationId: v1_reset_password_create
-      summary: Request password reset
-      tags:
-      - Account
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordEmail'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordEmail'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordEmail'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-    put:
-      operationId: v1_reset_password_update
-      summary: Reset password with token
-      tags:
-      - Account
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordToken'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordToken'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordToken'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-        '400':
-          description: No response body
-  /api/v1/reset-password/{token_uuid}:
-    get:
-      operationId: v1_reset_password_retrieve_2
-      summary: Validate reset password token
-      parameters:
-      - in: path
-        name: token_uuid
-        schema:
-          type: string
-          format: uuid
-        description: Token UUID
-        required: true
-      tags:
-      - Account
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-        '400':
-          description: No response body
-    post:
-      operationId: v1_reset_password_create_2
-      summary: Request password reset
-      parameters:
-      - in: path
-        name: token_uuid
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - Account
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordEmail'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordEmail'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordEmail'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-    put:
-      operationId: v1_reset_password_update_2
-      summary: Reset password with token
-      parameters:
-      - in: path
-        name: token_uuid
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - Account
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordToken'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordToken'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordToken'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-        '400':
-          description: No response body
   /api/v1/stripe/webhook/subscription:
     post:
       operationId: stripe_subscription_webhook_post
@@ -5509,8 +5155,6 @@ components:
           format: uuid
         ai_assistants_count:
           type: integer
-        vector_stores_count:
-          type: integer
         ai_tasks_count:
           type: integer
         cages_with_gcp_files:
@@ -5536,30 +5180,6 @@ components:
       - last_updated
       - sync_status
       - total_cages
-      - vector_stores_count
-    AccountRegister:
-      type: object
-      properties:
-        password:
-          type: string
-          maxLength: 128
-        first_name:
-          type: string
-          maxLength: 100
-        last_name:
-          type: string
-          maxLength: 100
-        email:
-          type: string
-          format: email
-        is_active:
-          type: boolean
-          default: false
-      required:
-      - email
-      - first_name
-      - last_name
-      - password
     AccountResetPasswordRequest:
       type: object
       properties:
@@ -5585,7 +5205,7 @@ components:
         role:
           type: string
           maxLength: 100
-        is_active:
+        is_membership_active:
           type: boolean
           nullable: true
       required:
@@ -5924,7 +5544,7 @@ components:
         role:
           type: string
           nullable: true
-        is_active:
+        is_membership_active:
           type: boolean
           nullable: true
       required:
@@ -5972,10 +5592,6 @@ components:
         cage:
           allOf:
           - $ref: '#/components/schemas/AnimalCageSLR'
-          nullable: true
-        mating:
-          allOf:
-          - $ref: '#/components/schemas/PostAnimalMatingSLR'
           nullable: true
         sire:
           allOf:
@@ -6141,7 +5757,7 @@ components:
         role:
           type: string
           maxLength: 100
-        is_active:
+        is_membership_active:
           type: boolean
           nullable: true
       required:
@@ -6354,6 +5970,16 @@ components:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
+        x_position:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        y_position:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
         comment:
           type: string
           nullable: true
@@ -6380,8 +6006,13 @@ components:
       properties:
         order:
           type: integer
-      required:
-      - order
+          nullable: true
+        x:
+          type: integer
+          nullable: true
+        y:
+          type: integer
+          nullable: true
     CageSLR:
       type: object
       properties:
@@ -6424,6 +6055,16 @@ components:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
+        x_position:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        y_position:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
         comment:
           type: string
           nullable: true
@@ -6529,6 +6170,9 @@ components:
         notes:
           type: string
           readOnly: true
+        physical_tag:
+          type: string
+          nullable: true
         eid:
           type: integer
           readOnly: true
@@ -6543,10 +6187,6 @@ components:
           type: string
           format: date
           nullable: true
-        physical_tag:
-          type: string
-          nullable: true
-          maxLength: 100
         identification_method:
           $ref: '#/components/schemas/IdentificationMethodEnum'
         procedure_date:
@@ -6701,8 +6341,6 @@ components:
           type: string
           nullable: true
           maxLength: 100
-        litter_strain:
-          $ref: '#/components/schemas/SimpleStrainSLR'
         animals:
           type: array
           items:
@@ -6710,7 +6348,6 @@ components:
           readOnly: true
       required:
       - animals
-      - litter_strain
       - mating_uuid
     CoreMatingCage:
       type: object
@@ -7246,7 +6883,7 @@ components:
         role:
           type: string
           maxLength: 100
-        is_active:
+        is_membership_active:
           type: boolean
           nullable: true
         position:
@@ -7390,7 +7027,7 @@ components:
         role:
           type: string
           maxLength: 100
-        is_active:
+        is_membership_active:
           type: boolean
           nullable: true
         position:
@@ -7435,6 +7072,10 @@ components:
           nullable: true
         mating:
           $ref: '#/components/schemas/ViewLitterMating'
+        strain:
+          allOf:
+          - $ref: '#/components/schemas/SimpleStrainSLR'
+          readOnly: true
         owner:
           allOf:
           - $ref: '#/components/schemas/BaseAccountSLR'
@@ -7468,6 +7109,7 @@ components:
       - litter_tag
       - litter_uuid
       - mating
+      - strain
     LitterSLR:
       type: object
       properties:
@@ -7484,6 +7126,10 @@ components:
           nullable: true
         mating:
           $ref: '#/components/schemas/CoreLitterMating'
+        strain:
+          allOf:
+          - $ref: '#/components/schemas/SimpleStrainSLR'
+          readOnly: true
         owner:
           allOf:
           - $ref: '#/components/schemas/AccountSLR'
@@ -7520,6 +7166,7 @@ components:
       - litter_uuid
       - mating
       - notes
+      - strain
     LocationEnum:
       enum:
       - LEFT
@@ -8101,6 +7748,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PatchAnimalGenotypeSLR'
+        strain:
+          allOf:
+          - $ref: '#/components/schemas/AnimalStrainSLR'
+          nullable: true
       required:
       - animal_uuid
     PaymentIntentRequest:
@@ -8141,12 +7792,12 @@ components:
           format: email
         plan:
           type: string
-        is_active:
+        is_membership_active:
           type: boolean
       required:
       - email
       - first_name
-      - is_active
+      - is_membership_active
       - last_name
       - plan
       - username
@@ -8202,6 +7853,57 @@ components:
           nullable: true
       required:
       - name
+    PostCageAnimalGenotypeSLR:
+      type: object
+      properties:
+        gene:
+          type: string
+          format: uuid
+          nullable: true
+        allele:
+          type: string
+          format: uuid
+          nullable: true
+    PostCageAnimalSLR:
+      type: object
+      properties:
+        sex:
+          type: string
+        physical_tag:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+        wean_date:
+          type: string
+          format: date
+          nullable: true
+        strain:
+          allOf:
+          - $ref: '#/components/schemas/SimpleStrainSLR'
+          nullable: true
+        comment:
+          type: string
+          nullable: true
+        genotypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostCageAnimalGenotypeSLR'
+      required:
+      - date_of_birth
+      - sex
+    PostCageLitterSLR:
+      type: object
+      properties:
+        number_of_male:
+          type: integer
+          default: 0
+        number_of_female:
+          type: integer
+          default: 0
+        number_of_unknown:
+          type: integer
+          default: 0
     PostCageSLR:
       type: object
       properties:
@@ -8233,6 +7935,27 @@ components:
           type: array
           items:
             type: string
+        x_position:
+          type: integer
+          nullable: true
+        y_position:
+          type: integer
+          nullable: true
+        new_animals:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostCageAnimalSLR'
+        mating_tag:
+          type: string
+          nullable: true
+        litter_strain:
+          allOf:
+          - $ref: '#/components/schemas/SimpleStrainSLR'
+          nullable: true
+        litter:
+          allOf:
+          - $ref: '#/components/schemas/PostCageLitterSLR'
+          nullable: true
         eid:
           type: integer
           readOnly: true
@@ -8377,10 +8100,13 @@ components:
       properties:
         number_of_male:
           type: integer
+          default: 0
         number_of_female:
           type: integer
+          default: 0
         number_of_unknown:
           type: integer
+          default: 0
         comment:
           type: string
           nullable: true
@@ -8398,14 +8124,15 @@ components:
           $ref: '#/components/schemas/AnimalOwnerSLR'
         mating:
           type: string
+        strain:
+          type: string
+          format: uuid
+          nullable: true
       required:
       - comment
       - date_of_birth
       - litter_tag
       - mating
-      - number_of_female
-      - number_of_male
-      - number_of_unknown
     PostMatingSLR:
       type: object
       properties:
@@ -8618,7 +8345,7 @@ components:
           format: email
         plan:
           type: string
-        is_active:
+        is_membership_active:
           type: boolean
     PutAccountByLabAdminSLR:
       type: object
@@ -8628,7 +8355,7 @@ components:
           format: uuid
         first_name:
           type: string
-        is_active:
+        is_membership_active:
           type: boolean
         last_name:
           type: string
@@ -8813,9 +8540,9 @@ components:
           allOf:
           - $ref: '#/components/schemas/AccountSLR'
           nullable: true
-        litter_strain:
+        strain:
           allOf:
-          - $ref: '#/components/schemas/SimpleStrainSLR'
+          - $ref: '#/components/schemas/StrainUUIDInputSLR'
           nullable: true
       required:
       - comment
@@ -9023,7 +8750,7 @@ components:
         role:
           type: string
           maxLength: 100
-        is_active:
+        is_membership_active:
           type: boolean
           nullable: true
       required:
@@ -9064,6 +8791,16 @@ components:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
+        x_position:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        y_position:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
         status:
           type: string
           nullable: true
@@ -9207,27 +8944,6 @@ components:
       - rack_name
       - rack_uuid
       - racks
-    ResetPasswordEmail:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-      required:
-      - email
-    ResetPasswordToken:
-      type: object
-      properties:
-        token:
-          type: string
-        password:
-          type: string
-        confirm_password:
-          type: string
-      required:
-      - confirm_password
-      - password
-      - token
     SimpleAnimalSLR:
       type: object
       properties:
@@ -9430,6 +9146,15 @@ components:
       - created_date
       - strain_id
       - strain_name
+      - strain_uuid
+    StrainUUIDInputSLR:
+      type: object
+      description: Lightweight serializer for strain input that only requires strain_uuid.
+      properties:
+        strain_uuid:
+          type: string
+          format: uuid
+      required:
       - strain_uuid
     Subscription:
       type: object
@@ -9651,8 +9376,6 @@ components:
           type: string
           nullable: true
           maxLength: 100
-        litter_strain:
-          $ref: '#/components/schemas/SimpleStrainSLR'
         animals:
           type: array
           items:
@@ -9660,7 +9383,6 @@ components:
           readOnly: true
       required:
       - animals
-      - litter_strain
       - mating_uuid
     ViewUser:
       type: object

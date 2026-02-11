@@ -135,7 +135,7 @@ class _SignupScreenState extends State<SignupScreen> {
               setState(() {
                 _loading = false;
               });
-              context.go('/dashboard');
+              context.go('/cage/grid');
             }
           }
         });
