@@ -24,7 +24,12 @@ Future<StrainStoreDto?> getStrainHook(String? uuid) async {
     return null;
   }
   await useStrainStore();
-  return strainStore.value?.firstWhere((strain) => strain.strainUuid == uuid);
+  final strains = strainStore.value;
+  if (strains == null) return null;
+  for (final strain in strains) {
+    if (strain.strainUuid == uuid) return strain;
+  }
+  return null;
 }
 
 Future<void> refreshStrainStore() async {

@@ -185,19 +185,11 @@ class SettingsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.settings),
-      onSelected: (value) {
-        if (value == 'add') {
-          onAddRack();
-        } else if (value == 'edit') {
-          onEditRack();
-        }
-      },
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'add',
-          child: Row(
+    return MenuAnchor(
+      menuChildren: [
+        MenuItemButton(
+          onPressed: () => onAddRack(),
+          child: const Row(
             children: [
               Icon(Icons.add, size: 20),
               SizedBox(width: 8),
@@ -205,9 +197,9 @@ class SettingsButton extends StatelessWidget {
             ],
           ),
         ),
-        const PopupMenuItem(
-          value: 'edit',
-          child: Row(
+        MenuItemButton(
+          onPressed: () => onEditRack(),
+          child: const Row(
             children: [
               Icon(Icons.edit, size: 20),
               SizedBox(width: 8),
@@ -216,6 +208,18 @@ class SettingsButton extends StatelessWidget {
           ),
         ),
       ],
+      builder: (BuildContext context, MenuController controller, Widget? child) {
+        return IconButton(
+          icon: const Icon(Icons.settings),
+          onPressed: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+        );
+      },
     );
   }
 }

@@ -23,7 +23,12 @@ Future<CageStoreDto?> getCageHook(String? uuid) async {
     return null;
   }
   await useCageStore();
-  return cageStore.value?.firstWhere((cage) => cage.cageUuid == uuid);
+  final cages = cageStore.value;
+  if (cages == null) return null;
+  for (final cage in cages) {
+    if (cage.cageUuid == uuid) return cage;
+  }
+  return null;
 }
 
 Future<void> refreshCageStore() async {

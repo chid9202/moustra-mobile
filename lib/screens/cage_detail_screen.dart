@@ -16,6 +16,7 @@ import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/screens/barcode_scanner_screen.dart';
 import 'package:moustra/widgets/note/note_list.dart';
 import 'package:moustra/services/dtos/note_entity_type.dart';
+import 'package:moustra/widgets/cage/cage_animals_list.dart';
 
 class CageDetailScreen extends StatefulWidget {
   final bool fromCageGrid;
@@ -325,6 +326,14 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                 maxLines: 3,
               ),
               const SizedBox(height: 32),
+
+              // Animals Section
+              if (_cageUuid != null && _cageUuid != 'new' && _cageData != null)
+                CageAnimalsList(
+                  animals: _cageData!.animals,
+                  cageUuid: _cageUuid!,
+                  fromCageGrid: widget.fromCageGrid,
+                ),
 
               // Notes Section
               if (_cageUuid != null && _cageUuid != 'new')

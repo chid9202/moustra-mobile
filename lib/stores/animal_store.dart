@@ -23,7 +23,12 @@ Future<AnimalStoreDto?> getAnimalHook(String? uuid) async {
     return null;
   }
   await useAnimalStore();
-  return animalStore.value?.firstWhere((animal) => animal.animalUuid == uuid);
+  final animals = animalStore.value;
+  if (animals == null) return null;
+  for (final animal in animals) {
+    if (animal.animalUuid == uuid) return animal;
+  }
+  return null;
 }
 
 Future<List<AnimalStoreDto>> getAnimalsHookByUuids(List<String> uuids) async {

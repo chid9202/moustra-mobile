@@ -34,15 +34,6 @@ class CageHeaderMenu extends StatelessWidget {
     );
   }
 
-  List<PopupMenuItem<String>> _buildMenuItems(BuildContext context) => [
-    const PopupMenuItem<String>(value: 'open_cage', child: Text('Open Cage')),
-    const PopupMenuItem<String>(
-      value: 'add_animals',
-      child: Text('Add Animals'),
-    ),
-    const PopupMenuItem<String>(value: 'move_cage', child: Text('Move Cage')),
-  ];
-
   void _handleMenuSelection(BuildContext context, String value) {
     switch (value) {
       case 'open_cage':
@@ -65,14 +56,33 @@ class CageHeaderMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert),
-      itemBuilder: (context) => _buildMenuItems(context),
-      onSelected: (value) => _handleMenuSelection(context, value),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Theme.of(context).dividerColor, width: 1),
-      ),
+    return MenuAnchor(
+      menuChildren: [
+        MenuItemButton(
+          onPressed: () => _handleMenuSelection(context, 'open_cage'),
+          child: const Text('Open Cage'),
+        ),
+        MenuItemButton(
+          onPressed: () => _handleMenuSelection(context, 'add_animals'),
+          child: const Text('Add Animals'),
+        ),
+        MenuItemButton(
+          onPressed: () => _handleMenuSelection(context, 'move_cage'),
+          child: const Text('Move Cage'),
+        ),
+      ],
+      builder: (BuildContext context, MenuController controller, Widget? child) {
+        return IconButton(
+          icon: const Icon(Icons.more_vert),
+          onPressed: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+        );
+      },
     );
   }
 }

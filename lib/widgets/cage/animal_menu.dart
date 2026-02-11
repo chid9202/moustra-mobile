@@ -20,22 +20,35 @@ class AnimalMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert),
-      itemBuilder: (context) => _buildMenuItems(context),
-      onSelected: (value) => _handleMenuSelection(context, value),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Theme.of(context).dividerColor, width: 1),
-      ),
+    return MenuAnchor(
+      menuChildren: [
+        MenuItemButton(
+          onPressed: () => _handleMenuSelection(context, 'move'),
+          child: const Text('Move'),
+        ),
+        MenuItemButton(
+          onPressed: () => _handleMenuSelection(context, 'open'),
+          child: const Text('Open'),
+        ),
+        MenuItemButton(
+          onPressed: () => _handleMenuSelection(context, 'end'),
+          child: const Text('End'),
+        ),
+      ],
+      builder: (BuildContext context, MenuController controller, Widget? child) {
+        return IconButton(
+          icon: const Icon(Icons.more_vert),
+          onPressed: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+        );
+      },
     );
   }
-
-  List<PopupMenuItem<String>> _buildMenuItems(BuildContext context) => [
-    const PopupMenuItem<String>(value: 'move', child: Text('Move')),
-    const PopupMenuItem<String>(value: 'open', child: Text('Open')),
-    const PopupMenuItem<String>(value: 'end', child: Text('End')),
-  ];
 
   void _handleMenuSelection(BuildContext context, String value) {
     switch (value) {
