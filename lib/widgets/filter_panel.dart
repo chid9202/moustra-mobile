@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra/services/models/prepared_filter.dart';
 
 /// A reusable filter panel widget for list pages
 class FilterPanel extends StatefulWidget {
@@ -9,6 +10,9 @@ class FilterPanel extends StatefulWidget {
   final SortParam? initialSort;
   final void Function(List<FilterParam> filters, SortParam? sort) onApply;
   final VoidCallback? onClear;
+  final List<PreparedFilter> preparedFilters;
+  final int selectedPresetIndex;
+  final ValueChanged<int>? onPresetSelected;
 
   const FilterPanel({
     super.key,
@@ -18,6 +22,9 @@ class FilterPanel extends StatefulWidget {
     this.initialFilters = const [],
     this.initialSort,
     this.onClear,
+    this.preparedFilters = const [],
+    this.selectedPresetIndex = -1,
+    this.onPresetSelected,
   });
 
   @override
@@ -231,6 +238,34 @@ class _FilterPanelState extends State<FilterPanel> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Prepared filter presets
+                if (widget.preparedFilters.isNotEmpty) ...[
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: List.generate(
+                        widget.preparedFilters.length,
+                        (index) {
+                          final preset = widget.preparedFilters[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ChoiceChip(
+                              label: Text(preset.name),
+                              selected: widget.selectedPresetIndex == index,
+                              onSelected: (selected) {
+                                if (selected) {
+                                  widget.onPresetSelected?.call(index);
+                                }
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
                 // Sort row
                 _buildSortRow(theme),
 

@@ -232,6 +232,67 @@ void main() {
       expect(changedBackgrounds![0].uuid, equals(mockBackgrounds[1].uuid));
     });
 
+    testWidgets('should show Add Background button in dialog', (
+      WidgetTester tester,
+    ) async {
+      final mockBackgrounds = MockDataFactory.createBackgroundStoreDtoList(2);
+      List<BackgroundStoreDto> selectedBackgrounds = [];
+
+      await TestHelpers.pumpWidgetWithTheme(
+        tester,
+        TestSelectBackground(
+          selectedBackgrounds: selectedBackgrounds,
+          onChanged: (backgrounds) {},
+          mockBackgrounds: mockBackgrounds,
+        ),
+      );
+
+      await tester.tap(find.byType(InkWell));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add Background'), findsOneWidget);
+      expect(find.byIcon(Icons.add), findsOneWidget);
+    });
+
+    testWidgets('should open Add Background dialog and create new background', (
+      WidgetTester tester,
+    ) async {
+      final mockBackgrounds = MockDataFactory.createBackgroundStoreDtoList(2);
+      List<BackgroundStoreDto> selectedBackgrounds = [];
+
+      await TestHelpers.pumpWidgetWithTheme(
+        tester,
+        TestSelectBackground(
+          selectedBackgrounds: selectedBackgrounds,
+          onChanged: (backgrounds) {},
+          mockBackgrounds: mockBackgrounds,
+        ),
+      );
+
+      // Open the background picker dialog
+      await tester.tap(find.byType(InkWell));
+      await tester.pumpAndSettle();
+
+      // Tap Add Background button
+      await tester.tap(find.text('Add Background'));
+      await tester.pumpAndSettle();
+
+      // Should show the Add Background sub-dialog
+      expect(find.text('Background Name'), findsOneWidget);
+
+      // Enter a name
+      await tester.enterText(find.byType(TextField), 'New BG');
+      await tester.pumpAndSettle();
+
+      // Tap Add
+      await tester.tap(find.text('Add').last);
+      await tester.pumpAndSettle();
+
+      // Should now show 3 checkboxes (2 original + 1 new)
+      expect(find.byType(CheckboxListTile), findsNWidgets(3));
+      expect(find.text('New BG'), findsOneWidget);
+    });
+
     testWidgets('should handle empty background list gracefully', (
       WidgetTester tester,
     ) async {

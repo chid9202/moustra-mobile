@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moustra/helpers/genotype_helper.dart';
+import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/clients/strain_api.dart';
+import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/services/dtos/stores/background_store_dto.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
+import 'package:moustra/services/dtos/genotype_dto.dart';
 import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/widgets/shared/select_background.dart';
+import 'package:moustra/widgets/shared/select_gene/select_gene.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
 
 class StrainDetailScreen extends StatefulWidget {
@@ -26,6 +31,10 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
   List<BackgroundStoreDto> _selectedBackgrounds = [];
   StrainDto? _strainData;
   bool _strainDataLoaded = false;
+  bool _isActive = true;
+  List<AnimalDto>? _animals;
+  bool _animalsLoading = true;
+  List<GenotypeDto> _genotypes = [];
 
   // Get the strain UUID from the route parameters
   String? get _strainUuid {
@@ -85,9 +94,12 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
           _selectedBackgrounds = strain.backgrounds
               .map((e) => e.toBackgroundStoreDto())
               .toList();
+          _genotypes = List.from(strain.genotypes);
+          _isActive = strain.isActive;
           _strainData = strain;
           _strainDataLoaded = true;
         });
+        _loadAnimals();
       }
     } catch (e) {
       debugPrint('Error loading strain: $e');
@@ -97,6 +109,27 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
         ).showSnackBar(SnackBar(content: Text('Error loading strain: $e')));
       }
       _strainDataLoaded = true; // Mark as loaded even on error to prevent retry
+    }
+  }
+
+  void _loadAnimals() async {
+    final strainUuid = _strainUuid;
+    if (strainUuid == null || strainUuid == 'new') return;
+    try {
+      final result = await animalService.getAnimalsByStrain(strainUuid);
+      if (mounted) {
+        setState(() {
+          _animals = result.results;
+          _animalsLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading animals for strain: $e');
+      if (mounted) {
+        setState(() {
+          _animalsLoading = false;
+        });
+      }
     }
   }
 
@@ -203,6 +236,7 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
             owner: _selectedOwner ?? await AccountHelper.getDefaultOwner(),
             backgrounds: _selectedBackgrounds,
             comment: _commentController.text,
+            genotypes: _genotypes,
           );
           await StrainApi().createStrain(strain);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -210,11 +244,12 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
           );
         } else {
           // Update existing strain
-          StrainApi().putStrain(
+          await StrainApi().putStrain(
             strainUuid,
             PutStrainDto(
               strainId: _strainData!.strainId,
               strainUuid: strainUuid,
+              isActive: _isActive,
               backgrounds: _selectedBackgrounds,
               color: _selectedColor.value
                   .toRadixString(16)
@@ -223,6 +258,7 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
               comment: _commentController.text,
               owner: _selectedOwner ?? await AccountHelper.getDefaultOwner(),
               strainName: _strainNameController.text,
+              genotypes: _genotypes,
             ),
           );
           ScaffoldMessenger.of(context).showSnackBar(
@@ -230,11 +266,122 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
           );
         }
         context.go('/strain');
-      } catch (e) {
+      } catch (e, stackTrace) {
+        debugPrint('Error saving strain: $e');
+        debugPrint('$stackTrace');
+        if (!mounted) return;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error saving strain: $e')));
       }
+    }
+  }
+
+  Widget _buildAnimalsSection() {
+    return ExpansionTile(
+      title: Text('Animals (${_animals?.length ?? "..."})'),
+      initiallyExpanded: false,
+      children: [
+        if (_animalsLoading)
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (_animals == null || _animals!.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('No animals in this strain'),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _animals!.length,
+            itemBuilder: (ctx, i) {
+              final a = _animals![i];
+              final tag = a.physicalTag ?? 'EID: ${a.eid}';
+              final sex = a.sex ?? '';
+              final dob = a.dateOfBirth != null
+                  ? a.dateOfBirth!.toIso8601String().split('T')[0]
+                  : 'N/A';
+              final cage = a.cage?.cageTag ?? '';
+              final genotypes =
+                  GenotypeHelper.formatGenotypes(a.genotypes);
+              return ListTile(
+                title: Text(tag),
+                subtitle: Text(
+                  [
+                    if (sex.isNotEmpty) sex,
+                    'DOB: $dob',
+                    if (cage.isNotEmpty) 'Cage: $cage',
+                    if (genotypes.isNotEmpty) genotypes,
+                  ].join(' • '),
+                ),
+                dense: true,
+                onTap: () => context.go('/animal/${a.animalUuid}'),
+                trailing: const Icon(Icons.chevron_right, size: 18),
+              );
+            },
+          ),
+      ],
+    );
+  }
+
+  void _toggleActive() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(_isActive ? 'Deactivate Strain?' : 'Activate Strain?'),
+        content: Text(_isActive
+            ? 'This strain will be hidden from default views.'
+            : 'This strain will be visible again.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(_isActive ? 'Deactivate' : 'Activate'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    try {
+      await StrainApi().putStrain(
+        _strainUuid!,
+        PutStrainDto(
+          strainId: _strainData!.strainId,
+          strainUuid: _strainUuid!,
+          backgrounds: _selectedBackgrounds,
+          color: _selectedColor.value
+              .toRadixString(16)
+              .substring(2)
+              .toUpperCase(),
+          comment: _commentController.text,
+          owner: _selectedOwner ?? await AccountHelper.getDefaultOwner(),
+          strainName: _strainNameController.text,
+          isActive: !_isActive,
+        ),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Strain ${_isActive ? "deactivated" : "activated"} successfully',
+          ),
+        ),
+      );
+      context.go('/strain');
+    } catch (e, stackTrace) {
+      debugPrint('Error toggling strain active: $e');
+      debugPrint('$stackTrace');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     }
   }
 
@@ -348,6 +495,18 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
                 },
               ),
 
+              const SizedBox(height: 16),
+
+              // Genotype Editor
+              SelectGene(
+                selectedGenotypes: _genotypes,
+                onGenotypesChanged: (genotypes) {
+                  setState(() => _genotypes = genotypes);
+                },
+                label: 'Genotypes',
+                placeholderText: 'Select genotypes',
+              ),
+
               const SizedBox(height: 32),
 
               // Save Button
@@ -358,6 +517,27 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
                   onPressed: _saveStrain,
                 ),
               ),
+
+              // Deactivate/Activate Button (only for existing strains)
+              if (_strainUuid != null && _strainUuid != 'new') ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _toggleActive,
+                    icon: Icon(
+                      _isActive ? Icons.block : Icons.check_circle,
+                    ),
+                    label: Text(_isActive ? 'Deactivate' : 'Activate'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor:
+                          _isActive ? Colors.red : Colors.green,
+                    ),
+                  ),
+                ),
+                const Divider(height: 32),
+                _buildAnimalsSection(),
+              ],
             ],
           ),
         ),

@@ -114,6 +114,36 @@ class AnimalApi {
     );
   }
 
+  /// Get animals filtered by strain UUID
+  Future<PaginatedResponseDto<AnimalDto>> getAnimalsByStrain(
+    String strainUuid,
+  ) async {
+    final params = ListQueryParams(
+      page: 1,
+      pageSize: 100,
+      filters: [
+        FilterParam(
+          field: 'strain',
+          operator: FilterOperators.equals,
+          value: strainUuid,
+        ),
+      ],
+      sorts: [
+        const SortParam(field: 'created_date', order: SortOrder.desc),
+      ],
+    );
+    final queryString = params.buildQueryString();
+    final res = await apiClient.getWithQueryString(
+      basePath,
+      queryString: queryString,
+    );
+    final Map<String, dynamic> data = jsonDecode(res.body);
+    return PaginatedResponseDto<AnimalDto>.fromJson(
+      data,
+      (j) => AnimalDto.fromJson(j),
+    );
+  }
+
   /// Batch update animals with a PATCH request.
   /// Used to update strain on multiple animals at once.
   Future<void> patchAnimals(List<Map<String, dynamic>> updates) async {

@@ -30,7 +30,7 @@ class CageFilterConfig {
       field: 'is_active',
       label: 'Is Active',
       type: FilterFieldType.select,
-      operators: FilterOperators.booleanOperators,
+      operators: [FilterOperators.equals],
       selectOptions: [
         FilterSelectOption(value: 'true', label: 'Yes'),
         FilterSelectOption(value: 'false', label: 'No'),

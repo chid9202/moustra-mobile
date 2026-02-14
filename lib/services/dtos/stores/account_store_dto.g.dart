@@ -18,6 +18,6 @@ Map<String, dynamic> _$AccountStoreDtoToJson(AccountStoreDto instance) =>
     <String, dynamic>{
       'accountId': instance.accountId,
       'accountUuid': instance.accountUuid,
-      'isActive': instance.isActive,
+      'isActive': ?instance.isActive,
       'user': instance.user.toJson(),
     };

@@ -25,7 +25,7 @@ StrainDto _$StrainDtoFromJson(Map<String, dynamic> json) => StrainDto(
           ?.map((e) => StrainBackgroundDto.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
-  isActive: json['isActive'] as bool,
+  isActive: json['isActive'] as bool? ?? true,
 );
 
 Map<String, dynamic> _$StrainDtoToJson(StrainDto instance) => <String, dynamic>{
@@ -86,6 +86,11 @@ PostStrainDto _$PostStrainDtoFromJson(Map<String, dynamic> json) =>
       comment: json['comment'] as String?,
       owner: AccountStoreDto.fromJson(json['owner']),
       strainName: json['strainName'] as String,
+      genotypes:
+          (json['genotypes'] as List<dynamic>?)
+              ?.map((e) => GenotypeDto.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$PostStrainDtoToJson(PostStrainDto instance) =>
@@ -95,11 +100,13 @@ Map<String, dynamic> _$PostStrainDtoToJson(PostStrainDto instance) =>
       'comment': instance.comment,
       'owner': instance.owner.toJson(),
       'strainName': instance.strainName,
+      'genotypes': instance.genotypes.map((e) => e.toJson()).toList(),
     };
 
 PutStrainDto _$PutStrainDtoFromJson(Map<String, dynamic> json) => PutStrainDto(
   strainId: (json['strainId'] as num).toInt(),
   strainUuid: json['strainUuid'] as String,
+  isActive: json['isActive'] as bool?,
   backgrounds: (json['backgrounds'] as List<dynamic>)
       .map(BackgroundStoreDto.fromJson)
       .toList(),
@@ -107,6 +114,11 @@ PutStrainDto _$PutStrainDtoFromJson(Map<String, dynamic> json) => PutStrainDto(
   comment: json['comment'] as String?,
   owner: AccountStoreDto.fromJson(json['owner']),
   strainName: json['strainName'] as String,
+  genotypes:
+      (json['genotypes'] as List<dynamic>?)
+          ?.map((e) => GenotypeDto.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$PutStrainDtoToJson(PutStrainDto instance) =>
@@ -116,6 +128,8 @@ Map<String, dynamic> _$PutStrainDtoToJson(PutStrainDto instance) =>
       'comment': instance.comment,
       'owner': instance.owner.toJson(),
       'strainName': instance.strainName,
+      'genotypes': instance.genotypes.map((e) => e.toJson()).toList(),
       'strainId': instance.strainId,
       'strainUuid': instance.strainUuid,
+      'isActive': instance.isActive,
     };

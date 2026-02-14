@@ -20,6 +20,7 @@ class StrainDto {
   final String? color;
   final int numberOfAnimals;
   final List<StrainBackgroundDto> backgrounds;
+  @JsonKey(defaultValue: true)
   final bool isActive;
 
   StrainDto({
@@ -100,6 +101,7 @@ class PostStrainDto {
   final String? comment;
   final AccountStoreDto owner;
   final String strainName;
+  final List<GenotypeDto> genotypes;
 
   PostStrainDto({
     required this.backgrounds,
@@ -107,6 +109,7 @@ class PostStrainDto {
     this.comment,
     required this.owner,
     required this.strainName,
+    this.genotypes = const [],
   });
 
   factory PostStrainDto.fromJson(Map<String, dynamic> json) =>
@@ -118,18 +121,22 @@ class PostStrainDto {
 class PutStrainDto extends PostStrainDto {
   final int strainId;
   final String strainUuid;
+  final bool? isActive;
 
   PutStrainDto({
     required this.strainId,
     required this.strainUuid,
+    this.isActive,
     required super.backgrounds,
     required super.color,
     required super.comment,
     required super.owner,
     required super.strainName,
+    super.genotypes,
   });
 
   factory PutStrainDto.fromJson(Map<String, dynamic> json) =>
       _$PutStrainDtoFromJson(json);
+  @override
   Map<String, dynamic> toJson() => _$PutStrainDtoToJson(this);
 }

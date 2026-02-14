@@ -641,31 +641,47 @@ class _TestSelectBackgroundState extends State<TestSelectBackground> {
                 title: const Text('Select Backgrounds'),
                 content: SizedBox(
                   width: double.maxFinite,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: backgrounds?.length ?? 0,
-                    itemBuilder: (context, index) {
-                      final background = backgrounds?[index];
-                      final isSelected = tempSelectedBackgrounds.any(
-                        (bg) => bg.uuid == background?.uuid,
-                      );
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: backgrounds?.length ?? 0,
+                          itemBuilder: (context, index) {
+                            final background = backgrounds?[index];
+                            final isSelected = tempSelectedBackgrounds.any(
+                              (bg) => bg.uuid == background?.uuid,
+                            );
 
-                      return CheckboxListTile(
-                        title: Text(background?.name ?? ''),
-                        value: isSelected,
-                        onChanged: (value) {
-                          setDialogState(() {
-                            if (value == true) {
-                              tempSelectedBackgrounds.add(background!);
-                            } else {
-                              tempSelectedBackgrounds.removeWhere(
-                                (bg) => bg.uuid == background?.uuid,
-                              );
-                            }
-                          });
+                            return CheckboxListTile(
+                              title: Text(background?.name ?? ''),
+                              value: isSelected,
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  if (value == true) {
+                                    tempSelectedBackgrounds.add(background!);
+                                  } else {
+                                    tempSelectedBackgrounds.removeWhere(
+                                      (bg) => bg.uuid == background?.uuid,
+                                    );
+                                  }
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      const Divider(),
+                      TextButton.icon(
+                        onPressed: () {
+                          _showAddBackgroundDialog(
+                              setDialogState, tempSelectedBackgrounds);
                         },
-                      );
-                    },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Background'),
+                      ),
+                    ],
                   ),
                 ),
                 actions: [
@@ -725,6 +741,52 @@ class _TestSelectBackgroundState extends State<TestSelectBackground> {
                 }).toList(),
               ),
       ),
+    );
+  }
+
+  void _showAddBackgroundDialog(
+    StateSetter setDialogState,
+    List<BackgroundStoreDto> tempSelectedBackgrounds,
+  ) {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add Background'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              labelText: 'Background Name',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  final newBg = BackgroundStoreDto(
+                    id: (backgrounds?.length ?? 0) + 1,
+                    uuid: 'new-background-uuid-${(backgrounds?.length ?? 0) + 1}',
+                    name: controller.text.trim(),
+                  );
+                  Navigator.of(context).pop();
+                  setState(() {
+                    backgrounds = [...(backgrounds ?? []), newBg];
+                  });
+                  setDialogState(() {});
+                }
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

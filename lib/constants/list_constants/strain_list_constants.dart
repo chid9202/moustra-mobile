@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/helpers/datetime_helper.dart';
+import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:moustra/helpers/strain_helper.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
@@ -15,6 +16,7 @@ enum StrainListColumn implements ListColumn<StrainDto> {
   owner('Owner', 'owner'),
   created('Created Date', 'created_date'),
   background('Background', 'background'),
+  genotypes('Genotypes', 'genotypes'),
   active('Active', 'active');
 
   const StrainListColumn(this.label, this.field);
@@ -76,6 +78,12 @@ enum StrainListColumn implements ListColumn<StrainDto> {
         allowSorting: false,
       ),
       GridColumn(
+        columnName: StrainListColumn.genotypes.field,
+        width: 200,
+        label: Center(child: Text(StrainListColumn.genotypes.label)),
+        allowSorting: false,
+      ),
+      GridColumn(
         columnName: StrainListColumn.active.field,
         width: 100,
         label: Center(child: Text(StrainListColumn.active.label)),
@@ -117,6 +125,10 @@ enum StrainListColumn implements ListColumn<StrainDto> {
         DataGridCell<String>(
           columnName: StrainListColumn.background.name,
           value: StrainHelper.getBackgroundNames(strain.backgrounds),
+        ),
+        DataGridCell<String>(
+          columnName: StrainListColumn.genotypes.name,
+          value: GenotypeHelper.formatGenotypes(strain.genotypes),
         ),
         DataGridCell<bool>(
           columnName: StrainListColumn.active.name,

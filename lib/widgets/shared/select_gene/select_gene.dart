@@ -190,7 +190,6 @@ class _SelectGeneState extends State<SelectGene> {
                                             alleleId: allele.alleleId,
                                             alleleUuid: allele.alleleUuid,
                                             alleleName: allele.alleleName,
-                                            createdDate: DateTime.now(),
                                           ),
                                           order: order++,
                                         );

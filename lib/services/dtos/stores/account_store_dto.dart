@@ -3,7 +3,7 @@ import 'package:moustra/services/dtos/account_dto.dart';
 
 part 'account_store_dto.g.dart';
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
 class AccountStoreDto {
   final int accountId;
   final String accountUuid;

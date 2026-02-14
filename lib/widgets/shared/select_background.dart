@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/services/clients/store_api.dart';
 import 'package:moustra/services/dtos/stores/background_store_dto.dart';
-import 'package:moustra/stores/background_store.dart';
+import 'package:moustra/stores/background_store.dart' show getBackgroundsHook, postBackgroundHook;
 
 class SelectBackground extends StatefulWidget {
   const SelectBackground({
@@ -58,31 +58,45 @@ class _SelectBackgroundState extends State<SelectBackground> {
                 title: const Text('Select Backgrounds'),
                 content: SizedBox(
                   width: double.maxFinite,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: backgrounds?.length ?? 0,
-                    itemBuilder: (context, index) {
-                      final background = backgrounds?[index];
-                      final isSelected = tempSelectedBackgrounds.any(
-                        (bg) => bg.uuid == background?.uuid,
-                      );
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: backgrounds?.length ?? 0,
+                          itemBuilder: (context, index) {
+                            final background = backgrounds?[index];
+                            final isSelected = tempSelectedBackgrounds.any(
+                              (bg) => bg.uuid == background?.uuid,
+                            );
 
-                      return CheckboxListTile(
-                        title: Text(background?.name ?? ''),
-                        value: isSelected,
-                        onChanged: (value) {
-                          setDialogState(() {
-                            if (value == true) {
-                              tempSelectedBackgrounds.add(background!);
-                            } else {
-                              tempSelectedBackgrounds.removeWhere(
-                                (bg) => bg.uuid == background?.uuid,
-                              );
-                            }
-                          });
-                        },
-                      );
-                    },
+                            return CheckboxListTile(
+                              title: Text(background?.name ?? ''),
+                              value: isSelected,
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  if (value == true) {
+                                    tempSelectedBackgrounds.add(background!);
+                                  } else {
+                                    tempSelectedBackgrounds.removeWhere(
+                                      (bg) => bg.uuid == background?.uuid,
+                                    );
+                                  }
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      const Divider(),
+                      TextButton.icon(
+                        onPressed: () =>
+                            _showAddBackgroundDialog(setDialogState),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Background'),
+                      ),
+                    ],
                   ),
                 ),
                 actions: [
@@ -141,6 +155,49 @@ class _SelectBackgroundState extends State<SelectBackground> {
                 }).toList(),
               ),
       ),
+    );
+  }
+
+  void _showAddBackgroundDialog(StateSetter setDialogState) {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add Background'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              labelText: 'Background Name',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (controller.text.trim().isNotEmpty) {
+                  debugPrint('Creating background: ${controller.text}');
+                  Navigator.of(context).pop();
+                  await postBackgroundHook(controller.text);
+                  // Reload backgrounds list
+                  final loadedBackgrounds = await getBackgroundsHook();
+                  setState(() {
+                    backgrounds = loadedBackgrounds;
+                  });
+                  setDialogState(() {});
+                  debugPrint('Background creation completed');
+                }
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

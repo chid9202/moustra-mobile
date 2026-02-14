@@ -6,6 +6,7 @@ import 'package:moustra/constants/list_constants/strain_list_constants.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/services/clients/strain_api.dart';
 import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/widgets/color_picker.dart';
 import 'package:moustra/widgets/filter_panel.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
@@ -27,6 +28,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
   // Filter & Sort state
   List<FilterParam> _activeFilters = [];
   SortParam? _activeSort = StrainFilterConfig.defaultSort;
+  int _selectedPresetIndex = -1;
 
   @override
   void initState() {
@@ -37,6 +39,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
     setState(() {
       _activeFilters = filters;
       _activeSort = sort;
+      _selectedPresetIndex = -1;
     });
     _controller.reload();
   }
@@ -45,6 +48,17 @@ class _StrainsScreenState extends State<StrainsScreen> {
     setState(() {
       _activeFilters = [];
       _activeSort = StrainFilterConfig.defaultSort;
+      _selectedPresetIndex = -1;
+    });
+    _controller.reload();
+  }
+
+  void _onPresetSelected(int index) {
+    final preset = StrainFilterConfig.preparedFilters[index];
+    setState(() {
+      _selectedPresetIndex = index;
+      _activeFilters = List.from(preset.filters);
+      _activeSort = preset.sort;
     });
     _controller.reload();
   }
@@ -54,7 +68,14 @@ class _StrainsScreenState extends State<StrainsScreen> {
     required int pageSize,
     String? searchTerm,
   }) {
-    List<FilterParam> filters = List.from(_activeFilters);
+    List<FilterParam> filters = _activeFilters.map((f) {
+      if (f.value == currentUserPlaceholder) {
+        return f.copyWith(
+          value: profileState.value?.accountUuid ?? '',
+        );
+      }
+      return f;
+    }).toList();
 
     if (searchTerm != null && searchTerm.isNotEmpty) {
       filters.add(FilterParam(
@@ -81,7 +102,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Filter Panel
+        // Filter Panel (includes prepared filter presets)
         FilterPanel(
           filterFields: StrainFilterConfig.filterFields,
           sortFields: StrainFilterConfig.sortFields,
@@ -89,6 +110,9 @@ class _StrainsScreenState extends State<StrainsScreen> {
           initialSort: _activeSort,
           onApply: _onFiltersApplied,
           onClear: _onFiltersClear,
+          preparedFilters: StrainFilterConfig.preparedFilters,
+          selectedPresetIndex: _selectedPresetIndex,
+          onPresetSelected: _onPresetSelected,
         ),
         const Divider(height: 1),
         Expanded(
@@ -263,12 +287,13 @@ class _StrainGridSource extends DataGridSource {
         cellText(row.getCells()[5].value),
         cellText(row.getCells()[6].value),
         cellText(row.getCells()[7].value),
+        cellText(row.getCells()[8].value),
         Center(
           child: Icon(
-            (row.getCells()[8].value as bool)
+            (row.getCells()[9].value as bool)
                 ? Icons.check_circle
                 : Icons.cancel,
-            color: (row.getCells()[8].value as bool)
+            color: (row.getCells()[9].value as bool)
                 ? Colors.green
                 : Colors.red,
             size: 18,
