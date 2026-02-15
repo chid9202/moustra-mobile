@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:moustra/app/mui_color.dart';
 import 'package:moustra/app/router.dart';
 import 'package:moustra/app/theme.dart';
+import 'package:upgrader/upgrader.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -26,7 +27,12 @@ class App extends StatelessWidget {
         // across simulator and physical device, regardless of iOS accessibility settings
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-          child: child!,
+          child: UpgradeAlert(
+            navigatorKey: appRouter.routerDelegate.navigatorKey,
+            barrierDismissible: false,
+            showIgnore: false,
+            child: child!,
+          ),
         );
       },
     );
