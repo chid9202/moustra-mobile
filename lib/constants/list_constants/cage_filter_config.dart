@@ -1,7 +1,47 @@
 import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra/services/models/prepared_filter.dart';
+
+/// Placeholder replaced at query time with the current user's account UUID
+const String currentUserPlaceholder = 'CURRENT_USER';
 
 /// Filter and sort configuration for the Cages list page
 class CageFilterConfig {
+  /// Prepared filter presets matching the web UI
+  static const List<PreparedFilter> preparedFilters = [
+    PreparedFilter(
+      name: 'Default',
+      filters: [],
+      sort: SortParam(field: 'created_date', order: SortOrder.desc),
+    ),
+    PreparedFilter(
+      name: 'My Cages',
+      filters: [
+        FilterParam(
+          field: 'end_date',
+          operator: FilterOperators.isEmpty,
+          value: '',
+        ),
+        FilterParam(
+          field: 'owner',
+          operator: FilterOperators.equals,
+          value: currentUserPlaceholder,
+        ),
+      ],
+      sort: SortParam(field: 'created_date', order: SortOrder.desc),
+    ),
+    PreparedFilter(
+      name: 'Ended Cages',
+      filters: [
+        FilterParam(
+          field: 'end_date',
+          operator: FilterOperators.isNotEmpty,
+          value: 'true',
+        ),
+      ],
+      sort: SortParam(field: 'created_date', order: SortOrder.desc),
+    ),
+  ];
+
   /// Available filterable fields for Cages endpoint
   static const List<FilterFieldDefinition> filterFields = [
     FilterFieldDefinition(

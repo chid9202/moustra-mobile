@@ -35,6 +35,9 @@ CageDto _$CageDtoFromJson(Map<String, dynamic> json) => CageDto(
   notes: (json['notes'] as List<dynamic>?)
       ?.map((e) => NoteDto.fromJson(e as Map<String, dynamic>))
       .toList(),
+  matingHistory: (json['matingHistory'] as List<dynamic>?)
+      ?.map((e) => MatingHistoryDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$CageDtoToJson(CageDto instance) => <String, dynamic>{
@@ -54,6 +57,7 @@ Map<String, dynamic> _$CageDtoToJson(CageDto instance) => <String, dynamic>{
   'endDate': instance.endDate?.toIso8601String(),
   'status': instance.status,
   'notes': instance.notes?.map((e) => e.toJson()).toList(),
+  'matingHistory': instance.matingHistory?.map((e) => e.toJson()).toList(),
 };
 
 CageSummaryDto _$CageSummaryDtoFromJson(Map<String, dynamic> json) =>

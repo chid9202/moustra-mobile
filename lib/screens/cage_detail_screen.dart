@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/services/clients/cage_api.dart';
+import 'package:moustra/services/clients/event_api.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/services/dtos/post_cage_dto.dart';
 import 'package:moustra/services/dtos/put_cage_dto.dart';
@@ -17,6 +18,10 @@ import 'package:moustra/screens/barcode_scanner_screen.dart';
 import 'package:moustra/widgets/note/note_list.dart';
 import 'package:moustra/services/dtos/note_entity_type.dart';
 import 'package:moustra/widgets/cage/cage_animals_list.dart';
+import 'package:moustra/widgets/cage/cage_label_pdf.dart';
+import 'package:moustra/widgets/cage/mating_history_section.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
 
 class CageDetailScreen extends StatefulWidget {
   final bool fromCageGrid;
@@ -161,6 +166,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
               : _barcodeController.text,
         );
         await CageApi().createCage(cage);
+        eventApi.trackEvent('create_cage');
         // Refresh related stores
         await refreshCageStore();
         await refreshAnimalStore();
@@ -198,6 +204,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                 : _barcodeController.text,
           ),
         );
+        eventApi.trackEvent('update_cage');
         // Refresh related stores
         await refreshCageStore();
         await refreshAnimalStore();
@@ -224,6 +231,20 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
         ).showSnackBar(SnackBar(content: Text('Error saving cage: $e')));
       }
     }
+  }
+
+  Future<void> _printLabel() async {
+    if (_cageData == null) return;
+    final doc = CageLabelPdf.build(_cageData!);
+    await Printing.layoutPdf(
+      onLayout: (format) async => doc.save(),
+      name: 'cage-${_cageData!.cageTag}',
+      format: const PdfPageFormat(
+        125 * PdfPageFormat.mm,
+        74 * PdfPageFormat.mm,
+      ),
+    );
+    eventApi.trackEvent('print_label');
   }
 
   @override
@@ -334,6 +355,13 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                   cageUuid: _cageUuid!,
                   fromCageGrid: widget.fromCageGrid,
                 ),
+
+              // Mating History Section
+              if (_cageUuid != null &&
+                  _cageUuid != 'new' &&
+                  _cageData?.matingHistory != null &&
+                  _cageData!.matingHistory!.isNotEmpty)
+                MatingHistorySection(matings: _cageData!.matingHistory!),
 
               // Notes Section
               if (_cageUuid != null && _cageUuid != 'new')

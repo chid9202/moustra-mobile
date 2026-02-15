@@ -8,6 +8,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum CageListColumn implements ListColumn<CageDto> {
   select('', 'select'),
+  edit('Edit', 'edit'),
   eid('EID', 'eid'),
   cageTag('Cage Tag', 'cage_tag'),
   strain('Strain', 'strain'),
@@ -27,12 +28,22 @@ enum CageListColumn implements ListColumn<CageDto> {
   @override
   String get enumName => name;
 
-  static List<GridColumn> getColumns() {
+  static List<GridColumn> getColumns({
+    bool includeSelect = false,
+    bool useEid = false,
+  }) {
     return [
       GridColumn(
         columnName: CageListColumn.select.field,
         width: selectColumnWidth,
         label: const SizedBox.shrink(),
+        allowSorting: false,
+        visible: includeSelect,
+      ),
+      GridColumn(
+        columnName: CageListColumn.edit.field,
+        width: editColumnWidth,
+        label: Center(child: Text(CageListColumn.edit.label)),
         allowSorting: false,
       ),
       GridColumn(
@@ -40,6 +51,7 @@ enum CageListColumn implements ListColumn<CageDto> {
         width: eidColumnWidth,
         label: Center(child: Text(CageListColumn.eid.label)),
         allowSorting: false,
+        visible: useEid,
       ),
       GridColumn(
         columnName: CageListColumn.cageTag.field,
@@ -110,6 +122,10 @@ enum CageListColumn implements ListColumn<CageDto> {
       cells: [
         DataGridCell<String>(
           columnName: CageListColumn.select.name,
+          value: cage.cageUuid,
+        ),
+        DataGridCell<String>(
+          columnName: CageListColumn.edit.name,
           value: cage.cageUuid,
         ),
         DataGridCell<int>(columnName: CageListColumn.eid.name, value: cage.eid),

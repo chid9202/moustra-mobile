@@ -307,8 +307,9 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            // Navigate back to the appropriate page based on where we came from
-            if (widget.fromCageGrid) {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else if (widget.fromCageGrid) {
               context.go('/cage/grid');
             } else {
               context.go('/litter');

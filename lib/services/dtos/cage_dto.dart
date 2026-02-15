@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:moustra/services/dtos/account_dto.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
+import 'package:moustra/services/dtos/mating_history_dto.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/services/dtos/note_dto.dart';
 
@@ -24,6 +25,7 @@ class CageDto {
   final DateTime? endDate;
   final String status;
   final List<NoteDto>? notes;
+  final List<MatingHistoryDto>? matingHistory;
 
   CageDto({
     this.eid,
@@ -42,6 +44,7 @@ class CageDto {
     this.endDate,
     required this.status,
     this.notes,
+    this.matingHistory,
   });
 
   factory CageDto.fromJson(Map<String, dynamic> json) =>

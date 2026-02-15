@@ -3140,6 +3140,52 @@ paths:
           description: No response body
         '404':
           description: No response body
+  /api/v1/account/{account_uuid}/litter/{litter_uuid}/animal:
+    post:
+      operationId: v1_account_litter_animal_create
+      summary: Add existing animals to an existing litter
+      parameters:
+      - in: path
+        name: account_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Account UUID
+        required: true
+      - in: path
+        name: litter_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Litter UUID
+        required: true
+      tags:
+      - Litter
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddAnimalsToLitterSLR'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddAnimalsToLitterSLR'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddAnimalsToLitterSLR'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LitterSLR'
+          description: ''
+        '400':
+          description: No response body
+        '404':
+          description: No response body
   /api/v1/account/{account_uuid}/litter/{litter_uuid}/note:
     post:
       operationId: v1_account_litter_note_create
@@ -3265,6 +3311,51 @@ paths:
         '204':
           description: No response body
         '400':
+          description: No response body
+  /api/v1/account/{account_uuid}/litter/{litter_uuid}/pub:
+    post:
+      operationId: v1_account_litter_pub_create
+      summary: Add pubs to an existing litter
+      parameters:
+      - in: path
+        name: account_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Account UUID
+        required: true
+      - in: path
+        name: litter_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Litter UUID
+        required: true
+      tags:
+      - Litter
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddPubsToLitterSLR'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddPubsToLitterSLR'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddPubsToLitterSLR'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LitterSLR'
+          description: ''
+        '400':
+          description: No response body
+        '404':
           description: No response body
   /api/v1/account/{account_uuid}/litter/end:
     put:
@@ -3473,11 +3564,56 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PutMatingSLR'
-        required: true
       security:
       - jwtAuth: []
       responses:
         '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatingSLR'
+          description: ''
+        '400':
+          description: No response body
+        '404':
+          description: No response body
+  /api/v1/account/{account_uuid}/mating/{mating_uuid}/animal:
+    post:
+      operationId: v1_account_mating_animal_create
+      summary: Add existing animals to an existing mating
+      parameters:
+      - in: path
+        name: account_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Account UUID
+        required: true
+      - in: path
+        name: mating_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Mating UUID
+        required: true
+      tags:
+      - Mating
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddAnimalsToMatingSLR'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddAnimalsToMatingSLR'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddAnimalsToMatingSLR'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
           content:
             application/json:
               schema:
@@ -5259,6 +5395,43 @@ components:
       required:
       - id
       - username
+    AddAnimalsToLitterSLR:
+      type: object
+      properties:
+        animal_uuids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+      required:
+      - animal_uuids
+    AddAnimalsToMatingSLR:
+      type: object
+      properties:
+        animal_uuids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+      required:
+      - animal_uuids
+    AddPubsToLitterSLR:
+      type: object
+      properties:
+        number_of_male:
+          type: integer
+          minimum: 0
+          default: 0
+        number_of_female:
+          type: integer
+          minimum: 0
+          default: 0
+        number_of_unknown:
+          type: integer
+          minimum: 0
+          default: 0
     AiStatusEnum:
       enum:
       - ready
@@ -5514,6 +5687,76 @@ components:
       required:
       - litter_id
       - litter_uuid
+    AnimalMatingLitterSLR:
+      type: object
+      properties:
+        litter_uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        litter_tag:
+          type: string
+          nullable: true
+          maxLength: 100
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+        wean_date:
+          type: string
+          format: date
+          nullable: true
+        is_ended:
+          type: boolean
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        created_date:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_date
+      - litter_uuid
+    AnimalMatingSLR:
+      type: object
+      properties:
+        mating_id:
+          type: integer
+        mating_uuid:
+          type: string
+          format: uuid
+        mating_tag:
+          type: string
+          nullable: true
+          maxLength: 100
+        set_up_date:
+          type: string
+          format: date
+          nullable: true
+        litter_strain:
+          allOf:
+          - $ref: '#/components/schemas/AnimalStrainSLR'
+          readOnly: true
+        disbanded_date:
+          type: string
+          format: date
+          nullable: true
+        created_date:
+          type: string
+          format: date-time
+        litters:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnimalMatingLitterSLR'
+          readOnly: true
+      required:
+      - created_date
+      - litter_strain
+      - litters
+      - mating_id
+      - mating_uuid
     AnimalMoveSLR:
       type: object
       properties:
@@ -5657,7 +5900,8 @@ components:
         owner:
           $ref: '#/components/schemas/AnimalOwnerSLR'
         cage:
-          type: integer
+          allOf:
+          - $ref: '#/components/schemas/AnimalCageSLR'
           nullable: true
         end_date:
           type: string
@@ -6051,6 +6295,9 @@ components:
           - $ref: '#/components/schemas/MatingSLR'
           readOnly: true
           nullable: true
+        mating_history:
+          type: string
+          readOnly: true
         order:
           type: integer
           maximum: 2147483647
@@ -6096,6 +6343,7 @@ components:
       - created_date
       - eid
       - mating
+      - mating_history
       - notes
     CoreAnimal:
       type: object
@@ -6151,6 +6399,11 @@ components:
           allOf:
           - $ref: '#/components/schemas/PostAnimalMatingSLR'
           writeOnly: true
+        matings:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnimalMatingSLR'
+          readOnly: true
         sire:
           allOf:
           - $ref: '#/components/schemas/SimpleAnimalSLR'
@@ -6220,6 +6473,7 @@ components:
       - ear_marks
       - eid
       - genotypes
+      - matings
       - notes
       - owner
     CoreAnimalEndReason:
@@ -6363,6 +6617,78 @@ components:
       required:
       - cage_id
       - cage_uuid
+    CoreMatingLitter:
+      type: object
+      properties:
+        litter_uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        litter_tag:
+          type: string
+          nullable: true
+          maxLength: 100
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+        wean_date:
+          type: string
+          format: date
+          nullable: true
+        is_ended:
+          type: boolean
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        owner:
+          allOf:
+          - $ref: '#/components/schemas/AccountSLR'
+          nullable: true
+        created_date:
+          type: string
+          format: date-time
+          readOnly: true
+        animals:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoreMatingLitterAnimal'
+          readOnly: true
+      required:
+      - animals
+      - created_date
+      - litter_uuid
+    CoreMatingLitterAnimal:
+      type: object
+      properties:
+        animal_id:
+          type: integer
+          readOnly: true
+        animal_uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        eid:
+          type: integer
+          readOnly: true
+          nullable: true
+        sex:
+          type: string
+          nullable: true
+          maxLength: 1
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+        physical_tag:
+          type: string
+          nullable: true
+          maxLength: 100
+      required:
+      - animal_id
+      - animal_uuid
+      - eid
     DataMigrationMapping:
       type: object
       properties:
@@ -7349,15 +7675,29 @@ components:
         notes:
           type: string
           readOnly: true
+        litters:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoreMatingLitter'
+          readOnly: true
       required:
       - animals
       - cage
       - created_date
       - litter_strain
+      - litters
       - mating_id
       - mating_uuid
       - notes
       - owner
+    MatingUUIDInputSLR:
+      type: object
+      properties:
+        mating_uuid:
+          type: string
+          format: uuid
+      required:
+      - mating_uuid
     NoteSLR:
       type: object
       properties:
@@ -8544,6 +8884,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/StrainUUIDInputSLR'
           nullable: true
+        mating:
+          allOf:
+          - $ref: '#/components/schemas/MatingUUIDInputSLR'
+          nullable: true
       required:
       - comment
       - date_of_birth
@@ -8563,13 +8907,19 @@ components:
           format: date
           nullable: true
         litter_strain:
-          $ref: '#/components/schemas/SimpleStrainSLR'
+          allOf:
+          - $ref: '#/components/schemas/SimpleStrainSLR'
+          nullable: true
         owner:
           allOf:
           - $ref: '#/components/schemas/AccountSLR'
           nullable: true
         comment:
           type: string
+          nullable: true
+        cage:
+          allOf:
+          - $ref: '#/components/schemas/CoreMatingCage'
           nullable: true
         disbanded_date:
           type: string
@@ -8579,8 +8929,6 @@ components:
           allOf:
           - $ref: '#/components/schemas/AccountSLR'
           nullable: true
-      required:
-      - litter_strain
     RackAnimalGeneAllele:
       type: object
       properties:
