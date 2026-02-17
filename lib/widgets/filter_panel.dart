@@ -43,6 +43,15 @@ class _FilterPanelState extends State<FilterPanel> {
     _initializeFromProps();
   }
 
+  @override
+  void didUpdateWidget(covariant FilterPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedPresetIndex != oldWidget.selectedPresetIndex &&
+        widget.selectedPresetIndex >= 0) {
+      _initializeFromProps();
+    }
+  }
+
   void _initializeFromProps() {
     // Initialize filters
     if (widget.initialFilters.isEmpty) {

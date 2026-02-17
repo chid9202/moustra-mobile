@@ -23,6 +23,18 @@ class FilterParam {
   }
 
   @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FilterParam &&
+          runtimeType == other.runtimeType &&
+          field == other.field &&
+          operator == other.operator &&
+          value == other.value;
+
+  @override
+  int get hashCode => Object.hash(field, operator, value);
+
+  @override
   String toString() => 'FilterParam(field: $field, op: $operator, value: $value)';
 }
 
@@ -45,6 +57,17 @@ class SortParam {
       order: order ?? this.order,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SortParam &&
+          runtimeType == other.runtimeType &&
+          field == other.field &&
+          order == other.order;
+
+  @override
+  int get hashCode => Object.hash(field, order);
 
   @override
   String toString() => 'SortParam(field: $field, order: ${order.name})';

@@ -7,6 +7,7 @@ import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/clients/event_api.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra/services/models/prepared_filter.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:moustra/helpers/util_helper.dart';
 import 'package:moustra/stores/profile_store.dart';
@@ -66,7 +67,11 @@ class _CagesListScreenState extends State<CagesListScreen> {
     setState(() {
       _activeFilters = filters;
       _activeSort = sort;
-      _selectedPresetIndex = -1;
+      _selectedPresetIndex = PreparedFilter.findMatchingPreset(
+        CageFilterConfig.preparedFilters,
+        filters,
+        sort,
+      );
     });
     _controller.reload();
   }

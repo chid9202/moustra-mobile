@@ -7,6 +7,7 @@ import 'package:moustra/constants/list_constants/cage_filter_config.dart';
 import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra/services/models/prepared_filter.dart';
 import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/widgets/filter_panel.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -62,7 +63,11 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     setState(() {
       _activeFilters = filters;
       _activeSort = sort;
-      _selectedPresetIndex = -1;
+      _selectedPresetIndex = PreparedFilter.findMatchingPreset(
+        AnimalFilterConfig.preparedFilters,
+        filters,
+        sort,
+      );
     });
     _controller.reload();
   }
