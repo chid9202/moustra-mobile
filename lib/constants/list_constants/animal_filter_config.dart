@@ -1,8 +1,52 @@
 import 'package:moustra/constants/animal_constants.dart';
+import 'package:moustra/constants/list_constants/cage_filter_config.dart';
 import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra/services/models/prepared_filter.dart';
 
 /// Filter and sort configuration for the Animals list page
 class AnimalFilterConfig {
+  /// Prepared filter presets matching the web UI
+  static const List<PreparedFilter> preparedFilters = [
+    PreparedFilter(
+      name: 'Default',
+      filters: [
+        FilterParam(
+          field: 'end_date',
+          operator: FilterOperators.isEmpty,
+          value: '',
+        ),
+      ],
+      sort: SortParam(field: 'created_date', order: SortOrder.desc),
+    ),
+    PreparedFilter(
+      name: 'My Animals',
+      filters: [
+        FilterParam(
+          field: 'end_date',
+          operator: FilterOperators.isEmpty,
+          value: '',
+        ),
+        FilterParam(
+          field: 'owner',
+          operator: FilterOperators.equals,
+          value: currentUserPlaceholder,
+        ),
+      ],
+      sort: SortParam(field: 'created_date', order: SortOrder.desc),
+    ),
+    PreparedFilter(
+      name: 'Ended Animals',
+      filters: [
+        FilterParam(
+          field: 'end_date',
+          operator: FilterOperators.isNotEmpty,
+          value: 'true',
+        ),
+      ],
+      sort: SortParam(field: 'created_date', order: SortOrder.desc),
+    ),
+  ];
+
   /// Available filterable fields for Animals endpoint
   static const List<FilterFieldDefinition> filterFields = [
     FilterFieldDefinition(

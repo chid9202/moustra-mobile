@@ -3,9 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/animal_filter_config.dart';
 import 'package:moustra/constants/list_constants/animal_list_constants.dart';
 import 'package:moustra/constants/list_constants/cell_text.dart';
+import 'package:moustra/constants/list_constants/cage_filter_config.dart';
 import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/widgets/filter_panel.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
@@ -29,10 +31,12 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
   // Filter & Sort state
   List<FilterParam> _activeFilters = [];
   SortParam? _activeSort = AnimalFilterConfig.defaultSort;
+  int _selectedPresetIndex = 0;
 
   @override
   void initState() {
     super.initState();
+    _applyPreset(0);
   }
 
   @override
@@ -40,10 +44,25 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     super.dispose();
   }
 
+  void _applyPreset(int index) {
+    final preset = AnimalFilterConfig.preparedFilters[index];
+    _selectedPresetIndex = index;
+    _activeFilters = List.from(preset.filters);
+    _activeSort = preset.sort;
+  }
+
+  void _onPresetSelected(int index) {
+    setState(() {
+      _applyPreset(index);
+    });
+    _controller.reload();
+  }
+
   void _onFiltersApplied(List<FilterParam> filters, SortParam? sort) {
     setState(() {
       _activeFilters = filters;
       _activeSort = sort;
+      _selectedPresetIndex = -1;
     });
     _controller.reload();
   }
@@ -52,6 +71,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     setState(() {
       _activeFilters = [];
       _activeSort = AnimalFilterConfig.defaultSort;
+      _selectedPresetIndex = -1;
     });
     _controller.reload();
   }
@@ -61,8 +81,15 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     required int pageSize,
     String? searchTerm,
   }) {
-    // Build filters list
-    List<FilterParam> filters = List.from(_activeFilters);
+    // Build filters list, resolving CURRENT_USER placeholder
+    List<FilterParam> filters = _activeFilters.map((f) {
+      if (f.value == currentUserPlaceholder) {
+        return f.copyWith(
+          value: profileState.value?.accountUuid ?? '',
+        );
+      }
+      return f;
+    }).toList();
 
     // Add search term as physical_tag filter if provided
     if (searchTerm != null && searchTerm.isNotEmpty) {
@@ -101,6 +128,9 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
           initialSort: _activeSort,
           onApply: _onFiltersApplied,
           onClear: _onFiltersClear,
+          preparedFilters: AnimalFilterConfig.preparedFilters,
+          selectedPresetIndex: _selectedPresetIndex,
+          onPresetSelected: _onPresetSelected,
         ),
         const Divider(height: 1),
         Expanded(
