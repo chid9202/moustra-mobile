@@ -375,6 +375,39 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                 maxLines: 3,
               ),
 
+              // End Information (read-only, shown only for ended animals)
+              if (_animalData?.endDate != null) ...[
+                const Divider(height: 32),
+                const Text(
+                  'End Information',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _readOnlyField(
+                  'End Date',
+                  _formatDate(_animalData!.endDate),
+                ),
+                if (_animalData!.endType != null)
+                  _readOnlyField(
+                    'End Type',
+                    _animalData!.endType!.endTypeName,
+                  ),
+                if (_animalData!.endReason != null)
+                  _readOnlyField(
+                    'End Reason',
+                    _animalData!.endReason!.endReasonName,
+                  ),
+                if (_animalData!.endComment != null &&
+                    _animalData!.endComment!.isNotEmpty)
+                  _readOnlyField(
+                    'End Comment',
+                    _animalData!.endComment!,
+                  ),
+              ],
+
               const SizedBox(height: 32),
 
               // Notes Section
@@ -407,4 +440,24 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
       ),
     );
   }
+
+  Widget _readOnlyField(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          filled: true,
+          fillColor: Colors.grey.shade100,
+        ),
+        child: Text(value),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime? d) =>
+      d != null
+          ? '${d.month.toString().padLeft(2, '0')}/${d.day.toString().padLeft(2, '0')}/${d.year}'
+          : '';
 }

@@ -26,6 +26,13 @@ AnimalDto _$AnimalDtoFromJson(Map<String, dynamic> json) => AnimalDto(
   endDate: json['endDate'] == null
       ? null
       : DateTime.parse(json['endDate'] as String),
+  endType: json['endType'] == null
+      ? null
+      : EndTypeSummaryDto.fromJson(json['endType'] as Map<String, dynamic>),
+  endReason: json['endReason'] == null
+      ? null
+      : EndReasonSummaryDto.fromJson(json['endReason'] as Map<String, dynamic>),
+  endComment: json['endComment'] as String?,
   owner: json['owner'] == null
       ? null
       : AccountDto.fromJson(json['owner'] as Map<String, dynamic>),
@@ -65,6 +72,9 @@ Map<String, dynamic> _$AnimalDtoToJson(AnimalDto instance) => <String, dynamic>{
   'genotypes': instance.genotypes?.map((e) => e.toJson()).toList(),
   'weanDate': instance.weanDate?.toIso8601String(),
   'endDate': instance.endDate?.toIso8601String(),
+  'endType': instance.endType?.toJson(),
+  'endReason': instance.endReason?.toJson(),
+  'endComment': instance.endComment,
   'owner': instance.owner?.toJson(),
   'cage': instance.cage?.toJson(),
   'strain': instance.strain?.toJson(),
@@ -266,3 +276,32 @@ Map<String, dynamic> _$PostCageAnimalToJson(PostCageAnimal instance) =>
       'updatedDate': instance.updatedDate.toIso8601String(),
       'eid': instance.eid,
     };
+
+EndTypeSummaryDto _$EndTypeSummaryDtoFromJson(Map<String, dynamic> json) =>
+    EndTypeSummaryDto(
+      endTypeId: (json['endTypeId'] as num).toInt(),
+      endTypeUuid: json['endTypeUuid'] as String,
+      endTypeName: json['endTypeName'] as String,
+    );
+
+Map<String, dynamic> _$EndTypeSummaryDtoToJson(EndTypeSummaryDto instance) =>
+    <String, dynamic>{
+      'endTypeId': instance.endTypeId,
+      'endTypeUuid': instance.endTypeUuid,
+      'endTypeName': instance.endTypeName,
+    };
+
+EndReasonSummaryDto _$EndReasonSummaryDtoFromJson(Map<String, dynamic> json) =>
+    EndReasonSummaryDto(
+      endReasonId: (json['endReasonId'] as num).toInt(),
+      endReasonUuid: json['endReasonUuid'] as String,
+      endReasonName: json['endReasonName'] as String,
+    );
+
+Map<String, dynamic> _$EndReasonSummaryDtoToJson(
+  EndReasonSummaryDto instance,
+) => <String, dynamic>{
+  'endReasonId': instance.endReasonId,
+  'endReasonUuid': instance.endReasonUuid,
+  'endReasonName': instance.endReasonName,
+};

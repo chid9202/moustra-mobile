@@ -21,6 +21,9 @@ class AnimalDto {
   final List<GenotypeDto>? genotypes;
   final DateTime? weanDate;
   final DateTime? endDate;
+  final EndTypeSummaryDto? endType;
+  final EndReasonSummaryDto? endReason;
+  final String? endComment;
   final AccountDto? owner;
   final CageSummaryDto? cage;
   final StrainSummaryDto? strain;
@@ -41,6 +44,9 @@ class AnimalDto {
     this.genotypes = const [],
     this.weanDate,
     this.endDate,
+    this.endType,
+    this.endReason,
+    this.endComment,
     this.owner,
     this.cage,
     this.strain,
@@ -245,4 +251,38 @@ class PostCageAnimal {
   factory PostCageAnimal.fromJson(Map<String, dynamic> json) =>
       _$PostCageAnimalFromJson(json);
   Map<String, dynamic> toJson() => _$PostCageAnimalToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class EndTypeSummaryDto {
+  final int endTypeId;
+  final String endTypeUuid;
+  final String endTypeName;
+
+  EndTypeSummaryDto({
+    required this.endTypeId,
+    required this.endTypeUuid,
+    required this.endTypeName,
+  });
+
+  factory EndTypeSummaryDto.fromJson(Map<String, dynamic> json) =>
+      _$EndTypeSummaryDtoFromJson(json);
+  Map<String, dynamic> toJson() => _$EndTypeSummaryDtoToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class EndReasonSummaryDto {
+  final int endReasonId;
+  final String endReasonUuid;
+  final String endReasonName;
+
+  EndReasonSummaryDto({
+    required this.endReasonId,
+    required this.endReasonUuid,
+    required this.endReasonName,
+  });
+
+  factory EndReasonSummaryDto.fromJson(Map<String, dynamic> json) =>
+      _$EndReasonSummaryDtoFromJson(json);
+  Map<String, dynamic> toJson() => _$EndReasonSummaryDtoToJson(this);
 }
