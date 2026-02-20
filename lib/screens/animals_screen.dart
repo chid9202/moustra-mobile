@@ -12,6 +12,7 @@ import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/widgets/filter_panel.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
+import 'package:moustra/services/clients/event_api.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
 class AnimalsScreen extends StatefulWidget {
@@ -53,6 +54,9 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
   }
 
   void _onPresetSelected(int index) {
+    final preset = AnimalFilterConfig.preparedFilters[index];
+    final name = preset.name.toLowerCase().replaceAll(' ', '_');
+    eventApi.trackEvent('filter_animal_$name');
     setState(() {
       _applyPreset(index);
     });
@@ -182,6 +186,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                     (page, pageSize, searchTerm, {useAiSearch}) async {
                       if (useAiSearch == true && searchTerm.isNotEmpty) {
                         // AI search
+                        eventApi.trackEvent('ai_search_animal');
                         final pageData = await animalService
                             .searchAnimalsWithAi(prompt: searchTerm);
                         return PaginatedResult<AnimalDto>(
@@ -284,6 +289,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
         _isEndingAnimals = true;
       });
       await animalService.endAnimals(_selected.toList());
+      eventApi.trackEvent('end_animal');
       await animalService.getAnimalsPage(page: 1, pageSize: _pageSize);
       if (!mounted) {
         return;

@@ -25,6 +25,7 @@ import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/widgets/note/note_list.dart';
 import 'package:moustra/services/dtos/note_entity_type.dart';
+import 'package:moustra/services/clients/event_api.dart';
 import 'package:moustra/widgets/attachment/attachment_list.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
@@ -115,6 +116,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
           _animalData = animal;
           _animalDataLoaded = true;
           _selectedGenotypes = animal.genotypes ?? [];
+          eventApi.trackEvent('view_animal');
         });
       }
     } catch (e) {
@@ -169,6 +171,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
             genotypes: _selectedGenotypes,
           ),
         );
+        eventApi.trackEvent('update_animal');
         // Refresh related stores
         await refreshAnimalStore();
         // Refresh cage store if cage changed

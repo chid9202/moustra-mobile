@@ -14,6 +14,7 @@ import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_gene/select_gene.dart';
 import 'package:moustra/widgets/shared/select_sex.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
+import 'package:moustra/services/clients/event_api.dart';
 import 'package:moustra/widgets/shared/button.dart';
 
 class AnimalNewScreen extends StatefulWidget {
@@ -116,6 +117,7 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
         final postAnimalDto = PostAnimalDto(animals: postAnimalData);
 
         await AnimalApi().postAnimal(postAnimalDto);
+        eventApi.trackEvent('create_animal');
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
