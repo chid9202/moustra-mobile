@@ -5,6 +5,13 @@ import 'package:moustra/screens/animal_new_screen.dart';
 import 'package:moustra/screens/cage_detail_screen.dart';
 import 'package:moustra/screens/litter_detail_screen.dart';
 import 'package:moustra/screens/mating_detail_screen.dart';
+import 'package:moustra/screens/plug_check_screen.dart';
+import 'package:moustra/screens/plug_events_screen.dart';
+import 'package:moustra/screens/plug_event_detail_screen.dart';
+import 'package:moustra/screens/protocols_screen.dart';
+import 'package:moustra/screens/protocol_detail_screen.dart';
+import 'package:moustra/screens/protocol_form_screen.dart';
+import 'package:moustra/screens/protocol_compliance_screen.dart';
 import 'package:moustra/screens/strain_detail_screen.dart';
 import 'package:moustra/screens/colony_wizard/colony_wizard_screen.dart';
 import 'package:moustra/stores/auth_store.dart';
@@ -188,6 +195,46 @@ final GoRouter appRouter = GoRouter(
               child: MatingDetailScreen(fromCageGrid: fromCageGrid),
             );
           },
+        ),
+        GoRoute(
+          path: '/plug-check',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: PlugCheckScreen()),
+        ),
+        GoRoute(
+          path: '/plug-event',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: PlugEventsScreen()),
+        ),
+        GoRoute(
+          path: '/plug-event/:plugEventUuid',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: PlugEventDetailScreen()),
+        ),
+        GoRoute(
+          path: '/protocol',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: ProtocolsScreen()),
+        ),
+        GoRoute(
+          path: '/protocol/new',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: ProtocolFormScreen()),
+        ),
+        GoRoute(
+          path: '/protocol/compliance',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: ProtocolComplianceScreen()),
+        ),
+        GoRoute(
+          path: '/protocol/:protocolUuid',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: ProtocolDetailScreen()),
+        ),
+        GoRoute(
+          path: '/protocol/:protocolUuid/edit',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: ProtocolFormScreen()),
         ),
         GoRoute(
           path: '/user',
