@@ -53,10 +53,28 @@ const List<_MenuItemDef> _menuItems = [
     route: '/mating',
   ),
   _MenuItemDef(
+    id: 'plugCheck',
+    icon: Icons.pregnant_woman,
+    display: 'Plug Check',
+    route: '/plug-check',
+  ),
+  _MenuItemDef(
     id: 'litter',
     icon: Icons.create_new_folder_sharp,
     display: 'Litter',
     route: '/litter',
+  ),
+  _MenuItemDef(
+    id: 'protocol',
+    icon: Icons.assignment_sharp,
+    display: 'Protocols',
+    route: '/protocol',
+  ),
+  _MenuItemDef(
+    id: 'compliance',
+    icon: Icons.shield_sharp,
+    display: 'Compliance',
+    route: '/protocol/compliance',
   ),
   _MenuItemDef(
     id: 'dashboard',
@@ -110,8 +128,20 @@ class AppMenu extends StatelessWidget {
     if (routePath == '/mating') {
       return currentPath.startsWith('/mating');
     }
+    if (routePath == '/plug-check') {
+      return currentPath.startsWith('/plug-check') ||
+          currentPath.startsWith('/plug-event');
+    }
     if (routePath == '/litter') {
       return currentPath.startsWith('/litter');
+    }
+    if (routePath == '/protocol') {
+      return currentPath == '/protocol' ||
+          (currentPath.startsWith('/protocol') &&
+              !currentPath.startsWith('/protocol/compliance'));
+    }
+    if (routePath == '/protocol/compliance') {
+      return currentPath.startsWith('/protocol/compliance');
     }
     if (routePath == '/user') {
       return currentPath.startsWith('/user');
