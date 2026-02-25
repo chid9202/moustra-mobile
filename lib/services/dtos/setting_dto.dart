@@ -1,20 +1,19 @@
 /// DTO for combined settings API (GET /setting)
 /// Contains both account and lab settings
+library;
 
 class SettingDto {
   final AccountSettingDto accountSetting;
   final LabSettingStoreDto labSetting;
 
-  SettingDto({
-    required this.accountSetting,
-    required this.labSetting,
-  });
+  SettingDto({required this.accountSetting, required this.labSetting});
 
   factory SettingDto.fromJson(Map<String, dynamic> json) {
     return SettingDto(
       accountSetting: json['accountSetting'] != null
           ? AccountSettingDto.fromJson(
-              json['accountSetting'] as Map<String, dynamic>)
+              json['accountSetting'] as Map<String, dynamic>,
+            )
           : AccountSettingDto(
               enableDailyReport: false,
               onboardingTour: false,
@@ -24,7 +23,8 @@ class SettingDto {
             ),
       labSetting: json['labSetting'] != null
           ? LabSettingStoreDto.fromJson(
-              json['labSetting'] as Map<String, dynamic>)
+              json['labSetting'] as Map<String, dynamic>,
+            )
           : LabSettingStoreDto(
               defaultRackWidth: 18,
               defaultRackHeight: 12,
@@ -35,9 +35,9 @@ class SettingDto {
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'accountSetting': accountSetting.toJson(),
-        'labSetting': labSetting.toJson(),
-      };
+    'accountSetting': accountSetting.toJson(),
+    'labSetting': labSetting.toJson(),
+  };
 }
 
 class AccountSettingDto {
@@ -66,12 +66,12 @@ class AccountSettingDto {
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'enableDailyReport': enableDailyReport,
-        'onboardingTour': onboardingTour,
-        'animalCreationTour': animalCreationTour,
-        'useComment': useComment,
-        'enableCustomWeanDate': enableCustomWeanDate,
-      };
+    'enableDailyReport': enableDailyReport,
+    'onboardingTour': onboardingTour,
+    'animalCreationTour': animalCreationTour,
+    'useComment': useComment,
+    'enableCustomWeanDate': enableCustomWeanDate,
+  };
 }
 
 class LabSettingStoreDto {
@@ -97,21 +97,9 @@ class LabSettingStoreDto {
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'defaultRackWidth': defaultRackWidth,
-        'defaultRackHeight': defaultRackHeight,
-        'defaultWeanDate': defaultWeanDate,
-        'useEid': useEid,
-      };
+    'defaultRackWidth': defaultRackWidth,
+    'defaultRackHeight': defaultRackHeight,
+    'defaultWeanDate': defaultWeanDate,
+    'useEid': useEid,
+  };
 }
-
-
-
-
-
-
-
-
-
-
-
-

@@ -26,7 +26,9 @@ class App extends StatelessWidget {
         // Override textScaleFactor to ensure consistent text rendering
         // across simulator and physical device, regardless of iOS accessibility settings
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(1.0)),
           child: UpgradeAlert(
             navigatorKey: appRouter.routerDelegate.navigatorKey,
             barrierDismissible: false,

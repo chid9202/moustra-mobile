@@ -43,14 +43,15 @@ class TempAnimalData {
     List<Map<String, String>>? genotypes,
     this.isLitterPup = false,
     this.animalUuid,
-  })  : id = id ?? DateTime.now().microsecondsSinceEpoch.toString(),
-        genotypes = genotypes ?? [];
+  }) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+       genotypes = genotypes ?? [];
 
   bool get isMature {
     final threshold = DateTime.now().subtract(
       const Duration(days: ColonyWizardConstants.defaultWeanDays),
     );
-    return dateOfBirth.isBefore(threshold) || dateOfBirth.isAtSameMomentAs(threshold);
+    return dateOfBirth.isBefore(threshold) ||
+        dateOfBirth.isAtSameMomentAs(threshold);
   }
 }
 
@@ -83,12 +84,12 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
   List<StrainStoreDto> _strains = [];
   StrainStoreDto? _cageStrain;
   StrainStoreDto? _litterStrain;
-  List<TempAnimalData> _animals = [];
-  
+  final List<TempAnimalData> _animals = [];
+
   int _maleCount = 0;
   int _femaleCount = 0;
   int _unknownCount = 0;
-  
+
   int _pupMaleCount = 0;
   int _pupFemaleCount = 0;
   int _pupUnknownCount = 0;
@@ -153,18 +154,22 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
         debugPrint('Cage has ${cage.animals!.length} animals');
         for (final animal in cage.animals!) {
           final isLitterPup = animal.litter != null;
-          debugPrint('Loading animal: ${animal.physicalTag}, UUID: ${animal.animalUuid}, isLitterPup: $isLitterPup');
-          _animals.add(TempAnimalData(
-            animalUuid: animal.animalUuid,
-            physicalTag: animal.physicalTag ?? '',
-            sex: animal.sex ?? 'U',
-            dateOfBirth: animal.dateOfBirth ?? DateTime.now(),
-            strain: animal.strain != null
-                ? _findStrain(animal.strain!.strainUuid)
-                : null,
-            comment: animal.comment ?? '',
-            isLitterPup: isLitterPup,
-          ));
+          debugPrint(
+            'Loading animal: ${animal.physicalTag}, UUID: ${animal.animalUuid}, isLitterPup: $isLitterPup',
+          );
+          _animals.add(
+            TempAnimalData(
+              animalUuid: animal.animalUuid,
+              physicalTag: animal.physicalTag ?? '',
+              sex: animal.sex ?? 'U',
+              dateOfBirth: animal.dateOfBirth ?? DateTime.now(),
+              strain: animal.strain != null
+                  ? _findStrain(animal.strain!.strainUuid)
+                  : null,
+              comment: animal.comment ?? '',
+              isLitterPup: isLitterPup,
+            ),
+          );
           _animalCounter++;
         }
         debugPrint('Loaded ${_animals.length} animals into _animals list');
@@ -213,18 +218,24 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
   }
 
   void _addAnimal(String sex) {
-    final prefix = sex == 'M' ? 'M' : sex == 'F' ? 'F' : 'U';
+    final prefix = sex == 'M'
+        ? 'M'
+        : sex == 'F'
+        ? 'F'
+        : 'U';
     final defaultDob = DateTime.now().subtract(
       const Duration(days: ColonyWizardConstants.defaultWeanDays),
     );
 
     setState(() {
-      _animals.add(TempAnimalData(
-        physicalTag: '$prefix$_animalCounter',
-        sex: sex,
-        dateOfBirth: defaultDob,
-        strain: _cageStrain,
-      ));
+      _animals.add(
+        TempAnimalData(
+          physicalTag: '$prefix$_animalCounter',
+          sex: sex,
+          dateOfBirth: defaultDob,
+          strain: _cageStrain,
+        ),
+      );
       _animalCounter++;
       _updateCounts();
       _updateMatingTag();
@@ -286,7 +297,9 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
     }
 
     if (_exceedsCapacity) {
-      _showError('Exceeds maximum capacity (${ColonyWizardConstants.maxMicePerCage} mice)');
+      _showError(
+        'Exceeds maximum capacity (${ColonyWizardConstants.maxMicePerCage} mice)',
+      );
       return;
     }
 
@@ -375,7 +388,7 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
   Future<void> _updateExistingCage() async {
     final cage = widget.existingCage!;
     final account = await getAccountHook();
-    
+
     if (account == null) {
       throw Exception('Could not get account');
     }
@@ -395,7 +408,7 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
         .where((a) => a.litter == null) // Exclude pups
         .map((a) => a.animalUuid)
         .toSet();
-    
+
     final currentAnimalUuids = _animals
         .where((a) => !a.isLitterPup && a.animalUuid != null)
         .map((a) => a.animalUuid!)
@@ -406,21 +419,28 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
     debugPrint('Original animals from cage: ${cage.animals?.length ?? 0}');
     debugPrint('Original UUIDs (non-pups): $originalAnimalUuids');
     debugPrint('Current _animals count: ${_animals.length}');
-    debugPrint('Current _animals UUIDs: ${_animals.map((a) => "${a.physicalTag}:${a.animalUuid}").toList()}');
+    debugPrint(
+      'Current _animals UUIDs: ${_animals.map((a) => "${a.physicalTag}:${a.animalUuid}").toList()}',
+    );
     debugPrint('Current UUIDs (non-pups with UUID): $currentAnimalUuids');
 
     // Animals to delete (in original but not in current)
     final animalsToDelete = originalAnimalUuids.difference(currentAnimalUuids);
     debugPrint('Animals to delete: $animalsToDelete');
-    
+
     // Animals to add (no animalUuid means new)
     final animalsToAdd = _animals
         .where((a) => !a.isLitterPup && a.animalUuid == null)
         .toList();
-    
+
     // Animals to update (in both, check if changed)
     final animalsToUpdate = _animals
-        .where((a) => !a.isLitterPup && a.animalUuid != null && currentAnimalUuids.contains(a.animalUuid))
+        .where(
+          (a) =>
+              !a.isLitterPup &&
+              a.animalUuid != null &&
+              currentAnimalUuids.contains(a.animalUuid),
+        )
         .toList();
 
     // Delete removed animals
@@ -469,7 +489,7 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
         cageUuid: cage.cageUuid,
         cageTag: cage.cageTag ?? '',
       );
-      
+
       final newAnimalsPayload = PostAnimalDto(
         animals: animalsToAdd.map((animal) {
           return PostAnimalData(
@@ -538,10 +558,7 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
 
   void _showSuccess(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
     );
   }
 
@@ -614,12 +631,14 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
                 ),
               )
             else
-              ...parentAnimals.map((animal) => AnimalListItem(
-                    animal: animal,
-                    strains: _strains,
-                    onUpdate: _updateAnimal,
-                    onDelete: () => _removeAnimal(animal),
-                  )),
+              ...parentAnimals.map(
+                (animal) => AnimalListItem(
+                  animal: animal,
+                  strains: _strains,
+                  onUpdate: _updateAnimal,
+                  onDelete: () => _removeAnimal(animal),
+                ),
+              ),
 
             // Mating Section (conditional)
             if (_hasBothSexes) ...[
@@ -657,17 +676,19 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
               const SizedBox(height: 24),
               _buildSectionHeader(theme, 'EXISTING PUPS'),
               const SizedBox(height: 12),
-              ...litterPups.map((pup) => ListTile(
-                    leading: _getSexIcon(pup.sex),
-                    title: Text(pup.physicalTag),
-                    subtitle: Text(
-                      '${pup.strain?.strainName ?? "No strain"} | ${_formatDate(pup.dateOfBirth)}',
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () => _removeAnimal(pup),
-                    ),
-                  )),
+              ...litterPups.map(
+                (pup) => ListTile(
+                  leading: _getSexIcon(pup.sex),
+                  title: Text(pup.physicalTag),
+                  subtitle: Text(
+                    '${pup.strain?.strainName ?? "No strain"} | ${_formatDate(pup.dateOfBirth)}',
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => _removeAnimal(pup),
+                  ),
+                ),
+              ),
             ],
 
             const SizedBox(height: 32),
@@ -743,7 +764,7 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
 
   Widget _buildBottomBar(ThemeData theme) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    
+
     return Container(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding),
       decoration: BoxDecoration(
@@ -763,7 +784,8 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
           const SizedBox(width: 16),
           Expanded(
             child: FilledButton(
-              onPressed: _isSaving ||
+              onPressed:
+                  _isSaving ||
                       _cageTagController.text.trim().isEmpty ||
                       _exceedsCapacity
                   ? null

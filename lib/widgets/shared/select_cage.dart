@@ -21,7 +21,7 @@ class SelectCage extends StatefulWidget {
 class _SelectCageState extends State<SelectCage> {
   List<CageStoreDto>? cages;
 
-  _getCageOptionLabel(CageStoreDto cage) {
+  String _getCageOptionLabel(CageStoreDto cage) {
     return cage.cageTag ?? 'N/A';
   }
 

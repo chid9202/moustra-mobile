@@ -25,7 +25,7 @@ class _SelectRackCageState extends State<SelectRackCage> {
   RackCageDto? selection;
   final textController = TextEditingController();
 
-  _getCageOptionLabel(RackCageDto cage) {
+  String _getCageOptionLabel(RackCageDto cage) {
     return '${cage.cageTag} ${cage.strain?.strainName != null ? '(${cage.strain?.strainName})' : ''}';
   }
 

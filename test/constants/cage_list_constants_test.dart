@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/constants/list_constants/cage_list_constants.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 void main() {
   group('CageListColumn', () {
@@ -58,20 +57,23 @@ void main() {
         expect(editColumn.visible, true);
       });
 
-      test('both select and EID visibility can be controlled independently', () {
-        final columns = CageListColumn.getColumns(
-          includeSelect: true,
-          useEid: true,
-        );
-        final selectColumn = columns.firstWhere(
-          (c) => c.columnName == CageListColumn.select.field,
-        );
-        final eidColumn = columns.firstWhere(
-          (c) => c.columnName == CageListColumn.eid.field,
-        );
-        expect(selectColumn.visible, true);
-        expect(eidColumn.visible, true);
-      });
+      test(
+        'both select and EID visibility can be controlled independently',
+        () {
+          final columns = CageListColumn.getColumns(
+            includeSelect: true,
+            useEid: true,
+          );
+          final selectColumn = columns.firstWhere(
+            (c) => c.columnName == CageListColumn.select.field,
+          );
+          final eidColumn = columns.firstWhere(
+            (c) => c.columnName == CageListColumn.eid.field,
+          );
+          expect(selectColumn.visible, true);
+          expect(eidColumn.visible, true);
+        },
+      );
 
       test('select visible but EID hidden', () {
         final columns = CageListColumn.getColumns(

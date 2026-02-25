@@ -1,4 +1,5 @@
 /// DTO for lab settings API (GET/PUT /lab/setting)
+library;
 
 class LabSettingDto {
   final int? defaultRackWidth;

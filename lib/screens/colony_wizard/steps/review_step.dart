@@ -221,11 +221,12 @@ class _ReviewStepState extends State<ReviewStep> {
       title: 'Strains',
       count: _strains.length,
       icon: Icons.pets,
-      onEdit: () => wizardState.goToStep(ColonyWizardConstants.stepStrainsGenotypes),
+      onEdit: () =>
+          wizardState.goToStep(ColonyWizardConstants.stepStrainsGenotypes),
       isEmpty: _strains.isEmpty,
       emptyMessage: 'No strains added',
-      children: _strains.take(5).map((s) => Text(s.strainName)).toList(),
       moreCount: _strains.length > 5 ? _strains.length - 5 : 0,
+      children: _strains.take(5).map((s) => Text(s.strainName)).toList(),
     );
   }
 
@@ -234,15 +235,18 @@ class _ReviewStepState extends State<ReviewStep> {
       title: 'Genotypes',
       count: _genes.length,
       icon: Icons.science,
-      onEdit: () => wizardState.goToStep(ColonyWizardConstants.stepStrainsGenotypes),
+      onEdit: () =>
+          wizardState.goToStep(ColonyWizardConstants.stepStrainsGenotypes),
       isEmpty: _genes.isEmpty && _alleles.isEmpty,
       emptyMessage: 'No genotypes added',
+      moreCount: _genes.length > 5 ? _genes.length - 5 : 0,
       children: _genes.take(5).map((g) {
         // Find alleles for this gene (in real app, would have proper association)
         final alleleText = _alleles.take(3).map((a) => a.alleleName).join(', ');
-        return Text('${g.geneName}${alleleText.isNotEmpty ? " ($alleleText)" : ""}');
+        return Text(
+          '${g.geneName}${alleleText.isNotEmpty ? " ($alleleText)" : ""}',
+        );
       }).toList(),
-      moreCount: _genes.length > 5 ? _genes.length - 5 : 0,
     );
   }
 
@@ -254,8 +258,11 @@ class _ReviewStepState extends State<ReviewStep> {
       onEdit: () => wizardState.goToStep(ColonyWizardConstants.stepRacks),
       isEmpty: _racks.isEmpty,
       emptyMessage: 'No racks added',
-      children: _racks.take(5).map((r) => Text(r.rackName ?? 'Unnamed')).toList(),
       moreCount: _racks.length > 5 ? _racks.length - 5 : 0,
+      children: _racks
+          .take(5)
+          .map((r) => Text(r.rackName ?? 'Unnamed'))
+          .toList(),
     );
   }
 
@@ -267,9 +274,11 @@ class _ReviewStepState extends State<ReviewStep> {
       title: 'Cages & Animals',
       countLabel: '${_cages.length}/${_animals.length}',
       icon: Icons.home,
-      onEdit: () => wizardState.goToStep(ColonyWizardConstants.stepCagesAnimals),
+      onEdit: () =>
+          wizardState.goToStep(ColonyWizardConstants.stepCagesAnimals),
       isEmpty: _cages.isEmpty,
       emptyMessage: 'No cages or animals added',
+      moreCount: _cages.length > 5 ? _cages.length - 5 : 0,
       children: [
         if (_cages.isNotEmpty) ...[
           Text('${_cages.length} cages with ${_animals.length} total animals'),
@@ -285,7 +294,6 @@ class _ReviewStepState extends State<ReviewStep> {
           ..._cages.take(5).map((c) => Text(c.cageTag ?? 'Unnamed')),
         ],
       ],
-      moreCount: _cages.length > 5 ? _cages.length - 5 : 0,
     );
   }
 }
@@ -356,10 +364,7 @@ class _SummaryCard extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  TextButton(
-                    onPressed: onEdit,
-                    child: const Text('Edit'),
-                  ),
+                  TextButton(onPressed: onEdit, child: const Text('Edit')),
                 ],
               ),
             ),

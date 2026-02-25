@@ -35,7 +35,7 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
   StrainStoreDto? _selectedStrain;
 
   // List of animals to create
-  List<AnimalCardData> _animals = [];
+  final List<AnimalCardData> _animals = [];
 
   @override
   void initState() {

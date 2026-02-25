@@ -207,11 +207,11 @@ void main() {
 
   group('SelectDate Validation', () {
     testWidgets('calls validator when provided', (WidgetTester tester) async {
-      final validator = (DateTime? date) {
+      String? validator(DateTime? date) {
         if (date == null) return 'Date is required';
         if (date.isBefore(DateTime.now())) return 'Date must be in the future';
         return null;
-      };
+      }
 
       await TestHelpers.pumpWidgetWithTheme(
         tester,

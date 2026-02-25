@@ -63,7 +63,7 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
   int _totalCount = 0;
   bool _isLoading = true;
   bool _sortAscending = true;
-  bool _useAiSearch = true;
+  final bool _useAiSearch = true;
   String _searchTerm = '';
 
   @override
