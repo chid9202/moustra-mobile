@@ -12,6 +12,8 @@ import 'package:moustra/screens/plug_event_new_screen.dart';
 import 'package:moustra/screens/protocols_screen.dart';
 import 'package:moustra/screens/protocol_detail_screen.dart';
 import 'package:moustra/screens/protocol_form_screen.dart';
+import 'package:moustra/screens/calendar_screen.dart';
+import 'package:moustra/screens/notifications_screen.dart';
 import 'package:moustra/screens/protocol_compliance_screen.dart';
 import 'package:moustra/screens/strain_detail_screen.dart';
 import 'package:moustra/screens/colony_wizard/colony_wizard_screen.dart';
@@ -249,6 +251,16 @@ final GoRouter appRouter = GoRouter(
           path: '/protocol/:protocolUuid/edit',
           pageBuilder: (context, state) =>
               const MaterialPage(child: ProtocolFormScreen()),
+        ),
+        GoRoute(
+          path: '/calendar',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: CalendarScreen()),
+        ),
+        GoRoute(
+          path: '/notification',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: NotificationsScreen()),
         ),
         GoRoute(
           path: '/user',

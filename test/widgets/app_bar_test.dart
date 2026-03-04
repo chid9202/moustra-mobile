@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/widgets/app_bar.dart';
+import 'package:moustra/widgets/notification_bell.dart';
 import '../test_helpers/test_helpers.dart';
 
 void main() {
@@ -63,7 +64,7 @@ void main() {
       );
 
       expect(find.byIcon(Icons.menu), findsOneWidget);
-      expect(find.byType(IconButton), findsOneWidget);
+      expect(find.byType(IconButton), findsAtLeastNWidgets(1));
     });
 
     testWidgets('should have center title', (WidgetTester tester) async {
@@ -84,7 +85,7 @@ void main() {
         const Scaffold(appBar: MoustraAppBar(), body: Text('Test Body')),
       );
 
-      expect(find.byType(Container), findsOneWidget);
+      expect(find.byType(Container), findsAtLeastNWidgets(1));
       expect(find.byType(GestureDetector), findsAtLeastNWidgets(1));
     });
 
@@ -114,8 +115,22 @@ void main() {
         const Scaffold(appBar: MoustraAppBar(), body: Text('Test Body')),
       );
 
-      final container = tester.widget<Container>(find.byType(Container));
-      expect(container.alignment, equals(Alignment.bottomCenter));
+      final containers = tester.widgetList<Container>(find.byType(Container));
+      expect(
+        containers.any((c) => c.alignment == Alignment.bottomCenter),
+        isTrue,
+      );
+    });
+
+    testWidgets('should have notification bell in actions', (
+      WidgetTester tester,
+    ) async {
+      await TestHelpers.pumpWidgetWithTheme(
+        tester,
+        const Scaffold(appBar: MoustraAppBar(), body: Text('Test Body')),
+      );
+
+      expect(find.byType(NotificationBell), findsOneWidget);
     });
 
     testWidgets('should have gesture detector for app icon', (

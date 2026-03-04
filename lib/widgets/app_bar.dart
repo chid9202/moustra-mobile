@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moustra/widgets/notification_bell.dart';
 
 class MoustraAppBar extends StatelessWidget implements PreferredSizeWidget {
   const MoustraAppBar({super.key});
@@ -14,6 +15,7 @@ class MoustraAppBar extends StatelessWidget implements PreferredSizeWidget {
           onPressed: () => Scaffold.of(context).openDrawer(),
         ),
       ),
+      actions: const [NotificationBell()],
       flexibleSpace: Container(
         alignment: Alignment.bottomCenter,
         child: GestureDetector(
