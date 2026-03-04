@@ -2,7 +2,8 @@ enum NoteEntityType {
   animal,
   cage,
   mating,
-  litter;
+  litter,
+  plugEvent;
 
   String get value {
     switch (this) {
@@ -14,6 +15,8 @@ enum NoteEntityType {
         return 'mating';
       case NoteEntityType.litter:
         return 'litter';
+      case NoteEntityType.plugEvent:
+        return 'plug-event';
     }
   }
 }

@@ -8,6 +8,7 @@ import 'package:moustra/screens/mating_detail_screen.dart';
 import 'package:moustra/screens/plug_check_screen.dart';
 import 'package:moustra/screens/plug_events_screen.dart';
 import 'package:moustra/screens/plug_event_detail_screen.dart';
+import 'package:moustra/screens/plug_event_new_screen.dart';
 import 'package:moustra/screens/protocols_screen.dart';
 import 'package:moustra/screens/protocol_detail_screen.dart';
 import 'package:moustra/screens/protocol_form_screen.dart';
@@ -205,6 +206,19 @@ final GoRouter appRouter = GoRouter(
           path: '/plug-event',
           pageBuilder: (context, state) =>
               const MaterialPage(child: PlugEventsScreen()),
+        ),
+        GoRoute(
+          path: '/plug-event/new',
+          pageBuilder: (context, state) {
+            final matingUuid = state.uri.queryParameters['mating'];
+            final femaleUuid = state.uri.queryParameters['female'];
+            return MaterialPage(
+              child: PlugEventNewScreen(
+                matingUuid: matingUuid,
+                femaleUuid: femaleUuid,
+              ),
+            );
+          },
         ),
         GoRoute(
           path: '/plug-event/:plugEventUuid',

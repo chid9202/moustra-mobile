@@ -1,0 +1,310 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:moustra/constants/list_constants/cell_text.dart';
+import 'package:moustra/constants/list_constants/plug_event_filter_config.dart';
+import 'package:moustra/constants/list_constants/plug_event_list_constants.dart';
+import 'package:moustra/services/clients/plug_api.dart';
+import 'package:moustra/services/dtos/plug_event_dto.dart';
+import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra/widgets/filter_panel.dart';
+import 'package:moustra/widgets/movable_fab_menu.dart';
+import 'package:moustra/widgets/paginated_datagrid.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+
+enum _PreparedTab { active, completed, all }
+
+class PlugEventsScreen extends StatefulWidget {
+  const PlugEventsScreen({super.key});
+
+  @override
+  State<PlugEventsScreen> createState() => _PlugEventsScreenState();
+}
+
+class _PlugEventsScreenState extends State<PlugEventsScreen> {
+  final PaginatedGridController _controller = PaginatedGridController();
+  final MovableFabMenuController _fabController = MovableFabMenuController();
+
+  _PreparedTab _selectedTab = _PreparedTab.active;
+  List<FilterParam> _activeFilters = [];
+  SortParam? _activeSort = const SortParam(
+    field: 'plug_date',
+    order: SortOrder.desc,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _applyTabFilters(_selectedTab);
+  }
+
+  void _applyTabFilters(_PreparedTab tab) {
+    switch (tab) {
+      case _PreparedTab.active:
+        _activeFilters = [
+          FilterParam(
+            field: 'is_active',
+            operator: FilterOperators.equals,
+            value: 'true',
+          ),
+        ];
+        _activeSort = const SortParam(
+          field: 'plug_date',
+          order: SortOrder.desc,
+        );
+        break;
+      case _PreparedTab.completed:
+        _activeFilters = [
+          FilterParam(
+            field: 'outcome',
+            operator: FilterOperators.isNotEmpty,
+            value: '',
+          ),
+        ];
+        _activeSort = const SortParam(
+          field: 'plug_date',
+          order: SortOrder.desc,
+        );
+        break;
+      case _PreparedTab.all:
+        _activeFilters = [];
+        _activeSort = PlugEventFilterConfig.defaultSort;
+        break;
+    }
+  }
+
+  void _onTabChanged(_PreparedTab tab) {
+    setState(() {
+      _selectedTab = tab;
+      _applyTabFilters(tab);
+    });
+    _controller.reload();
+  }
+
+  void _onFiltersApplied(List<FilterParam> filters, SortParam? sort) {
+    setState(() {
+      _activeFilters = filters;
+      _activeSort = sort;
+    });
+    _controller.reload();
+  }
+
+  void _onFiltersClear() {
+    setState(() {
+      _applyTabFilters(_selectedTab);
+    });
+    _controller.reload();
+  }
+
+  ListQueryParams _buildQueryParams({
+    required int page,
+    required int pageSize,
+    String? searchTerm,
+  }) {
+    List<FilterParam> filters = List.from(_activeFilters);
+
+    if (searchTerm != null && searchTerm.isNotEmpty) {
+      filters.add(FilterParam(
+        field: 'female_tag',
+        operator: FilterOperators.contains,
+        value: searchTerm,
+      ));
+    }
+
+    List<SortParam> sorts = [];
+    if (_activeSort != null) {
+      sorts.add(_activeSort!);
+    }
+
+    return ListQueryParams(
+      page: page,
+      pageSize: pageSize,
+      filters: filters,
+      sorts: sorts,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Prepared filter tabs
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              ChoiceChip(
+                label: const Text('Active'),
+                selected: _selectedTab == _PreparedTab.active,
+                onSelected: (_) => _onTabChanged(_PreparedTab.active),
+              ),
+              const SizedBox(width: 8),
+              ChoiceChip(
+                label: const Text('Completed'),
+                selected: _selectedTab == _PreparedTab.completed,
+                onSelected: (_) => _onTabChanged(_PreparedTab.completed),
+              ),
+              const SizedBox(width: 8),
+              ChoiceChip(
+                label: const Text('All'),
+                selected: _selectedTab == _PreparedTab.all,
+                onSelected: (_) => _onTabChanged(_PreparedTab.all),
+              ),
+            ],
+          ),
+        ),
+        FilterPanel(
+          filterFields: PlugEventFilterConfig.filterFields,
+          sortFields: PlugEventFilterConfig.sortFields,
+          initialFilters: _activeFilters,
+          initialSort: _activeSort,
+          onApply: _onFiltersApplied,
+          onClear: _onFiltersClear,
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: Stack(
+            children: [
+              PaginatedDataGrid<PlugEventDto>(
+                controller: _controller,
+                searchPlaceholder: 'Search by female tag...',
+                onSortChanged: (columnName, ascending) {
+                  setState(() {
+                    _activeSort = SortParam(
+                      field: columnName,
+                      order: ascending ? SortOrder.asc : SortOrder.desc,
+                    );
+                  });
+                  _controller.reload();
+                },
+                columns: PlugEventListColumn.getColumns(),
+                sourceBuilder: (rows) =>
+                    _PlugEventGridSource(records: rows, context: context),
+                fetchPage: (page, pageSize) async {
+                  final params = _buildQueryParams(
+                    page: page,
+                    pageSize: pageSize,
+                  );
+                  final pageData = await plugService.getPlugEventsPage(
+                    params: params,
+                  );
+                  return PaginatedResult<PlugEventDto>(
+                    count: pageData.count,
+                    results: pageData.results.cast<PlugEventDto>(),
+                  );
+                },
+                onFilterChanged:
+                    (page, pageSize, searchTerm, {useAiSearch}) async {
+                  final params = _buildQueryParams(
+                    page: page,
+                    pageSize: pageSize,
+                    searchTerm: searchTerm,
+                  );
+                  final pageData = await plugService.getPlugEventsPage(
+                    params: params,
+                  );
+                  return PaginatedResult<PlugEventDto>(
+                    count: pageData.count,
+                    results: pageData.results,
+                  );
+                },
+              ),
+              Positioned.fill(
+                child: MovableFabMenu(
+                  controller: _fabController,
+                  heroTag: 'plug-events-fab-menu',
+                  actions: [
+                    FabMenuAction(
+                      label: 'Record Plug Event',
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        context.go('/plug-event/new');
+                      },
+                    ),
+                    FabMenuAction(
+                      label: 'Record Plug Check',
+                      icon: const Icon(Icons.check_circle_outline),
+                      onPressed: () {
+                        context.go('/plug-check');
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PlugEventGridSource extends DataGridSource {
+  final List<PlugEventDto> records;
+  final BuildContext context;
+
+  _PlugEventGridSource({required this.records, required this.context}) {
+    _rows = records.map(PlugEventListColumn.getDataGridRow).toList();
+  }
+
+  late List<DataGridRow> _rows;
+
+  @override
+  List<DataGridRow> get rows => _rows;
+
+  @override
+  DataGridRowAdapter buildRow(DataGridRow row) {
+    final String uuid = row.getCells()[0].value as String;
+
+    return DataGridRowAdapter(
+      cells: [
+        Center(
+          child: IconButton(
+            icon: const Icon(Icons.visibility),
+            tooltip: 'View',
+            onPressed: () {
+              context.go('/plug-event/$uuid');
+            },
+          ),
+        ),
+        cellText(row.getCells()[1].value),
+        _edayCellText(row.getCells()[2].value, row.getCells()[3].value),
+        cellText(row.getCells()[3].value),
+        cellText(row.getCells()[4].value),
+        cellText(row.getCells()[5].value),
+        cellText(row.getCells()[6].value),
+        cellText(row.getCells()[7].value),
+        cellText(row.getCells()[8].value),
+      ],
+    );
+  }
+
+  /// Color-coded E-Day cell: green < target, yellow near target, red > target
+  Widget _edayCellText(String currentStr, String targetStr) {
+    final current = double.tryParse(currentStr);
+    final target = double.tryParse(targetStr);
+
+    Color? textColor;
+    if (current != null && target != null) {
+      if (current > target) {
+        textColor = Colors.red;
+      } else if (current >= target - 1) {
+        textColor = Colors.orange;
+      } else {
+        textColor = Colors.green;
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          currentStr,
+          style: textColor != null
+              ? TextStyle(color: textColor, fontWeight: FontWeight.bold)
+              : null,
+        ),
+      ),
+    );
+  }
+}

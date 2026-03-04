@@ -59,6 +59,12 @@ const List<_MenuItemDef> _menuItems = [
     route: '/plug-check',
   ),
   _MenuItemDef(
+    id: 'plugEvent',
+    icon: Icons.event_note,
+    display: 'Plug Events',
+    route: '/plug-event',
+  ),
+  _MenuItemDef(
     id: 'litter',
     icon: Icons.create_new_folder_sharp,
     display: 'Litter',
@@ -129,8 +135,10 @@ class AppMenu extends StatelessWidget {
       return currentPath.startsWith('/mating');
     }
     if (routePath == '/plug-check') {
-      return currentPath.startsWith('/plug-check') ||
-          currentPath.startsWith('/plug-event');
+      return currentPath.startsWith('/plug-check');
+    }
+    if (routePath == '/plug-event') {
+      return currentPath.startsWith('/plug-event');
     }
     if (routePath == '/litter') {
       return currentPath.startsWith('/litter');

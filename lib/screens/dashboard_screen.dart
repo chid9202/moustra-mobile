@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:moustra/screens/dashboard/active_pregnancies_card.dart';
 import 'package:moustra/screens/dashboard/animals_to_wean.dart';
 import 'package:moustra/screens/dashboard/data_by_account.dart';
 import 'package:moustra/screens/dashboard/mice_by_sex.dart';
@@ -99,6 +100,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: MiceBySex(animalsSexRatio),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(color: Colors.grey.shade300, width: 1),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: ActivePregnanciesCard(),
                 ),
               ),
             ],
