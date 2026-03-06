@@ -21,7 +21,7 @@ void main() {
     final mockPlugEvent = PlugEventDto(
       plugEventId: 1,
       plugEventUuid: 'test-uuid',
-      plugDate: DateTime(2023, 6, 15),
+      plugDate: '2023-06-15T00:00:00.000',
     );
 
     testWidgets('renders correctly when dialog is shown', (

@@ -10,8 +10,8 @@ void main() {
     ) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const DashboardScreen());
 
-      // Initially should show loading indicator
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      // Initially may show loading indicator (Overview tab) or multiple loaders (tabs)
+      expect(find.byType(CircularProgressIndicator), findsAtLeastNWidgets(1));
     });
 
     testWidgets('shows loading indicator initially', (
@@ -19,11 +19,9 @@ void main() {
     ) async {
       await TestHelpers.pumpWidgetWithTheme(tester, const DashboardScreen());
 
-      // Check for loading indicator
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
-      // Check for centered loading
-      expect(find.byType(Center), findsOneWidget);
+      // Check for loading indicator (Overview tab uses Center+CircularProgressIndicator)
+      expect(find.byType(CircularProgressIndicator), findsAtLeastNWidgets(1));
+      expect(find.byType(Center), findsAtLeastNWidgets(1));
     });
 
     testWidgets('has proper layout structure', (WidgetTester tester) async {
@@ -66,7 +64,7 @@ void main() {
       await TestHelpers.pumpWidgetWithTheme(tester, const DashboardScreen());
 
       // Initially should show loading
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsAtLeastNWidgets(1));
     });
 
     testWidgets('displays dashboard cards when data loads successfully', (
@@ -78,7 +76,7 @@ void main() {
       await TestHelpers.pumpWidgetWithTheme(tester, const DashboardScreen());
 
       // Initially should show loading
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsAtLeastNWidgets(1));
     });
 
     testWidgets('has proper scrolling behavior', (WidgetTester tester) async {
@@ -104,7 +102,7 @@ void main() {
       await TestHelpers.pumpWidgetWithTheme(tester, const DashboardScreen());
 
       // Initially should show loading
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsAtLeastNWidgets(1));
     });
   });
 }

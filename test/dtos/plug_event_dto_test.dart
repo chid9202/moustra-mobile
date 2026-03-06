@@ -47,7 +47,7 @@ void main() {
         'outcomeDate': '2024-03-21T00:00:00Z',
         'outcomeEday': 20.0,
         'embryosCollected': 8,
-        'notes': 'Test plug event notes',
+        'comment': 'Test plug event notes',
         'owner': {
           'accountId': 2,
           'accountUuid': 'account-uuid-2',
@@ -74,24 +74,24 @@ void main() {
       expect(dto.male?.physicalTag, 'M001');
       expect(dto.mating?.matingUuid, 'mating-uuid-1');
       expect(dto.mating?.matingTag, 'MT001');
-      expect(dto.plugDate, DateTime.parse('2024-03-01T00:00:00Z'));
+      expect(dto.plugDate, '2024-03-01T00:00:00Z');
       expect(dto.plugTime, '09:30');
       expect(dto.checkedBy?.accountId, 1);
-      expect(dto.checkedBy?.user.email, 'checker@test.com');
+      expect(dto.checkedBy?.user?.email, 'checker@test.com');
       expect(dto.currentEday, 12.5);
       expect(dto.targetEday, 14.0);
-      expect(dto.targetDate, DateTime.parse('2024-03-15T00:00:00Z'));
-      expect(dto.expectedDeliveryStart, DateTime.parse('2024-03-20T00:00:00Z'));
-      expect(dto.expectedDeliveryEnd, DateTime.parse('2024-03-22T00:00:00Z'));
+      expect(dto.targetDate, '2024-03-15T00:00:00Z');
+      expect(dto.expectedDeliveryStart, '2024-03-20T00:00:00Z');
+      expect(dto.expectedDeliveryEnd, '2024-03-22T00:00:00Z');
       expect(dto.outcome, 'live_birth');
-      expect(dto.outcomeDate, DateTime.parse('2024-03-21T00:00:00Z'));
+      expect(dto.outcomeDate, '2024-03-21T00:00:00Z');
       expect(dto.outcomeEday, 20.0);
       expect(dto.embryosCollected, 8);
-      expect(dto.notes, 'Test plug event notes');
+      expect(dto.comment, 'Test plug event notes');
       expect(dto.owner?.accountId, 2);
-      expect(dto.owner?.user.firstName, 'Jane');
-      expect(dto.createdDate, DateTime.parse('2024-03-01T00:00:00Z'));
-      expect(dto.updatedDate, DateTime.parse('2024-03-02T00:00:00Z'));
+      expect(dto.owner?.user?.firstName, 'Jane');
+      expect(dto.createdDate, '2024-03-01T00:00:00Z');
+      expect(dto.updatedDate, '2024-03-02T00:00:00Z');
     });
 
     test('should create PlugEventDto with minimal required fields', () {
@@ -108,7 +108,7 @@ void main() {
       // Assert
       expect(dto.plugEventId, 1);
       expect(dto.plugEventUuid, 'plug-event-uuid-1');
-      expect(dto.plugDate, DateTime.parse('2024-03-01T00:00:00Z'));
+      expect(dto.plugDate, '2024-03-01T00:00:00Z');
       expect(dto.eid, null);
       expect(dto.female, null);
       expect(dto.male, null);
@@ -124,7 +124,7 @@ void main() {
       expect(dto.outcomeDate, null);
       expect(dto.outcomeEday, null);
       expect(dto.embryosCollected, null);
-      expect(dto.notes, null);
+      expect(dto.comment, null);
       expect(dto.owner, null);
       expect(dto.createdDate, null);
       expect(dto.updatedDate, null);
@@ -136,16 +136,16 @@ void main() {
         eid: 100,
         plugEventId: 1,
         plugEventUuid: 'plug-event-uuid-1',
-        plugDate: DateTime(2024, 3, 1),
+        plugDate: '2024-03-01T00:00:00.000',
         plugTime: '09:30',
         currentEday: 12.5,
         targetEday: 14.0,
-        targetDate: DateTime(2024, 3, 15),
+        targetDate: '2024-03-15T00:00:00.000',
         outcome: 'live_birth',
-        outcomeDate: DateTime(2024, 3, 21),
+        outcomeDate: '2024-03-21T00:00:00.000',
         outcomeEday: 20.0,
         embryosCollected: 8,
-        notes: 'Test notes',
+        comment: 'Test notes',
       );
 
       // Act
@@ -164,7 +164,7 @@ void main() {
       expect(json['outcomeDate'], '2024-03-21T00:00:00.000');
       expect(json['outcomeEday'], 20.0);
       expect(json['embryosCollected'], 8);
-      expect(json['notes'], 'Test notes');
+      expect(json['comment'], 'Test notes');
     });
 
     test('should handle null optional fields in JSON', () {
@@ -188,7 +188,7 @@ void main() {
         'outcomeDate': null,
         'outcomeEday': null,
         'embryosCollected': null,
-        'notes': null,
+        'comment': null,
         'owner': null,
         'createdDate': null,
         'updatedDate': null,
@@ -200,7 +200,7 @@ void main() {
       // Assert
       expect(dto.plugEventId, 1);
       expect(dto.plugEventUuid, 'plug-event-uuid-1');
-      expect(dto.plugDate, DateTime.parse('2024-03-01T00:00:00Z'));
+      expect(dto.plugDate, '2024-03-01T00:00:00Z');
       expect(dto.eid, null);
       expect(dto.female, null);
       expect(dto.male, null);
@@ -216,7 +216,7 @@ void main() {
       expect(dto.outcomeDate, null);
       expect(dto.outcomeEday, null);
       expect(dto.embryosCollected, null);
-      expect(dto.notes, null);
+      expect(dto.comment, null);
       expect(dto.owner, null);
       expect(dto.createdDate, null);
       expect(dto.updatedDate, null);
@@ -269,9 +269,9 @@ void main() {
       expect(dto.mating?.animals?.length, 1);
       expect(dto.mating?.animals?.first.physicalTag, 'F010');
       expect(dto.owner?.accountId, 3);
-      expect(dto.owner?.user.email, 'lab@test.com');
-      expect(dto.owner?.user.firstName, 'Lab');
-      expect(dto.owner?.user.lastName, 'Manager');
+      expect(dto.owner?.user?.email, 'lab@test.com');
+      expect(dto.owner?.user?.firstName, 'Lab');
+      expect(dto.owner?.user?.lastName, 'Manager');
     });
   });
 }

@@ -75,9 +75,21 @@ void main() {
 
     testWidgets('has event list section', (WidgetTester tester) async {
       await pumpCalendarScreen(tester);
+      // Wait for fetch to complete (success or error)
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(seconds: 1));
 
-      // Should display "All Events" header when no day is selected
-      expect(find.textContaining('All Events'), findsOneWidget);
+      // Event list section: with today selected by default, header is "E, MMM d (N)" or "All Events (N)";
+      // body shows "No events on this day" or "No events this month" when empty
+      final allEvents = find.textContaining('All Events');
+      final noEventsThisDay = find.text('No events on this day');
+      final noEventsThisMonth = find.text('No events this month');
+      final hasEventSection = allEvents.evaluate().isNotEmpty ||
+          noEventsThisDay.evaluate().isNotEmpty ||
+          noEventsThisMonth.evaluate().isNotEmpty;
+      expect(hasEventSection, isTrue,
+          reason:
+              'Expected "All Events", "No events on this day", or "No events this month"');
     });
 
     testWidgets('has proper layout structure', (WidgetTester tester) async {

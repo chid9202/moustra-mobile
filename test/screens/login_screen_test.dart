@@ -129,6 +129,9 @@ void main() {
       await tester.tap(signInButton);
       await tester.pump();
 
+      // Allow the 300ms autofill timer from LoginScreen to complete so no timer is pending at teardown
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+
       // Note: In a real test, you'd verify authentication flow
       // This would require mocking the auth service
     });
