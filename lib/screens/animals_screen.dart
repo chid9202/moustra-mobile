@@ -6,6 +6,7 @@ import 'package:moustra/constants/list_constants/cell_text.dart';
 import 'package:moustra/constants/list_constants/cage_filter_config.dart';
 import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
+import 'package:moustra/services/dtos/end_animals_dto.dart';
 import 'package:moustra/services/models/list_query_params.dart';
 import 'package:moustra/services/models/prepared_filter.dart';
 import 'package:moustra/stores/profile_store.dart';
@@ -14,6 +15,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/services/clients/event_api.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class AnimalsScreen extends StatefulWidget {
   const AnimalsScreen({super.key});
@@ -215,11 +217,11 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   heroTag: 'animals-fab-menu',
                   margin: const EdgeInsets.only(right: 24, bottom: 50),
                   actions: [
-                    if (_isEndingMode)
+                    if (_isEndingMode) ...[
                       FabMenuAction(
                         label: _isEndingAnimals
                             ? 'Ending...'
-                            : 'End Selected Animals',
+                            : 'Quick End',
                         icon: _isEndingAnimals
                             ? const SizedBox(
                                 width: 18,
@@ -230,12 +232,20 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                               )
                             : const Icon(Icons.stop_circle_outlined),
                         onPressed: _selected.isNotEmpty && !_isEndingAnimals
-                            ? _endSelectedAnimals
+                            ? _quickEndSelectedAnimals
                             : null,
                         enabled: _selected.isNotEmpty && !_isEndingAnimals,
                         closeOnTap: false,
-                      )
-                    else
+                      ),
+                      FabMenuAction(
+                        label: 'End with Details',
+                        icon: const Icon(Icons.assignment_outlined),
+                        onPressed: _selected.isNotEmpty && !_isEndingAnimals
+                            ? _endSelectedAnimalsWithForm
+                            : null,
+                        enabled: _selected.isNotEmpty && !_isEndingAnimals,
+                      ),
+                    ] else
                       FabMenuAction(
                         label: 'Create Animals',
                         icon: const Icon(Icons.add),
@@ -280,20 +290,20 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     });
   }
 
-  Future<void> _endSelectedAnimals() async {
-    if (_selected.isEmpty) {
-      return;
-    }
+  Future<void> _quickEndSelectedAnimals() async {
+    if (_selected.isEmpty) return;
     try {
       setState(() {
         _isEndingAnimals = true;
       });
-      await animalService.endAnimals(_selected.toList());
+      await animalService.endAnimals(
+        _selected.toList(),
+        EndAnimalFormDto(
+          endDate: DateTime.now().toIso8601String().split('T')[0],
+        ),
+      );
       eventApi.trackEvent('end_animal');
-      await animalService.getAnimalsPage(page: 1, pageSize: _pageSize);
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _controller.reload();
         _selected.clear();
@@ -301,22 +311,20 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
         _isEndingAnimals = false;
       });
       _fabController.close();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Animals ended successfully!')),
-      );
+      showAppSnackBar(context, 'Animals ended successfully!', isSuccess: true);
     } catch (_) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _isEndingAnimals = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to end animals. Please try again.'),
-        ),
-      );
+      showAppSnackBar(context, 'Failed to end animals. Please try again.', isError: true);
     }
+  }
+
+  void _endSelectedAnimalsWithForm() {
+    if (_selected.isEmpty) return;
+    final uuids = _selected.join(',');
+    context.go('/animal/end?animals=$uuids');
   }
 
   @override

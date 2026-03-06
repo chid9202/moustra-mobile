@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/stores/rack_store.dart';
 
@@ -132,24 +133,14 @@ class _MoveCageDialogState extends State<MoveCageDialog> {
       );
       if (mounted) {
         Navigator.of(context).pop(true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cage moved successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showAppSnackBar(context, 'Cage moved successfully', isSuccess: true);
       }
     } catch (e) {
       setState(() {
         isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to move cage: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Failed to move cage: ${e.toString()}', isError: true);
       }
     }
   }

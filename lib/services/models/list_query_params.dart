@@ -82,12 +82,14 @@ class ListQueryParams {
   final int pageSize;
   final List<FilterParam> filters;
   final List<SortParam> sorts;
+  final String? name;
 
   const ListQueryParams({
     this.page = 1,
     this.pageSize = 25,
     this.filters = const [],
     this.sorts = const [],
+    this.name,
   });
 
   ListQueryParams copyWith({
@@ -95,23 +97,30 @@ class ListQueryParams {
     int? pageSize,
     List<FilterParam>? filters,
     List<SortParam>? sorts,
+    String? name,
   }) {
     return ListQueryParams(
       page: page ?? this.page,
       pageSize: pageSize ?? this.pageSize,
       filters: filters ?? this.filters,
       sorts: sorts ?? this.sorts,
+      name: name ?? this.name,
     );
   }
 
   /// Builds a query string with support for repeated parameters
-  /// Example output: page=1&page_size=25&filter=strain&op=contains&value=C57&filter=sex&op=equals&value=M
+  /// Example output: page=1&page_size=25&name=active&filter=outcome&op=is_empty&value=
   String buildQueryString() {
     final List<String> parts = [];
 
     // Add pagination
     parts.add('page=$page');
     parts.add('page_size=$pageSize');
+
+    // Add name (for prepared/named filters)
+    if (name != null && name!.isNotEmpty) {
+      parts.add('name=${Uri.encodeComponent(name!)}');
+    }
 
     // Add filters (filter, op, value triplets)
     for (final filter in filters) {

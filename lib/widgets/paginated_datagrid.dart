@@ -63,7 +63,7 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
   int _totalCount = 0;
   bool _isLoading = true;
   bool _sortAscending = true;
-  final bool _useAiSearch = true;
+  bool _useAiSearch = true;
   String _searchTerm = '';
 
   @override
@@ -165,7 +165,21 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: Icon(
+                    Icons.auto_awesome,
+                    color: _useAiSearch
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _useAiSearch = !_useAiSearch;
+                    });
+                  },
+                  tooltip: _useAiSearch ? 'AI Search On' : 'AI Search Off',
+                ),
                 IconButton(
                   icon: const Icon(Icons.search),
                   onPressed: _triggerSearch,

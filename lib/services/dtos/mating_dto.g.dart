@@ -44,6 +44,12 @@ MatingDto _$MatingDtoFromJson(Map<String, dynamic> json) => MatingDto(
   notes: (json['notes'] as List<dynamic>?)
       ?.map((e) => NoteDto.fromJson(e as Map<String, dynamic>))
       .toList(),
+  litters: (json['litters'] as List<dynamic>?)
+      ?.map((e) => LitterDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  plugEvents: (json['plugEvents'] as List<dynamic>?)
+      ?.map((e) => MatingPlugEventDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$MatingDtoToJson(MatingDto instance) => <String, dynamic>{
@@ -62,6 +68,8 @@ Map<String, dynamic> _$MatingDtoToJson(MatingDto instance) => <String, dynamic>{
   'createdDate': instance.createdDate?.toIso8601String(),
   'cage': instance.cage?.toJson(),
   'notes': instance.notes?.map((e) => e.toJson()).toList(),
+  'litters': instance.litters?.map((e) => e.toJson()).toList(),
+  'plugEvents': instance.plugEvents?.map((e) => e.toJson()).toList(),
 };
 
 MatingSummaryDto _$MatingSummaryDtoFromJson(Map<String, dynamic> json) =>
@@ -108,3 +116,45 @@ Map<String, dynamic> _$MatingSummaryAnimalDtoToJson(
   'sex': instance.sex,
   'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
 };
+
+MatingPlugEventDto _$MatingPlugEventDtoFromJson(Map<String, dynamic> json) =>
+    MatingPlugEventDto(
+      plugEventUuid: json['plugEventUuid'] as String,
+      female: json['female'] == null
+          ? null
+          : AnimalSummaryDto.fromJson(json['female'] as Map<String, dynamic>),
+      male: json['male'] == null
+          ? null
+          : AnimalSummaryDto.fromJson(json['male'] as Map<String, dynamic>),
+      plugDate: json['plugDate'] as String,
+      plugTime: json['plugTime'] as String?,
+      targetEday: _safeDouble(json['targetEday']),
+      targetDate: json['targetDate'] as String?,
+      expectedDeliveryStart: json['expectedDeliveryStart'] as String?,
+      expectedDeliveryEnd: json['expectedDeliveryEnd'] as String?,
+      outcome: json['outcome'] as String?,
+      outcomeDate: json['outcomeDate'] as String?,
+      outcomeEday: _safeDouble(json['outcomeEday']),
+      embryosCollected: _safeInt(json['embryosCollected']),
+      currentEday: _safeDouble(json['currentEday']),
+      createdDate: json['createdDate'] as String?,
+    );
+
+Map<String, dynamic> _$MatingPlugEventDtoToJson(MatingPlugEventDto instance) =>
+    <String, dynamic>{
+      'plugEventUuid': instance.plugEventUuid,
+      'female': instance.female?.toJson(),
+      'male': instance.male?.toJson(),
+      'plugDate': instance.plugDate,
+      'plugTime': instance.plugTime,
+      'targetEday': instance.targetEday,
+      'targetDate': instance.targetDate,
+      'expectedDeliveryStart': instance.expectedDeliveryStart,
+      'expectedDeliveryEnd': instance.expectedDeliveryEnd,
+      'outcome': instance.outcome,
+      'outcomeDate': instance.outcomeDate,
+      'outcomeEday': instance.outcomeEday,
+      'embryosCollected': instance.embryosCollected,
+      'currentEday': instance.currentEday,
+      'createdDate': instance.createdDate,
+    };

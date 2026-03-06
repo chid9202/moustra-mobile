@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:moustra/services/clients/plug_api.dart';
 import 'package:moustra/services/dtos/plug_event_dto.dart';
 import 'package:moustra/services/dtos/post_plug_check_dto.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class PlugCheckScreen extends StatefulWidget {
   const PlugCheckScreen({super.key});
@@ -99,9 +100,7 @@ class _PlugCheckScreenState extends State<PlugCheckScreen> {
 
   void _submit() async {
     if (_checkResults.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No checks recorded yet')),
-      );
+      showAppSnackBar(context, 'No checks recorded yet');
       return;
     }
 
@@ -125,19 +124,13 @@ class _PlugCheckScreenState extends State<PlugCheckScreen> {
       await plugService.batchCreatePlugChecks(checks);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${checks.length} plug check(s) submitted'),
-          ),
-        );
+        showAppSnackBar(context, '${checks.length} plug check(s) submitted', isSuccess: true);
         context.go('/plug-event');
       }
     } catch (e) {
       debugPrint('Error submitting plug checks: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error submitting checks: $e')),
-        );
+        showAppSnackBar(context, 'Error submitting checks: $e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);

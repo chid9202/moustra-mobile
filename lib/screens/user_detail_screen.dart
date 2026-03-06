@@ -5,6 +5,7 @@ import 'package:moustra/services/dtos/user_detail_dto.dart';
 import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 final usersApi = UsersApi(apiClient);
 
@@ -74,12 +75,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading user: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error loading user: $e', isError: true);
       }
     } finally {
       setState(() => _isLoading = false);
@@ -111,12 +107,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
         await usersApi.createUser(profile.accountUuid, createUserData);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('User invited successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          showAppSnackBar(context, 'User invited successfully', isSuccess: true);
           // Navigate back to users list
           context.go('/user');
         }
@@ -134,23 +125,13 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
         await usersApi.updateUser(widget.userUuid!, userData);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('User updated successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          showAppSnackBar(context, 'User updated successfully', isSuccess: true);
           context.go('/user');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving user: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error saving user: $e', isError: true);
       }
     } finally {
       setState(() => _isLoading = false);

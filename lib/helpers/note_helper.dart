@@ -6,22 +6,24 @@ import 'package:moustra/services/dtos/account_dto.dart';
 
 class NoteHelper {
   static String getCreatorName(AccountDto? account) {
-    if (account == null) {
+    if (account?.user == null) {
       return 'System';
     }
-    if (account.user.firstName.isNotEmpty && account.user.lastName.isNotEmpty) {
-      return '${account.user.firstName} ${account.user.lastName}';
+    final user = account!.user!;
+    if (user.firstName.isNotEmpty && user.lastName.isNotEmpty) {
+      return '${user.firstName} ${user.lastName}';
     }
     return 'Unknown';
   }
 
   static String getInitials(AccountDto? account) {
-    if (account == null) {
+    if (account?.user == null) {
       return 'SY';
     }
-    if (account.user.firstName.isNotEmpty && account.user.lastName.isNotEmpty) {
-      final first = account.user.firstName[0].toUpperCase();
-      final last = account.user.lastName[0].toUpperCase();
+    final user = account!.user!;
+    if (user.firstName.isNotEmpty && user.lastName.isNotEmpty) {
+      final first = user.firstName[0].toUpperCase();
+      final last = user.lastName[0].toUpperCase();
       return '$first$last';
     }
     return '?';

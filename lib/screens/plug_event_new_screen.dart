@@ -8,6 +8,7 @@ import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
 import 'package:moustra/widgets/shared/select_animal.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_mating.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class PlugEventNewScreen extends StatefulWidget {
   final String? matingUuid;
@@ -80,15 +81,11 @@ class _PlugEventNewScreenState extends State<PlugEventNewScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedFemale == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a female')),
-      );
+      showAppSnackBar(context, 'Please select a female');
       return;
     }
     if (_selectedPlugDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a plug date')),
-      );
+      showAppSnackBar(context, 'Please select a plug date');
       return;
     }
 
@@ -110,19 +107,14 @@ class _PlugEventNewScreenState extends State<PlugEventNewScreen> {
       await plugService.createPlugEvent(dto);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Plug event created successfully')),
-        );
+        showAppSnackBar(context, 'Plug event created successfully', isSuccess: true);
         context.go('/plug-event');
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('Error creating plug event: $e');
+      debugPrint('$stack');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error creating plug event: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error creating plug event: $e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);

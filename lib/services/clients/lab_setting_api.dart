@@ -19,6 +19,19 @@ class LabSettingApi {
       throw Exception('Failed to update lab setting: ${res.body}');
     }
   }
+
+  Future<void> postErrorReport({
+    String? subject,
+    required String message,
+  }) async {
+    final res = await apiClient.post('/error-report', body: {
+      'subject': subject ?? '',
+      'message': message,
+    });
+    if (res.statusCode != 200 && res.statusCode != 201) {
+      throw Exception('Failed to submit feedback: ${res.body}');
+    }
+  }
 }
 
 final LabSettingApi labSettingApi = LabSettingApi();

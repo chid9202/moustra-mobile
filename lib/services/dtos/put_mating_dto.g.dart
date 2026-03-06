@@ -16,6 +16,12 @@ PutMatingDto _$PutMatingDtoFromJson(Map<String, dynamic> json) => PutMatingDto(
   setUpDate: DateTime.parse(json['setUpDate'] as String),
   owner: AccountStoreDto.fromJson(json['owner']),
   comment: json['comment'] as String?,
+  disbandedDate: json['disbandedDate'] == null
+      ? null
+      : DateTime.parse(json['disbandedDate'] as String),
+  disbandedBy: json['disbandedBy'] == null
+      ? null
+      : AccountStoreDto.fromJson(json['disbandedBy']),
 );
 
 Map<String, dynamic> _$PutMatingDtoToJson(PutMatingDto instance) =>
@@ -27,4 +33,6 @@ Map<String, dynamic> _$PutMatingDtoToJson(PutMatingDto instance) =>
       'setUpDate': instance.setUpDate.toIso8601String(),
       'owner': instance.owner.toJson(),
       'comment': instance.comment,
+      'disbandedDate': instance.disbandedDate?.toIso8601String(),
+      'disbandedBy': instance.disbandedBy?.toJson(),
     };

@@ -145,7 +145,9 @@ class _ActivePregnanciesCardState extends State<ActivePregnanciesCard> {
   int? _daysUntilDelivery(PlugEventDto event) {
     final start = event.expectedDeliveryStart;
     if (start == null) return null;
-    return start.difference(DateTime.now()).inDays;
+    final parsed = DateTime.tryParse(start);
+    if (parsed == null) return null;
+    return parsed.difference(DateTime.now()).inDays;
   }
 
   Color _edayColor(double? current, double? target) {

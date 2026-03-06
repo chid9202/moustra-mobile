@@ -6,17 +6,17 @@ part 'protocol_dto.g.dart';
 @JsonSerializable(explicitToJson: true)
 class ProtocolDto {
   final int? protocolId;
-  final String protocolUuid;
+  final String? protocolUuid;
   final String protocolNumber;
   final String title;
   final AccountDto? pi;
   final String? status;
   final String? approvalDate;
   final String? effectiveDate;
-  final String expirationDate;
-  final String painCategory;
-  final int maxAnimalCount;
-  final int currentAnimalCount;
+  final String? expirationDate;
+  final String? painCategory;
+  final int? maxAnimalCount;
+  final int? currentAnimalCount;
   final double? animalCountPct;
   final int? daysUntilExpiry;
   final String? alertStatus;
@@ -29,17 +29,17 @@ class ProtocolDto {
 
   ProtocolDto({
     this.protocolId,
-    required this.protocolUuid,
+    this.protocolUuid,
     required this.protocolNumber,
     required this.title,
     this.pi,
     this.status,
     this.approvalDate,
     this.effectiveDate,
-    required this.expirationDate,
-    required this.painCategory,
-    required this.maxAnimalCount,
-    this.currentAnimalCount = 0,
+    this.expirationDate,
+    this.painCategory,
+    this.maxAnimalCount,
+    this.currentAnimalCount,
     this.animalCountPct,
     this.daysUntilExpiry,
     this.alertStatus,

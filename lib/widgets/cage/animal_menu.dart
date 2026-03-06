@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:moustra/app/router.dart';
 import 'package:moustra/services/clients/animal_api.dart';
+import 'package:moustra/services/dtos/end_animals_dto.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/stores/rack_store.dart';
 import 'package:moustra/widgets/shared/select_rack_cage.dart';
@@ -116,6 +117,11 @@ class AnimalMenu extends StatelessWidget {
 
   void _handleEnd() {
     removeAnimalFromCage(cage.cageUuid, animal.animalUuid);
-    animalService.endAnimals([animal.animalUuid]);
+    animalService.endAnimals(
+      [animal.animalUuid],
+      EndAnimalFormDto(
+        endDate: DateTime.now().toIso8601String().split('T')[0],
+      ),
+    );
   }
 }

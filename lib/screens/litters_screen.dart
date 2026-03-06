@@ -10,6 +10,7 @@ import 'package:moustra/widgets/filter_panel.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class LittersScreen extends StatefulWidget {
   const LittersScreen({super.key});
@@ -252,9 +253,7 @@ class _LittersScreenState extends State<LittersScreen> {
         _isEndingLitters = false;
       });
       _fabController.close();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Litters ended successfully!')),
-      );
+      showAppSnackBar(context, 'Litters ended successfully!', isSuccess: true);
     } catch (_) {
       if (!mounted) {
         return;
@@ -262,11 +261,7 @@ class _LittersScreenState extends State<LittersScreen> {
       setState(() {
         _isEndingLitters = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to end litters. Please try again.'),
-        ),
-      );
+      showAppSnackBar(context, 'Failed to end litters. Please try again.', isError: true);
     }
   }
 }

@@ -7,8 +7,13 @@ import 'package:moustra/services/dtos/stores/cage_store_dto.dart';
 import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/services/dtos/note_dto.dart';
+import 'package:moustra/services/dtos/litter_dto.dart';
+import 'package:moustra/services/dtos/mating_dto.dart';
 
 part 'animal_dto.g.dart';
+
+double? _safeDouble(dynamic v) => v == null ? null : (v is num ? v.toDouble() : double.tryParse(v.toString()));
+int? _safeInt(dynamic v) => v == null ? null : (v is num ? v.toInt() : int.tryParse(v.toString()));
 
 @JsonSerializable(explicitToJson: true)
 class AnimalDto {
@@ -33,6 +38,8 @@ class AnimalDto {
   final AnimalSummaryDto? sire;
   final List<AnimalSummaryDto>? dam;
   final List<NoteDto>? notes;
+  final List<AnimalMatingDto>? matings;
+  final List<AnimalPlugEventDto>? plugEvents;
 
   AnimalDto({
     required this.eid,
@@ -56,6 +63,8 @@ class AnimalDto {
     this.sire,
     this.dam = const [],
     this.notes,
+    this.matings,
+    this.plugEvents,
   });
 
   factory AnimalDto.fromJson(Map<String, dynamic> json) =>
@@ -285,4 +294,70 @@ class EndReasonSummaryDto {
   factory EndReasonSummaryDto.fromJson(Map<String, dynamic> json) =>
       _$EndReasonSummaryDtoFromJson(json);
   Map<String, dynamic> toJson() => _$EndReasonSummaryDtoToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class AnimalMatingDto {
+  final String matingUuid;
+  final String? matingTag;
+  final StrainSummaryDto? litterStrain;
+  final DateTime? setUpDate;
+  final DateTime? disbandedDate;
+  final List<LitterDto>? litters;
+  final List<MatingPlugEventDto>? plugEvents;
+
+  AnimalMatingDto({
+    required this.matingUuid,
+    this.matingTag,
+    this.litterStrain,
+    this.setUpDate,
+    this.disbandedDate,
+    this.litters,
+    this.plugEvents,
+  });
+
+  factory AnimalMatingDto.fromJson(Map<String, dynamic> json) =>
+      _$AnimalMatingDtoFromJson(json);
+  Map<String, dynamic> toJson() => _$AnimalMatingDtoToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class AnimalPlugEventDto {
+  final String plugEventUuid;
+  final String plugDate;
+  final String? plugTime;
+  @JsonKey(fromJson: _safeDouble)
+  final double? targetEday;
+  final String? targetDate;
+  final String? expectedDeliveryStart;
+  final String? expectedDeliveryEnd;
+  final String? outcome;
+  final String? outcomeDate;
+  @JsonKey(fromJson: _safeDouble)
+  final double? outcomeEday;
+  @JsonKey(fromJson: _safeInt)
+  final int? embryosCollected;
+  @JsonKey(fromJson: _safeDouble)
+  final double? currentEday;
+  final String? createdDate;
+
+  AnimalPlugEventDto({
+    required this.plugEventUuid,
+    required this.plugDate,
+    this.plugTime,
+    this.targetEday,
+    this.targetDate,
+    this.expectedDeliveryStart,
+    this.expectedDeliveryEnd,
+    this.outcome,
+    this.outcomeDate,
+    this.outcomeEday,
+    this.embryosCollected,
+    this.currentEday,
+    this.createdDate,
+  });
+
+  factory AnimalPlugEventDto.fromJson(Map<String, dynamic> json) =>
+      _$AnimalPlugEventDtoFromJson(json);
+  Map<String, dynamic> toJson() => _$AnimalPlugEventDtoToJson(this);
 }

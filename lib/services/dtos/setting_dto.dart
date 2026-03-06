@@ -46,6 +46,7 @@ class AccountSettingDto {
   final bool animalCreationTour;
   final bool useComment;
   final bool enableCustomWeanDate;
+  final bool enableItemUpdateNotifications;
 
   AccountSettingDto({
     required this.enableDailyReport,
@@ -53,6 +54,7 @@ class AccountSettingDto {
     required this.animalCreationTour,
     required this.useComment,
     required this.enableCustomWeanDate,
+    this.enableItemUpdateNotifications = false,
   });
 
   factory AccountSettingDto.fromJson(Map<String, dynamic> json) {
@@ -62,6 +64,27 @@ class AccountSettingDto {
       animalCreationTour: json['animalCreationTour'] as bool? ?? false,
       useComment: json['useComment'] as bool? ?? true,
       enableCustomWeanDate: json['enableCustomWeanDate'] as bool? ?? true,
+      enableItemUpdateNotifications:
+          json['enableItemUpdateNotifications'] as bool? ?? false,
+    );
+  }
+
+  AccountSettingDto copyWith({
+    bool? enableDailyReport,
+    bool? onboardingTour,
+    bool? animalCreationTour,
+    bool? useComment,
+    bool? enableCustomWeanDate,
+    bool? enableItemUpdateNotifications,
+  }) {
+    return AccountSettingDto(
+      enableDailyReport: enableDailyReport ?? this.enableDailyReport,
+      onboardingTour: onboardingTour ?? this.onboardingTour,
+      animalCreationTour: animalCreationTour ?? this.animalCreationTour,
+      useComment: useComment ?? this.useComment,
+      enableCustomWeanDate: enableCustomWeanDate ?? this.enableCustomWeanDate,
+      enableItemUpdateNotifications:
+          enableItemUpdateNotifications ?? this.enableItemUpdateNotifications,
     );
   }
 
@@ -71,6 +94,7 @@ class AccountSettingDto {
     'animalCreationTour': animalCreationTour,
     'useComment': useComment,
     'enableCustomWeanDate': enableCustomWeanDate,
+    'enableItemUpdateNotifications': enableItemUpdateNotifications,
   };
 }
 

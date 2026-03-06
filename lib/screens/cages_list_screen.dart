@@ -17,6 +17,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:moustra/screens/barcode_scanner_screen.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class CagesListScreen extends StatefulWidget {
   const CagesListScreen({super.key});
@@ -324,17 +325,13 @@ class _CagesListScreenState extends State<CagesListScreen> {
       });
       _controller.reload();
       _fabController.close();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cages ended successfully!')),
-      );
+      showAppSnackBar(context, 'Cages ended successfully!', isSuccess: true);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isEndingCages = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to end cages: $e')),
-      );
+      showAppSnackBar(context, 'Failed to end cages: $e', isError: true);
     }
   }
 
@@ -414,13 +411,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
           errorMessage = 'Error: $errorString';
         }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        showAppSnackBar(context, errorMessage, isError: true);
       }
     } catch (e) {
       // Try to dismiss dialog if still showing
@@ -431,15 +422,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error scanning barcode: ${e.toString().replaceAll('Exception: ', '')}',
-            ),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        showAppSnackBar(context, 'Error scanning barcode: ${e.toString().replaceAll('Exception: ', '')}', isError: true);
       }
     }
   }

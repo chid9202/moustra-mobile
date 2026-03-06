@@ -13,6 +13,8 @@ class PutMatingDto {
   final DateTime setUpDate;
   final AccountStoreDto owner;
   final String? comment;
+  final DateTime? disbandedDate;
+  final AccountStoreDto? disbandedBy;
 
   PutMatingDto({
     required this.matingId,
@@ -22,6 +24,8 @@ class PutMatingDto {
     required this.setUpDate,
     required this.owner,
     this.comment,
+    this.disbandedDate,
+    this.disbandedBy,
   });
 
   factory PutMatingDto.fromJson(Map<String, dynamic> json) =>

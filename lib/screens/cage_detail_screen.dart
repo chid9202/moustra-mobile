@@ -22,6 +22,7 @@ import 'package:moustra/widgets/cage/cage_label_pdf.dart';
 import 'package:moustra/widgets/cage/mating_history_section.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class CageDetailScreen extends StatefulWidget {
   final bool fromCageGrid;
@@ -104,9 +105,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
     } catch (e) {
       debugPrint('Error loading cage: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading cage: $e')));
+        showAppSnackBar(context, 'Error loading cage: $e', isError: true);
       }
       _cageDataLoaded = true;
     }
@@ -133,12 +132,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error scanning barcode: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error scanning barcode: $e', isError: true);
       }
     }
   }
@@ -171,19 +165,12 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
         await refreshCageStore();
         await refreshAnimalStore();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cage created successfully!')),
-          );
+          showAppSnackBar(context, 'Cage created successfully!', isSuccess: true);
         }
       } else {
         final cageData = _cageData;
         if (cageData == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error: Cage data not loaded'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          showAppSnackBar(context, 'Error: Cage data not loaded', isError: true);
           return;
         }
 
@@ -209,9 +196,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
         await refreshCageStore();
         await refreshAnimalStore();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cage updated successfully!')),
-          );
+          showAppSnackBar(context, 'Cage updated successfully!', isSuccess: true);
         }
       }
 
@@ -226,9 +211,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
     } catch (e) {
       debugPrint('Error saving cage: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving cage: $e')));
+        showAppSnackBar(context, 'Error saving cage: $e', isError: true);
       }
     }
   }

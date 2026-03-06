@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
+import 'package:moustra/services/dtos/end_animals_dto.dart';
+import 'package:moustra/services/dtos/family_tree_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/models/list_query_params.dart';
@@ -85,19 +87,53 @@ class AnimalApi {
     return animalsData.map((e) => AnimalDto.fromDynamicJson(e)).toList();
   }
 
-  Future endAnimals(List<String> animalUuids) async {
+  Future<EndAnimalsResponseDto> getEndAnimalsData(
+    List<String> animalUuids,
+  ) async {
+    final res = await apiClient.get(
+      '$basePath/end',
+      query: {'animals': animalUuids.join(',')},
+    );
+    if (res.statusCode != 200) {
+      throw Exception('Failed to get end animals data ${res.body}');
+    }
+    return EndAnimalsResponseDto.fromJson(jsonDecode(res.body));
+  }
+
+  Future endAnimals(
+    List<String> animalUuids,
+    EndAnimalFormDto form,
+  ) async {
     final res = await apiClient.put(
       '$basePath/end',
       query: {'animals': animalUuids.join(',')},
-      body: {
-        'endCage': false,
-        'endComment': '',
-        'endDate': DateTime.now().toIso8601String().split('T')[0],
-      },
+      body: form,
     );
     if (res.statusCode != 200) {
       throw Exception('Failed to end animals ${res.body}');
     }
+  }
+
+  Future<EndTypeSummaryDto> createEndType(String name) async {
+    final res = await apiClient.post(
+      '/end-type',
+      body: {'endTypeName': name},
+    );
+    if (res.statusCode != 201) {
+      throw Exception('Failed to create end type ${res.body}');
+    }
+    return EndTypeSummaryDto.fromJson(jsonDecode(res.body));
+  }
+
+  Future<EndReasonSummaryDto> createEndReason(String name) async {
+    final res = await apiClient.post(
+      '/end-reason',
+      body: {'endReasonName': name},
+    );
+    if (res.statusCode != 201) {
+      throw Exception('Failed to create end reason ${res.body}');
+    }
+    return EndReasonSummaryDto.fromJson(jsonDecode(res.body));
   }
 
   Future<RackDto> moveAnimal(String animalUuid, String cageUuid) async {
@@ -142,6 +178,13 @@ class AnimalApi {
       data,
       (j) => AnimalDto.fromJson(j),
     );
+  }
+
+  /// Get the family tree (parent litter + children litter) for an animal
+  Future<FamilyTreeDto> getAnimalFamilyTree(String animalUuid) async {
+    final res = await apiClient.get('$basePath/$animalUuid/family-tree');
+    final json = jsonDecode(res.body) as Map<String, dynamic>;
+    return FamilyTreeDto.fromJson(json);
   }
 
   /// Batch update animals with a PATCH request.

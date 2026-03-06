@@ -12,10 +12,14 @@ import 'package:moustra/screens/plug_event_new_screen.dart';
 import 'package:moustra/screens/protocols_screen.dart';
 import 'package:moustra/screens/protocol_detail_screen.dart';
 import 'package:moustra/screens/protocol_form_screen.dart';
+import 'package:moustra/screens/tasks_screen.dart';
+import 'package:moustra/screens/task_create_screen.dart';
 import 'package:moustra/screens/calendar_screen.dart';
+import 'package:moustra/screens/cheese_ai_screen.dart';
 import 'package:moustra/screens/notifications_screen.dart';
 import 'package:moustra/screens/protocol_compliance_screen.dart';
 import 'package:moustra/screens/strain_detail_screen.dart';
+import 'package:moustra/screens/end_animal_screen.dart';
 import 'package:moustra/screens/colony_wizard/colony_wizard_screen.dart';
 import 'package:moustra/stores/auth_store.dart';
 import 'package:moustra/stores/profile_store.dart';
@@ -156,6 +160,11 @@ final GoRouter appRouter = GoRouter(
               const MaterialPage(child: AnimalsScreen()),
         ),
         GoRoute(
+          path: '/animal/end',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: EndAnimalScreen()),
+        ),
+        GoRoute(
           path: '/animal/new',
           pageBuilder: (context, state) {
             final cageUuid = state.uri.queryParameters['cageUuid'];
@@ -174,8 +183,13 @@ final GoRouter appRouter = GoRouter(
           pageBuilder: (context, state) {
             final fromCageGrid =
                 state.uri.queryParameters['fromCageGrid'] == 'true';
+            final fromProtocol =
+                state.uri.queryParameters['fromProtocol'];
             return MaterialPage(
-              child: AnimalDetailScreen(fromCageGrid: fromCageGrid),
+              child: AnimalDetailScreen(
+                fromCageGrid: fromCageGrid,
+                fromProtocol: fromProtocol,
+              ),
             );
           },
         ),
@@ -251,6 +265,21 @@ final GoRouter appRouter = GoRouter(
           path: '/protocol/:protocolUuid/edit',
           pageBuilder: (context, state) =>
               const MaterialPage(child: ProtocolFormScreen()),
+        ),
+        GoRoute(
+          path: '/ai',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: CheeseAiScreen()),
+        ),
+        GoRoute(
+          path: '/task',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: TasksScreen()),
+        ),
+        GoRoute(
+          path: '/task/new',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: TaskCreateScreen()),
         ),
         GoRoute(
           path: '/calendar',

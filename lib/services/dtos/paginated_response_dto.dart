@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+
 typedef FromJson<T> = T Function(Map<String, dynamic> json);
 
 class PaginatedResponseDto<T> {
@@ -18,10 +20,18 @@ class PaginatedResponseDto<T> {
     FromJson<T> itemFromJson,
   ) {
     final List<dynamic> raw = (json['results'] as List<dynamic>? ?? []);
-    final List<T> items = raw
-        .whereType<Map<String, dynamic>>()
-        .map<T>((e) => itemFromJson(e))
-        .toList();
+    final List<T> items = <T>[];
+    for (final e in raw) {
+      if (e is Map<String, dynamic>) {
+        try {
+          items.add(itemFromJson(e));
+        } catch (err, stack) {
+          debugPrint('PaginatedResponse: Error parsing $T item: $err');
+          debugPrint('PaginatedResponse: Raw JSON keys: ${e.keys.toList()}');
+          debugPrint('PaginatedResponse: Stack: $stack');
+        }
+      }
+    }
     return PaginatedResponseDto<T>(
       count: (json['count'] as int?) ?? 0,
       results: items,

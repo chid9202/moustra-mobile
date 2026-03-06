@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 
 import 'package:moustra/screens/dashboard/active_pregnancies_card.dart';
 import 'package:moustra/screens/dashboard/animals_to_wean.dart';
+import 'package:moustra/screens/dashboard/cage_utilization_card.dart';
+import 'package:moustra/screens/dashboard/compliance_tab.dart';
 import 'package:moustra/screens/dashboard/data_by_account.dart';
 import 'package:moustra/screens/dashboard/mice_by_sex.dart';
 import 'package:moustra/screens/dashboard/mice_count_by_age.dart';
+import 'package:moustra/screens/dashboard/reports_tab.dart';
 import 'package:moustra/services/clients/dashboard_api.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -25,6 +28,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 3,
+      child: Column(
+        children: [
+          const TabBar(
+            tabs: [
+              Tab(text: 'Overview'),
+              Tab(text: 'Compliance'),
+              Tab(text: 'Reports'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                _buildOverviewTab(),
+                const ComplianceTab(),
+                const ReportsTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOverviewTab() {
     return FutureBuilder<Map<String, dynamic>>(
       future: _future,
       builder: (context, snapshot) {
@@ -43,6 +72,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             (data['animalsSexRatio'] as List<dynamic>? ?? <dynamic>[]);
         final List<dynamic> animalsToWean =
             (data['animalsToWean'] as List<dynamic>? ?? <dynamic>[]);
+        final Map<String, dynamic>? cageUtilization =
+            data['cageUtilization'] as Map<String, dynamic>?;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(12),
@@ -116,6 +147,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: ActivePregnanciesCard(),
                 ),
               ),
+
+              if (cageUtilization != null) ...[
+                const SizedBox(height: 12),
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(color: Colors.grey.shade300, width: 1),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: CageUtilizationCard(cageUtilization),
+                  ),
+                ),
+              ],
             ],
           ),
         );

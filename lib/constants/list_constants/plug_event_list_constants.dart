@@ -94,9 +94,9 @@ enum PlugEventListColumn implements ListColumn<PlugEventDto> {
       p.expectedDeliveryEnd,
     );
     final String outcome = _formatOutcome(p.outcome);
-    final String plugDate = DateTimeHelper.formatDate(p.plugDate);
+    final String plugDate = DateTimeHelper.parseIsoToDate(p.plugDate);
     final String owner = AccountHelper.getOwnerName(p.owner);
-    final String created = DateTimeHelper.formatDateTime(p.createdDate);
+    final String created = DateTimeHelper.parseIsoToDateTime(p.createdDate);
 
     return DataGridRow(
       cells: [
@@ -140,11 +140,11 @@ enum PlugEventListColumn implements ListColumn<PlugEventDto> {
     );
   }
 
-  static String _formatDeliveryRange(DateTime? start, DateTime? end) {
+  static String _formatDeliveryRange(String? start, String? end) {
     if (start == null && end == null) return '';
-    final s = start != null ? DateTimeHelper.formatDate(start) : '?';
-    final e = end != null ? DateTimeHelper.formatDate(end) : '?';
-    return '$s - $e';
+    final s = DateTimeHelper.parseIsoToDate(start);
+    final e = DateTimeHelper.parseIsoToDate(end);
+    return '${s.isNotEmpty ? s : '?'} - ${e.isNotEmpty ? e : '?'}';
   }
 
   static String _formatOutcome(String? outcome) {

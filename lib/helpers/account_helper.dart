@@ -6,10 +6,12 @@ import 'package:moustra/stores/profile_store.dart';
 class AccountHelper {
   static String getOwnerName(AccountDto? account) {
     if (account == null) return '';
-    if (account.user.firstName.isNotEmpty && account.user.lastName.isNotEmpty) {
-      return '${account.user.firstName} ${account.user.lastName}';
+    final user = account.user;
+    if (user == null) return '';
+    if (user.firstName.isNotEmpty && user.lastName.isNotEmpty) {
+      return '${user.firstName} ${user.lastName}';
     }
-    return account.user.email;
+    return user.email ?? '';
   }
 
   static Future<AccountStoreDto> getDefaultOwner() async {

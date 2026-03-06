@@ -26,6 +26,7 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
 
   _PreparedTab _selectedTab = _PreparedTab.active;
   List<FilterParam> _activeFilters = [];
+  String? _activeName;
   SortParam? _activeSort = const SortParam(
     field: 'plug_date',
     order: SortOrder.desc,
@@ -40,11 +41,12 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
   void _applyTabFilters(_PreparedTab tab) {
     switch (tab) {
       case _PreparedTab.active:
+        _activeName = 'active';
         _activeFilters = [
           FilterParam(
-            field: 'is_active',
-            operator: FilterOperators.equals,
-            value: 'true',
+            field: 'outcome',
+            operator: FilterOperators.isEmpty,
+            value: '',
           ),
         ];
         _activeSort = const SortParam(
@@ -53,6 +55,7 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
         );
         break;
       case _PreparedTab.completed:
+        _activeName = 'completed';
         _activeFilters = [
           FilterParam(
             field: 'outcome',
@@ -66,6 +69,7 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
         );
         break;
       case _PreparedTab.all:
+        _activeName = 'all';
         _activeFilters = [];
         _activeSort = PlugEventFilterConfig.defaultSort;
         break;
@@ -120,6 +124,7 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
       pageSize: pageSize,
       filters: filters,
       sorts: sorts,
+      name: _activeName,
     );
   }
 

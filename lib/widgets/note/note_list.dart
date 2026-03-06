@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/helpers/note_helper.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/note_api.dart';
 import 'package:moustra/services/dtos/note_dto.dart';
 import 'package:moustra/services/dtos/note_entity_type.dart';
@@ -101,19 +102,12 @@ class _NoteListState extends State<NoteList> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Note added successfully')),
-        );
+        showAppSnackBar(context, 'Note added successfully');
       }
     } catch (e) {
       if (mounted) {
         final errorMessage = NoteHelper.extractErrorMessage(e);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error adding note: $errorMessage'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error adding note: $errorMessage', isError: true);
       }
     } finally {
       if (mounted) {
@@ -173,19 +167,12 @@ class _NoteListState extends State<NoteList> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Note updated successfully')),
-        );
+        showAppSnackBar(context, 'Note updated successfully');
       }
     } catch (e) {
       if (mounted) {
         final errorMessage = NoteHelper.extractErrorMessage(e);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error updating note: $errorMessage'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error updating note: $errorMessage', isError: true);
       }
     } finally {
       if (mounted) {
@@ -221,19 +208,12 @@ class _NoteListState extends State<NoteList> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Note deleted successfully')),
-        );
+        showAppSnackBar(context, 'Note deleted successfully');
       }
     } catch (e) {
       if (mounted) {
         final errorMessage = NoteHelper.extractErrorMessage(e);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error deleting note: $errorMessage'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error deleting note: $errorMessage', isError: true);
       }
     } finally {
       if (mounted) {

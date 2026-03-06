@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/widgets/cage/cage_detailed_view.dart';
 import 'package:moustra/widgets/cage/cage_header.dart';
 // TODO: Re-enable when compact view is needed
@@ -127,24 +128,11 @@ class _CageInteractiveViewState extends State<CageInteractiveView> {
           try {
             await moveAnimal(data.animalUuid, widget.cage.cageUuid);
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Animal moved to ${widget.cage.cageTag ?? 'cage'}',
-                  ),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
+              showAppSnackBar(context, 'Animal moved to ${widget.cage.cageTag ?? 'cage'}', duration: const Duration(seconds: 2));
             }
           } catch (e) {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Error moving animal: $e'),
-                  backgroundColor: Colors.red,
-                  duration: const Duration(seconds: 3),
-                ),
-              );
+              showAppSnackBar(context, 'Error moving animal: $e', isError: true, duration: const Duration(seconds: 3));
             }
           }
         },

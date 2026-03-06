@@ -9,6 +9,7 @@ import 'package:moustra/services/dtos/put_plug_event_dto.dart';
 import 'package:moustra/widgets/dialogs/plug_event_outcome_dialog.dart';
 import 'package:moustra/widgets/note/note_list.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class PlugEventDetailScreen extends StatefulWidget {
   const PlugEventDetailScreen({super.key});
@@ -56,10 +57,10 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
         setState(() {
           _plugEvent = event;
           _isLoading = false;
-          _editPlugDate = event.plugDate;
+          _editPlugDate = DateTime.tryParse(event.plugDate);
           _targetEdayController.text =
               event.targetEday?.toStringAsFixed(0) ?? '';
-          _commentController.text = event.notes ?? '';
+          _commentController.text = event.comment ?? '';
         });
       }
     } catch (e) {
@@ -95,25 +96,18 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
       if (mounted) {
         setState(() {
           _plugEvent = updated;
-          _editPlugDate = updated.plugDate;
+          _editPlugDate = DateTime.tryParse(updated.plugDate);
           _targetEdayController.text =
               updated.targetEday?.toStringAsFixed(0) ?? '';
-          _commentController.text = updated.notes ?? '';
+          _commentController.text = updated.comment ?? '';
           _isSaving = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Plug event updated successfully')),
-        );
+        showAppSnackBar(context, 'Plug event updated successfully', isSuccess: true);
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error updating plug event: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error updating plug event: $e', isError: true);
       }
     }
   }
@@ -148,19 +142,12 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
     try {
       await plugService.deletePlugEvent(uuid);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Plug event deleted')),
-        );
+        showAppSnackBar(context, 'Plug event deleted');
         context.go('/plug-event');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error deleting plug event: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error deleting plug event: $e', isError: true);
       }
     }
   }
@@ -177,14 +164,12 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
     if (result != null && mounted) {
       setState(() {
         _plugEvent = result;
-        _editPlugDate = result.plugDate;
+        _editPlugDate = DateTime.tryParse(result.plugDate);
         _targetEdayController.text =
             result.targetEday?.toStringAsFixed(0) ?? '';
-        _commentController.text = result.notes ?? '';
+        _commentController.text = result.comment ?? '';
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Outcome recorded successfully')),
-      );
+      showAppSnackBar(context, 'Outcome recorded successfully', isSuccess: true);
 
       // Prompt to create litter on live_birth
       if (result.outcome == 'live_birth' && result.mating != null) {
@@ -285,24 +270,43 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
               ),
 
             // Female info card
-            _buildInfoCard(
-              'Female',
-              [
-                _infoRow('Tag', event.female?.physicalTag ?? 'N/A'),
-                _infoRow('Sex', event.female?.sex ?? 'N/A'),
-              ],
-            ),
+            if (event.female != null)
+              InkWell(
+                onTap: () => context.go('/animal/${event.female!.animalUuid}'),
+                borderRadius: BorderRadius.circular(8),
+                child: _buildInfoCard(
+                  'Female',
+                  [
+                    _infoRow('Tag', event.female?.physicalTag ?? 'N/A'),
+                    _infoRow('Sex', event.female?.sex ?? 'N/A'),
+                  ],
+                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                ),
+              )
+            else
+              _buildInfoCard(
+                'Female',
+                [
+                  _infoRow('Tag', 'N/A'),
+                  _infoRow('Sex', 'N/A'),
+                ],
+              ),
             const SizedBox(height: 12),
 
             // Male info card
             if (event.male != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: _buildInfoCard(
-                  'Male',
-                  [
-                    _infoRow('Tag', event.male?.physicalTag ?? 'N/A'),
-                  ],
+                child: InkWell(
+                  onTap: () => context.go('/animal/${event.male!.animalUuid}'),
+                  borderRadius: BorderRadius.circular(8),
+                  child: _buildInfoCard(
+                    'Male',
+                    [
+                      _infoRow('Tag', event.male?.physicalTag ?? 'N/A'),
+                    ],
+                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                  ),
                 ),
               ),
 
@@ -310,11 +314,16 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
             if (event.mating != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: _buildInfoCard(
-                  'Mating',
-                  [
-                    _infoRow('Tag', event.mating?.matingTag ?? 'N/A'),
-                  ],
+                child: InkWell(
+                  onTap: () => context.go('/mating/${event.mating!.matingUuid}'),
+                  borderRadius: BorderRadius.circular(8),
+                  child: _buildInfoCard(
+                    'Mating',
+                    [
+                      _infoRow('Tag', event.mating?.matingTag ?? 'N/A'),
+                    ],
+                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                  ),
                 ),
               ),
 
@@ -322,20 +331,20 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
             _buildInfoCard(
               'Dates',
               [
-                _infoRow('Plug Date', DateTimeHelper.formatDate(event.plugDate)),
+                _infoRow('Plug Date', DateTimeHelper.parseIsoToDate(event.plugDate)),
                 if (event.plugTime != null)
                   _infoRow('Plug Time', event.plugTime!),
                 _infoRow(
                   'Target Date',
-                  DateTimeHelper.formatDate(event.targetDate),
+                  DateTimeHelper.parseIsoToDate(event.targetDate),
                 ),
                 _infoRow(
                   'Expected Delivery Start',
-                  DateTimeHelper.formatDate(event.expectedDeliveryStart),
+                  DateTimeHelper.parseIsoToDate(event.expectedDeliveryStart),
                 ),
                 _infoRow(
                   'Expected Delivery End',
-                  DateTimeHelper.formatDate(event.expectedDeliveryEnd),
+                  DateTimeHelper.parseIsoToDate(event.expectedDeliveryEnd),
                 ),
               ],
             ),
@@ -351,7 +360,7 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
                     _infoRow('Outcome', _formatOutcome(event.outcome)),
                     _infoRow(
                       'Outcome Date',
-                      DateTimeHelper.formatDate(event.outcomeDate),
+                      DateTimeHelper.parseIsoToDate(event.outcomeDate),
                     ),
                     if (event.outcomeEday != null)
                       _infoRow(
@@ -408,23 +417,23 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
               [
                 _infoRow(
                   'Checked By',
-                  event.checkedBy != null
-                      ? '${event.checkedBy!.user.firstName} ${event.checkedBy!.user.lastName}'
+                  event.checkedBy?.user != null
+                      ? '${event.checkedBy!.user!.firstName} ${event.checkedBy!.user!.lastName}'
                       : 'N/A',
                 ),
                 _infoRow(
                   'Owner',
-                  event.owner != null
-                      ? '${event.owner!.user.firstName} ${event.owner!.user.lastName}'
+                  event.owner?.user != null
+                      ? '${event.owner!.user!.firstName} ${event.owner!.user!.lastName}'
                       : 'N/A',
                 ),
                 _infoRow(
                   'Created',
-                  DateTimeHelper.formatDateTime(event.createdDate),
+                  DateTimeHelper.parseIsoToDateTime(event.createdDate),
                 ),
                 _infoRow(
                   'Updated',
-                  DateTimeHelper.formatDateTime(event.updatedDate),
+                  DateTimeHelper.parseIsoToDateTime(event.updatedDate),
                 ),
               ],
             ),
@@ -504,7 +513,7 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
     );
   }
 
-  Widget _buildInfoCard(String title, List<Widget> children) {
+  Widget _buildInfoCard(String title, List<Widget> children, {Widget? trailing}) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -516,12 +525,18 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (trailing != null) trailing,
+              ],
             ),
             const SizedBox(height: 8),
             ...children,

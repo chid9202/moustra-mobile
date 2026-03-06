@@ -4,6 +4,7 @@ import 'package:moustra/services/clients/protocol_api.dart';
 import 'package:moustra/services/dtos/protocol_dto.dart';
 import 'package:moustra/stores/protocol_store.dart';
 import 'package:moustra/widgets/shared/button.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class ProtocolFormScreen extends StatefulWidget {
   const ProtocolFormScreen({super.key});
@@ -75,8 +76,8 @@ class _ProtocolFormScreenState extends State<ProtocolFormScreen> {
           _fundingSourceController.text = protocol.fundingSource ?? '';
           _speciesController.text = protocol.species ?? 'Mus musculus';
           _maxAnimalCountController.text =
-              protocol.maxAnimalCount.toString();
-          _painCategory = protocol.painCategory;
+              (protocol.maxAnimalCount ?? 0).toString();
+          _painCategory = protocol.painCategory ?? 'B';
           _alertThreshold =
               (protocol.alertThresholdPct ?? 80).toDouble();
           if (protocol.approvalDate != null) {
@@ -85,16 +86,16 @@ class _ProtocolFormScreenState extends State<ProtocolFormScreen> {
           if (protocol.effectiveDate != null) {
             _effectiveDate = DateTime.tryParse(protocol.effectiveDate!);
           }
-          _expirationDate = DateTime.tryParse(protocol.expirationDate);
+          if (protocol.expirationDate != null) {
+            _expirationDate = DateTime.tryParse(protocol.expirationDate!);
+          }
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading protocol: $e')),
-        );
+        showAppSnackBar(context, 'Error loading protocol: $e', isError: true);
       }
     }
   }
@@ -123,9 +124,7 @@ class _ProtocolFormScreenState extends State<ProtocolFormScreen> {
   Future<void> _saveProtocol() async {
     if (!_formKey.currentState!.validate()) return;
     if (_expirationDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please set an expiration date')),
-      );
+      showAppSnackBar(context, 'Please set an expiration date');
       return;
     }
 
@@ -162,23 +161,19 @@ class _ProtocolFormScreenState extends State<ProtocolFormScreen> {
       }
       await refreshProtocolStore();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _isEditing
-                  ? 'Protocol updated successfully!'
-                  : 'Protocol created successfully!',
-            ),
-          ),
+        showAppSnackBar(
+          context,
+          _isEditing
+              ? 'Protocol updated successfully!'
+              : 'Protocol created successfully!',
+          isSuccess: true,
         );
         context.go('/protocol');
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving protocol: $e')),
-        );
+        showAppSnackBar(context, 'Error saving protocol: $e', isError: true);
       }
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/rack_api.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/dtos/post_rack_dto.dart';
@@ -107,12 +108,7 @@ class _AddOrUpdateRackDialogState extends State<AddOrUpdateRackDialog> {
         );
         if (mounted) {
           Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Rack updated successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          showAppSnackBar(context, 'Rack updated successfully', isSuccess: true);
           // Call onSuccess callback if provided
           if (widget.onSuccess != null) {
             await widget.onSuccess!(rackUuid: rackUuid);
@@ -128,12 +124,7 @@ class _AddOrUpdateRackDialogState extends State<AddOrUpdateRackDialog> {
         );
         if (mounted) {
           Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Rack created successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          showAppSnackBar(context, 'Rack created successfully', isSuccess: true);
           // Call onSuccess callback if provided
           if (widget.onSuccess != null) {
             await widget.onSuccess!(rackUuid: null);
@@ -145,12 +136,7 @@ class _AddOrUpdateRackDialogState extends State<AddOrUpdateRackDialog> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error: ${e.toString()}', isError: true);
       }
     }
   }

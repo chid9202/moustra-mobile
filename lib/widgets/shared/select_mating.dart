@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 
@@ -47,9 +48,7 @@ class _SelectMatingState extends State<SelectMating> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading matings: $e')));
+        showAppSnackBar(context, 'Error loading matings: $e');
       }
     }
   }

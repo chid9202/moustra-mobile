@@ -5,16 +5,16 @@ part 'account_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class AccountDto {
-  final int accountId;
+  final int? accountId;
   final String accountUuid;
-  final UserDto user;
+  final UserDto? user;
   final String? role;
   final bool? isActive;
 
   AccountDto({
-    required this.accountId,
+    this.accountId,
     required this.accountUuid,
-    required this.user,
+    this.user,
     this.role,
     this.isActive,
   });
@@ -24,22 +24,22 @@ class AccountDto {
   Map<String, dynamic> toJson() => _$AccountDtoToJson(this);
 
   AccountStoreDto toAccountStoreDto() => AccountStoreDto(
-    accountId: accountId,
+    accountId: accountId ?? 0,
     accountUuid: accountUuid,
-    user: user,
+    user: user ?? UserDto(firstName: '', lastName: ''),
     isActive: isActive,
   );
 }
 
 @JsonSerializable(explicitToJson: true)
 class UserDto {
-  final String email;
+  final String? email;
   final String firstName;
   final String lastName;
   final bool? isActive;
 
   UserDto({
-    required this.email,
+    this.email,
     required this.firstName,
     required this.lastName,
     this.isActive,

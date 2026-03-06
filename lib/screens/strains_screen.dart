@@ -12,6 +12,7 @@ import 'package:moustra/widgets/filter_panel.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class StrainsScreen extends StatefulWidget {
   const StrainsScreen({super.key});
@@ -223,17 +224,13 @@ class _StrainsScreenState extends State<StrainsScreen> {
     try {
       await strainService.mergeStrains(strains);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Merged ${strains.length} strains.')),
-      );
+      showAppSnackBar(context, 'Merged ${strains.length} strains.', isSuccess: true);
       _selected.clear();
       _controller.reload();
       _fabController.close();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Merge failed: $e')));
+      showAppSnackBar(context, 'Merge failed: $e', isError: true);
     }
   }
 }

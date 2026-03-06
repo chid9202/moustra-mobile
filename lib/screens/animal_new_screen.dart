@@ -16,6 +16,7 @@ import 'package:moustra/widgets/shared/select_sex.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/services/clients/event_api.dart';
 import 'package:moustra/widgets/shared/button.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class AnimalNewScreen extends StatefulWidget {
   final String? cageUuid;
@@ -120,9 +121,7 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
         eventApi.trackEvent('create_animal');
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Animals created successfully!')),
-          );
+          showAppSnackBar(context, 'Animals created successfully!', isSuccess: true);
           // Navigate back to the appropriate page based on where we came from
           if (widget.fromCageGrid) {
             context.go('/cage/grid');
@@ -133,9 +132,7 @@ class _AnimalNewScreenState extends State<AnimalNewScreen> {
       } catch (e) {
         debugPrint('Error saving animals: $e');
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error saving animals: $e')));
+          showAppSnackBar(context, 'Error saving animals: $e', isError: true);
         }
       }
     }

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/attachment_api.dart';
 import 'package:moustra/services/dtos/attachment_dto.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -79,12 +80,7 @@ class _AttachmentListState extends State<AttachmentList> {
       _loadImageLinks(attachments);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading attachments: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error loading attachments: $e', isError: true);
       }
     } finally {
       if (mounted) {
@@ -121,18 +117,11 @@ class _AttachmentListState extends State<AttachmentList> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('File uploaded successfully')),
-        );
+        showAppSnackBar(context, 'File uploaded successfully');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error uploading file: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error uploading file: $e', isError: true);
       }
     } finally {
       if (mounted) {
@@ -187,18 +176,11 @@ class _AttachmentListState extends State<AttachmentList> {
       _imageLinks.remove(attachment.attachmentUuid);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Attachment deleted successfully')),
-        );
+        showAppSnackBar(context, 'Attachment deleted successfully');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error deleting attachment: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error deleting attachment: $e', isError: true);
       }
     } finally {
       if (mounted) {
@@ -236,12 +218,7 @@ class _AttachmentListState extends State<AttachmentList> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error opening attachment: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error opening attachment: $e', isError: true);
       }
     }
   }

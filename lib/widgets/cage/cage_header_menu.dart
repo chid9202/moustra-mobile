@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/app/router.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/stores/rack_store.dart';
@@ -22,9 +23,7 @@ class CageHeaderMenu extends StatelessWidget {
   void _showMoveCageDialog(BuildContext context) {
     final cage = _getCageFromStore();
     if (cage == null || cage.cageUuid.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Cage not found in rack')));
+      showAppSnackBar(context, 'Cage not found in rack');
       return;
     }
 

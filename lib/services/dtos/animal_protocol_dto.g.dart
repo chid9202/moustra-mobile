@@ -13,6 +13,8 @@ AnimalProtocolDto _$AnimalProtocolDtoFromJson(Map<String, dynamic> json) =>
       animal: json['animal'] == null
           ? null
           : AnimalSummaryDto.fromJson(json['animal'] as Map<String, dynamic>),
+      animalUuid: json['animalUuid'] as String?,
+      physicalTag: json['physicalTag'] as String?,
       role: json['role'] as String?,
       assignedDate: json['assignedDate'] as String,
       removedDate: json['removedDate'] as String?,
@@ -28,6 +30,8 @@ Map<String, dynamic> _$AnimalProtocolDtoToJson(AnimalProtocolDto instance) =>
       'id': instance.id,
       'animalProtocolUuid': instance.animalProtocolUuid,
       'animal': instance.animal?.toJson(),
+      'animalUuid': instance.animalUuid,
+      'physicalTag': instance.physicalTag,
       'role': instance.role,
       'assignedDate': instance.assignedDate,
       'removedDate': instance.removedDate,

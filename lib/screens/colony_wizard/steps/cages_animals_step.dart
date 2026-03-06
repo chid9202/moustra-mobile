@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/rack_api.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/stores/rack_store.dart';
@@ -77,12 +78,7 @@ class _CagesAnimalsStepState extends State<CagesAnimalsStep> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ),
-    );
+    showAppSnackBar(context, message, isError: true);
   }
 
   void _onRackSelected(RackSimpleDto rack) {

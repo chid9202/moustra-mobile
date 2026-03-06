@@ -5,34 +5,41 @@ import 'package:moustra/services/dtos/mating_dto.dart';
 
 part 'plug_event_dto.g.dart';
 
+double? _safeDouble(dynamic v) => v == null ? null : (v is num ? v.toDouble() : double.tryParse(v.toString()));
+int? _safeInt(dynamic v) => v == null ? null : (v is num ? v.toInt() : int.tryParse(v.toString()));
+
 @JsonSerializable(explicitToJson: true)
 class PlugEventDto {
   final int? eid;
-  final int plugEventId;
+  final int? plugEventId;
   final String plugEventUuid;
   final AnimalSummaryDto? female;
   final AnimalSummaryDto? male;
   final MatingSummaryDto? mating;
-  final DateTime plugDate;
+  final String plugDate;
   final String? plugTime;
   final AccountDto? checkedBy;
+  @JsonKey(fromJson: _safeDouble)
   final double? currentEday;
+  @JsonKey(fromJson: _safeDouble)
   final double? targetEday;
-  final DateTime? targetDate;
-  final DateTime? expectedDeliveryStart;
-  final DateTime? expectedDeliveryEnd;
+  final String? targetDate;
+  final String? expectedDeliveryStart;
+  final String? expectedDeliveryEnd;
   final String? outcome;
-  final DateTime? outcomeDate;
+  final String? outcomeDate;
+  @JsonKey(fromJson: _safeDouble)
   final double? outcomeEday;
+  @JsonKey(fromJson: _safeInt)
   final int? embryosCollected;
-  final String? notes;
+  final String? comment;
   final AccountDto? owner;
-  final DateTime? createdDate;
-  final DateTime? updatedDate;
+  final String? createdDate;
+  final String? updatedDate;
 
   PlugEventDto({
     this.eid,
-    required this.plugEventId,
+    this.plugEventId,
     required this.plugEventUuid,
     this.female,
     this.male,
@@ -49,7 +56,7 @@ class PlugEventDto {
     this.outcomeDate,
     this.outcomeEday,
     this.embryosCollected,
-    this.notes,
+    this.comment,
     this.owner,
     this.createdDate,
     this.updatedDate,

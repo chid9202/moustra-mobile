@@ -14,6 +14,7 @@ import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/constants/cages_grid_constants.dart';
 import 'package:moustra/widgets/dialogs/add_or_update_rack.dart';
 import 'package:moustra/widgets/cage/empty_cage_slot.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class CagesGridScreen extends StatefulWidget {
   const CagesGridScreen({super.key});
@@ -120,12 +121,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
         setState(() {
           _isLoadingRack = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading rack: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error loading rack: ${e.toString()}', isError: true);
       }
     }
   }
@@ -297,12 +293,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   Future<void> _handleAddCage({required int x, required int y}) async {
     final rackUuid = data.rackUuid;
     if (rackUuid == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Rack UUID is required'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showAppSnackBar(context, 'Rack UUID is required', isError: true);
       return;
     }
 
@@ -316,21 +307,11 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
       // Fetch the current rack again after successful creation
       await _loadRackData(rackUuid: rackUuid);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cage created successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showAppSnackBar(context, 'Cage created successfully', isSuccess: true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error creating cage: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error creating cage: ${e.toString()}', isError: true);
       }
     }
   }

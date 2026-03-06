@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/clients/animal_api.dart';
+import 'package:moustra/services/dtos/end_animals_dto.dart';
 import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/clients/litter_api.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
@@ -445,7 +447,12 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
 
     // Delete removed animals
     if (animalsToDelete.isNotEmpty) {
-      await animalService.endAnimals(animalsToDelete.toList());
+      await animalService.endAnimals(
+        animalsToDelete.toList(),
+        EndAnimalFormDto(
+          endDate: DateTime.now().toIso8601String().split('T')[0],
+        ),
+      );
     }
 
     // Build cage reference for animal updates
@@ -548,18 +555,11 @@ class _CageAnimalDialogScreenState extends State<CageAnimalDialogScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ),
-    );
+    showAppSnackBar(context, message, isError: true);
   }
 
   void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
-    );
+    showAppSnackBar(context, message, isSuccess: true);
   }
 
   @override

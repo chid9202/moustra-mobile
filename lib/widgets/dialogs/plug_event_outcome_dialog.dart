@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/plug_api.dart';
 import 'package:moustra/services/dtos/plug_event_dto.dart';
 import 'package:moustra/services/dtos/record_outcome_dto.dart';
@@ -30,9 +31,7 @@ class _PlugEventOutcomeDialogState extends State<PlugEventOutcomeDialog> {
 
   Future<void> _save() async {
     if (_selectedOutcome == null || _selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select outcome and date')),
-      );
+      showAppSnackBar(context, 'Please select outcome and date');
       return;
     }
 
@@ -58,12 +57,7 @@ class _PlugEventOutcomeDialogState extends State<PlugEventOutcomeDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error recording outcome: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error recording outcome: $e', isError: true);
         setState(() => _isSaving = false);
       }
     }

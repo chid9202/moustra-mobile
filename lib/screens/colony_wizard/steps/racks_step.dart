@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/rack_api.dart';
 import 'package:moustra/services/dtos/post_rack_dto.dart';
 import 'package:moustra/services/dtos/put_rack_dto.dart';
@@ -73,23 +74,12 @@ class _RacksStepState extends State<RacksStep> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ),
-    );
+    showAppSnackBar(context, message, isError: true);
   }
 
   void _showSuccess(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        duration: ColonyWizardConstants.snackbarDuration,
-      ),
-    );
+    showAppSnackBar(context, message, isSuccess: true, duration: ColonyWizardConstants.snackbarDuration);
   }
 
   Map<String, int> _getDimensions() {

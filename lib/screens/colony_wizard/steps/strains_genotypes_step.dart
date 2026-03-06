@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/strain_api.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/stores/strain_store.dart';
@@ -111,23 +112,12 @@ class _StrainsGenotypesStepState extends State<StrainsGenotypesStep> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ),
-    );
+    showAppSnackBar(context, message, isError: true);
   }
 
   void _showSuccess(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        duration: ColonyWizardConstants.snackbarDuration,
-      ),
-    );
+    showAppSnackBar(context, message, isSuccess: true, duration: ColonyWizardConstants.snackbarDuration);
   }
 
   Future<void> _addStrain() async {

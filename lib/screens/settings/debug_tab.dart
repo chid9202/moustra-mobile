@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/error_context_service.dart';
 import 'package:moustra/services/error_report_service.dart';
 import 'package:moustra/stores/profile_store.dart';
@@ -282,11 +283,6 @@ class DebugTab extends StatelessWidget {
   }
 
   void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    showAppSnackBar(context, message, duration: const Duration(seconds: 2));
   }
 }

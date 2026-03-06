@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/helpers/util_helper.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:moustra/services/dtos/profile_dto.dart';
 import 'package:moustra/stores/profile_store.dart';
 
-/// Menu item definition matching web structure
+/// Menu item definition
 class _MenuItemDef {
   final String id;
   final IconData icon;
@@ -20,84 +21,91 @@ class _MenuItemDef {
   });
 }
 
-/// Main menu items (matching web MENU_ITEMS order)
-const List<_MenuItemDef> _menuItems = [
-  _MenuItemDef(
-    id: 'rack',
-    icon: Icons.table_view,
-    display: 'Racks',
-    route: '/cage/grid',
+/// Collapsible menu group
+class _MenuGroup {
+  final String label;
+  final List<_MenuItemDef> items;
+
+  const _MenuGroup({required this.label, required this.items});
+}
+
+/// Grouped menu sections matching React web structure
+const List<_MenuGroup> _menuGroups = [
+  _MenuGroup(
+    label: 'COLONY',
+    items: [
+      _MenuItemDef(
+        id: 'rack',
+        icon: Icons.table_view,
+        display: 'Racks',
+        route: '/cage/grid',
+      ),
+      _MenuItemDef(
+        id: 'cage',
+        icon: Icons.grid_view_sharp,
+        display: 'Cages',
+        route: '/cage/list',
+      ),
+    ],
   ),
-  _MenuItemDef(
-    id: 'cage',
-    icon: Icons.grid_view_sharp,
-    display: 'Cages',
-    route: '/cage/list',
+  _MenuGroup(
+    label: 'ANIMALS',
+    items: [
+      _MenuItemDef(
+        id: 'strain',
+        icon: Icons.bookmark_sharp,
+        display: 'Strain',
+        route: '/strain',
+      ),
+      _MenuItemDef(
+        id: 'animal',
+        icon: Icons.pest_control_rodent_sharp,
+        display: 'Animal',
+        route: '/animal',
+      ),
+    ],
   ),
-  _MenuItemDef(
-    id: 'strain',
-    icon: Icons.bookmark_sharp,
-    display: 'Strain',
-    route: '/strain',
+  _MenuGroup(
+    label: 'BREEDING',
+    items: [
+      _MenuItemDef(
+        id: 'mating',
+        icon: Icons.call_merge_sharp,
+        display: 'Mating',
+        route: '/mating',
+      ),
+      _MenuItemDef(
+        id: 'litter',
+        icon: Icons.create_new_folder_sharp,
+        display: 'Litter',
+        route: '/litter',
+      ),
+      _MenuItemDef(
+        id: 'plugEvent',
+        icon: Icons.event_note,
+        display: 'Plug Events',
+        route: '/plug-event',
+      ),
+    ],
   ),
-  _MenuItemDef(
-    id: 'animal',
-    icon: Icons.pest_control_rodent_sharp,
-    display: 'Animal',
-    route: '/animal',
-  ),
-  _MenuItemDef(
-    id: 'mating',
-    icon: Icons.call_merge_sharp,
-    display: 'Mating',
-    route: '/mating',
-  ),
-  _MenuItemDef(
-    id: 'plugCheck',
-    icon: Icons.pregnant_woman,
-    display: 'Plug Check',
-    route: '/plug-check',
-  ),
-  _MenuItemDef(
-    id: 'plugEvent',
-    icon: Icons.event_note,
-    display: 'Plug Events',
-    route: '/plug-event',
-  ),
-  _MenuItemDef(
-    id: 'litter',
-    icon: Icons.create_new_folder_sharp,
-    display: 'Litter',
-    route: '/litter',
-  ),
-  _MenuItemDef(
-    id: 'protocol',
-    icon: Icons.assignment_sharp,
-    display: 'Protocols',
-    route: '/protocol',
-  ),
-  _MenuItemDef(
-    id: 'compliance',
-    icon: Icons.shield_sharp,
-    display: 'Compliance',
-    route: '/protocol/compliance',
-  ),
-  _MenuItemDef(
-    id: 'dashboard',
-    icon: Icons.bar_chart_sharp,
-    display: 'Insights',
-    route: '/dashboard',
-  ),
+];
+
+/// Flat items below the groups
+const _insightsItem = _MenuItemDef(
+  id: 'dashboard',
+  icon: Icons.bar_chart_sharp,
+  display: 'Insights',
+  route: '/dashboard',
+);
+
+/// Bottom utility items
+const List<_MenuItemDef> _bottomItems = [
   _MenuItemDef(
     id: 'user',
     icon: Icons.groups,
     display: 'User',
     route: '/user',
   ),
-];
-
-/// Bottom utility items
-const List<_MenuItemDef> _bottomItems = [
   _MenuItemDef(
     id: 'settings',
     icon: Icons.settings,
@@ -111,20 +119,14 @@ class AppMenu extends StatelessWidget {
 
   /// Check if a route is currently active
   bool _isActive(String routePath, String currentPath) {
-    // Exact matches
     if (routePath == currentPath) return true;
 
-    // Rack/Grid view
     if (routePath == '/cage/grid') {
       return currentPath == '/cage/grid';
     }
-
-    // Cage list view - only exact match, not when on grid
     if (routePath == '/cage/list') {
       return currentPath == '/cage/list';
     }
-
-    // For detail routes, check prefix (but exclude cage conflicts)
     if (routePath == '/strain') {
       return currentPath.startsWith('/strain');
     }
@@ -134,22 +136,11 @@ class AppMenu extends StatelessWidget {
     if (routePath == '/mating') {
       return currentPath.startsWith('/mating');
     }
-    if (routePath == '/plug-check') {
-      return currentPath.startsWith('/plug-check');
-    }
     if (routePath == '/plug-event') {
       return currentPath.startsWith('/plug-event');
     }
     if (routePath == '/litter') {
       return currentPath.startsWith('/litter');
-    }
-    if (routePath == '/protocol') {
-      return currentPath == '/protocol' ||
-          (currentPath.startsWith('/protocol') &&
-              !currentPath.startsWith('/protocol/compliance'));
-    }
-    if (routePath == '/protocol/compliance') {
-      return currentPath.startsWith('/protocol/compliance');
     }
     if (routePath == '/user') {
       return currentPath.startsWith('/user');
@@ -174,18 +165,27 @@ class AppMenu extends StatelessWidget {
           // Header with lab info
           _buildHeader(context),
 
-          // Main menu items
+          // Main menu with collapsible groups
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                // Main navigation items
-                ..._menuItems.map(
-                  (item) => _buildMenuItem(
+                // Collapsible groups
+                ..._menuGroups.map(
+                  (group) => _buildMenuGroup(
                     context: context,
-                    item: item,
-                    isActive: _isActive(item.route, currentPath),
+                    group: group,
+                    currentPath: currentPath,
                   ),
+                ),
+
+                const Divider(height: 1),
+
+                // Insights (flat item)
+                _buildMenuItem(
+                  context: context,
+                  item: _insightsItem,
+                  isActive: _isActive(_insightsItem.route, currentPath),
                 ),
               ],
             ),
@@ -281,15 +281,53 @@ class AppMenu extends StatelessWidget {
     );
   }
 
+  Widget _buildMenuGroup({
+    required BuildContext context,
+    required _MenuGroup group,
+    required String currentPath,
+  }) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 16, top: 12, bottom: 4),
+          child: Text(
+            group.label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.0,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+          ),
+        ),
+        ...group.items.map(
+          (item) => _buildMenuItem(
+            context: context,
+            item: item,
+            isActive: _isActive(item.route, currentPath),
+            indent: true,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildMenuItem({
     required BuildContext context,
     required _MenuItemDef item,
     required bool isActive,
+    bool indent = false,
   }) {
     final theme = Theme.of(context);
     final activeColor = theme.colorScheme.primary;
 
     return ListTile(
+      contentPadding: indent
+          ? const EdgeInsets.only(left: 32, right: 16)
+          : null,
       leading: Icon(
         item.icon,
         color: isActive ? activeColor : null,
@@ -319,12 +357,7 @@ class AppMenu extends StatelessWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error logging out: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error logging out: $e', isError: true);
       }
     }
   }

@@ -23,6 +23,11 @@ import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/widgets/note/note_list.dart';
 import 'package:moustra/services/dtos/note_entity_type.dart';
+import 'package:moustra/stores/profile_store.dart';
+import 'package:moustra/services/dtos/account_dto.dart';
+import 'package:intl/intl.dart';
+import 'package:moustra/services/dtos/litter_dto.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class MatingDetailScreen extends StatefulWidget {
   final bool fromCageGrid;
@@ -51,6 +56,8 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
     final state = GoRouterState.of(context);
     return state.pathParameters['matingUuid'];
   }
+
+  bool get _isDisbanded => _matingData?.disbandedDate != null;
 
   @override
   void initState() {
@@ -147,9 +154,7 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
     } catch (e) {
       debugPrint('Error loading mating: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading mating: $e')));
+        showAppSnackBar(context, 'Error loading mating: $e', isError: true);
       }
       _matingDataLoaded = true;
     }
@@ -160,6 +165,92 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
     _matingTagController.dispose();
     _commentController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showDisbandDialog() async {
+    DateTime disbandDate = DateTime.now();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Disband Mating'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Are you sure you want to disband this mating?'),
+              const SizedBox(height: 16),
+              SelectDate(
+                selectedDate: disbandDate,
+                onChanged: (date) {
+                  if (date != null) {
+                    setDialogState(() => disbandDate = date);
+                  }
+                },
+                labelText: 'Disband Date',
+                hintText: 'Select disband date',
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Disband'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    try {
+      final matingData = _matingData!;
+      final matingUuid = _matingUuid!;
+      final profile = profileState.value;
+
+      // Build disbandedBy from current user's profile
+      AccountStoreDto? disbandedByAccount;
+      if (profile != null) {
+        disbandedByAccount = AccountStoreDto(
+          accountId: 0,
+          accountUuid: profile.accountUuid,
+          user: UserDto(
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+          ),
+        );
+      }
+
+      await MatingApi().putMating(
+        matingUuid,
+        PutMatingDto(
+          matingId: matingData.matingId,
+          matingUuid: matingUuid,
+          matingTag: _matingTagController.text,
+          litterStrain: _selectedStrain,
+          setUpDate: _selectedSetUpDate!,
+          owner: _selectedOwner ?? await AccountHelper.getDefaultOwner(),
+          comment: _commentController.text,
+          disbandedDate: disbandDate,
+          disbandedBy: disbandedByAccount,
+        ),
+      );
+      if (!mounted) return;
+      showAppSnackBar(context, 'Mating disbanded successfully!', isSuccess: true);
+      if (widget.fromCageGrid) {
+        context.go('/cage/grid');
+      } else {
+        context.go('/mating');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(context, 'Error disbanding mating: $e', isError: true);
+    }
   }
 
   void _saveMating() async {
@@ -182,9 +273,7 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
           await refreshAnimalStore();
           await refreshCageStore();
           await refreshStrainStore();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Mating created successfully!')),
-          );
+          showAppSnackBar(context, 'Mating created successfully!', isSuccess: true);
         } else {
           final matingData = _matingData!;
           await MatingApi().putMating(
@@ -203,9 +292,7 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
           await refreshAnimalStore();
           await refreshCageStore();
           await refreshStrainStore();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Mating updated successfully!')),
-          );
+          showAppSnackBar(context, 'Mating updated successfully!', isSuccess: true);
         }
         // Navigate back to the appropriate page based on where we came from
         if (widget.fromCageGrid) {
@@ -215,11 +302,236 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
         }
       } catch (e) {
         debugPrint('Error saving mating: $e');
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving mating: $e')));
+        showAppSnackBar(context, 'Error saving mating: $e', isError: true);
       }
     }
+  }
+
+  Color _edayColor(double? currentEday, double? targetEday) {
+    if (currentEday == null || targetEday == null) return Colors.grey;
+    if (currentEday > targetEday) return Colors.red;
+    if (currentEday >= targetEday - 1) return Colors.orange;
+    return Colors.green;
+  }
+
+  Widget _buildSectionHeader(String title, int count) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            '$count',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildParentsSection() {
+    final animals = _matingData?.animals ?? [];
+    return Card(
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader('Parents', animals.length),
+            const SizedBox(height: 8),
+            if (animals.isEmpty)
+              const Text('No parents assigned', style: TextStyle(color: Colors.grey))
+            else
+              ...animals.map((animal) => ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircleAvatar(
+                      radius: 16,
+                      backgroundColor: animal.sex == SexConstants.male
+                          ? Colors.blue.withValues(alpha: 0.1)
+                          : Colors.pink.withValues(alpha: 0.1),
+                      child: Text(
+                        animal.sex == SexConstants.male ? 'M' : 'F',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: animal.sex == SexConstants.male
+                              ? Colors.blue
+                              : Colors.pink,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      animal.physicalTag ?? 'Unknown',
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    subtitle: Text(
+                      '${animal.sex == SexConstants.male ? "Sire" : "Dam"}'
+                      '${animal.dateOfBirth != null ? ' • DOB: ${DateFormat('yyyy-MM-dd').format(animal.dateOfBirth!)}' : ''}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, size: 18),
+                    onTap: () => context.go('/animal/${animal.animalUuid}'),
+                  )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLittersSection() {
+    final litters = _matingData?.litters ?? [];
+    return Card(
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader('Litters', litters.length),
+            const SizedBox(height: 8),
+            if (litters.isEmpty)
+              const Text('No litters recorded', style: TextStyle(color: Colors.grey))
+            else
+              ...litters.map((litter) {
+                final males = litter.animals.where((a) => a.sex == SexConstants.male).length;
+                final females = litter.animals.where((a) => a.sex == SexConstants.female).length;
+                return ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: const CircleAvatar(
+                    radius: 16,
+                    child: Icon(Icons.pets, size: 16),
+                  ),
+                  title: Text(
+                    litter.litterTag ?? 'Unknown',
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: Text(
+                    '${litter.dateOfBirth != null ? 'DOB: ${DateFormat('yyyy-MM-dd').format(litter.dateOfBirth!)}' : ''}'
+                    '${litter.animals.isNotEmpty ? ' • ${males}M / ${females}F' : ''}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, size: 18),
+                  onTap: () => context.go('/litter/${litter.litterUuid}'),
+                );
+              }),
+            if (!_isDisbanded) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => context.go('/litter/new?matingUuid=${_matingUuid}'),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add Litter'),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlugEventsSection() {
+    final plugEvents = _matingData?.plugEvents ?? [];
+    return Card(
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader('Plug Events', plugEvents.length),
+            const SizedBox(height: 8),
+            if (plugEvents.isEmpty)
+              const Text('No plug events recorded', style: TextStyle(color: Colors.grey))
+            else
+              ...plugEvents.map((pe) {
+                final edayColor = _edayColor(pe.currentEday, pe.targetEday);
+                return ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    pe.female?.physicalTag ?? 'Unknown',
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: Row(
+                    children: [
+                      Text(
+                        pe.plugDate.length >= 10 ? pe.plugDate.substring(0, 10) : pe.plugDate,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      if (pe.currentEday != null) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: edayColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'E${pe.currentEday!.toStringAsFixed(1)}',
+                            style: TextStyle(
+                              color: edayColor,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (pe.outcome != null && pe.outcome!.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            pe.outcome!.split('_').map((w) => w[0].toUpperCase() + w.substring(1)).join(' '),
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  trailing: const Icon(Icons.chevron_right, size: 18),
+                  onTap: () => context.go('/plug-event/${pe.plugEventUuid}'),
+                );
+              }),
+            if (!_isDisbanded) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => context.go('/plug-event/new?mating=${_matingUuid}'),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Record Plug'),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -231,6 +543,8 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     final isNew = _matingUuid == null || _matingUuid == 'new';
+    final isEditing = !isNew;
+    final isDisbanded = _isDisbanded;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -254,6 +568,33 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Disbanded banner
+              if (isDisbanded) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.red.shade700),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'This mating was disbanded on ${DateFormat('yyyy-MM-dd').format(_matingData!.disbandedDate!)}'
+                          '${_matingData!.disbandedBy?.user != null ? ' by ${_matingData!.disbandedBy!.user!.firstName} ${_matingData!.disbandedBy!.user!.lastName}' : ''}',
+                          style: TextStyle(color: Colors.red.shade700),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
               TextFormField(
                 controller: _matingTagController,
                 decoration: const InputDecoration(
@@ -371,11 +712,41 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
                   initialNotes: _matingData?.notes,
                 ),
 
+              // Related data sections (only for existing matings)
+              if (isEditing) ...[
+                const SizedBox(height: 24),
+                // Parents Section
+                _buildParentsSection(),
+                const SizedBox(height: 16),
+                // Litters Section
+                _buildLittersSection(),
+                const SizedBox(height: 16),
+                // Plug Events Section
+                _buildPlugEventsSection(),
+                const SizedBox(height: 16),
+              ],
+
+              // Disband button (only for existing, non-disbanded matings)
+              if (isEditing && !isDisbanded) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                    ),
+                    onPressed: _showDisbandDialog,
+                    child: const Text('Disband Mating'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+
               SizedBox(
                 width: double.infinity,
                 child: MoustraButtonPrimary(
                   label: 'Save Mating',
-                  onPressed: _saveMating,
+                  onPressed: isDisbanded ? null : _saveMating,
                 ),
               ),
             ],

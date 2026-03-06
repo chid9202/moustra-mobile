@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:moustra/services/clients/protocol_api.dart';
 import 'package:moustra/services/dtos/compliance_summary_dto.dart';
 import 'package:moustra/services/dtos/protocol_alert_dto.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class ProtocolComplianceScreen extends StatefulWidget {
   const ProtocolComplianceScreen({super.key});
@@ -295,16 +296,12 @@ class _ProtocolComplianceScreenState extends State<ProtocolComplianceScreen> {
     try {
       await protocolApi.acknowledgeAlert(alert.alertUuid!);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Alert acknowledged')),
-        );
+        showAppSnackBar(context, 'Alert acknowledged', isSuccess: true);
         _loadData();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        showAppSnackBar(context, 'Error: $e', isError: true);
       }
     }
   }

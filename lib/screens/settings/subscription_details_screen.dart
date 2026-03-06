@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/subscription_api.dart';
 import 'package:moustra/services/dtos/subscription_dto.dart';
 
@@ -52,23 +53,12 @@ class _SubscriptionDetailsScreenState extends State<SubscriptionDetailsScreen> {
     try {
       await subscriptionApi.cancelSubscription();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Subscription canceled successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showAppSnackBar(context, 'Subscription canceled successfully', isSuccess: true);
         widget.onSubscriptionCanceled?.call();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to cancel subscription: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        showAppSnackBar(context, 'Failed to cancel subscription: $e', isError: true, duration: const Duration(seconds: 5));
       }
     } finally {
       if (mounted) {
@@ -304,14 +294,7 @@ class _SubscriptionDetailsScreenState extends State<SubscriptionDetailsScreen> {
                   child: InkWell(
                     onTap: () {
                       // TODO: Open URL with url_launcher if needed
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Invoice URL: ${item.hostedInvoiceUrl}',
-                          ),
-                          duration: const Duration(seconds: 3),
-                        ),
-                      );
+                      showAppSnackBar(context, 'Invoice URL: ${item.hostedInvoiceUrl}', duration: const Duration(seconds: 3));
                     },
                     child: Row(
                       children: [
@@ -337,12 +320,7 @@ class _SubscriptionDetailsScreenState extends State<SubscriptionDetailsScreen> {
                   child: InkWell(
                     onTap: () {
                       // TODO: Open URL with url_launcher if needed
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('PDF URL: ${item.invoicePdf}'),
-                          duration: const Duration(seconds: 3),
-                        ),
-                      );
+                      showAppSnackBar(context, 'PDF URL: ${item.invoicePdf}', duration: const Duration(seconds: 3));
                     },
                     child: Row(
                       children: [

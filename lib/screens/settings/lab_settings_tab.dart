@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/lab_setting_api.dart';
 import 'package:moustra/services/dtos/lab_setting_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
@@ -81,12 +82,7 @@ class _LabSettingsTabState extends State<LabSettingsTab> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading lab settings: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error loading lab settings: $e', isError: true);
       }
     }
   }
@@ -107,9 +103,9 @@ class _LabSettingsTabState extends State<LabSettingsTab> {
           accountId: _selectedOwner!.accountId,
           accountUuid: _selectedOwner!.accountUuid,
           user: LabSettingUserDto(
-            email: _selectedOwner!.user.email,
-            firstName: _selectedOwner!.user.firstName,
-            lastName: _selectedOwner!.user.lastName,
+            email: _selectedOwner!.user?.email ?? '',
+            firstName: _selectedOwner!.user?.firstName ?? '',
+            lastName: _selectedOwner!.user?.lastName ?? '',
             isActive: _selectedOwner!.isActive ?? true,
           ),
           status: existingOwner?.status ?? 'Active',
@@ -149,21 +145,11 @@ class _LabSettingsTabState extends State<LabSettingsTab> {
       await refreshSettingStore();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Lab settings saved successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showAppSnackBar(context, 'Lab settings saved successfully', isSuccess: true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving lab settings: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Error saving lab settings: $e', isError: true);
       }
     } finally {
       if (mounted) {

@@ -19,6 +19,7 @@ import 'package:moustra/widgets/shared/select_owner.dart';
 import 'package:moustra/widgets/shared/select_strain.dart';
 import 'package:moustra/widgets/note/note_list.dart';
 import 'package:moustra/services/dtos/note_entity_type.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class LitterDetailScreen extends StatefulWidget {
   final String? matingUuid;
@@ -201,18 +202,12 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
       await animalService.patchAnimals(updates);
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Updated strain for ${_litterData!.animals.length} pubs'),
-          ),
-        );
+        showAppSnackBar(context, 'Updated strain for ${_litterData!.animals.length} pubs', isSuccess: true);
       }
     } catch (e) {
       debugPrint('Error updating pup strains: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to update pub strains')),
-        );
+        showAppSnackBar(context, 'Failed to update pub strains', isError: true);
       }
     }
   }
@@ -271,9 +266,7 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
         await refreshStrainStore();
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(isNew ? 'Litter created successfully!' : 'Litter updated successfully!')),
-          );
+          showAppSnackBar(context, isNew ? 'Litter created successfully!' : 'Litter updated successfully!', isSuccess: true);
 
           // Navigate back to the appropriate page based on where we came from
           if (widget.fromCageGrid) {
@@ -285,9 +278,7 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
       } catch (e) {
         debugPrint('Error saving litter: $e');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error saving litter: $e')),
-          );
+          showAppSnackBar(context, 'Error saving litter: $e', isError: true);
         }
       }
     }

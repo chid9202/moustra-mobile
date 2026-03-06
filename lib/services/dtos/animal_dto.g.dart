@@ -60,6 +60,12 @@ AnimalDto _$AnimalDtoFromJson(Map<String, dynamic> json) => AnimalDto(
   notes: (json['notes'] as List<dynamic>?)
       ?.map((e) => NoteDto.fromJson(e as Map<String, dynamic>))
       .toList(),
+  matings: (json['matings'] as List<dynamic>?)
+      ?.map((e) => AnimalMatingDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  plugEvents: (json['plugEvents'] as List<dynamic>?)
+      ?.map((e) => AnimalPlugEventDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$AnimalDtoToJson(AnimalDto instance) => <String, dynamic>{
@@ -84,6 +90,8 @@ Map<String, dynamic> _$AnimalDtoToJson(AnimalDto instance) => <String, dynamic>{
   'sire': instance.sire?.toJson(),
   'dam': instance.dam?.map((e) => e.toJson()).toList(),
   'notes': instance.notes?.map((e) => e.toJson()).toList(),
+  'matings': instance.matings?.map((e) => e.toJson()).toList(),
+  'plugEvents': instance.plugEvents?.map((e) => e.toJson()).toList(),
 };
 
 AnimalSummaryDto _$AnimalSummaryDtoFromJson(Map<String, dynamic> json) =>
@@ -305,3 +313,71 @@ Map<String, dynamic> _$EndReasonSummaryDtoToJson(
   'endReasonUuid': instance.endReasonUuid,
   'endReasonName': instance.endReasonName,
 };
+
+AnimalMatingDto _$AnimalMatingDtoFromJson(Map<String, dynamic> json) =>
+    AnimalMatingDto(
+      matingUuid: json['matingUuid'] as String,
+      matingTag: json['matingTag'] as String?,
+      litterStrain: json['litterStrain'] == null
+          ? null
+          : StrainSummaryDto.fromJson(
+              json['litterStrain'] as Map<String, dynamic>,
+            ),
+      setUpDate: json['setUpDate'] == null
+          ? null
+          : DateTime.parse(json['setUpDate'] as String),
+      disbandedDate: json['disbandedDate'] == null
+          ? null
+          : DateTime.parse(json['disbandedDate'] as String),
+      litters: (json['litters'] as List<dynamic>?)
+          ?.map((e) => LitterDto.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      plugEvents: (json['plugEvents'] as List<dynamic>?)
+          ?.map((e) => MatingPlugEventDto.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$AnimalMatingDtoToJson(AnimalMatingDto instance) =>
+    <String, dynamic>{
+      'matingUuid': instance.matingUuid,
+      'matingTag': instance.matingTag,
+      'litterStrain': instance.litterStrain?.toJson(),
+      'setUpDate': instance.setUpDate?.toIso8601String(),
+      'disbandedDate': instance.disbandedDate?.toIso8601String(),
+      'litters': instance.litters?.map((e) => e.toJson()).toList(),
+      'plugEvents': instance.plugEvents?.map((e) => e.toJson()).toList(),
+    };
+
+AnimalPlugEventDto _$AnimalPlugEventDtoFromJson(Map<String, dynamic> json) =>
+    AnimalPlugEventDto(
+      plugEventUuid: json['plugEventUuid'] as String,
+      plugDate: json['plugDate'] as String,
+      plugTime: json['plugTime'] as String?,
+      targetEday: _safeDouble(json['targetEday']),
+      targetDate: json['targetDate'] as String?,
+      expectedDeliveryStart: json['expectedDeliveryStart'] as String?,
+      expectedDeliveryEnd: json['expectedDeliveryEnd'] as String?,
+      outcome: json['outcome'] as String?,
+      outcomeDate: json['outcomeDate'] as String?,
+      outcomeEday: _safeDouble(json['outcomeEday']),
+      embryosCollected: _safeInt(json['embryosCollected']),
+      currentEday: _safeDouble(json['currentEday']),
+      createdDate: json['createdDate'] as String?,
+    );
+
+Map<String, dynamic> _$AnimalPlugEventDtoToJson(AnimalPlugEventDto instance) =>
+    <String, dynamic>{
+      'plugEventUuid': instance.plugEventUuid,
+      'plugDate': instance.plugDate,
+      'plugTime': instance.plugTime,
+      'targetEday': instance.targetEday,
+      'targetDate': instance.targetDate,
+      'expectedDeliveryStart': instance.expectedDeliveryStart,
+      'expectedDeliveryEnd': instance.expectedDeliveryEnd,
+      'outcome': instance.outcome,
+      'outcomeDate': instance.outcomeDate,
+      'outcomeEday': instance.outcomeEday,
+      'embryosCollected': instance.embryosCollected,
+      'currentEday': instance.currentEday,
+      'createdDate': instance.createdDate,
+    };

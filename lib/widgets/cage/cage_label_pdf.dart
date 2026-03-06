@@ -113,7 +113,7 @@ class CageLabelPdf {
       );
 
   static String _ownerName(CageDto cage) =>
-      '${cage.owner.user.firstName} ${cage.owner.user.lastName}'.trim();
+      '${cage.owner.user?.firstName ?? ''} ${cage.owner.user?.lastName ?? ''}'.trim();
 
   static String _formatDate(DateTime? d) => d != null
       ? '${d.month.toString().padLeft(2, '0')}/${d.day.toString().padLeft(2, '0')}/${d.year}'

@@ -15,7 +15,24 @@ class MoustraAppBar extends StatelessWidget implements PreferredSizeWidget {
           onPressed: () => Scaffold.of(context).openDrawer(),
         ),
       ),
-      actions: const [NotificationBell()],
+      actions: [
+        const NotificationBell(),
+        IconButton(
+          icon: const Icon(Icons.task_alt),
+          tooltip: 'Tasks',
+          onPressed: () => context.go('/task'),
+        ),
+        IconButton(
+          icon: const Icon(Icons.calendar_month),
+          tooltip: 'Calendar',
+          onPressed: () => context.go('/calendar'),
+        ),
+        IconButton(
+          icon: const Icon(Icons.smart_toy),
+          tooltip: 'Cheese AI',
+          onPressed: () => context.go('/ai'),
+        ),
+      ],
       flexibleSpace: Container(
         alignment: Alignment.bottomCenter,
         child: GestureDetector(

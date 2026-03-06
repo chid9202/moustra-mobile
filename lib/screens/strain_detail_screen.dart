@@ -13,6 +13,7 @@ import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/widgets/shared/select_background.dart';
 import 'package:moustra/widgets/shared/select_gene/select_gene.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class StrainDetailScreen extends StatefulWidget {
   const StrainDetailScreen({super.key});
@@ -104,9 +105,7 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
     } catch (e) {
       debugPrint('Error loading strain: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading strain: $e')));
+        showAppSnackBar(context, 'Error loading strain: $e', isError: true);
       }
       _strainDataLoaded = true; // Mark as loaded even on error to prevent retry
     }
@@ -239,9 +238,7 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
             genotypes: _genotypes,
           );
           await StrainApi().createStrain(strain);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Strain created successfully!')),
-          );
+          showAppSnackBar(context, 'Strain created successfully!', isSuccess: true);
         } else {
           // Update existing strain
           await StrainApi().putStrain(
@@ -261,18 +258,14 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
               genotypes: _genotypes,
             ),
           );
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Strain updated successfully!')),
-          );
+          showAppSnackBar(context, 'Strain updated successfully!', isSuccess: true);
         }
         context.go('/strain');
       } catch (e, stackTrace) {
         debugPrint('Error saving strain: $e');
         debugPrint('$stackTrace');
         if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving strain: $e')));
+        showAppSnackBar(context, 'Error saving strain: $e', isError: true);
       }
     }
   }
@@ -367,21 +360,13 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
         ),
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Strain ${_isActive ? "deactivated" : "activated"} successfully',
-          ),
-        ),
-      );
+      showAppSnackBar(context, 'Strain ${_isActive ? "deactivated" : "activated"} successfully', isSuccess: true);
       context.go('/strain');
     } catch (e, stackTrace) {
       debugPrint('Error toggling strain active: $e');
       debugPrint('$stackTrace');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      showAppSnackBar(context, 'Error: $e', isError: true);
     }
   }
 

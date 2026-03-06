@@ -38,6 +38,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   VoidCallback? _authListener;
   bool _obscurePassword = true;
   String _version = '';
+  DateTime? _emailLastChanged;
+  DateTime? _passwordLastChanged;
+  bool _autofillSubmitted = false;
 
   @override
   void initState() {
@@ -63,6 +66,43 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     };
     authState.addListener(_authListener!);
     _loadVersion();
+
+    // Detect autofill: track when each field changes to identify rapid
+    // simultaneous population (autofill sets both fields within milliseconds)
+    _emailController.addListener(() {
+      _emailLastChanged = DateTime.now();
+      _checkAutofill();
+    });
+    _passwordController.addListener(() {
+      _passwordLastChanged = DateTime.now();
+      _checkAutofill();
+    });
+  }
+
+  void _checkAutofill() {
+    if (_loading || _autofillSubmitted) return;
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) return;
+
+    // Both fields are populated. Check if they changed within a short window
+    // (autofill fills both fields nearly simultaneously).
+    if (_emailLastChanged == null || _passwordLastChanged == null) return;
+    final gap = _emailLastChanged!.difference(_passwordLastChanged!).abs();
+    if (gap.inMilliseconds > 500) return;
+
+    // Autofill detected — submit after a brief settle delay
+    _autofillSubmitted = true;
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted || _loading) return;
+      if (_emailController.text.trim().isNotEmpty &&
+          _passwordController.text.isNotEmpty) {
+        _handleLogin();
+      } else {
+        _autofillSubmitted = false;
+      }
+    });
   }
 
   Future<void> _loadVersion() async {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' hide Card;
+import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/constants/account_constants.dart';
 import 'package:moustra/services/clients/subscription_api.dart';
 import 'package:moustra/services/clients/users_api.dart';
@@ -50,12 +51,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
         setState(() {
           _isLoadingUsers = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load user count: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showAppSnackBar(context, 'Failed to load user count: $e', isError: true);
       }
     }
   }
@@ -145,12 +141,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
       // Notify parent that subscription was successful
       if (mounted) {
         widget.onSubscriptionSuccess?.call();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Subscription successful!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showAppSnackBar(context, 'Subscription successful!', isSuccess: true);
       }
     } catch (e, stackTrace) {
       debugPrint('Subscription error: $e');
@@ -169,13 +160,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
         } else {
           errorMessage = e.toString();
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        showAppSnackBar(context, errorMessage, isError: true, duration: const Duration(seconds: 5));
       }
     } finally {
       if (mounted) {

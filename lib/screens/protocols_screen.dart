@@ -14,19 +14,10 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
   List<ProtocolDto> _protocols = [];
   bool _isLoading = true;
   String? _error;
-  String _searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
     _loadProtocols();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadProtocols() async {
@@ -35,13 +26,8 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
       _error = null;
     });
     try {
-      final query = <String, String>{};
-      if (_searchQuery.isNotEmpty) {
-        query['search'] = _searchQuery;
-      }
       final page = await protocolApi.getProtocols(
         pageSize: 100,
-        query: query,
       );
       if (mounted) {
         setState(() {
@@ -50,6 +36,7 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
         });
       }
     } catch (e) {
+      debugPrint('Error loading protocols: $e');
       if (mounted) {
         setState(() {
           _error = e.toString();
@@ -107,39 +94,6 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Search bar
-        Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Search protocols...',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              suffixIcon: _searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _searchQuery = '');
-                        _loadProtocols();
-                      },
-                    )
-                  : null,
-            ),
-            onSubmitted: (value) {
-              setState(() => _searchQuery = value);
-              _loadProtocols();
-            },
-          ),
-        ),
-        const Divider(height: 1),
         // Content
         Expanded(
           child: _isLoading
@@ -222,8 +176,8 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
   }
 
   Widget _buildProtocolCard(ProtocolDto protocol) {
-    final piName = protocol.pi != null
-        ? '${protocol.pi!.user.firstName} ${protocol.pi!.user.lastName}'
+    final piName = protocol.pi?.user != null
+        ? '${protocol.pi!.user!.firstName} ${protocol.pi!.user!.lastName}'
         : 'Unknown PI';
     final pct = protocol.animalCountPct ?? 0;
     final daysLeft = protocol.daysUntilExpiry;
@@ -275,25 +229,26 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
                     ),
                   ),
                   // Pain category badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _painCategoryColor(protocol.painCategory)
-                          .withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'Cat ${protocol.painCategory}',
-                      style: TextStyle(
-                        color: _painCategoryColor(protocol.painCategory),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                  if (protocol.painCategory != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _painCategoryColor(protocol.painCategory!)
+                            .withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Cat ${protocol.painCategory}',
+                        style: TextStyle(
+                          color: _painCategoryColor(protocol.painCategory!),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -344,7 +299,7 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'Expires: ${protocol.expirationDate}',
+                    'Expires: ${protocol.expirationDate ?? 'N/A'}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context)
                               .colorScheme
@@ -408,7 +363,7 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '${protocol.currentAnimalCount}/${protocol.maxAnimalCount}',
+                    '${protocol.currentAnimalCount ?? 0}/${protocol.maxAnimalCount ?? 0}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
