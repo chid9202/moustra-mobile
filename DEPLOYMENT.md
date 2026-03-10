@@ -156,6 +156,40 @@ Make sure to build the Flutter app before running Fastlane:
 flutter build ios --release  # or flutter build appbundle --release
 ```
 
+### TestFlight upload seems stuck or fails with 504
+
+The step *"Going to upload updated app to App Store Connect"* often shows **no progress for 10–30+ minutes**. The upload is still running; Apple’s servers are slow and the IPA can be large. **Do not interrupt** the terminal where the upload is running.
+
+**504 Gateway Timeout:** Apple’s Content Delivery Service sometimes returns `504 gateway timed out` (e.g. "Failed to upload part number 1"). This is intermittent and not under your control. The deploy script **retries the upload up to 3 times** with a 60-second delay. If it still fails:
+
+- Try again later (Apple’s side may be busy).
+- Use a stable network (avoid flaky Wi‑Fi or VPN).
+- **Fallback:** Upload the same IPA manually:
+  - **Transporter app:** [Mac App Store](https://apps.apple.com/app/transporter/id1450874784) — drag `ios/build/Moustra.ipa` into Transporter.
+  - **Xcode:** Window → Organizer → Distribute App → App Store Connect → Upload.
+
+To investigate in a **new terminal** (read-only checks that won’t affect the upload):
+
+1. **See how big the upload is**
+   ```bash
+   ls -lh /Users/daehanchi/Dev/moustra-mobile/ios/build/Moustra.ipa
+   ```
+
+2. **Confirm the upload process is running and using the network**
+   ```bash
+   # Find the deploy/fastlane process (use the PID from your running terminal if you know it)
+   ps aux | grep -E 'deploy-ios|fastlane|ruby' | grep -v grep
+
+   # If you have the PID (e.g. 28625), list its network connections
+   lsof -p <PID> -i 2>/dev/null || lsof -i -c ruby 2>/dev/null
+   ```
+   Active TCP connections to Apple (e.g. `*.apple.com` or `*.apple.com.akadns.net`) mean the upload is in progress.
+
+3. **Optional: watch network activity**
+   - Open **Activity Monitor** → Network tab, or run `nettop` in a new terminal and look for `ruby` or `altool`/system processes sending data.
+
+If the process has open connections and network send is increasing, the upload is progressing; wait for it to finish. For future runs, you can use the `upload_only` lane after a successful build to re-upload the same IPA without rebuilding (faster iteration).
+
 ## Metadata Locations
 
 - iOS: `ios/fastlane/metadata/`
