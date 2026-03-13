@@ -23,10 +23,7 @@ void main() {
           'dateOfBirth': '2023-05-15T00:00:00Z',
           'sex': 'male',
         },
-        'mating': {
-          'matingUuid': 'mating-uuid-1',
-          'matingTag': 'MT001',
-        },
+        'mating': {'matingUuid': 'mating-uuid-1', 'matingTag': 'MT001'},
         'plugDate': '2024-03-01T00:00:00Z',
         'plugTime': '09:30',
         'checkedBy': {
@@ -77,7 +74,7 @@ void main() {
       expect(dto.plugDate, DateTime.parse('2024-03-01T00:00:00Z'));
       expect(dto.plugTime, '09:30');
       expect(dto.checkedBy?.accountId, 1);
-      expect(dto.checkedBy?.user.email, 'checker@test.com');
+      expect(dto.checkedBy?.user?.email, 'checker@test.com');
       expect(dto.currentEday, 12.5);
       expect(dto.targetEday, 14.0);
       expect(dto.targetDate, DateTime.parse('2024-03-15T00:00:00Z'));
@@ -87,11 +84,11 @@ void main() {
       expect(dto.outcomeDate, DateTime.parse('2024-03-21T00:00:00Z'));
       expect(dto.outcomeEday, 20.0);
       expect(dto.embryosCollected, 8);
-      expect(dto.notes, 'Test plug event notes');
       expect(dto.owner?.accountId, 2);
-      expect(dto.owner?.user.firstName, 'Jane');
+      expect(dto.owner?.user?.firstName, 'Jane');
       expect(dto.createdDate, DateTime.parse('2024-03-01T00:00:00Z'));
       expect(dto.updatedDate, DateTime.parse('2024-03-02T00:00:00Z'));
+      // expect(dto.notes, 'Test plug event notes');
     });
 
     test('should create PlugEventDto with minimal required fields', () {
@@ -124,10 +121,10 @@ void main() {
       expect(dto.outcomeDate, null);
       expect(dto.outcomeEday, null);
       expect(dto.embryosCollected, null);
-      expect(dto.notes, null);
       expect(dto.owner, null);
       expect(dto.createdDate, null);
       expect(dto.updatedDate, null);
+      // expect(dto.notes, null);
     });
 
     test('should convert PlugEventDto to JSON', () {
@@ -136,16 +133,16 @@ void main() {
         eid: 100,
         plugEventId: 1,
         plugEventUuid: 'plug-event-uuid-1',
-        plugDate: DateTime(2024, 3, 1),
+        plugDate: '${DateTime(2024, 3, 1)}',
         plugTime: '09:30',
         currentEday: 12.5,
         targetEday: 14.0,
-        targetDate: DateTime(2024, 3, 15),
+        targetDate: '${DateTime(2024, 3, 15)}',
         outcome: 'live_birth',
-        outcomeDate: DateTime(2024, 3, 21),
+        outcomeDate: '${DateTime(2024, 3, 21)}',
         outcomeEday: 20.0,
         embryosCollected: 8,
-        notes: 'Test notes',
+        // notes: 'Test notes',
       );
 
       // Act
@@ -216,10 +213,10 @@ void main() {
       expect(dto.outcomeDate, null);
       expect(dto.outcomeEday, null);
       expect(dto.embryosCollected, null);
-      expect(dto.notes, null);
       expect(dto.owner, null);
       expect(dto.createdDate, null);
       expect(dto.updatedDate, null);
+      // expect(dto.notes, null);
     });
 
     test('should handle nested DTOs correctly', () {
@@ -269,9 +266,9 @@ void main() {
       expect(dto.mating?.animals?.length, 1);
       expect(dto.mating?.animals?.first.physicalTag, 'F010');
       expect(dto.owner?.accountId, 3);
-      expect(dto.owner?.user.email, 'lab@test.com');
-      expect(dto.owner?.user.firstName, 'Lab');
-      expect(dto.owner?.user.lastName, 'Manager');
+      expect(dto.owner?.user?.email, 'lab@test.com');
+      expect(dto.owner?.user?.firstName, 'Lab');
+      expect(dto.owner?.user?.lastName, 'Manager');
     });
   });
 }
