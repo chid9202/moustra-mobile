@@ -21,7 +21,7 @@ void main() {
     final mockPlugEvent = PlugEventDto(
       plugEventId: 1,
       plugEventUuid: 'test-uuid',
-      plugDate: DateTime(2023, 6, 15),
+      plugDate: '${DateTime(2023, 6, 15)}',
     );
 
     testWidgets('renders correctly when dialog is shown', (
@@ -112,9 +112,7 @@ void main() {
       expect(saveButton.onPressed, isNotNull);
     });
 
-    testWidgets('Cancel button dismisses dialog', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('Cancel button dismisses dialog', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithDialog(
         tester,
         PlugEventOutcomeDialog(plugEvent: mockPlugEvent),
