@@ -46,3 +46,18 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Environment / secrets
+.env
+.env.*
+android/android-secret.json
+
+# Editor
+.cursor/
+
+# iOS build artifacts
+ios/build/
+
+# Fastlane
+android/fastlane/
+ios/fastlane/
