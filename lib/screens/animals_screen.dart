@@ -28,6 +28,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
   final Set<String> _selected = <String>{};
   final int _pageSize = 1000;
+  bool _isEditMode = false;
   bool _isEndingMode = false;
   bool _isEndingAnimals = false;
   final MovableFabMenuController _fabController = MovableFabMenuController();
@@ -142,6 +143,8 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
           preparedFilters: AnimalFilterConfig.preparedFilters,
           selectedPresetIndex: _selectedPresetIndex,
           onPresetSelected: _onPresetSelected,
+          isEditMode: _isEditMode,
+          onEditToggle: () => setState(() => _isEditMode = !_isEditMode),
         ),
         const Divider(height: 1),
         Expanded(
@@ -160,15 +163,34 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   });
                   _controller.reload();
                 },
-                columns: AnimalListColumn.getColumns(
-                  includeSelect: _isEndingMode,
-                ),
+                onRowTap: _isEditMode
+                    ? (AnimalDto animal) =>
+                        context.go('/animal/${animal.animalUuid}')
+                    : null,
+                columns: [
+                  if (_isEditMode)
+                    GridColumn(
+                      columnName: 'edit_stripe',
+                      width: 4,
+                      label: Builder(
+                        builder: (ctx) => Container(
+                          color: Theme.of(ctx).colorScheme.primary,
+                        ),
+                      ),
+                      allowSorting: false,
+                    ),
+                  ...AnimalListColumn.getColumns(
+                    includeSelect: _isEndingMode,
+                    activeSort: _activeSort,
+                  ),
+                ],
                 sourceBuilder: (rows) => _AnimalGridSource(
                   records: rows,
                   selected: _selected,
                   onToggle: _onToggleSelected,
                   context: context,
                   isEndingMode: _isEndingMode,
+                  isEditMode: _isEditMode,
                 ),
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
@@ -339,6 +361,7 @@ class _AnimalGridSource extends DataGridSource {
   final void Function(String uuid, bool selected) onToggle;
   final BuildContext context;
   final bool isEndingMode;
+  final bool isEditMode;
 
   _AnimalGridSource({
     required this.records,
@@ -346,6 +369,7 @@ class _AnimalGridSource extends DataGridSource {
     required this.onToggle,
     required this.context,
     required this.isEndingMode,
+    required this.isEditMode,
   }) {
     _rows = records.map(AnimalListColumn.getDataGridRow).toList();
   }
@@ -360,10 +384,18 @@ class _AnimalGridSource extends DataGridSource {
     final Map<String, Object?> values = {
       for (final cell in row.getCells()) cell.columnName: cell.value,
     };
-    final String? uuid = values[AnimalListColumn.edit.name] as String?;
+    final String? uuid = values[AnimalListColumn.select.name] as String?;
     final bool isChecked = uuid != null && selected.contains(uuid);
-    final BuildContext context = this.context;
     final List<Widget> cells = [];
+    if (isEditMode) {
+      cells.add(
+        Builder(
+          builder: (c) => Container(
+            color: Theme.of(c).colorScheme.primary,
+          ),
+        ),
+      );
+    }
     cells.add(
       Center(
         child: Checkbox(
@@ -376,26 +408,16 @@ class _AnimalGridSource extends DataGridSource {
         ),
       ),
     );
-    cells.add(
-      Center(
-        child: IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: 'Edit',
-          onPressed: uuid == null
-              ? null
-              : () {
-                  context.go('/animal/$uuid');
-                },
-        ),
-      ),
-    );
     String? valueFor(AnimalListColumn column) => values[column.name] as String?;
-    cells.add(cellText(valueFor(AnimalListColumn.physicalTag)));
+    cells.add(Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: cellText(valueFor(AnimalListColumn.physicalTag)),
+    ));
     cells.add(
-      cellText(valueFor(AnimalListColumn.sex), textAlign: Alignment.center),
+      cellText(valueFor(AnimalListColumn.sex)),
     );
     cells.add(
-      cellText(valueFor(AnimalListColumn.dob), textAlign: Alignment.center),
+      cellText(valueFor(AnimalListColumn.dob)),
     );
     cells.add(cellText(valueFor(AnimalListColumn.genotypes)));
     cells.add(cellText(valueFor(AnimalListColumn.status)));
@@ -407,6 +429,13 @@ class _AnimalGridSource extends DataGridSource {
     cells.add(cellText(valueFor(AnimalListColumn.dam)));
     cells.add(cellText(valueFor(AnimalListColumn.owner)));
     cells.add(cellText(valueFor(AnimalListColumn.created)));
-    return DataGridRowAdapter(cells: cells);
+    return DataGridRowAdapter(
+      color: isEditMode
+          ? Theme.of(context).colorScheme.secondaryContainer.withValues(
+              alpha: 0.25,
+            )
+          : null,
+      cells: cells,
+    );
   }
 }

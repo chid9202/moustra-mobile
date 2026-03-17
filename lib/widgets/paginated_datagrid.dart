@@ -37,6 +37,7 @@ class PaginatedDataGrid<T> extends StatefulWidget {
   final FilterChanged<T>? onFilterChanged;
   final void Function(String columnName, bool ascending)? onSortChanged;
   final String? searchPlaceholder;
+  final void Function(T row)? onRowTap;
 
   const PaginatedDataGrid({
     super.key,
@@ -50,6 +51,7 @@ class PaginatedDataGrid<T> extends StatefulWidget {
     this.onFilterChanged,
     this.onSortChanged,
     this.searchPlaceholder,
+    this.onRowTap,
   });
 
   @override
@@ -202,9 +204,10 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
               SfDataGrid(
                 source: widget.sourceBuilder(_rows),
                 columns: widget.columns,
-                allowSorting: true,
+                allowSorting: false,
                 onCellTap: (details) {
-                  if (details.rowColumnIndex.rowIndex == 0) {
+                  final int ri = details.rowColumnIndex.rowIndex;
+                  if (ri == 0) {
                     final int ci = details.rowColumnIndex.columnIndex;
                     if (ci < 0 || ci >= widget.columns.length) return;
                     final GridColumn col = widget.columns[ci];
@@ -213,6 +216,8 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
                     // Toggle order
                     _sortAscending = !_sortAscending;
                     widget.onSortChanged?.call(name, _sortAscending);
+                  } else if (ri > 0 && ri <= _rows.length) {
+                    widget.onRowTap?.call(_rows[ri - 1]);
                   }
                 },
                 onQueryRowHeight: (details) {

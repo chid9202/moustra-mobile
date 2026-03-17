@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:moustra/constants/list_constants/common.dart';
+import 'package:moustra/constants/list_constants/common.dart' hide SortOrder;
 import 'package:moustra/helpers/animal_helper.dart';
 import 'package:moustra/helpers/datetime_helper.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
+import 'package:moustra/services/models/list_query_params.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum AnimalListColumn implements ListColumn<AnimalDto> {
   select('', 'select'),
-  edit('Edit', 'edit'),
   // eid('EID', 'eid'),
   physicalTag('Physical Tag', 'physical_tag'),
   status('Status', 'status'),
@@ -33,7 +33,34 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
   @override
   String get enumName => name;
 
-  static List<GridColumn> getColumns({bool includeSelect = true}) {
+  static List<GridColumn> getColumns({
+    bool includeSelect = true,
+    SortParam? activeSort,
+  }) {
+    Widget sortableLabel(String text, String field, {double leftPadding = 4}) {
+      final isActive = activeSort?.field == field;
+      final isAsc = activeSort?.order == SortOrder.asc;
+      return Padding(
+        padding: EdgeInsets.only(left: leftPadding, right: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(text),
+            const SizedBox(width: 2),
+            Opacity(
+              opacity: isActive ? 1.0 : 0.35,
+              child: Icon(
+                isActive
+                    ? (isAsc ? Icons.arrow_upward : Icons.arrow_downward)
+                    : Icons.unfold_more,
+                size: 12,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return [
       GridColumn(
         columnName: AnimalListColumn.select.field,
@@ -41,12 +68,6 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
         label: const SizedBox.shrink(),
         allowSorting: false,
         visible: includeSelect,
-      ),
-      GridColumn(
-        columnName: AnimalListColumn.edit.field,
-        width: editColumnWidth,
-        label: Center(child: Text(AnimalListColumn.edit.label)),
-        allowSorting: false,
       ),
       // GridColumn(
       //   columnName: AnimalListColumn.eid.field,
@@ -57,79 +78,107 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
       GridColumn(
         columnName: AnimalListColumn.physicalTag.field,
         width: 120,
-        label: Center(child: Text(AnimalListColumn.physicalTag.label)),
+        label: sortableLabel(
+          AnimalListColumn.physicalTag.label,
+          AnimalListColumn.physicalTag.field,
+          leftPadding: 12,
+        ),
         allowSorting: true,
       ),
       GridColumn(
         columnName: AnimalListColumn.sex.field,
-        width: 80,
-        label: Center(child: Text(AnimalListColumn.sex.label)),
+        width: 48,
+        label: sortableLabel(
+          AnimalListColumn.sex.label,
+          AnimalListColumn.sex.field,
+        ),
         allowSorting: true,
       ),
       GridColumn(
         columnName: AnimalListColumn.dob.field,
-        width: 140,
-        label: Center(child: Text(AnimalListColumn.dob.label)),
+        width: 110,
+        label: sortableLabel(
+          AnimalListColumn.dob.label,
+          AnimalListColumn.dob.field,
+        ),
         allowSorting: true,
       ),
       GridColumn(
         columnName: AnimalListColumn.genotypes.field,
         width: 240,
-        label: Center(child: Text(AnimalListColumn.genotypes.label)),
+        label: Align(alignment: Alignment.centerLeft, child: Padding(padding: const EdgeInsets.only(left: 4), child: Text(AnimalListColumn.genotypes.label))),
         allowSorting: false,
       ),
       GridColumn(
         columnName: AnimalListColumn.status.field,
         width: 100,
-        label: Center(child: Text(AnimalListColumn.status.label)),
+        label: sortableLabel(
+          AnimalListColumn.status.label,
+          AnimalListColumn.status.field,
+        ),
         allowSorting: true,
       ),
       GridColumn(
         columnName: AnimalListColumn.age.field,
         width: 80,
-        label: Center(child: Text(AnimalListColumn.age.label)),
+        label: Align(alignment: Alignment.centerLeft, child: Padding(padding: const EdgeInsets.only(left: 4), child: Text(AnimalListColumn.age.label))),
         allowSorting: false,
       ),
       GridColumn(
         columnName: AnimalListColumn.wean.field,
         width: 140,
-        label: Center(child: Text(AnimalListColumn.wean.label)),
+        label: sortableLabel(
+          AnimalListColumn.wean.label,
+          AnimalListColumn.wean.field,
+        ),
         allowSorting: true,
       ),
       GridColumn(
         columnName: AnimalListColumn.cage.field,
         width: 120,
-        label: Center(child: Text(AnimalListColumn.cage.label)),
+        label: sortableLabel(
+          AnimalListColumn.cage.label,
+          AnimalListColumn.cage.field,
+        ),
         allowSorting: true,
       ),
       GridColumn(
         columnName: AnimalListColumn.strain.field,
         width: 200,
-        label: Center(child: Text(AnimalListColumn.strain.label)),
+        label: sortableLabel(
+          AnimalListColumn.strain.label,
+          AnimalListColumn.strain.field,
+        ),
         allowSorting: true,
       ),
       GridColumn(
         columnName: AnimalListColumn.sire.field,
         width: 160,
-        label: Center(child: Text(AnimalListColumn.sire.label)),
+        label: Align(alignment: Alignment.centerLeft, child: Padding(padding: const EdgeInsets.only(left: 4), child: Text(AnimalListColumn.sire.label))),
         allowSorting: false,
       ),
       GridColumn(
         columnName: AnimalListColumn.dam.field,
         width: 160,
-        label: Center(child: Text(AnimalListColumn.dam.label)),
+        label: Align(alignment: Alignment.centerLeft, child: Padding(padding: const EdgeInsets.only(left: 4), child: Text(AnimalListColumn.dam.label))),
         allowSorting: false,
       ),
       GridColumn(
         columnName: AnimalListColumn.owner.field,
         width: ownerColumnWidth,
-        label: Center(child: Text(AnimalListColumn.owner.label)),
+        label: sortableLabel(
+          AnimalListColumn.owner.label,
+          AnimalListColumn.owner.field,
+        ),
         allowSorting: true,
       ),
       GridColumn(
         columnName: AnimalListColumn.created.field,
         width: 180,
-        label: Center(child: Text(AnimalListColumn.created.label)),
+        label: sortableLabel(
+          AnimalListColumn.created.label,
+          AnimalListColumn.created.field,
+        ),
         allowSorting: true,
       ),
     ];
@@ -140,10 +189,6 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
       cells: [
         DataGridCell<String>(
           columnName: AnimalListColumn.select.name,
-          value: a.animalUuid,
-        ),
-        DataGridCell<String>(
-          columnName: AnimalListColumn.edit.name,
           value: a.animalUuid,
         ),
         // DataGridCell<int>(columnName: AnimalListColumn.eid.name, value: a.eid),
