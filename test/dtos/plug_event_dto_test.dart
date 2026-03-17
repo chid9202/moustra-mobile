@@ -132,15 +132,16 @@ void main() {
         eid: 100,
         plugEventId: 1,
         plugEventUuid: 'plug-event-uuid-1',
-        plugDate: '${DateTime(2024, 3, 1)}',
+        plugDate: '2024-03-01T00:00:00.000',
         plugTime: '09:30',
         currentEday: 12.5,
         targetEday: 14.0,
-        targetDate: '${DateTime(2024, 3, 15)}',
+        targetDate: '2024-03-15T00:00:00.000',
         outcome: 'live_birth',
-        outcomeDate: '${DateTime(2024, 3, 21)}',
+        outcomeDate: '2024-03-21T00:00:00.000',
         outcomeEday: 20.0,
         embryosCollected: 8,
+        comment: 'Test notes',
       );
 
       // Act
