@@ -112,9 +112,7 @@ void main() {
       expect(saveButton.onPressed, isNotNull);
     });
 
-    testWidgets('Cancel button dismisses dialog', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('Cancel button dismisses dialog', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithDialog(
         tester,
         PlugEventOutcomeDialog(plugEvent: mockPlugEvent),

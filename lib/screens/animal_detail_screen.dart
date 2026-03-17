@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:moustra/constants/animal_constants.dart';
-import 'package:moustra/helpers/datetime_helper.dart';
 import 'package:moustra/services/clients/animal_api.dart';
 import 'package:moustra/services/dtos/genotype_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
@@ -37,7 +35,11 @@ class AnimalDetailScreen extends StatefulWidget {
   final bool fromCageGrid;
   final String? fromProtocol;
 
-  const AnimalDetailScreen({super.key, this.fromCageGrid = false, this.fromProtocol});
+  const AnimalDetailScreen({
+    super.key,
+    this.fromCageGrid = false,
+    this.fromProtocol,
+  });
 
   @override
   State<AnimalDetailScreen> createState() => _AnimalDetailScreenState();
@@ -186,7 +188,14 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
         if (previousStrain != _selectedStrain?.strainUuid) {
           await refreshStrainStore();
         }
-        showAppSnackBar(context, 'Animal updated successfully!', isSuccess: true);
+        if (!mounted) {
+          return;
+        }
+        showAppSnackBar(
+          context,
+          'Animal updated successfully!',
+          isSuccess: true,
+        );
         // Navigate back to the appropriate page based on where we came from
         if (widget.fromProtocol != null) {
           context.pop();
@@ -387,21 +396,12 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                 const Divider(height: 32),
                 const Text(
                   'End Information',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                _readOnlyField(
-                  'End Date',
-                  _formatDate(_animalData!.endDate),
-                ),
+                _readOnlyField('End Date', _formatDate(_animalData!.endDate)),
                 if (_animalData!.endType != null)
-                  _readOnlyField(
-                    'End Type',
-                    _animalData!.endType!.endTypeName,
-                  ),
+                  _readOnlyField('End Type', _animalData!.endType!.endTypeName),
                 if (_animalData!.endReason != null)
                   _readOnlyField(
                     'End Reason',
@@ -409,10 +409,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                   ),
                 if (_animalData!.endComment != null &&
                     _animalData!.endComment!.isNotEmpty)
-                  _readOnlyField(
-                    'End Comment',
-                    _animalData!.endComment!,
-                  ),
+                  _readOnlyField('End Comment', _animalData!.endComment!),
               ],
 
               const SizedBox(height: 32),
@@ -450,10 +447,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
               if (_animalUuid != null && _animalUuid != 'new') ...[
                 _buildMatingHistorySection(),
                 const SizedBox(height: 16),
-                if (_animalData?.sex == 'F')
-                  _buildPlugEventHistorySection(),
-                if (_animalData?.sex == 'F')
-                  const SizedBox(height: 16),
+                if (_animalData?.sex == 'F') _buildPlugEventHistorySection(),
+                if (_animalData?.sex == 'F') const SizedBox(height: 16),
               ],
 
               // Save Button
@@ -495,8 +490,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                   Text(
                     'Family Tree',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -528,10 +523,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
     );
   }
 
-  String _formatDate(DateTime? d) =>
-      d != null
-          ? '${d.month.toString().padLeft(2, '0')}/${d.day.toString().padLeft(2, '0')}/${d.year}'
-          : '';
+  String _formatDate(DateTime? d) => d != null
+      ? '${d.month.toString().padLeft(2, '0')}/${d.day.toString().padLeft(2, '0')}/${d.year}'
+      : '';
 
   Color _edayColor(double? currentEday, double? targetEday) {
     if (currentEday == null || targetEday == null) return Colors.grey;
@@ -563,10 +557,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
             ),
           ),
         ),
-        if (trailing != null) ...[
-          const Spacer(),
-          trailing,
-        ],
+        if (trailing != null) ...[const Spacer(), trailing],
       ],
     );
   }
@@ -583,7 +574,10 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
             _buildSectionHeader('Mating History', matings.length),
             const SizedBox(height: 8),
             if (matings.isEmpty)
-              const Text('No matings recorded', style: TextStyle(color: Colors.grey))
+              const Text(
+                'No matings recorded',
+                style: TextStyle(color: Colors.grey),
+              )
             else
               ...matings.map((mating) {
                 final isActive = mating.disbandedDate == null;
@@ -598,11 +592,16 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                           Expanded(
                             child: Text(
                               mating.matingTag ?? 'Unknown',
-                              style: const TextStyle(fontWeight: FontWeight.w500),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: isActive
                                   ? Colors.green.withValues(alpha: 0.1)
@@ -634,31 +633,55 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                         padding: const EdgeInsets.only(left: 40, bottom: 8),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: mating.litters!.map((litter) => InkWell(
-                            onTap: () => context.go('/litter/${litter.litterUuid}'),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.pets, size: 14, color: Colors.grey),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    litter.litterTag ?? 'Unknown',
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                          children: mating.litters!
+                              .map(
+                                (litter) => InkWell(
+                                  onTap: () => context.go(
+                                    '/litter/${litter.litterUuid}',
                                   ),
-                                  if (litter.dateOfBirth != null) ...[
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      DateFormat('yyyy-MM-dd').format(litter.dateOfBirth!),
-                                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 4,
                                     ),
-                                  ],
-                                  const Spacer(),
-                                  const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-                                ],
-                              ),
-                            ),
-                          )).toList(),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.pets,
+                                          size: 14,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          litter.litterTag ?? 'Unknown',
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        if (litter.dateOfBirth != null) ...[
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            DateFormat(
+                                              'yyyy-MM-dd',
+                                            ).format(litter.dateOfBirth!),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                        const Spacer(),
+                                        const Icon(
+                                          Icons.chevron_right,
+                                          size: 16,
+                                          color: Colors.grey,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
                         ),
                       ),
                   ],
@@ -683,7 +706,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
               'Plug Events',
               plugEvents.length,
               trailing: OutlinedButton.icon(
-                onPressed: () => context.go('/plug-event/new?female=${_animalUuid}'),
+                onPressed: () =>
+                    context.go('/plug-event/new?female=$_animalUuid'),
                 icon: const Icon(Icons.add, size: 16),
                 label: const Text('Record Plug'),
                 style: OutlinedButton.styleFrom(
@@ -694,7 +718,10 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
             ),
             const SizedBox(height: 8),
             if (plugEvents.isEmpty)
-              const Text('No plug events recorded', style: TextStyle(color: Colors.grey))
+              const Text(
+                'No plug events recorded',
+                style: TextStyle(color: Colors.grey),
+              )
             else
               ...plugEvents.map((pe) {
                 final edayColor = _edayColor(pe.currentEday, pe.targetEday);
@@ -702,14 +729,19 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   title: Text(
-                    pe.plugDate.length >= 10 ? pe.plugDate.substring(0, 10) : pe.plugDate,
+                    pe.plugDate.length >= 10
+                        ? pe.plugDate.substring(0, 10)
+                        : pe.plugDate,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
                   subtitle: Row(
                     children: [
                       if (pe.currentEday != null) ...[
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: edayColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
@@ -727,13 +759,19 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                       if (pe.outcome != null && pe.outcome!.isNotEmpty) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.grey.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            pe.outcome!.split('_').map((w) => w[0].toUpperCase() + w.substring(1)).join(' '),
+                            pe.outcome!
+                                .split('_')
+                                .map((w) => w[0].toUpperCase() + w.substring(1))
+                                .join(' '),
                             style: const TextStyle(
                               color: Colors.grey,
                               fontSize: 11,

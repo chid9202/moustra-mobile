@@ -18,10 +18,7 @@ import 'package:moustra/screens/barcode_scanner_screen.dart';
 import 'package:moustra/widgets/note/note_list.dart';
 import 'package:moustra/services/dtos/note_entity_type.dart';
 import 'package:moustra/widgets/cage/cage_animals_list.dart';
-import 'package:moustra/widgets/cage/cage_label_pdf.dart';
 import 'package:moustra/widgets/cage/mating_history_section.dart';
-import 'package:printing/printing.dart';
-import 'package:pdf/pdf.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
 
 class CageDetailScreen extends StatefulWidget {
@@ -165,12 +162,22 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
         await refreshCageStore();
         await refreshAnimalStore();
         if (mounted) {
-          showAppSnackBar(context, 'Cage created successfully!', isSuccess: true);
+          showAppSnackBar(
+            context,
+            'Cage created successfully!',
+            isSuccess: true,
+          );
         }
       } else {
         final cageData = _cageData;
         if (cageData == null) {
-          showAppSnackBar(context, 'Error: Cage data not loaded', isError: true);
+          if (mounted) {
+            showAppSnackBar(
+              context,
+              'Error: Cage data not loaded',
+              isError: true,
+            );
+          }
           return;
         }
 
@@ -196,7 +203,11 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
         await refreshCageStore();
         await refreshAnimalStore();
         if (mounted) {
-          showAppSnackBar(context, 'Cage updated successfully!', isSuccess: true);
+          showAppSnackBar(
+            context,
+            'Cage updated successfully!',
+            isSuccess: true,
+          );
         }
       }
 
@@ -216,19 +227,19 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
     }
   }
 
-  Future<void> _printLabel() async {
-    if (_cageData == null) return;
-    final doc = CageLabelPdf.build(_cageData!);
-    await Printing.layoutPdf(
-      onLayout: (format) async => doc.save(),
-      name: 'cage-${_cageData!.cageTag}',
-      format: const PdfPageFormat(
-        125 * PdfPageFormat.mm,
-        74 * PdfPageFormat.mm,
-      ),
-    );
-    eventApi.trackEvent('print_label');
-  }
+  // Future<void> _printLabel() async {
+  //   if (_cageData == null) return;
+  //   final doc = CageLabelPdf.build(_cageData!);
+  //   await Printing.layoutPdf(
+  //     onLayout: (format) async => doc.save(),
+  //     name: 'cage-${_cageData!.cageTag}',
+  //     format: const PdfPageFormat(
+  //       125 * PdfPageFormat.mm,
+  //       74 * PdfPageFormat.mm,
+  //     ),
+  //   );
+  //   eventApi.trackEvent('print_label');
+  // }
 
   @override
   Widget build(BuildContext context) {

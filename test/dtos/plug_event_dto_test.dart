@@ -23,10 +23,7 @@ void main() {
           'dateOfBirth': '2023-05-15T00:00:00Z',
           'sex': 'male',
         },
-        'mating': {
-          'matingUuid': 'mating-uuid-1',
-          'matingTag': 'MT001',
-        },
+        'mating': {'matingUuid': 'mating-uuid-1', 'matingTag': 'MT001'},
         'plugDate': '2024-03-01T00:00:00Z',
         'plugTime': '09:30',
         'checkedBy': {
@@ -124,7 +121,6 @@ void main() {
       expect(dto.outcomeDate, null);
       expect(dto.outcomeEday, null);
       expect(dto.embryosCollected, null);
-      expect(dto.comment, null);
       expect(dto.owner, null);
       expect(dto.createdDate, null);
       expect(dto.updatedDate, null);
@@ -136,16 +132,15 @@ void main() {
         eid: 100,
         plugEventId: 1,
         plugEventUuid: 'plug-event-uuid-1',
-        plugDate: '2024-03-01T00:00:00.000',
+        plugDate: '${DateTime(2024, 3, 1)}',
         plugTime: '09:30',
         currentEday: 12.5,
         targetEday: 14.0,
-        targetDate: '2024-03-15T00:00:00.000',
+        targetDate: '${DateTime(2024, 3, 15)}',
         outcome: 'live_birth',
-        outcomeDate: '2024-03-21T00:00:00.000',
+        outcomeDate: '${DateTime(2024, 3, 21)}',
         outcomeEday: 20.0,
         embryosCollected: 8,
-        comment: 'Test notes',
       );
 
       // Act
@@ -216,7 +211,6 @@ void main() {
       expect(dto.outcomeDate, null);
       expect(dto.outcomeEday, null);
       expect(dto.embryosCollected, null);
-      expect(dto.comment, null);
       expect(dto.owner, null);
       expect(dto.createdDate, null);
       expect(dto.updatedDate, null);
