@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/attachment_api.dart';
 import 'package:moustra/services/dtos/attachment_dto.dart';
+import 'package:moustra/widgets/cached_app_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AttachmentList extends StatefulWidget {
@@ -274,28 +275,11 @@ class _AttachmentListState extends State<AttachmentList> {
     if (attachment.isImage && _imageLinks.containsKey(attachment.attachmentUuid)) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(4),
-        child: Image.network(
-          _imageLinks[attachment.attachmentUuid]!,
+        child: CachedAppImage(
+          imageUrl: _imageLinks[attachment.attachmentUuid]!,
           width: 48,
           height: 48,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Icon(
-              Icons.image,
-              color: Theme.of(context).colorScheme.primary,
-              size: 32,
-            );
-          },
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return const SizedBox(
-              width: 48,
-              height: 48,
-              child: Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            );
-          },
         ),
       );
     }
@@ -441,38 +425,9 @@ class _ImagePreviewScreen extends StatelessWidget {
         minScale: 0.5,
         maxScale: 4.0,
         child: Center(
-          child: Image.network(
-            imageUrl,
+          child: CachedAppImage(
+            imageUrl: imageUrl,
             fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    color: Colors.white,
-                    size: 64,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Failed to load image',
-                    style: TextStyle(color: Colors.grey[400]),
-                  ),
-                ],
-              );
-            },
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Center(
-                child: CircularProgressIndicator(
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                      : null,
-                  color: Colors.white,
-                ),
-              );
-            },
           ),
         ),
       ),

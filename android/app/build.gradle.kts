@@ -75,6 +75,8 @@ android {
 
     buildTypes {
         release {
+            isMinifyEnabled = true
+            isShrinkResources = true
             // Use release signing config if key.properties exists, otherwise use debug
             val keystorePropertiesFile = rootProject.file("key.properties")
             if (keystorePropertiesFile.exists() && getSigningProperty("storeFile") != null) {

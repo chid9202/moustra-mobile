@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:moustra/services/clients/api_client.dart';
 import 'package:moustra/services/dtos/animal_protocol_dto.dart';
 import 'package:moustra/services/dtos/compliance_summary_dto.dart';
@@ -213,7 +212,6 @@ class ProtocolApi {
       '$basePath/$protocolUuid/amendment',
       body: data,
     );
-    debugPrint('POST amendment res ${res.statusCode}: ${res.body}');
     if (res.statusCode != 201 && res.statusCode != 200) {
       throw Exception('Failed to create amendment: ${res.body}');
     }

@@ -6,6 +6,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:moustra/app/app.dart';
 import 'package:moustra/config/env.dart';
 import 'package:moustra/services/auth_service.dart';
+import 'package:moustra/services/connectivity_service.dart';
 import 'package:moustra/services/error_report_service.dart';
 
 Future<void> main() async {
@@ -33,6 +34,8 @@ Future<void> main() async {
         Stripe.publishableKey = stripeKey;
       }
 
+      connectivityService.init();
+      ErrorReportService.initSession();
       await authService.init();
 
       runApp(const MyApp());

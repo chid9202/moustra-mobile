@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:moustra/app/mui_color.dart';
 import 'package:moustra/app/router.dart';
 import 'package:moustra/app/theme.dart';
+import 'package:moustra/services/connectivity_service.dart';
 import 'package:upgrader/upgrader.dart';
 
 class App extends StatelessWidget {
@@ -33,7 +34,51 @@ class App extends StatelessWidget {
             navigatorKey: appRouter.routerDelegate.navigatorKey,
             barrierDismissible: false,
             showIgnore: false,
-            child: child!,
+            child: Column(
+              children: [
+                // Offline banner
+                ValueListenableBuilder<bool>(
+                  valueListenable: connectivityService.isOnline,
+                  builder: (context, online, _) {
+                    if (online) return const SizedBox.shrink();
+                    return Material(
+                      child: Container(
+                        width: double.infinity,
+                        color: Colors.orange.shade800,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 6,
+                        ),
+                        child: SafeArea(
+                          bottom: false,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.wifi_off,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'No internet connection',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                // Main app content
+                Expanded(child: child!),
+              ],
+            ),
           ),
         );
       },

@@ -15,4 +15,4 @@ cd ios && pod install && cd ..
 echo "🚀 Building iOS App Bundle for production..."
 echo ""
 
-flutter build ios --release --dart-define=ENV_FILENAME=.env.production
+flutter build ios --release --dart-define=ENV_FILENAME=.env.production --obfuscate --split-debug-info=build/debug-info/ios

@@ -55,6 +55,9 @@ dependencies:
   pdf: ^3.11.1
   printing: ^5.13.3
   upgrader: ^12.5.0
+  connectivity_plus: ^6.1.4
+  logger: ^2.5.0
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:

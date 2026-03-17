@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/widgets.dart';
 import 'package:moustra/services/clients/api_client.dart';
 
 class EventApi {
@@ -12,12 +11,12 @@ class EventApi {
       apiClient.post(
         '/event',
         body: {
-          'eventName': eventName,
+          'eventName': 'mobile_$eventName',
           'source': source,
         },
       );
-    } catch (e) {
-      debugPrint('Event tracking error: $e');
+    } catch (_) {
+      // Fire-and-forget: silently ignore tracking errors
     }
   }
 }

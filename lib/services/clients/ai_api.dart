@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:moustra/config/api_config.dart';
 import 'package:moustra/services/auth_service.dart';
@@ -53,8 +52,6 @@ class AiApi {
     final uri = Uri.parse(
       '${ApiConfig.baseUrl}/account/$accountUuid/ai/stream?prompt=$encodedPrompt&token=$token',
     );
-
-    debugPrint('SSE connecting to $uri');
 
     final request = http.Request('GET', uri);
     final response = await http.Client().send(request);

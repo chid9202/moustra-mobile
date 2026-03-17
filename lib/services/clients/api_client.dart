@@ -1,12 +1,21 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:moustra/config/api_config.dart';
 import 'package:moustra/services/auth_service.dart';
+import 'package:moustra/services/clients/api_exceptions.dart';
+import 'package:moustra/services/clients/retry_client.dart';
+import 'package:moustra/services/connectivity_service.dart';
 import 'package:moustra/stores/profile_store.dart';
+
+/// Default timeout for standard HTTP requests
+const defaultTimeout = Duration(seconds: 30);
+
+/// Timeout for file upload requests
+const uploadTimeout = Duration(seconds: 120);
 
 /// Creates an HTTP client that allows self-signed certificates for localhost
 /// This is only for development purposes when connecting to local backend
@@ -17,7 +26,7 @@ http.Client _createHttpClient() {
         // Allow self-signed certificates for localhost only
         return host == 'localhost' || host == '127.0.0.1';
       };
-  return IOClient(client);
+  return RetryClient(IOClient(client));
 }
 
 class ApiClient {
@@ -35,13 +44,51 @@ class ApiClient {
     }
     _httpClient ??= _isLocalhost(ApiConfig.baseUrl)
         ? _createHttpClient()
-        : http.Client();
+        : RetryClient(http.Client());
     return _httpClient as http.Client;
   }
 
   static bool _isLocalhost(String url) {
     final uri = Uri.parse(url);
     return uri.host == 'localhost' || uri.host == '127.0.0.1';
+  }
+
+  /// Check connectivity before making a request
+  void _checkConnectivity() {
+    if (!connectivityService.isOnline.value) {
+      throw ApiNetworkException();
+    }
+  }
+
+  /// Process an HTTP response and throw typed exceptions for error status codes
+  http.Response _processResponse(http.Response response) {
+    if (response.statusCode == 401) {
+      throw ApiUnauthorizedException(body: response.body);
+    }
+    if (response.statusCode >= 500) {
+      throw ApiException(
+        statusCode: response.statusCode,
+        body: response.body,
+        message: 'Server error (${response.statusCode})',
+      );
+    }
+    return response;
+  }
+
+  /// Wrap an HTTP call with timeout and exception mapping
+  Future<http.Response> _withTimeout(
+    Future<http.Response> Function() fn, {
+    Duration timeout = defaultTimeout,
+  }) async {
+    _checkConnectivity();
+    try {
+      final response = await fn().timeout(timeout);
+      return _processResponse(response);
+    } on TimeoutException {
+      throw ApiTimeoutException();
+    } on SocketException {
+      throw ApiNetworkException(message: 'Network error: unable to connect');
+    }
   }
 
   Uri _buildUri(
@@ -109,10 +156,9 @@ class ApiClient {
       query: query,
       withoutAccountPrefix: withoutAccountPrefix,
     );
-    debugPrint('GET uri $uri');
-    final res = await httpClient.get(uri, headers: await _headers());
-    debugPrint('res ${res.statusCode}');
-    return res;
+    return _withTimeout(
+      () async => httpClient.get(uri, headers: await _headers()),
+    );
   }
 
   /// GET request with raw query string for repeated parameters support
@@ -128,10 +174,9 @@ class ApiClient {
       queryString: queryString,
       withoutAccountPrefix: withoutAccountPrefix,
     );
-    debugPrint('GET uri $uri');
-    final res = await httpClient.get(uri, headers: await _headers());
-    debugPrint('res ${res.statusCode}');
-    return res;
+    return _withTimeout(
+      () async => httpClient.get(uri, headers: await _headers()),
+    );
   }
 
   Future<http.Response> post(
@@ -146,20 +191,11 @@ class ApiClient {
       withoutAccountPrefix: withoutAccountPrefix,
     );
     final encodedBody = jsonEncode(body);
-    debugPrint('POST path $uri');
-    debugPrint('POST body $encodedBody');
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
-    final res = await httpClient.post(
-      uri,
-      headers: headers,
-      body: encodedBody,
+    return _withTimeout(
+      () async => httpClient.post(uri, headers: headers, body: encodedBody),
     );
-    debugPrint('res ${res.statusCode}');
-    if (res.statusCode >= 400) {
-      debugPrint('POST error response: ${res.body}');
-    }
-    return res;
   }
 
   Future<http.Response> postWithoutAuth(
@@ -168,18 +204,13 @@ class ApiClient {
     bool withoutAccountPrefix = false,
   }) async {
     final uri = _buildUri(path, withoutAccountPrefix: withoutAccountPrefix);
-    debugPrint('POST (no auth) path $uri');
     final headers = <String, String>{
       'Accept': 'application/json',
       'Content-Type': 'application/json',
     };
-    final res = await httpClient.post(
-      uri,
-      headers: headers,
-      body: jsonEncode(body),
+    return _withTimeout(
+      () async => httpClient.post(uri, headers: headers, body: jsonEncode(body)),
     );
-    debugPrint('res ${res.statusCode}');
-    return res;
   }
 
   Future<http.Response> put(
@@ -189,28 +220,18 @@ class ApiClient {
   }) async {
     final uri = _buildUri(path, query: query);
     final encodedBody = jsonEncode(body);
-    debugPrint('PUT path $uri');
-    debugPrint('PUT body $encodedBody');
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
-    final res = await httpClient.put(
-      uri,
-      headers: headers,
-      body: encodedBody,
+    return _withTimeout(
+      () async => httpClient.put(uri, headers: headers, body: encodedBody),
     );
-    debugPrint('res ${res.statusCode}');
-    if (res.statusCode >= 400) {
-      debugPrint('PUT error response: ${res.body}');
-    }
-    return res;
   }
 
   Future<http.Response> delete(String path) async {
-    debugPrint('DELETE path $path');
     final uri = _buildUri(path);
-    final res = await httpClient.delete(uri, headers: await _headers());
-    debugPrint('res ${res.statusCode}');
-    return res;
+    return _withTimeout(
+      () async => httpClient.delete(uri, headers: await _headers()),
+    );
   }
 
   Future<http.Response> patch(
@@ -220,20 +241,11 @@ class ApiClient {
   }) async {
     final uri = _buildUri(path, query: query);
     final encodedBody = jsonEncode(body);
-    debugPrint('PATCH path $uri');
-    debugPrint('PATCH body $encodedBody');
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
-    final res = await httpClient.patch(
-      uri,
-      headers: headers,
-      body: encodedBody,
+    return _withTimeout(
+      () async => httpClient.patch(uri, headers: headers, body: encodedBody),
     );
-    debugPrint('res ${res.statusCode}');
-    if (res.statusCode >= 400) {
-      debugPrint('PATCH error response: ${res.body}');
-    }
-    return res;
   }
 
   /// Upload a file using multipart/form-data
@@ -243,8 +255,9 @@ class ApiClient {
     String fileFieldName = 'file',
     Map<String, String>? fields,
   }) async {
+    _checkConnectivity();
+
     final uri = _buildUri(path);
-    debugPrint('UPLOAD path $uri');
 
     final request = http.MultipartRequest('POST', uri);
 
@@ -264,9 +277,14 @@ class ApiClient {
       request.fields.addAll(fields);
     }
 
-    final res = await request.send();
-    debugPrint('res ${res.statusCode}');
-    return res;
+    try {
+      final res = await request.send().timeout(uploadTimeout);
+      return res;
+    } on TimeoutException {
+      throw ApiTimeoutException(message: 'File upload timed out');
+    } on SocketException {
+      throw ApiNetworkException(message: 'Network error during file upload');
+    }
   }
 }
 

@@ -190,7 +190,10 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      await authService.init();
+      // Silently refresh tokens instead of re-initializing (which clears them)
+      if (!authService.isLoggedIn) {
+        await authService.init();
+      }
       if (!mounted) return;
       if (authService.isLoggedIn) {
         setState(() {
@@ -203,9 +206,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
         );
         _postLogin(req);
       }
-      setState(() {
-        _loading = false;
-      });
     }
   }
 

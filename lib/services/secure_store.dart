@@ -1,5 +1,5 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:moustra/services/log_service.dart';
 
 /// Secure storage wrapper for authentication tokens.
 /// Uses platform-specific secure storage (Keychain on iOS, EncryptedSharedPreferences on Android).
@@ -23,7 +23,7 @@ class SecureStore {
     try {
       await _storage.write(key: _keyRefreshToken, value: token);
     } catch (e) {
-      debugPrint('[SecureStore] ERROR saving refresh token: $e');
+      log.e('Error saving refresh token: $e', tag: 'SecureStore');
       rethrow;
     }
   }
@@ -69,7 +69,7 @@ class SecureStore {
       final token = await getRefreshToken();
       return token != null && token.isNotEmpty;
     } catch (e) {
-      debugPrint('[SecureStore] Error checking refresh token: $e');
+      log.e('Error checking refresh token: $e', tag: 'SecureStore');
       return false;
     }
   }

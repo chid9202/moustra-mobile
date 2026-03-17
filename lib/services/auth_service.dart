@@ -1,13 +1,12 @@
 import 'dart:convert';
 import 'dart:io' show Platform;
 
-import 'package:flutter/widgets.dart';
-
 import 'package:http/http.dart' as http;
 import 'package:local_auth/local_auth.dart' as local_auth;
 
 import 'package:moustra/config/env.dart';
 import 'package:moustra/services/error_context_service.dart';
+import 'package:moustra/services/log_service.dart';
 import 'package:moustra/services/secure_store.dart';
 import 'package:moustra/stores/auth_store.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
@@ -90,7 +89,7 @@ class AppUserProfile {
         sub: claims['sub'] as String?,
       );
     } catch (e) {
-      debugPrint('[AuthService] Error parsing ID token: $e');
+      log.w('[AuthService] Error parsing ID token: $e');
       return AppUserProfile();
     }
   }
@@ -112,13 +111,16 @@ class AuthService {
   AppCredentials? get credentials => _credentials;
 
   Future<void> init() async {
-    // Check for stored tokens but don't auto-login
-    // Biometric unlock will be required for security
+    // Attempt silent token refresh using stored refresh token
     final hasRefreshToken = await SecureStore.hasRefreshToken();
     if (hasRefreshToken) {
-      // Tokens exist but we'll require biometric unlock
-      // Don't set _credentials here - unlockWithBiometrics() will handle it
+      final creds = await _refreshTokens();
+      if (creds != null) {
+        // Session restored silently
+        return;
+      }
     }
+    // No refresh token or refresh failed — require login
     _credentials = null;
     authState.value = false;
   }
@@ -160,9 +162,10 @@ class AuthService {
       if (creds.refreshToken != null && creds.refreshToken!.isNotEmpty) {
         await SecureStore.saveRefreshToken(creds.refreshToken!);
       } else {
-        debugPrint(
-          '[AuthService] WARNING: Refresh token not available. Biometric unlock will not work. '
+        log.w(
+          'Refresh token not available. Biometric unlock will not work. '
           'Check Auth0 settings and offline_access scope.',
+          tag: 'Auth',
         );
       }
 
@@ -173,7 +176,7 @@ class AuthService {
       authState.value = isLoggedIn;
       return true;
     } catch (e) {
-      debugPrint('[AuthService] Social login error: $e');
+      log.w('[AuthService] Social login error: $e');
       // Convert auth0_flutter exceptions to user-friendly messages
       String errorMessage = e.toString();
       if (errorMessage.contains('user_cancelled') ||
@@ -241,7 +244,7 @@ class AuthService {
       // 2. Auto-login after successful signup
       return await loginWithPassword(email, password);
     } catch (e) {
-      debugPrint('[AuthService] Sign up error: $e');
+      log.w('[AuthService] Sign up error: $e');
       rethrow;
     }
   }
@@ -274,9 +277,10 @@ class AuthService {
         if (creds.refreshToken != null && creds.refreshToken!.isNotEmpty) {
           await SecureStore.saveRefreshToken(creds.refreshToken!);
         } else {
-          debugPrint(
-            '[AuthService] WARNING: Refresh token not available. Biometric unlock will not work. '
+          log.w(
+            'Refresh token not available. Biometric unlock will not work. '
             'Check Auth0 settings and offline_access scope.',
+            tag: 'Auth',
           );
         }
 
@@ -296,7 +300,7 @@ class AuthService {
         throw Exception(errorDescription);
       }
     } catch (e) {
-      debugPrint('[AuthService] Login error: $e');
+      log.w('[AuthService] Login error: $e');
       rethrow;
     }
   }
@@ -306,7 +310,7 @@ class AuthService {
     try {
       await SecureStore.clearAll();
     } catch (e) {
-      debugPrint('Error clearing secure storage: $e');
+      log.e('Error clearing secure storage: $e', tag: 'Auth');
     }
     _credentials = null;
     authState.value = false;
@@ -318,7 +322,7 @@ class AuthService {
     try {
       await SecureStore.clearAll();
     } catch (e) {
-      debugPrint('Error clearing secure storage: $e');
+      log.e('Error clearing secure storage: $e', tag: 'Auth');
     }
     _credentials = null;
     authState.value = false;
@@ -343,7 +347,7 @@ class AuthService {
               availableBiometrics.contains(local_auth.BiometricType.strong) ||
               availableBiometrics.contains(local_auth.BiometricType.weak));
     } catch (e) {
-      debugPrint('Error checking biometrics: $e');
+      log.e('Error checking biometrics: $e', tag: 'Auth');
       return false;
     }
   }
@@ -384,7 +388,7 @@ class AuthService {
       return await _refreshTokens();
     } catch (e) {
       // Handle any authentication errors (user cancelled, failed, etc.)
-      debugPrint('[AuthService] Biometric unlock error: $e');
+      log.w('[AuthService] Biometric unlock error: $e');
       return null;
     }
   }
@@ -428,12 +432,12 @@ class AuthService {
         return _credentials;
       } else {
         // Refresh failed, clear tokens
-        debugPrint('[AuthService] Token refresh failed: ${response.body}');
+        log.w('[AuthService] Token refresh failed: ${response.body}');
         await SecureStore.clearAll();
         return null;
       }
     } catch (e) {
-      debugPrint('[AuthService] Token refresh error: $e');
+      log.w('[AuthService] Token refresh error: $e');
       // Clear tokens on error to force full login
       await SecureStore.clearAll();
       return null;
