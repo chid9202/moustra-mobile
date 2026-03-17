@@ -1,7 +1,12 @@
 import 'package:grid_view/config/env.dart';
 
 class ApiConfig {
-  static const String baseUrl = Env.apiBaseUrl;
+  static String? accountUuid;
+
+  static String get accountBaseUrl =>
+      '${Env.apiBaseUrl}/account/$accountUuid';
+
+  static String get authCallbackUrl => '${Env.apiBaseUrl}/auth/callback';
 
   static const String animals = '/animals';
   static const String strains = '/strain';

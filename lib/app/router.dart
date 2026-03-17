@@ -8,14 +8,43 @@ import 'package:grid_view/screens/litters_screen.dart';
 import 'package:grid_view/screens/animals_screen.dart';
 import 'package:grid_view/screens/matings_screen.dart';
 import 'package:grid_view/screens/dashboard_screen.dart';
+import 'package:grid_view/screens/settings_screen.dart';
+import 'package:grid_view/screens/onboarding/onboarding_screen.dart';
 import 'package:grid_view/services/auth_service.dart';
+import 'package:grid_view/services/session_service.dart';
 
 final ValueNotifier<bool> authState = ValueNotifier<bool>(
   authService.isLoggedIn,
 );
 
 final GoRouter appRouter = GoRouter(
+  refreshListenable: Listenable.merge([authState, sessionService.onboardedNotifier]),
+  redirect: (context, state) {
+    final loggedIn = authState.value;
+    final onboarded = sessionService.onboarded;
+    final path = state.uri.path;
+
+    if (!loggedIn) {
+      if (path == '/onboarding') return '/';
+      return null;
+    }
+
+    if (!onboarded && path != '/onboarding') {
+      return '/onboarding';
+    }
+
+    if (onboarded && path == '/onboarding') {
+      return '/';
+    }
+
+    return null;
+  },
   routes: [
+    GoRoute(
+      path: '/onboarding',
+      pageBuilder: (context, state) =>
+          const MaterialPage(child: OnboardingScreen()),
+    ),
     ShellRoute(
       pageBuilder: (context, state, child) => MaterialPage(
         child: Scaffold(
@@ -37,11 +66,11 @@ final GoRouter appRouter = GoRouter(
                     onPressed: () async {
                       if (loggedIn) {
                         await authService.logout();
-                        authState.value = authService.isLoggedIn;
+                        authState.value = false;
                       } else {
                         try {
                           await authService.login();
-                          authState.value = authService.isLoggedIn;
+                          authState.value = true;
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -95,6 +124,11 @@ final GoRouter appRouter = GoRouter(
           path: '/matings',
           pageBuilder: (context, state) =>
               const MaterialPage(child: MatingsScreen()),
+        ),
+        GoRoute(
+          path: '/settings',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: SettingsScreen()),
         ),
       ],
     ),

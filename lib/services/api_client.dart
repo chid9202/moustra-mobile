@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:http/http.dart' as http;
 import 'package:grid_view/config/api_config.dart';
+import 'package:grid_view/config/env.dart';
 import 'package:grid_view/services/auth_service.dart';
 
 class ApiClient {
@@ -12,9 +13,8 @@ class ApiClient {
   ApiClient({http.Client? httpClient})
     : httpClient = httpClient ?? http.Client();
 
-  Uri _buildUri(String path, [Map<String, String>? query]) {
-    final Uri base = Uri.parse(ApiConfig.baseUrl);
-    // Remap localhost only on Android; keep localhost for web/iOS/desktop
+  Uri _buildUri(String baseUrl, String path, [Map<String, String>? query]) {
+    final Uri base = Uri.parse(baseUrl);
     final String host =
         (!kIsWeb && Platform.isAndroid && base.host == 'localhost')
         ? '10.0.2.2'
@@ -37,7 +37,7 @@ class ApiClient {
   }
 
   Future<http.Response> get(String path, {Map<String, String>? query}) async {
-    final uri = _buildUri(path, query);
+    final uri = _buildUri(ApiConfig.accountBaseUrl, path, query);
     return httpClient.get(uri, headers: await _headers());
   }
 
@@ -50,21 +50,28 @@ class ApiClient {
   }
 
   Future<http.Response> post(String path, {Object? body}) async {
-    final uri = _buildUri(path);
+    final uri = _buildUri(ApiConfig.accountBaseUrl, path);
+    final headers = await _headers();
+    headers['Content-Type'] = 'application/json';
+    return httpClient.post(uri, headers: headers, body: jsonEncode(body));
+  }
+
+  Future<http.Response> postUnscoped(String path, {Object? body}) async {
+    final uri = _buildUri(Env.apiBaseUrl, path);
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
     return httpClient.post(uri, headers: headers, body: jsonEncode(body));
   }
 
   Future<http.Response> put(String path, {Object? body}) async {
-    final uri = _buildUri(path);
+    final uri = _buildUri(ApiConfig.accountBaseUrl, path);
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
     return httpClient.put(uri, headers: headers, body: jsonEncode(body));
   }
 
   Future<http.Response> delete(String path) async {
-    final uri = _buildUri(path);
+    final uri = _buildUri(ApiConfig.accountBaseUrl, path);
     return httpClient.delete(uri, headers: await _headers());
   }
 }

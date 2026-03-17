@@ -1,8 +1,7 @@
 class Env {
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue:
-        'https://localhost:8000/api/v1/account/fa15446d-f8ca-4d25-8400-14bb18b71fc8',
+    defaultValue: 'https://localhost:8000/api/v1',
   );
 
   static const String auth0Domain = String.fromEnvironment(

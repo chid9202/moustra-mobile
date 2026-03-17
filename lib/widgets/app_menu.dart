@@ -73,6 +73,15 @@ class AppMenu extends StatelessWidget {
               context.go('/matings');
             },
           ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Settings'),
+            onTap: () {
+              Navigator.of(context).pop();
+              context.go('/settings');
+            },
+          ),
         ],
       ),
     );
