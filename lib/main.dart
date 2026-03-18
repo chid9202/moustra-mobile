@@ -8,6 +8,7 @@ import 'package:moustra/config/env.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:moustra/services/connectivity_service.dart';
 import 'package:moustra/services/error_report_service.dart';
+import 'package:moustra/stores/theme_store.dart';
 
 Future<void> main() async {
   // Set up Flutter framework error handler (zone-independent)
@@ -36,6 +37,7 @@ Future<void> main() async {
 
       connectivityService.init();
       ErrorReportService.initSession();
+      await initThemeStore();
       await authService.init();
 
       runApp(const MyApp());

@@ -3,6 +3,7 @@ import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/setting_api.dart';
 import 'package:moustra/services/dtos/setting_dto.dart';
 import 'package:moustra/stores/setting_store.dart';
+import 'package:moustra/stores/theme_store.dart';
 
 class AccountSettingsTab extends StatefulWidget {
   const AccountSettingsTab({super.key});
@@ -100,6 +101,53 @@ class _AccountSettingsTabState extends State<AccountSettingsTab> {
                     _accountSetting?.enableItemUpdateNotifications ?? false,
                 onChanged: _isSaving ? null : _toggleNotifications,
                 contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Appearance',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Theme'),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: SegmentedButton<ThemeMode>(
+                      segments: const [
+                        ButtonSegment(
+                          value: ThemeMode.system,
+                          label: Text('System'),
+                          icon: Icon(Icons.settings_brightness),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.light,
+                          label: Text('Light'),
+                          icon: Icon(Icons.light_mode),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.dark,
+                          label: Text('Dark'),
+                          icon: Icon(Icons.dark_mode),
+                        ),
+                      ],
+                      selected: {themeStore.value},
+                      onSelectionChanged: (selection) {
+                        setThemeMode(selection.first);
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
