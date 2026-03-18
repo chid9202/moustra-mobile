@@ -11,10 +11,13 @@ class CageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
       decoration: BoxDecoration(
-        color: Colors.blueGrey.shade50,
+        color: isDark ? colorScheme.surfaceContainerHighest : Colors.blueGrey.shade50,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(10.0),
           topRight: Radius.circular(10.0),
@@ -28,10 +31,10 @@ class CageHeader extends StatelessWidget {
                 children: [
                   TextSpan(
                     text: cage.cageTag ?? 'Unnamed',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey,
+                      color: isDark ? Colors.blueGrey.shade200 : Colors.blueGrey,
                     ),
                   ),
                   if (cage.strain?.strainName != null) ...[
@@ -41,7 +44,7 @@ class CageHeader extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: Colors.blueGrey.shade400,
+                        color: isDark ? Colors.blueGrey.shade300 : Colors.blueGrey.shade400,
                       ),
                     ),
                   ],

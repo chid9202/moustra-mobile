@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/animal_protocol_dto.dart';
 import 'package:moustra/services/dtos/compliance_summary_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
@@ -24,8 +23,8 @@ class ProtocolApi {
       'page_size': pageSize.toString(),
       if (query != null) ...query,
     };
-    final res = await apiClient.get(basePath, query: mergedQuery);
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final res = await dioApiClient.get(basePath, query: mergedQuery);
+    final Map<String, dynamic> data = res.data as Map<String, dynamic>;
     return PaginatedResponseDto<ProtocolDto>.fromJson(
       data,
       (j) => ProtocolDto.fromJson(j),
@@ -36,15 +35,15 @@ class ProtocolApi {
   Future<ProtocolDto> getProtocol(String protocolUuid) async {
     // Detail endpoint (/protocol/{uuid}) is not available on backend,
     // so fetch from list and find the matching protocol.
-    final res = await apiClient.get(basePath, query: {
+    final res = await dioApiClient.get(basePath, query: {
       'page_size': '100',
     });
-    if (res.statusCode >= 400) {
+    if (res.statusCode != null && res.statusCode! >= 400) {
       throw Exception(
-        'Failed to load protocol ($protocolUuid): ${res.statusCode} ${res.body}',
+        'Failed to load protocol ($protocolUuid): ${res.statusCode} ${res.data}',
       );
     }
-    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    final data = res.data as Map<String, dynamic>;
     final paginated = PaginatedResponseDto<ProtocolDto>.fromJson(
       data,
       (j) => ProtocolDto.fromJson(j),
@@ -60,11 +59,11 @@ class ProtocolApi {
 
   /// Create a new protocol
   Future<ProtocolDto> createProtocol(Map<String, dynamic> data) async {
-    final res = await apiClient.post(basePath, body: data);
+    final res = await dioApiClient.post(basePath, body: data);
     if (res.statusCode != 201) {
-      throw Exception('Failed to create protocol: ${res.body}');
+      throw Exception('Failed to create protocol: ${res.data}');
     }
-    return ProtocolDto.fromJson(jsonDecode(res.body));
+    return ProtocolDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   /// Update an existing protocol
@@ -72,18 +71,18 @@ class ProtocolApi {
     String protocolUuid,
     Map<String, dynamic> data,
   ) async {
-    final res = await apiClient.put('$basePath/$protocolUuid', body: data);
+    final res = await dioApiClient.put('$basePath/$protocolUuid', body: data);
     if (res.statusCode != 200) {
-      throw Exception('Failed to update protocol: ${res.body}');
+      throw Exception('Failed to update protocol: ${res.data}');
     }
-    return ProtocolDto.fromJson(jsonDecode(res.body));
+    return ProtocolDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   /// Delete (archive) a protocol
   Future<void> deleteProtocol(String protocolUuid) async {
-    final res = await apiClient.delete('$basePath/$protocolUuid');
+    final res = await dioApiClient.delete('$basePath/$protocolUuid');
     if (res.statusCode != 204) {
-      throw Exception('Failed to delete protocol: ${res.body}');
+      throw Exception('Failed to delete protocol: ${res.data}');
     }
   }
 
@@ -91,11 +90,11 @@ class ProtocolApi {
   Future<List<AnimalProtocolDto>> getProtocolAnimals(
     String protocolUuid,
   ) async {
-    final res = await apiClient.get('$basePath/$protocolUuid/animal');
-    if (res.statusCode >= 400) {
+    final res = await dioApiClient.get('$basePath/$protocolUuid/animal');
+    if (res.statusCode != null && res.statusCode! >= 400) {
       throw Exception('Failed to load protocol animals: ${res.statusCode}');
     }
-    final List<dynamic> data = jsonDecode(res.body);
+    final List<dynamic> data = res.data as List<dynamic>;
     return data
         .whereType<Map<String, dynamic>>()
         .map((j) => AnimalProtocolDto.fromJson(j))
@@ -107,14 +106,14 @@ class ProtocolApi {
     String protocolUuid,
     Map<String, dynamic> data,
   ) async {
-    final res = await apiClient.post(
+    final res = await dioApiClient.post(
       '$basePath/$protocolUuid/animal',
       body: data,
     );
     if (res.statusCode != 201 && res.statusCode != 200) {
-      throw Exception('Failed to assign animal: ${res.body}');
+      throw Exception('Failed to assign animal: ${res.data}');
     }
-    return AnimalProtocolDto.fromJson(jsonDecode(res.body));
+    return AnimalProtocolDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   /// Bulk assign animals to a protocol
@@ -122,14 +121,14 @@ class ProtocolApi {
     String protocolUuid,
     Map<String, dynamic> data,
   ) async {
-    final res = await apiClient.post(
+    final res = await dioApiClient.post(
       '$basePath/$protocolUuid/animal/bulk',
       body: data,
     );
     if (res.statusCode != 201 && res.statusCode != 200) {
-      throw Exception('Failed to bulk assign animals: ${res.body}');
+      throw Exception('Failed to bulk assign animals: ${res.data}');
     }
-    final List<dynamic> list = jsonDecode(res.body);
+    final List<dynamic> list = res.data as List<dynamic>;
     return list
         .whereType<Map<String, dynamic>>()
         .map((j) => AnimalProtocolDto.fromJson(j))
@@ -138,11 +137,11 @@ class ProtocolApi {
 
   /// Remove an animal from a protocol
   Future<void> removeAnimal(String protocolUuid, String animalUuid) async {
-    final res = await apiClient.delete(
+    final res = await dioApiClient.delete(
       '$basePath/$protocolUuid/animal/$animalUuid',
     );
     if (res.statusCode != 204 && res.statusCode != 200) {
-      throw Exception('Failed to remove animal: ${res.body}');
+      throw Exception('Failed to remove animal: ${res.data}');
     }
   }
 
@@ -151,13 +150,13 @@ class ProtocolApi {
     String protocolUuid,
     String cageUuid,
   ) async {
-    final res = await apiClient.post(
+    final res = await dioApiClient.post(
       '$basePath/$protocolUuid/cages/$cageUuid/assign',
     );
     if (res.statusCode != 201 && res.statusCode != 200) {
-      throw Exception('Failed to assign cage: ${res.body}');
+      throw Exception('Failed to assign cage: ${res.data}');
     }
-    final List<dynamic> list = jsonDecode(res.body);
+    final List<dynamic> list = res.data as List<dynamic>;
     return list
         .whereType<Map<String, dynamic>>()
         .map((j) => AnimalProtocolDto.fromJson(j))
@@ -166,14 +165,14 @@ class ProtocolApi {
 
   /// Get compliance summary
   Future<ComplianceSummaryDto> getComplianceSummary() async {
-    final res = await apiClient.get('$basePath/compliance/summary');
-    return ComplianceSummaryDto.fromJson(jsonDecode(res.body));
+    final res = await dioApiClient.get('$basePath/compliance/summary');
+    return ComplianceSummaryDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   /// Get active alerts
   Future<List<ProtocolAlertDto>> getAlerts() async {
-    final res = await apiClient.get('$basePath/alerts');
-    final List<dynamic> data = jsonDecode(res.body);
+    final res = await dioApiClient.get('$basePath/alerts');
+    final List<dynamic> data = res.data as List<dynamic>;
     return data
         .whereType<Map<String, dynamic>>()
         .map((j) => ProtocolAlertDto.fromJson(j))
@@ -182,22 +181,22 @@ class ProtocolApi {
 
   /// Acknowledge an alert
   Future<void> acknowledgeAlert(String alertUuid) async {
-    final res = await apiClient.post(
+    final res = await dioApiClient.post(
       '$basePath/alerts/$alertUuid/acknowledge',
     );
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to acknowledge alert: ${res.body}');
+      throw Exception('Failed to acknowledge alert: ${res.data}');
     }
   }
   /// Get amendments for a protocol
   Future<List<ProtocolAmendmentDto>> getProtocolAmendments(
     String protocolUuid,
   ) async {
-    final res = await apiClient.get('$basePath/$protocolUuid/amendment');
-    if (res.statusCode >= 400) {
+    final res = await dioApiClient.get('$basePath/$protocolUuid/amendment');
+    if (res.statusCode != null && res.statusCode! >= 400) {
       throw Exception('Failed to load protocol amendments: ${res.statusCode}');
     }
-    final List<dynamic> data = jsonDecode(res.body);
+    final List<dynamic> data = res.data as List<dynamic>;
     return data
         .whereType<Map<String, dynamic>>()
         .map((j) => ProtocolAmendmentDto.fromJson(j))
@@ -208,14 +207,14 @@ class ProtocolApi {
     String protocolUuid,
     Map<String, dynamic> data,
   ) async {
-    final res = await apiClient.post(
+    final res = await dioApiClient.post(
       '$basePath/$protocolUuid/amendment',
       body: data,
     );
     if (res.statusCode != 201 && res.statusCode != 200) {
-      throw Exception('Failed to create amendment: ${res.body}');
+      throw Exception('Failed to create amendment: ${res.data}');
     }
-    return ProtocolAmendmentDto.fromJson(jsonDecode(res.body));
+    return ProtocolAmendmentDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   /// Apply a recorded amendment
@@ -223,11 +222,11 @@ class ProtocolApi {
     String protocolUuid,
     String amendmentUuid,
   ) async {
-    final res = await apiClient.post(
+    final res = await dioApiClient.post(
       '$basePath/$protocolUuid/amendment/$amendmentUuid/apply',
     );
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to apply amendment: ${res.body}');
+      throw Exception('Failed to apply amendment: ${res.data}');
     }
   }
 
@@ -235,11 +234,11 @@ class ProtocolApi {
   Future<List<ProtocolDocumentDto>> getDocuments(
     String protocolUuid,
   ) async {
-    final res = await apiClient.get('$basePath/$protocolUuid/document');
-    if (res.statusCode >= 400) {
+    final res = await dioApiClient.get('$basePath/$protocolUuid/document');
+    if (res.statusCode != null && res.statusCode! >= 400) {
       throw Exception('Failed to load documents: ${res.statusCode}');
     }
-    final List<dynamic> data = jsonDecode(res.body);
+    final List<dynamic> data = res.data as List<dynamic>;
     return data
         .whereType<Map<String, dynamic>>()
         .map((j) => ProtocolDocumentDto.fromJson(j))
@@ -259,16 +258,15 @@ class ProtocolApi {
     if (description != null && description.trim().isNotEmpty) {
       fields['description'] = description.trim();
     }
-    final res = await apiClient.uploadFile(
+    final res = await dioApiClient.uploadFile(
       '$basePath/$protocolUuid/document',
       file: file,
       fields: fields,
     );
-    final body = await res.stream.bytesToString();
     if (res.statusCode != 200 && res.statusCode != 201) {
-      throw Exception('Failed to upload document: $body');
+      throw Exception('Failed to upload document: ${res.data}');
     }
-    return ProtocolDocumentDto.fromJson(jsonDecode(body));
+    return ProtocolDocumentDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   /// Delete a document from a protocol
@@ -276,11 +274,11 @@ class ProtocolApi {
     String protocolUuid,
     String documentUuid,
   ) async {
-    final res = await apiClient.delete(
+    final res = await dioApiClient.delete(
       '$basePath/$protocolUuid/document/$documentUuid',
     );
     if (res.statusCode != 204 && res.statusCode != 200) {
-      throw Exception('Failed to delete document: ${res.body}');
+      throw Exception('Failed to delete document: ${res.data}');
     }
   }
 }

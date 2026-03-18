@@ -6,9 +6,9 @@
 import 'dart:async' as _i4;
 import 'dart:io' as _i5;
 
-import 'package:http/http.dart' as _i2;
+import 'package:dio/dio.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:moustra/services/clients/api_client.dart' as _i3;
+import 'package:moustra/services/clients/dio_api_client.dart' as _i3;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -25,40 +25,21 @@ import 'package:moustra/services/clients/api_client.dart' as _i3;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
-class _FakeClient_0 extends _i1.SmartFake implements _i2.Client {
-  _FakeClient_0(Object parent, Invocation parentInvocation)
+class _FakeResponse_0<T> extends _i1.SmartFake implements _i2.Response<T> {
+  _FakeResponse_0(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeResponse_1 extends _i1.SmartFake implements _i2.Response {
-  _FakeResponse_1(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakeStreamedResponse_2 extends _i1.SmartFake
-    implements _i2.StreamedResponse {
-  _FakeStreamedResponse_2(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-/// A class which mocks [ApiClient].
+/// A class which mocks [DioApiClient].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockApiClient extends _i1.Mock implements _i3.ApiClient {
-  MockApiClient() {
+class MockDioApiClient extends _i1.Mock implements _i3.DioApiClient {
+  MockDioApiClient() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i2.Client get httpClient =>
-      (super.noSuchMethod(
-            Invocation.getter(#httpClient),
-            returnValue: _FakeClient_0(this, Invocation.getter(#httpClient)),
-          )
-          as _i2.Client);
-
-  @override
-  _i4.Future<_i2.Response> get(
+  _i4.Future<_i2.Response<dynamic>> get(
     String? path, {
     Map<String, String>? query,
     bool? withoutAccountPrefix = false,
@@ -69,8 +50,8 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
               [path],
               {#query: query, #withoutAccountPrefix: withoutAccountPrefix},
             ),
-            returnValue: _i4.Future<_i2.Response>.value(
-              _FakeResponse_1(
+            returnValue: _i4.Future<_i2.Response<dynamic>>.value(
+              _FakeResponse_0<dynamic>(
                 this,
                 Invocation.method(
                   #get,
@@ -80,10 +61,10 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
               ),
             ),
           )
-          as _i4.Future<_i2.Response>);
+          as _i4.Future<_i2.Response<dynamic>>);
 
   @override
-  _i4.Future<_i2.Response> getWithQueryString(
+  _i4.Future<_i2.Response<dynamic>> getWithQueryString(
     String? path, {
     required String? queryString,
     bool? withoutAccountPrefix = false,
@@ -97,8 +78,8 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
                 #withoutAccountPrefix: withoutAccountPrefix,
               },
             ),
-            returnValue: _i4.Future<_i2.Response>.value(
-              _FakeResponse_1(
+            returnValue: _i4.Future<_i2.Response<dynamic>>.value(
+              _FakeResponse_0<dynamic>(
                 this,
                 Invocation.method(
                   #getWithQueryString,
@@ -111,10 +92,10 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
               ),
             ),
           )
-          as _i4.Future<_i2.Response>);
+          as _i4.Future<_i2.Response<dynamic>>);
 
   @override
-  _i4.Future<_i2.Response> post(
+  _i4.Future<_i2.Response<dynamic>> post(
     String? path, {
     Object? body,
     Map<String, String>? query,
@@ -130,8 +111,8 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
                 #withoutAccountPrefix: withoutAccountPrefix,
               },
             ),
-            returnValue: _i4.Future<_i2.Response>.value(
-              _FakeResponse_1(
+            returnValue: _i4.Future<_i2.Response<dynamic>>.value(
+              _FakeResponse_0<dynamic>(
                 this,
                 Invocation.method(
                   #post,
@@ -145,10 +126,10 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
               ),
             ),
           )
-          as _i4.Future<_i2.Response>);
+          as _i4.Future<_i2.Response<dynamic>>);
 
   @override
-  _i4.Future<_i2.Response> postWithoutAuth(
+  _i4.Future<_i2.Response<dynamic>> postWithoutAuth(
     String? path, {
     Object? body,
     bool? withoutAccountPrefix = false,
@@ -159,8 +140,8 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
               [path],
               {#body: body, #withoutAccountPrefix: withoutAccountPrefix},
             ),
-            returnValue: _i4.Future<_i2.Response>.value(
-              _FakeResponse_1(
+            returnValue: _i4.Future<_i2.Response<dynamic>>.value(
+              _FakeResponse_0<dynamic>(
                 this,
                 Invocation.method(
                   #postWithoutAuth,
@@ -170,54 +151,57 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
               ),
             ),
           )
-          as _i4.Future<_i2.Response>);
+          as _i4.Future<_i2.Response<dynamic>>);
 
   @override
-  _i4.Future<_i2.Response> put(
+  _i4.Future<_i2.Response<dynamic>> put(
     String? path, {
     Object? body,
     Map<String, String>? query,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#put, [path], {#body: body, #query: query}),
-            returnValue: _i4.Future<_i2.Response>.value(
-              _FakeResponse_1(
+            returnValue: _i4.Future<_i2.Response<dynamic>>.value(
+              _FakeResponse_0<dynamic>(
                 this,
                 Invocation.method(#put, [path], {#body: body, #query: query}),
               ),
             ),
           )
-          as _i4.Future<_i2.Response>);
+          as _i4.Future<_i2.Response<dynamic>>);
 
   @override
-  _i4.Future<_i2.Response> delete(String? path) =>
-      (super.noSuchMethod(
-            Invocation.method(#delete, [path]),
-            returnValue: _i4.Future<_i2.Response>.value(
-              _FakeResponse_1(this, Invocation.method(#delete, [path])),
-            ),
-          )
-          as _i4.Future<_i2.Response>);
-
-  @override
-  _i4.Future<_i2.Response> patch(
+  _i4.Future<_i2.Response<dynamic>> patch(
     String? path, {
     Object? body,
     Map<String, String>? query,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#patch, [path], {#body: body, #query: query}),
-            returnValue: _i4.Future<_i2.Response>.value(
-              _FakeResponse_1(
+            returnValue: _i4.Future<_i2.Response<dynamic>>.value(
+              _FakeResponse_0<dynamic>(
                 this,
                 Invocation.method(#patch, [path], {#body: body, #query: query}),
               ),
             ),
           )
-          as _i4.Future<_i2.Response>);
+          as _i4.Future<_i2.Response<dynamic>>);
 
   @override
-  _i4.Future<_i2.StreamedResponse> uploadFile(
+  _i4.Future<_i2.Response<dynamic>> delete(String? path) =>
+      (super.noSuchMethod(
+            Invocation.method(#delete, [path]),
+            returnValue: _i4.Future<_i2.Response<dynamic>>.value(
+              _FakeResponse_0<dynamic>(
+                this,
+                Invocation.method(#delete, [path]),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.Response<dynamic>>);
+
+  @override
+  _i4.Future<_i2.Response<dynamic>> uploadFile(
     String? path, {
     required _i5.File? file,
     String? fileFieldName = 'file',
@@ -229,8 +213,8 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
               [path],
               {#file: file, #fileFieldName: fileFieldName, #fields: fields},
             ),
-            returnValue: _i4.Future<_i2.StreamedResponse>.value(
-              _FakeStreamedResponse_2(
+            returnValue: _i4.Future<_i2.Response<dynamic>>.value(
+              _FakeResponse_0<dynamic>(
                 this,
                 Invocation.method(
                   #uploadFile,
@@ -240,5 +224,5 @@ class MockApiClient extends _i1.Mock implements _i3.ApiClient {
               ),
             ),
           )
-          as _i4.Future<_i2.StreamedResponse>);
+          as _i4.Future<_i2.Response<dynamic>>);
 }

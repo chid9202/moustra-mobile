@@ -1,23 +1,22 @@
-import 'dart:convert';
+import 'package:dio/dio.dart';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/clients/notification_api.dart';
 
 import 'notification_api_test.mocks.dart';
 
 class TestableNotificationApi extends NotificationApi {
-  TestableNotificationApi(ApiClient apiClient) : super(client: apiClient);
+  TestableNotificationApi(DioApiClient apiClient) : super(client: apiClient);
 }
 
-@GenerateMocks([ApiClient])
+@GenerateMocks([DioApiClient])
 void main() {
   group('NotificationApi Tests', () {
-    late MockApiClient mockApiClient;
+    late MockDioApiClient mockApiClient;
     late TestableNotificationApi notificationApi;
 
     final sampleNotificationsResponse = {
@@ -50,7 +49,7 @@ void main() {
     };
 
     setUp(() {
-      mockApiClient = MockApiClient();
+      mockApiClient = MockDioApiClient();
       notificationApi = TestableNotificationApi(mockApiClient);
     });
 
@@ -59,7 +58,7 @@ void main() {
         when(
           mockApiClient.get(any, query: anyNamed('query')),
         ).thenAnswer(
-          (_) async => http.Response(jsonEncode(sampleNotificationsResponse), 200),
+          (_) async => Response(data: sampleNotificationsResponse, statusCode: 200, requestOptions: RequestOptions()),
         );
 
         final result = await notificationApi.getNotifications();
@@ -74,7 +73,7 @@ void main() {
         when(
           mockApiClient.get(any, query: anyNamed('query')),
         ).thenAnswer(
-          (_) async => http.Response(jsonEncode(emptyResponse), 200),
+          (_) async => Response(data: emptyResponse, statusCode: 200, requestOptions: RequestOptions()),
         );
 
         await notificationApi.getNotifications(
@@ -104,7 +103,7 @@ void main() {
         when(
           mockApiClient.get(any, query: anyNamed('query')),
         ).thenAnswer(
-          (_) async => http.Response(jsonEncode(emptyResponse), 200),
+          (_) async => Response(data: emptyResponse, statusCode: 200, requestOptions: RequestOptions()),
         );
 
         final result = await notificationApi.getNotifications();
@@ -119,7 +118,7 @@ void main() {
         when(
           mockApiClient.get(any),
         ).thenAnswer(
-          (_) async => http.Response(jsonEncode({'count': 5}), 200),
+          (_) async => Response(data: {'count': 5}, statusCode: 200, requestOptions: RequestOptions()),
         );
 
         final count = await notificationApi.getUnreadCount();
@@ -132,7 +131,7 @@ void main() {
         when(
           mockApiClient.get(any),
         ).thenAnswer(
-          (_) async => http.Response(jsonEncode({}), 200),
+          (_) async => Response(data: {}, statusCode: 200, requestOptions: RequestOptions()),
         );
 
         final count = await notificationApi.getUnreadCount();
@@ -146,7 +145,7 @@ void main() {
         when(
           mockApiClient.patch(any),
         ).thenAnswer(
-          (_) async => http.Response('', 200),
+          (_) async => Response(data: '', statusCode: 200, requestOptions: RequestOptions()),
         );
 
         await notificationApi.markAsRead('uuid-1');
@@ -158,7 +157,7 @@ void main() {
         when(
           mockApiClient.patch(any),
         ).thenAnswer(
-          (_) async => http.Response('Not Found', 404),
+          (_) async => Response(data: 'Not Found', statusCode: 404, requestOptions: RequestOptions()),
         );
 
         expect(
@@ -173,7 +172,7 @@ void main() {
         when(
           mockApiClient.post(any),
         ).thenAnswer(
-          (_) async => http.Response('', 200),
+          (_) async => Response(data: '', statusCode: 200, requestOptions: RequestOptions()),
         );
 
         await notificationApi.markAllAsRead();
@@ -185,7 +184,7 @@ void main() {
         when(
           mockApiClient.post(any),
         ).thenAnswer(
-          (_) async => http.Response('Server Error', 500),
+          (_) async => Response(data: 'Server Error', statusCode: 500, requestOptions: RequestOptions()),
         );
 
         expect(

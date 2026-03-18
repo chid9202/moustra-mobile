@@ -1,19 +1,18 @@
-import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/attachment_dto.dart';
 
 import 'attachment_api_test.mocks.dart';
 
 // Testable version of AttachmentApi that accepts a client
 class TestableAttachmentApi {
-  final ApiClient apiClient;
+  final DioApiClient apiClient;
   static const String _animalBasePath = '/animal';
 
   TestableAttachmentApi(this.apiClient);
@@ -21,9 +20,9 @@ class TestableAttachmentApi {
   Future<List<AttachmentDto>> getAnimalAttachments(String animalUuid) async {
     final res = await apiClient.get('$_animalBasePath/$animalUuid/attachment');
     if (res.statusCode != 200) {
-      throw Exception('Failed to get attachments: ${res.body}');
+      throw Exception('Failed to get attachments: ${res.data}');
     }
-    final List<dynamic> data = jsonDecode(res.body);
+    final List<dynamic> data = res.data;
     return data.map((e) => AttachmentDto.fromJson(e)).toList();
   }
 
@@ -44,12 +43,10 @@ class TestableAttachmentApi {
     );
 
     if (res.statusCode != 200 && res.statusCode != 201) {
-      final body = await res.stream.bytesToString();
-      throw Exception('Failed to upload attachment: $body');
+      throw Exception('Failed to upload attachment: ${res.data}');
     }
 
-    final body = await res.stream.bytesToString();
-    return AttachmentDto.fromJson(jsonDecode(body));
+    return AttachmentDto.fromJson(res.data);
   }
 
   Future<void> deleteAnimalAttachment(
@@ -60,7 +57,7 @@ class TestableAttachmentApi {
       '$_animalBasePath/$animalUuid/attachment/$attachmentUuid',
     );
     if (res.statusCode != 204) {
-      throw Exception('Failed to delete attachment: ${res.body}');
+      throw Exception('Failed to delete attachment: ${res.data}');
     }
   }
 
@@ -72,22 +69,22 @@ class TestableAttachmentApi {
       '$_animalBasePath/$animalUuid/attachment/$attachmentUuid/link',
     );
     if (res.statusCode != 200) {
-      throw Exception('Failed to get attachment link: ${res.body}');
+      throw Exception('Failed to get attachment link: ${res.data}');
     }
-    final data = jsonDecode(res.body);
+    final data = res.data;
     return data['link'] as String;
   }
 }
 
-@GenerateMocks([ApiClient])
+@GenerateMocks([DioApiClient])
 void main() {
   group('AttachmentApi Tests', () {
-    late MockApiClient mockApiClient;
+    late MockDioApiClient mockApiClient;
     late TestableAttachmentApi attachmentApi;
     late File testFile;
 
     setUp(() {
-      mockApiClient = MockApiClient();
+      mockApiClient = MockDioApiClient();
       attachmentApi = TestableAttachmentApi(mockApiClient);
       // Create a temporary test file
       testFile = File('test_file.txt');
@@ -104,8 +101,8 @@ void main() {
       test('should return list of attachments', () async {
         // Arrange
         const animalUuid = 'test-animal-uuid';
-        final mockResponse = http.Response(
-          jsonEncode([
+        final mockResponse = Response(
+          data: [
             {
               'attachmentUuid': 'uuid-1',
               'fileName': 'file1.pdf',
@@ -120,8 +117,9 @@ void main() {
               'attachmentType': 'image',
               'createdDate': '2023-01-02T00:00:00Z',
             },
-          ]),
-          200,
+          ],
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -143,7 +141,7 @@ void main() {
       test('should return empty list when no attachments', () async {
         // Arrange
         const animalUuid = 'test-animal-uuid';
-        final mockResponse = http.Response(jsonEncode([]), 200);
+        final mockResponse = Response(data: [], statusCode: 200, requestOptions: RequestOptions());
 
         when(
           mockApiClient.get('/animal/$animalUuid/attachment'),
@@ -160,7 +158,7 @@ void main() {
       test('should throw exception on non-200 status', () async {
         // Arrange
         const animalUuid = 'test-animal-uuid';
-        final mockResponse = http.Response('Not Found', 404);
+        final mockResponse = Response(data: 'Not Found', statusCode: 404, requestOptions: RequestOptions());
 
         when(
           mockApiClient.get('/animal/$animalUuid/attachment'),
@@ -180,19 +178,16 @@ void main() {
         const animalUuid = 'test-animal-uuid';
         testFile.writeAsStringSync('test content');
 
-        final mockStreamedResponse = http.StreamedResponse(
-          Stream.value(
-            utf8.encode(
-              jsonEncode({
-                'attachmentUuid': 'new-uuid',
-                'fileName': 'test_file.txt',
-                'fileSize': 12,
-                'attachmentType': null,
-                'createdDate': '2023-01-01T00:00:00Z',
-              }),
-            ),
-          ),
-          201,
+        final mockResponse = Response(
+          data: {
+            'attachmentUuid': 'new-uuid',
+            'fileName': 'test_file.txt',
+            'fileSize': 12,
+            'attachmentType': null,
+            'createdDate': '2023-01-01T00:00:00Z',
+          },
+          statusCode: 201,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -201,7 +196,7 @@ void main() {
             file: testFile,
             fields: null,
           ),
-        ).thenAnswer((_) async => mockStreamedResponse);
+        ).thenAnswer((_) async => mockResponse);
 
         // Act
         final result = await attachmentApi.uploadAnimalAttachment(
@@ -228,19 +223,16 @@ void main() {
         const attachmentType = 'document';
         testFile.writeAsStringSync('test content');
 
-        final mockStreamedResponse = http.StreamedResponse(
-          Stream.value(
-            utf8.encode(
-              jsonEncode({
-                'attachmentUuid': 'new-uuid',
-                'fileName': 'test_file.txt',
-                'fileSize': 12,
-                'attachmentType': attachmentType,
-                'createdDate': '2023-01-01T00:00:00Z',
-              }),
-            ),
-          ),
-          201,
+        final mockResponse = Response(
+          data: {
+            'attachmentUuid': 'new-uuid',
+            'fileName': 'test_file.txt',
+            'fileSize': 12,
+            'attachmentType': attachmentType,
+            'createdDate': '2023-01-01T00:00:00Z',
+          },
+          statusCode: 201,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -249,7 +241,7 @@ void main() {
             file: testFile,
             fields: {'attachment_type': attachmentType},
           ),
-        ).thenAnswer((_) async => mockStreamedResponse);
+        ).thenAnswer((_) async => mockResponse);
 
         // Act
         final result = await attachmentApi.uploadAnimalAttachment(
@@ -275,9 +267,10 @@ void main() {
         const animalUuid = 'test-animal-uuid';
         testFile.writeAsStringSync('test content');
 
-        final mockStreamedResponse = http.StreamedResponse(
-          Stream.value(utf8.encode('Bad Request')),
-          400,
+        final mockResponse = Response(
+          data: 'Bad Request',
+          statusCode: 400,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -286,7 +279,7 @@ void main() {
             file: testFile,
             fields: null,
           ),
-        ).thenAnswer((_) async => mockStreamedResponse);
+        ).thenAnswer((_) async => mockResponse);
 
         // Act & Assert
         expect(
@@ -301,7 +294,7 @@ void main() {
         // Arrange
         const animalUuid = 'test-animal-uuid';
         const attachmentUuid = 'test-attachment-uuid';
-        final mockResponse = http.Response('', 204);
+        final mockResponse = Response(data: '', statusCode: 204, requestOptions: RequestOptions());
 
         when(
           mockApiClient.delete(
@@ -324,7 +317,7 @@ void main() {
         // Arrange
         const animalUuid = 'test-animal-uuid';
         const attachmentUuid = 'test-attachment-uuid';
-        final mockResponse = http.Response('Not Found', 404);
+        final mockResponse = Response(data: 'Not Found', statusCode: 404, requestOptions: RequestOptions());
 
         when(
           mockApiClient.delete(
@@ -347,9 +340,10 @@ void main() {
         const animalUuid = 'test-animal-uuid';
         const attachmentUuid = 'test-attachment-uuid';
         const expectedLink = 'https://example.com/download/file.pdf';
-        final mockResponse = http.Response(
-          jsonEncode({'link': expectedLink}),
-          200,
+        final mockResponse = Response(
+          data: {'link': expectedLink},
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -377,7 +371,7 @@ void main() {
         // Arrange
         const animalUuid = 'test-animal-uuid';
         const attachmentUuid = 'test-attachment-uuid';
-        final mockResponse = http.Response('Not Found', 404);
+        final mockResponse = Response(data: 'Not Found', statusCode: 404, requestOptions: RequestOptions());
 
         when(
           mockApiClient.get(

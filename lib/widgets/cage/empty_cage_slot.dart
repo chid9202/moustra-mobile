@@ -7,18 +7,20 @@ class EmptyCageSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       elevation: 0,
       margin: const EdgeInsets.all(16.0),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
         side: BorderSide(
-          color: Colors.grey.shade300,
+          color: colorScheme.outlineVariant,
           width: 1.5,
           style: BorderStyle.solid,
         ),
       ),
-      color: Colors.grey.shade50,
+      color: colorScheme.surfaceContainerHighest,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8.0),
@@ -26,7 +28,7 @@ class EmptyCageSlot extends StatelessWidget {
           child: Icon(
             Icons.add,
             size: 32,
-            color: Colors.grey.shade400,
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
       ),

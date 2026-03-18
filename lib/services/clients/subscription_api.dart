@@ -1,5 +1,4 @@
-import 'dart:convert';
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/subscription_dto.dart';
 
 class PaymentIntentResponse {
@@ -23,7 +22,7 @@ class PaymentIntentResponse {
 }
 
 class SubscriptionApi {
-  final ApiClient apiClient;
+  final DioApiClient apiClient;
 
   SubscriptionApi(this.apiClient);
 
@@ -35,9 +34,9 @@ class SubscriptionApi {
       body: {'price_id': priceId},
     );
     if (res.statusCode != 200) {
-      throw Exception('Failed to create payment intent: ${res.body}');
+      throw Exception('Failed to create payment intent: ${res.data}');
     }
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data as Map<String, dynamic>;
     return PaymentIntentResponse.fromJson(data);
   }
 
@@ -50,7 +49,7 @@ class SubscriptionApi {
       query: {'priceId': priceId},
     );
     if (res.statusCode != 200 && res.statusCode != 201) {
-      throw Exception('Failed to create subscription: ${res.body}');
+      throw Exception('Failed to create subscription: ${res.data}');
     }
   }
 
@@ -59,7 +58,7 @@ class SubscriptionApi {
   Future<void> confirmSubscription() async {
     final res = await apiClient.post('/subscription/confirm');
     if (res.statusCode != 200) {
-      throw Exception('Failed to confirm subscription: ${res.body}');
+      throw Exception('Failed to confirm subscription: ${res.data}');
     }
   }
 
@@ -68,9 +67,9 @@ class SubscriptionApi {
   Future<SubscriptionResponseDto> getSubscription() async {
     final res = await apiClient.get('/subscription');
     if (res.statusCode != 200) {
-      throw Exception('Failed to get subscription: ${res.body}');
+      throw Exception('Failed to get subscription: ${res.data}');
     }
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data as Map<String, dynamic>;
     return SubscriptionResponseDto.fromJson(data);
   }
 
@@ -79,9 +78,9 @@ class SubscriptionApi {
   Future<void> cancelSubscription() async {
     final res = await apiClient.delete('/subscription');
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to cancel subscription: ${res.body}');
+      throw Exception('Failed to cancel subscription: ${res.data}');
     }
   }
 }
 
-final SubscriptionApi subscriptionApi = SubscriptionApi(apiClient);
+final SubscriptionApi subscriptionApi = SubscriptionApi(dioApiClient);

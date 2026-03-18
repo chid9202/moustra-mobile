@@ -28,14 +28,16 @@ Future<void> pumpPlugEventsScreen(WidgetTester tester) async {
 
 void main() {
   setUpAll(() async {
-    // Initialize dotenv - try loading .env file if it exists, otherwise use empty initialization
+    installNoOpDioApiClient();
     try {
       await dotenv.load(fileName: '.env');
     } catch (e) {
-      // If .env file doesn't exist or can't be loaded, initialize with empty values
-      // Env class will use fallback values
       dotenv.env.clear();
     }
+  });
+
+  tearDownAll(() {
+    restoreDioApiClient();
   });
 
   group('PlugEventsScreen', () {

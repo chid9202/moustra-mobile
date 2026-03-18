@@ -1,6 +1,4 @@
-import 'dart:convert';
-
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/stores/gene_store_dto.dart';
 
 class GeneApi {
@@ -8,18 +6,18 @@ class GeneApi {
 
   Future<GeneStoreDto> postGene(String geneName) async {
     final path = basePath;
-    final res = await apiClient.post(path, body: {'geneName': geneName});
+    final res = await dioApiClient.post(path, body: {'geneName': geneName});
     if (res.statusCode != 201) {
-      throw Exception('Failed to post gene: ${res.body}');
+      throw Exception('Failed to post gene: ${res.data}');
     }
-    return GeneStoreDto.fromJson(jsonDecode(res.body));
+    return GeneStoreDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<void> deleteGene(String geneUuid) async {
     final path = basePath;
-    final res = await apiClient.delete('$path/$geneUuid');
+    final res = await dioApiClient.delete('$path/$geneUuid');
     if (res.statusCode != 204) {
-      throw Exception('Failed to delete gene: ${res.body}');
+      throw Exception('Failed to delete gene: ${res.data}');
     }
   }
 }

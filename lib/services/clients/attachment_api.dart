@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/attachment_dto.dart';
 
 class AttachmentApi {
@@ -9,11 +8,11 @@ class AttachmentApi {
 
   /// Get all attachments for an animal
   Future<List<AttachmentDto>> getAnimalAttachments(String animalUuid) async {
-    final res = await apiClient.get('$_animalBasePath/$animalUuid/attachment');
+    final res = await dioApiClient.get('$_animalBasePath/$animalUuid/attachment');
     if (res.statusCode != 200) {
-      throw Exception('Failed to get attachments: ${res.body}');
+      throw Exception('Failed to get attachments: ${res.data}');
     }
-    final List<dynamic> data = jsonDecode(res.body);
+    final List<dynamic> data = res.data as List<dynamic>;
     return data.map((e) => AttachmentDto.fromJson(e)).toList();
   }
 
@@ -28,19 +27,17 @@ class AttachmentApi {
       fields['attachment_type'] = attachmentType;
     }
 
-    final res = await apiClient.uploadFile(
+    final res = await dioApiClient.uploadFile(
       '$_animalBasePath/$animalUuid/attachment',
       file: file,
       fields: fields.isNotEmpty ? fields : null,
     );
 
     if (res.statusCode != 200 && res.statusCode != 201) {
-      final body = await res.stream.bytesToString();
-      throw Exception('Failed to upload attachment: $body');
+      throw Exception('Failed to upload attachment: ${res.data}');
     }
 
-    final body = await res.stream.bytesToString();
-    return AttachmentDto.fromJson(jsonDecode(body));
+    return AttachmentDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   /// Delete an attachment from an animal
@@ -48,11 +45,11 @@ class AttachmentApi {
     String animalUuid,
     String attachmentUuid,
   ) async {
-    final res = await apiClient.delete(
+    final res = await dioApiClient.delete(
       '$_animalBasePath/$animalUuid/attachment/$attachmentUuid',
     );
     if (res.statusCode != 204) {
-      throw Exception('Failed to delete attachment: ${res.body}');
+      throw Exception('Failed to delete attachment: ${res.data}');
     }
   }
 
@@ -61,13 +58,13 @@ class AttachmentApi {
     String animalUuid,
     String attachmentUuid,
   ) async {
-    final res = await apiClient.get(
+    final res = await dioApiClient.get(
       '$_animalBasePath/$animalUuid/attachment/$attachmentUuid/link',
     );
     if (res.statusCode != 200) {
-      throw Exception('Failed to get attachment link: ${res.body}');
+      throw Exception('Failed to get attachment link: ${res.data}');
     }
-    final data = jsonDecode(res.body);
+    final data = res.data as Map<String, dynamic>;
     return data['link'] as String;
   }
 }

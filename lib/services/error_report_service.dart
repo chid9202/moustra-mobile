@@ -1,6 +1,6 @@
 import 'dart:io' show Platform;
 
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/error_report_dto.dart';
 import 'package:moustra/services/error_context_service.dart';
 import 'package:moustra/services/log_service.dart';
@@ -173,7 +173,7 @@ class ErrorReportService {
         deviceInfo: _buildDeviceInfoString(),
         environment: const String.fromEnvironment('ENV_FILENAME', defaultValue: '.env'),
       );
-      await apiClient.postWithoutAuth('error-report', body: dto.toJson());
+      await dioApiClient.postWithoutAuth('error-report', body: dto.toJson());
     } catch (e) {
       // Silently ignore errors - we don't want error reporting to cause issues
       log.e('_sendErrorReport failed: $e', tag: 'ErrorReport');

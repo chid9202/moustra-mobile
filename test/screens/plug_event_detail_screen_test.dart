@@ -7,6 +7,7 @@ import '../test_helpers/test_helpers.dart';
 
 void main() {
   setUpAll(() async {
+    installNoOpDioApiClient();
     // Initialize dotenv - try loading .env file if it exists, otherwise use empty initialization
     try {
       await dotenv.load(fileName: '.env');
@@ -15,6 +16,10 @@ void main() {
       // Env class will use fallback values
       dotenv.env.clear();
     }
+  });
+
+  tearDownAll(() {
+    restoreDioApiClient();
   });
 
   group('PlugEventDetailScreen', () {

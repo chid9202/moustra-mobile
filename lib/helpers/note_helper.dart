@@ -58,6 +58,9 @@ class NoteHelper {
         try {
           final jsonStart = message.indexOf('{');
           final jsonEnd = message.lastIndexOf('}') + 1;
+          if (jsonStart >= jsonEnd) {
+            return message;
+          }
           final jsonStr = message.substring(jsonStart, jsonEnd);
           final json = jsonDecode(jsonStr);
 

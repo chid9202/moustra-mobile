@@ -1,6 +1,4 @@
-import 'dart:convert';
-
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/post_mating_dto.dart';
@@ -20,8 +18,8 @@ class MatingApi {
       'page_size': pageSize.toString(),
       if (query != null) ...query,
     };
-    final res = await apiClient.get(basePath, query: mergedQuery);
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final res = await dioApiClient.get(basePath, query: mergedQuery);
+    final Map<String, dynamic> data = res.data as Map<String, dynamic>;
     return PaginatedResponseDto<MatingDto>.fromJson(
       data,
       (j) => MatingDto.fromJson(j),
@@ -33,11 +31,11 @@ class MatingApi {
     required ListQueryParams params,
   }) async {
     final queryString = params.buildQueryString();
-    final res = await apiClient.getWithQueryString(
+    final res = await dioApiClient.getWithQueryString(
       basePath,
       queryString: queryString,
     );
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data as Map<String, dynamic>;
     return PaginatedResponseDto<MatingDto>.fromJson(
       data,
       (j) => MatingDto.fromJson(j),
@@ -45,24 +43,24 @@ class MatingApi {
   }
 
   Future<MatingDto> getMating(String matingUuid) async {
-    final res = await apiClient.get('$basePath/$matingUuid');
-    return MatingDto.fromJson(jsonDecode(res.body));
+    final res = await dioApiClient.get('$basePath/$matingUuid');
+    return MatingDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<MatingDto> createMating(PostMatingDto payload) async {
-    final res = await apiClient.post(basePath, body: payload);
+    final res = await dioApiClient.post(basePath, body: payload);
     if (res.statusCode != 201) {
-      throw Exception('Failed to create mating ${res.body}');
+      throw Exception('Failed to create mating ${res.data}');
     }
-    return MatingDto.fromJson(jsonDecode(res.body));
+    return MatingDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<MatingDto> putMating(String matingUuid, PutMatingDto payload) async {
-    final res = await apiClient.put('$basePath/$matingUuid', body: payload);
+    final res = await dioApiClient.put('$basePath/$matingUuid', body: payload);
     if (res.statusCode != 200) {
-      throw Exception('Failed to update mating ${res.body}');
+      throw Exception('Failed to update mating ${res.data}');
     }
-    return MatingDto.fromJson(jsonDecode(res.body));
+    return MatingDto.fromJson(res.data as Map<String, dynamic>);
   }
 }
 

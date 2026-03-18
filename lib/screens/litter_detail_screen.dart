@@ -212,6 +212,100 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
     }
   }
 
+  Future<void> _showAddPupsDialog() async {
+    int males = 0;
+    int females = 0;
+    int unknown = 0;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            Widget counterRow(String label, int value, ValueChanged<int> onChanged) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(label, style: const TextStyle(fontSize: 16)),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle_outline),
+                          onPressed: value > 0
+                              ? () => onChanged(value - 1)
+                              : null,
+                        ),
+                        SizedBox(
+                          width: 32,
+                          child: Text(
+                            '$value',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.add_circle_outline),
+                          onPressed: () => onChanged(value + 1),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return AlertDialog(
+              title: const Text('Add Pups'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  counterRow('Males', males, (v) => setDialogState(() => males = v)),
+                  counterRow('Females', females, (v) => setDialogState(() => females = v)),
+                  counterRow('Unknown', unknown, (v) => setDialogState(() => unknown = v)),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: (males + females + unknown) > 0
+                      ? () => Navigator.pop(context, true)
+                      : null,
+                  child: const Text('Add'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (result == true && mounted) {
+      try {
+        final updatedLitter = await litterService.addPubsToLitter(
+          _litterUuid!,
+          numberOfMale: males,
+          numberOfFemale: females,
+          numberOfUnknown: unknown,
+        );
+        if (mounted) {
+          setState(() {
+            _litterData = updatedLitter;
+          });
+          showAppSnackBar(context, 'Added ${males + females + unknown} pup(s)', isSuccess: true);
+        }
+      } catch (e) {
+        if (mounted) {
+          showAppSnackBar(context, 'Failed to add pups: $e', isError: true);
+        }
+      }
+    }
+  }
+
   void _saveLitter() async {
     if (_formKey.currentState!.validate()) {
       try {
@@ -499,44 +593,62 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
               const SizedBox(height: 32),
 
               // Pubs Section
-              if (_litterUuid != null && _litterUuid != 'new' && _litterData?.animals != null && _litterData!.animals.isNotEmpty) ...[
-                Text(
-                  'Pubs (${_litterData!.animals.length})',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              if (_litterUuid != null && _litterUuid != 'new') ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Pubs (${_litterData?.animals.length ?? 0})',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    FilledButton.icon(
+                      onPressed: _showAddPupsDialog,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Add Pups'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
-                Card(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _litterData!.animals.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final animal = _litterData!.animals[index];
-                      final dobText = animal.dateOfBirth != null 
-                          ? 'DOB: ${animal.dateOfBirth!.month}/${animal.dateOfBirth!.day}/${animal.dateOfBirth!.year}'
-                          : '';
-                      final strainText = animal.strain?.strainName ?? '';
-                      final subtitleParts = [dobText, strainText].where((s) => s.isNotEmpty).toList();
-                      return ListTile(
-                        leading: Icon(
-                          animal.sex == 'M' ? Icons.male : 
-                          animal.sex == 'F' ? Icons.female : Icons.question_mark,
-                          color: animal.sex == 'M' ? Colors.blue : 
-                                 animal.sex == 'F' ? Colors.pink : Colors.grey,
-                        ),
-                        title: Text(animal.physicalTag ?? 'No tag'),
-                        subtitle: subtitleParts.isNotEmpty ? Text(subtitleParts.join(' • ')) : null,
-                        onTap: () {
-                          context.go('/animal/${animal.animalUuid}');
-                        },
-                        trailing: const Icon(Icons.chevron_right),
-                      );
-                    },
+                if (_litterData?.animals != null && _litterData!.animals.isNotEmpty)
+                  Card(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _litterData!.animals.length,
+                      separatorBuilder: (context, index) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final animal = _litterData!.animals[index];
+                        final dobText = animal.dateOfBirth != null
+                            ? 'DOB: ${animal.dateOfBirth!.month}/${animal.dateOfBirth!.day}/${animal.dateOfBirth!.year}'
+                            : '';
+                        final strainText = animal.strain?.strainName ?? '';
+                        final subtitleParts = [dobText, strainText].where((s) => s.isNotEmpty).toList();
+                        return ListTile(
+                          leading: Icon(
+                            animal.sex == 'M' ? Icons.male :
+                            animal.sex == 'F' ? Icons.female : Icons.question_mark,
+                            color: animal.sex == 'M' ? Colors.blue :
+                                   animal.sex == 'F' ? Colors.pink : Colors.grey,
+                          ),
+                          title: Text(animal.physicalTag ?? 'No tag'),
+                          subtitle: subtitleParts.isNotEmpty ? Text(subtitleParts.join(' • ')) : null,
+                          onTap: () {
+                            context.go('/animal/${animal.animalUuid}');
+                          },
+                          trailing: const Icon(Icons.chevron_right),
+                        );
+                      },
+                    ),
+                  )
+                else
+                  const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Center(child: Text('No pups yet. Tap "Add Pups" to add some.')),
+                    ),
                   ),
-                ),
                 const SizedBox(height: 16),
               ],
 

@@ -1,11 +1,10 @@
-import 'dart:convert';
+import 'package:dio/dio.dart';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/plug_check_dto.dart';
 import 'package:moustra/services/dtos/plug_event_dto.dart';
@@ -19,7 +18,7 @@ import 'plug_api_test.mocks.dart';
 
 // Testable version of PlugApi that accepts a client
 class TestablePlugApi {
-  final ApiClient apiClient;
+  final DioApiClient apiClient;
   static const String plugEventPath = '/plug-event';
   static const String plugCheckPath = '/plug-check';
 
@@ -33,7 +32,7 @@ class TestablePlugApi {
       plugEventPath,
       queryString: queryString,
     );
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data;
     return PaginatedResponseDto<PlugEventDto>.fromJson(
       data,
       (j) => PlugEventDto.fromJson(j),
@@ -42,7 +41,7 @@ class TestablePlugApi {
 
   Future<PlugEventDto> getPlugEvent(String uuid) async {
     final res = await apiClient.get('$plugEventPath/$uuid');
-    return PlugEventDto.fromJson(jsonDecode(res.body));
+    return PlugEventDto.fromJson(res.data);
   }
 
   Future<PaginatedResponseDto<PlugEventDto>> getActivePlugEvents({
@@ -56,7 +55,7 @@ class TestablePlugApi {
       'op': 'equals',
       'value': 'true',
     });
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data;
     return PaginatedResponseDto<PlugEventDto>.fromJson(
       data,
       (j) => PlugEventDto.fromJson(j),
@@ -75,7 +74,7 @@ class TestablePlugApi {
       'op': 'equals',
       'value': days.toString(),
     });
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data;
     return PaginatedResponseDto<PlugEventDto>.fromJson(
       data,
       (j) => PlugEventDto.fromJson(j),
@@ -85,9 +84,9 @@ class TestablePlugApi {
   Future<PlugEventDto> createPlugEvent(PostPlugEventDto dto) async {
     final res = await apiClient.post(plugEventPath, body: dto.toJson());
     if (res.statusCode != 201) {
-      throw Exception('Failed to create plug event: ${res.body}');
+      throw Exception('Failed to create plug event: ${res.data}');
     }
-    return PlugEventDto.fromJson(jsonDecode(res.body));
+    return PlugEventDto.fromJson(res.data);
   }
 
   Future<PlugEventDto> updatePlugEvent(
@@ -96,16 +95,16 @@ class TestablePlugApi {
   ) async {
     final res =
         await apiClient.put('$plugEventPath/$uuid', body: dto.toJson());
-    if (res.statusCode >= 400) {
-      throw Exception('Failed to update plug event: ${res.body}');
+    if (res.statusCode != null && res.statusCode! >= 400) {
+      throw Exception('Failed to update plug event: ${res.data}');
     }
-    return PlugEventDto.fromJson(jsonDecode(res.body));
+    return PlugEventDto.fromJson(res.data);
   }
 
   Future<void> deletePlugEvent(String uuid) async {
     final res = await apiClient.delete('$plugEventPath/$uuid');
-    if (res.statusCode >= 400) {
-      throw Exception('Failed to delete plug event: ${res.body}');
+    if (res.statusCode != null && res.statusCode! >= 400) {
+      throw Exception('Failed to delete plug event: ${res.data}');
     }
   }
 
@@ -117,10 +116,10 @@ class TestablePlugApi {
       '$plugEventPath/$uuid/outcome',
       body: dto.toJson(),
     );
-    if (res.statusCode >= 400) {
-      throw Exception('Failed to record outcome: ${res.body}');
+    if (res.statusCode != null && res.statusCode! >= 400) {
+      throw Exception('Failed to record outcome: ${res.data}');
     }
-    return PlugEventDto.fromJson(jsonDecode(res.body));
+    return PlugEventDto.fromJson(res.data);
   }
 
   Future<List<PlugCheckDto>> batchCreatePlugChecks(
@@ -131,9 +130,9 @@ class TestablePlugApi {
       body: checks.map((c) => c.toJson()).toList(),
     );
     if (res.statusCode != 201) {
-      throw Exception('Failed to create plug checks ${res.body}');
+      throw Exception('Failed to create plug checks ${res.data}');
     }
-    final List<dynamic> data = jsonDecode(res.body);
+    final List<dynamic> data = res.data;
     return data
         .whereType<Map<String, dynamic>>()
         .map((j) => PlugCheckDto.fromJson(j))
@@ -141,10 +140,10 @@ class TestablePlugApi {
   }
 }
 
-@GenerateMocks([ApiClient])
+@GenerateMocks([DioApiClient])
 void main() {
   group('PlugApi Tests', () {
-    late MockApiClient mockApiClient;
+    late MockDioApiClient mockApiClient;
     late TestablePlugApi plugApi;
 
     final samplePlugEventJson = {
@@ -178,16 +177,17 @@ void main() {
     };
 
     setUp(() {
-      mockApiClient = MockApiClient();
+      mockApiClient = MockDioApiClient();
       plugApi = TestablePlugApi(mockApiClient);
     });
 
     group('getPlugEventsPage', () {
       test('should return paginated plug events response', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode(samplePaginatedResponse),
-          200,
+        final mockResponse = Response(
+          data: samplePaginatedResponse,
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -211,9 +211,10 @@ void main() {
 
       test('should pass query string with filters', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode(emptyPaginatedResponse),
-          200,
+        final mockResponse = Response(
+          data: emptyPaginatedResponse,
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -254,9 +255,10 @@ void main() {
       test('should return single plug event', () async {
         // Arrange
         const uuid = 'test-plug-event-uuid';
-        final mockResponse = http.Response(
-          jsonEncode(samplePlugEventJson),
-          200,
+        final mockResponse = Response(
+          data: samplePlugEventJson,
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(mockApiClient.get(any)).thenAnswer((_) async => mockResponse);
@@ -274,9 +276,10 @@ void main() {
     group('getActivePlugEvents', () {
       test('should return paginated active plug events', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode(samplePaginatedResponse),
-          200,
+        final mockResponse = Response(
+          data: samplePaginatedResponse,
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -310,9 +313,10 @@ void main() {
     group('getDueSoonPlugEvents', () {
       test('should return paginated due-soon plug events', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode(samplePaginatedResponse),
-          200,
+        final mockResponse = Response(
+          data: samplePaginatedResponse,
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -356,9 +360,10 @@ void main() {
           targetEday: 14,
         );
 
-        final mockResponse = http.Response(
-          jsonEncode(samplePlugEventJson),
-          201,
+        final mockResponse = Response(
+          data: samplePlugEventJson,
+          statusCode: 201,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -383,7 +388,7 @@ void main() {
           plugDate: '2023-06-15',
         );
 
-        final mockResponse = http.Response('Bad Request', 400);
+        final mockResponse = Response(data: 'Bad Request', statusCode: 400, requestOptions: RequestOptions());
 
         when(
           mockApiClient.post(any, body: anyNamed('body')),
@@ -415,7 +420,7 @@ void main() {
           'plugDate': '2023-07-01T00:00:00.000Z',
         };
 
-        final mockResponse = http.Response(jsonEncode(updatedJson), 200);
+        final mockResponse = Response(data: updatedJson, statusCode: 200, requestOptions: RequestOptions());
 
         when(
           mockApiClient.put(any, body: anyNamed('body')),
@@ -436,7 +441,7 @@ void main() {
         const uuid = 'test-plug-event-uuid';
         final putDto = PutPlugEventDto(plugDate: '2023-07-01');
 
-        final mockResponse = http.Response('Not Found', 404);
+        final mockResponse = Response(data: 'Not Found', statusCode: 404, requestOptions: RequestOptions());
 
         when(
           mockApiClient.put(any, body: anyNamed('body')),
@@ -457,7 +462,7 @@ void main() {
       test('should delete plug event successfully', () async {
         // Arrange
         const uuid = 'test-plug-event-uuid';
-        final mockResponse = http.Response('', 204);
+        final mockResponse = Response(data: '', statusCode: 204, requestOptions: RequestOptions());
 
         when(mockApiClient.delete(any)).thenAnswer((_) async => mockResponse);
 
@@ -471,7 +476,7 @@ void main() {
       test('should throw exception on error status', () async {
         // Arrange
         const uuid = 'test-plug-event-uuid';
-        final mockResponse = http.Response('Not Found', 404);
+        final mockResponse = Response(data: 'Not Found', statusCode: 404, requestOptions: RequestOptions());
 
         when(mockApiClient.delete(any)).thenAnswer((_) async => mockResponse);
 
@@ -501,7 +506,7 @@ void main() {
           'embryosCollected': 8,
         };
 
-        final mockResponse = http.Response(jsonEncode(responseJson), 200);
+        final mockResponse = Response(data: responseJson, statusCode: 200, requestOptions: RequestOptions());
 
         when(
           mockApiClient.post(any, body: anyNamed('body')),
@@ -528,7 +533,7 @@ void main() {
           outcomeDate: '2023-07-05',
         );
 
-        final mockResponse = http.Response('Bad Request', 400);
+        final mockResponse = Response(data: 'Bad Request', statusCode: 400, requestOptions: RequestOptions());
 
         when(
           mockApiClient.post(any, body: anyNamed('body')),
@@ -579,7 +584,7 @@ void main() {
           },
         ];
 
-        final mockResponse = http.Response(jsonEncode(responseJson), 201);
+        final mockResponse = Response(data: responseJson, statusCode: 201, requestOptions: RequestOptions());
 
         when(
           mockApiClient.post(any, body: anyNamed('body')),
@@ -609,7 +614,7 @@ void main() {
           ),
         ];
 
-        final mockResponse = http.Response('Server Error', 500);
+        final mockResponse = Response(data: 'Server Error', statusCode: 500, requestOptions: RequestOptions());
 
         when(
           mockApiClient.post(any, body: anyNamed('body')),

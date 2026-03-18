@@ -1,35 +1,90 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/screens/animals_screen.dart';
+import 'package:moustra/widgets/filter_panel.dart';
+import '../test_helpers/test_helpers.dart';
+
+Future<void> pumpAnimalsScreen(WidgetTester tester) async {
+  await runZonedGuarded(
+    () async {
+      await TestHelpers.pumpWidgetWithTheme(
+        tester,
+        const AnimalsScreen(),
+      );
+      await tester.pump();
+    },
+    (error, stack) {
+      // Suppress errors from API calls in test environment
+    },
+  );
+}
 
 void main() {
+  setUpAll(() async {
+    installNoOpDioApiClient();
+    try {
+      await dotenv.load(fileName: '.env');
+    } catch (e) {
+      dotenv.env.clear();
+    }
+  });
+
+  tearDownAll(() {
+    restoreDioApiClient();
+  });
+
   group('AnimalsScreen', () {
     testWidgets('can be instantiated without errors', (
       WidgetTester tester,
     ) async {
-      // Test that the screen can be created without throwing exceptions
       expect(() => const AnimalsScreen(), returnsNormally);
     });
 
     testWidgets('has proper widget structure', (WidgetTester tester) async {
-      // Test that the screen is a StatefulWidget
       const screen = AnimalsScreen();
       expect(screen, isA<StatefulWidget>());
-
-      // Test that it can be converted to a widget
       expect(screen.createState(), isA<State<AnimalsScreen>>());
+    });
+
+    testWidgets('renders correctly', (WidgetTester tester) async {
+      await pumpAnimalsScreen(tester);
+
+      expect(find.byType(AnimalsScreen), findsOneWidget);
+    });
+
+    testWidgets('has filter panel', (WidgetTester tester) async {
+      await pumpAnimalsScreen(tester);
+
+      expect(find.byType(FilterPanel), findsOneWidget);
+    });
+
+    testWidgets('has proper layout structure', (WidgetTester tester) async {
+      await pumpAnimalsScreen(tester);
+
+      expect(find.byType(Column), findsAtLeastNWidgets(1));
+      expect(find.byType(Divider), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('has proper accessibility structure', (
+      WidgetTester tester,
+    ) async {
+      await pumpAnimalsScreen(tester);
+
+      expect(find.byType(Semantics), findsAtLeastNWidgets(1));
     });
 
     testWidgets('handles screen lifecycle correctly', (
       WidgetTester tester,
     ) async {
-      // Test that the screen can be created and disposed
-      const screen = AnimalsScreen();
-      expect(screen, isA<AnimalsScreen>());
+      await pumpAnimalsScreen(tester);
 
-      // Test state creation
-      final state = screen.createState();
-      expect(state, isA<State<AnimalsScreen>>());
+      expect(find.byType(AnimalsScreen), findsOneWidget);
+
+      await tester.pump();
+      expect(find.byType(AnimalsScreen), findsOneWidget);
     });
   });
 }

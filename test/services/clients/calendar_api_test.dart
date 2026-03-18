@@ -1,17 +1,16 @@
-import 'dart:convert';
+import 'package:dio/dio.dart';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/calendar_events_response_dto.dart';
 
 import 'calendar_api_test.mocks.dart';
 
 class TestableCalendarApi {
-  final ApiClient apiClient;
+  final DioApiClient apiClient;
   static const String _path = '/calendar';
 
   TestableCalendarApi(this.apiClient);
@@ -35,18 +34,18 @@ class TestableCalendarApi {
     }
 
     final res = await apiClient.get(_path, query: query);
-    if (res.statusCode >= 400) {
-      throw Exception('Failed to fetch calendar events: ${res.body}');
+    if (res.statusCode != null && res.statusCode! >= 400) {
+      throw Exception('Failed to fetch calendar events: ${res.data}');
     }
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data;
     return CalendarEventsResponseDto.fromJson(data);
   }
 }
 
-@GenerateMocks([ApiClient])
+@GenerateMocks([DioApiClient])
 void main() {
   group('CalendarApi Tests', () {
-    late MockApiClient mockApiClient;
+    late MockDioApiClient mockApiClient;
     late TestableCalendarApi calendarApi;
 
     final sampleEventsResponse = {
@@ -79,15 +78,16 @@ void main() {
     };
 
     setUp(() {
-      mockApiClient = MockApiClient();
+      mockApiClient = MockDioApiClient();
       calendarApi = TestableCalendarApi(mockApiClient);
     });
 
     group('getCalendarEvents', () {
       test('should return calendar events for date range', () async {
-        final mockResponse = http.Response(
-          jsonEncode(sampleEventsResponse),
-          200,
+        final mockResponse = Response(
+          data: sampleEventsResponse,
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -120,9 +120,10 @@ void main() {
       });
 
       test('should include event type filter in query params', () async {
-        final mockResponse = http.Response(
-          jsonEncode(sampleEventsResponse),
-          200,
+        final mockResponse = Response(
+          data: sampleEventsResponse,
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -151,9 +152,10 @@ void main() {
       });
 
       test('should handle empty response', () async {
-        final mockResponse = http.Response(
-          jsonEncode(emptyEventsResponse),
-          200,
+        final mockResponse = Response(
+          data: emptyEventsResponse,
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -170,7 +172,7 @@ void main() {
       });
 
       test('should throw exception on 400 status', () async {
-        final mockResponse = http.Response('Bad Request', 400);
+        final mockResponse = Response(data: 'Bad Request', statusCode: 400, requestOptions: RequestOptions());
 
         when(
           mockApiClient.get(any, query: anyNamed('query')),
@@ -186,7 +188,7 @@ void main() {
       });
 
       test('should throw exception on 500 status', () async {
-        final mockResponse = http.Response('Internal Server Error', 500);
+        final mockResponse = Response(data: 'Internal Server Error', statusCode: 500, requestOptions: RequestOptions());
 
         when(
           mockApiClient.get(any, query: anyNamed('query')),
@@ -202,9 +204,10 @@ void main() {
       });
 
       test('should not include event_type when list is empty', () async {
-        final mockResponse = http.Response(
-          jsonEncode(emptyEventsResponse),
-          200,
+        final mockResponse = Response(
+          data: emptyEventsResponse,
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(

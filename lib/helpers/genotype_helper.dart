@@ -19,6 +19,7 @@ class GenotypeHelper {
           }
           return '';
         })
+        .where((s) => s.isNotEmpty)
         .join(', ');
   }
 

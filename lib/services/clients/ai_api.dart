@@ -4,14 +4,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:moustra/config/api_config.dart';
 import 'package:moustra/services/auth_service.dart';
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/ai_dto.dart';
 import 'package:moustra/stores/profile_store.dart';
 
 class AiApi {
   Future<List<AiChatHistoryItemDto>> getChatHistory() async {
-    final res = await apiClient.get('/ai/chat/history');
-    final decoded = jsonDecode(res.body);
+    final res = await dioApiClient.get('/ai/chat/history');
+    final decoded = res.data;
 
     List<dynamic> results;
     if (decoded is List) {
@@ -31,16 +31,18 @@ class AiApi {
     bool? feedback,
     String? feedbackDetail,
   ) async {
-    final res = await apiClient.put(
+    final res = await dioApiClient.put(
       '/ai/chat/$chatUuid/feedback',
       body: {
         'feedback': feedback,
         'feedback_detail': feedbackDetail,
       },
     );
-    return AiChatHistoryItemDto.fromJson(jsonDecode(res.body));
+    return AiChatHistoryItemDto.fromJson(res.data as Map<String, dynamic>);
   }
 
+  /// SSE streaming — kept on package:http because Dio doesn't natively
+  /// support server-sent events with the same ease.
   Stream<String> streamChat(String prompt) async* {
     final token = authService.accessToken;
     final accountUuid = profileState.value?.accountUuid;

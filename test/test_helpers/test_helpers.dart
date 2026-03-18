@@ -1,6 +1,79 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/app/mui_color.dart';
+import 'package:moustra/services/clients/api_exceptions.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
+
+/// A no-op DioApiClient for widget tests.
+/// All methods throw [ApiNetworkException] immediately without touching Dio,
+/// preventing the zero-duration timers that [DioMixin.fetch] creates in
+/// FakeAsync zones.
+class NoOpDioApiClient extends DioApiClient {
+  @override
+  Future<Response<dynamic>> get(
+    String path, {
+    Map<String, String>? query,
+    bool withoutAccountPrefix = false,
+  }) async =>
+      throw ApiNetworkException(message: 'No network in tests');
+
+  @override
+  Future<Response<dynamic>> getWithQueryString(
+    String path, {
+    required String queryString,
+    bool withoutAccountPrefix = false,
+  }) async =>
+      throw ApiNetworkException(message: 'No network in tests');
+
+  @override
+  Future<Response<dynamic>> post(
+    String path, {
+    Object? body,
+    Map<String, String>? query,
+    bool withoutAccountPrefix = false,
+  }) async =>
+      throw ApiNetworkException(message: 'No network in tests');
+
+  @override
+  Future<Response<dynamic>> postWithoutAuth(
+    String path, {
+    Object? body,
+    bool withoutAccountPrefix = false,
+  }) async =>
+      throw ApiNetworkException(message: 'No network in tests');
+
+  @override
+  Future<Response<dynamic>> put(
+    String path, {
+    Object? body,
+    Map<String, String>? query,
+  }) async =>
+      throw ApiNetworkException(message: 'No network in tests');
+
+  @override
+  Future<Response<dynamic>> patch(
+    String path, {
+    Object? body,
+    Map<String, String>? query,
+  }) async =>
+      throw ApiNetworkException(message: 'No network in tests');
+
+  @override
+  Future<Response<dynamic>> delete(String path) async =>
+      throw ApiNetworkException(message: 'No network in tests');
+}
+
+/// Install [NoOpDioApiClient] as the global [dioApiClient] for widget tests.
+/// Call in [setUpAll] and pair with [tearDownAll] to restore.
+void installNoOpDioApiClient() {
+  dioApiClient = NoOpDioApiClient();
+}
+
+/// Restore the default [DioApiClient] after tests.
+void restoreDioApiClient() {
+  dioApiClient = DioApiClient();
+}
 
 /// Test helper utilities for widget testing
 class TestHelpers {

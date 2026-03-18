@@ -24,11 +24,16 @@ Future<void> pumpNotificationsScreen(WidgetTester tester) async {
 
 void main() {
   setUpAll(() async {
+    installNoOpDioApiClient();
     try {
       await dotenv.load(fileName: '.env');
     } catch (e) {
       dotenv.env.clear();
     }
+  });
+
+  tearDownAll(() {
+    restoreDioApiClient();
   });
 
   group('NotificationsScreen', () {

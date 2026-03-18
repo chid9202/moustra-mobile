@@ -1,9 +1,8 @@
-import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/clients/store_api.dart';
 import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
 import 'package:moustra/services/dtos/stores/cage_store_dto.dart';
@@ -13,14 +12,14 @@ import 'store_api_test.mocks.dart';
 
 // Testable version of StoreApi that accepts a client
 class TestableStoreApi<T> {
-  final ApiClient apiClient;
+  final DioApiClient apiClient;
   static const String basePath = '/store';
 
   TestableStoreApi(this.apiClient);
 
   Future<List<T>> getStore(StoreKeys key) async {
     final res = await apiClient.get('$basePath/${key.path}');
-    final List<dynamic> data = jsonDecode(res.body);
+    final List<dynamic> data = res.data;
     final List<T> result = [];
     for (var e in data) {
       result.add(key.fromJson(e));
@@ -29,16 +28,16 @@ class TestableStoreApi<T> {
   }
 }
 
-@GenerateMocks([ApiClient])
+@GenerateMocks([DioApiClient])
 void main() {
   group('StoreApi Tests', () {
-    late MockApiClient mockApiClient;
+    late MockDioApiClient mockApiClient;
     late TestableStoreApi<AnimalStoreDto> animalStoreApi;
     late TestableStoreApi<CageStoreDto> cageStoreApi;
     late TestableStoreApi<StrainStoreDto> strainStoreApi;
 
     setUp(() {
-      mockApiClient = MockApiClient();
+      mockApiClient = MockDioApiClient();
       animalStoreApi = TestableStoreApi<AnimalStoreDto>(mockApiClient);
       cageStoreApi = TestableStoreApi<CageStoreDto>(mockApiClient);
       strainStoreApi = TestableStoreApi<StrainStoreDto>(mockApiClient);
@@ -47,8 +46,8 @@ void main() {
     group('getStore', () {
       test('should return list of animals from store', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode([
+        final mockResponse = Response(
+          data: [
             {
               'eid': 1,
               'animalId': 1,
@@ -65,8 +64,9 @@ void main() {
               'dateOfBirth': '2023-01-02',
               'sex': 'female',
             },
-          ]),
-          200,
+          ],
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -85,8 +85,8 @@ void main() {
 
       test('should return list of cages from store', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode([
+        final mockResponse = Response(
+          data: [
             {
               'cageId': 1,
               'cageUuid': 'cage-uuid-1',
@@ -101,8 +101,9 @@ void main() {
               'rackId': 1,
               'rackUuid': 'rack-uuid-1',
             },
-          ]),
-          200,
+          ],
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -121,8 +122,8 @@ void main() {
 
       test('should return list of strains from store', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode([
+        final mockResponse = Response(
+          data: [
             {
               'strainId': 1,
               'strainUuid': 'strain-uuid-1',
@@ -135,8 +136,9 @@ void main() {
               'strainName': 'BALB/c',
               'genotypes': [],
             },
-          ]),
-          200,
+          ],
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -155,7 +157,7 @@ void main() {
 
       test('should return empty list when store is empty', () async {
         // Arrange
-        final mockResponse = http.Response(jsonEncode([]), 200);
+        final mockResponse = Response(data: [], statusCode: 200, requestOptions: RequestOptions());
 
         when(
           mockApiClient.get('/store/Animal'),
@@ -171,16 +173,17 @@ void main() {
 
       test('should handle different store keys correctly', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode([
+        final mockResponse = Response(
+          data: [
             {
               'geneId': 1,
               'geneUuid': 'gene-uuid-1',
               'geneName': 'Gene1',
               'isActive': true,
             },
-          ]),
-          200,
+          ],
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(

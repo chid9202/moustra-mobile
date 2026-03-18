@@ -3,12 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/user_list_constants.dart';
 import 'package:moustra/services/dtos/user_list_dto.dart';
 import 'package:moustra/services/clients/users_api.dart';
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/widgets/shared/button.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
-final usersApi = UsersApi(apiClient);
+final usersApi = UsersApi(dioApiClient);
 
 class UsersScreen extends StatefulWidget {
   const UsersScreen({super.key});

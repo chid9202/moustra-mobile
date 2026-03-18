@@ -1,9 +1,8 @@
-import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
@@ -12,7 +11,7 @@ import 'animal_api_test.mocks.dart';
 
 // Testable version of AnimalApi that accepts a client
 class TestableAnimalApi {
-  final ApiClient apiClient;
+  final DioApiClient apiClient;
   static const String basePath = '/animal';
 
   TestableAnimalApi(this.apiClient);
@@ -28,7 +27,7 @@ class TestableAnimalApi {
       if (query != null) ...query,
     };
     final res = await apiClient.get(basePath, query: mergedQuery);
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data;
     return PaginatedResponseDto<AnimalDto>.fromJson(
       data,
       (j) => AnimalDto.fromJson(j),
@@ -37,25 +36,25 @@ class TestableAnimalApi {
 
   Future<AnimalDto> getAnimal(String animalUuid) async {
     final res = await apiClient.get('$basePath/$animalUuid');
-    return AnimalDto.fromJson(jsonDecode(res.body));
+    return AnimalDto.fromJson(res.data);
   }
 
   Future<AnimalDto> putAnimal(String animalUuid, AnimalDto payload) async {
     final res = await apiClient.put('$basePath/$animalUuid', body: payload);
 
     if (res.statusCode != 200) {
-      throw Exception('Failed to update animal ${res.body}');
+      throw Exception('Failed to update animal ${res.data}');
     }
-    return AnimalDto.fromJson(jsonDecode(res.body));
+    return AnimalDto.fromJson(res.data);
   }
 
   Future<List<AnimalDto>> postAnimal(PostAnimalDto payload) async {
     final res = await apiClient.post(basePath, body: payload);
     if (res.statusCode != 201) {
-      throw Exception('Failed to create animal ${res.body}');
+      throw Exception('Failed to create animal ${res.data}');
     }
 
-    final animalsData = jsonDecode(res.body)['animals'] as List<dynamic>;
+    final animalsData = res.data['animals'] as List<dynamic>;
     return animalsData.map((e) => AnimalDto.fromDynamicJson(e)).toList();
   }
 
@@ -70,7 +69,7 @@ class TestableAnimalApi {
       },
     );
     if (res.statusCode != 200) {
-      throw Exception('Failed to end animals ${res.body}');
+      throw Exception('Failed to end animals ${res.data}');
     }
   }
 
@@ -79,25 +78,25 @@ class TestableAnimalApi {
       '$basePath/$animalUuid/move',
       body: {'animal': animalUuid, 'cage': cageUuid},
     );
-    return RackDto.fromJson(jsonDecode(res.body));
+    return RackDto.fromJson(res.data);
   }
 
   Future<void> patchAnimals(List<Map<String, dynamic>> updates) async {
     final res = await apiClient.patch(basePath, body: updates);
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to patch animals: ${res.body}');
+      throw Exception('Failed to patch animals: ${res.data}');
     }
   }
 }
 
-@GenerateMocks([ApiClient])
+@GenerateMocks([DioApiClient])
 void main() {
   group('AnimalApi Tests', () {
-    late MockApiClient mockApiClient;
+    late MockDioApiClient mockApiClient;
     late TestableAnimalApi animalApi;
 
     setUp(() {
-      mockApiClient = MockApiClient();
+      mockApiClient = MockDioApiClient();
       animalApi = TestableAnimalApi(mockApiClient);
 
       // Replace the global apiClient with our mock
@@ -107,8 +106,8 @@ void main() {
     group('getAnimalsPage', () {
       test('should return paginated animals response', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'results': [
               {
                 'eid': 1,
@@ -130,8 +129,9 @@ void main() {
             'count': 2,
             'next': null,
             'previous': null,
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -152,14 +152,15 @@ void main() {
 
       test('should include query parameters in request', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'results': [],
             'count': 0,
             'next': null,
             'previous': null,
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -193,16 +194,17 @@ void main() {
       test('should return single animal', () async {
         // Arrange
         const animalUuid = 'test-uuid';
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'eid': 1,
             'animalId': 1,
             'animalUuid': animalUuid,
             'physicalTag': 'A001',
             'dateOfBirth': '2023-01-01',
             'sex': 'male',
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(mockApiClient.get(any)).thenAnswer((_) async => mockResponse);
@@ -230,16 +232,17 @@ void main() {
           sex: 'male',
         );
 
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'eid': 1,
             'animalId': 1,
             'animalUuid': animalUuid,
             'physicalTag': 'A001-UPDATED',
             'dateOfBirth': '2023-01-01',
             'sex': 'male',
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -268,7 +271,7 @@ void main() {
           sex: 'male',
         );
 
-        final mockResponse = http.Response('Bad Request', 400);
+        final mockResponse = Response(data: 'Bad Request', statusCode: 400, requestOptions: RequestOptions());
 
         when(
           mockApiClient.put(any, body: anyNamed('body')),
@@ -296,8 +299,8 @@ void main() {
           ],
         );
 
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'animals': [
               {
                 'eid': 1,
@@ -308,8 +311,9 @@ void main() {
                 'sex': 'male',
               },
             ],
-          }),
-          201,
+          },
+          statusCode: 201,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -338,7 +342,7 @@ void main() {
           ],
         );
 
-        final mockResponse = http.Response('Bad Request', 400);
+        final mockResponse = Response(data: 'Bad Request', statusCode: 400, requestOptions: RequestOptions());
 
         when(
           mockApiClient.post(any, body: anyNamed('body')),
@@ -356,7 +360,7 @@ void main() {
       test('should end animals successfully', () async {
         // Arrange
         final animalUuids = ['uuid-1', 'uuid-2'];
-        final mockResponse = http.Response('', 200);
+        final mockResponse = Response(data: '', statusCode: 200, requestOptions: RequestOptions());
 
         when(
           mockApiClient.put(
@@ -389,7 +393,7 @@ void main() {
       test('should throw exception on non-200 status', () async {
         // Arrange
         final animalUuids = ['uuid-1'];
-        final mockResponse = http.Response('Bad Request', 400);
+        final mockResponse = Response(data: 'Bad Request', statusCode: 400, requestOptions: RequestOptions());
 
         when(
           mockApiClient.put(
@@ -413,14 +417,15 @@ void main() {
         const animalUuid = 'animal-uuid';
         const cageUuid = 'cage-uuid';
 
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'rackId': 1,
             'rackUuid': 'rack-uuid',
             'rackName': 'Rack A',
             'cages': [],
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -468,7 +473,7 @@ void main() {
           },
         ];
 
-        final mockResponse = http.Response('', 200);
+        final mockResponse = Response(data: '', statusCode: 200, requestOptions: RequestOptions());
 
         when(
           mockApiClient.patch(any, body: anyNamed('body')),
@@ -497,7 +502,7 @@ void main() {
           },
         ];
 
-        final mockResponse = http.Response('', 204);
+        final mockResponse = Response(data: '', statusCode: 204, requestOptions: RequestOptions());
 
         when(
           mockApiClient.patch(any, body: anyNamed('body')),
@@ -517,7 +522,7 @@ void main() {
           {'animalUuid': 'uuid-1', 'strain': {}},
         ];
 
-        final mockResponse = http.Response('Bad Request', 400);
+        final mockResponse = Response(data: 'Bad Request', statusCode: 400, requestOptions: RequestOptions());
 
         when(
           mockApiClient.patch(any, body: anyNamed('body')),

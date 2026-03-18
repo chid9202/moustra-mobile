@@ -217,3 +217,6 @@ android/fastlane/Preview.html
 **/fastlane/README.md
 
 .cursor/
+
+# Generated OpenAPI client (regenerate with ./scripts/generate_api.sh)
+lib/api/generated/

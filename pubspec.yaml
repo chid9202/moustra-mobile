@@ -58,6 +58,9 @@ dependencies:
   connectivity_plus: ^6.1.4
   logger: ^2.5.0
   cached_network_image: ^3.4.1
+  dio: ^5.7.0
+  moustra_api:
+    path: lib/api/generated
 
 dev_dependencies:
   flutter_test:

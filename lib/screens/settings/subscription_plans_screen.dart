@@ -7,9 +7,9 @@ import 'package:moustra/services/clients/users_api.dart';
 import 'package:moustra/services/clients/profile_api.dart';
 import 'package:moustra/services/dtos/profile_dto.dart';
 import 'package:moustra/stores/profile_store.dart';
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 
-final usersApi = UsersApi(apiClient);
+final usersApi = UsersApi(dioApiClient);
 
 class SubscriptionPlansScreen extends StatefulWidget {
   final ProfileResponseDto? profile;

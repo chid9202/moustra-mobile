@@ -1,6 +1,4 @@
-import 'dart:convert';
-
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/dashboard_dto.dart';
 
 class DashboardApi {
@@ -9,16 +7,15 @@ class DashboardApi {
   Future<Map<String, dynamic>> getDashboard({
     Map<String, String>? query,
   }) async {
-    final res = await apiClient.get(basePath, query: query);
-    return jsonDecode(res.body) as Map<String, dynamic>;
+    final res = await dioApiClient.get(basePath, query: query);
+    return res.data as Map<String, dynamic>;
   }
 
   Future<DashboardResponseDto> getDashboardDto({
     Map<String, String>? query,
   }) async {
-    final res = await apiClient.get(basePath, query: query);
-    final Map<String, dynamic> data =
-        jsonDecode(res.body) as Map<String, dynamic>;
+    final res = await dioApiClient.get(basePath, query: query);
+    final Map<String, dynamic> data = res.data as Map<String, dynamic>;
     return DashboardResponseDto.fromJson(data);
   }
 }

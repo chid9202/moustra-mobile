@@ -4,10 +4,10 @@ import 'package:moustra/services/clients/users_api.dart';
 import 'package:moustra/services/dtos/user_detail_dto.dart';
 import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/widgets/shared/button.dart';
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
 
-final usersApi = UsersApi(apiClient);
+final usersApi = UsersApi(dioApiClient);
 
 class UserDetailScreen extends StatefulWidget {
   final String? userUuid;

@@ -1,6 +1,4 @@
-import 'dart:convert';
-
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/end_animals_dto.dart';
 import 'package:moustra/services/dtos/family_tree_dto.dart';
@@ -22,8 +20,8 @@ class AnimalApi {
       'page_size': pageSize.toString(),
       if (query != null) ...query,
     };
-    final res = await apiClient.get(basePath, query: mergedQuery);
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final res = await dioApiClient.get(basePath, query: mergedQuery);
+    final Map<String, dynamic> data = res.data as Map<String, dynamic>;
     return PaginatedResponseDto<AnimalDto>.fromJson(
       data,
       (j) => AnimalDto.fromJson(j),
@@ -35,11 +33,11 @@ class AnimalApi {
     required ListQueryParams params,
   }) async {
     final queryString = params.buildQueryString();
-    final res = await apiClient.getWithQueryString(
+    final res = await dioApiClient.getWithQueryString(
       basePath,
       queryString: queryString,
     );
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data as Map<String, dynamic>;
     return PaginatedResponseDto<AnimalDto>.fromJson(
       data,
       (j) => AnimalDto.fromJson(j),
@@ -50,8 +48,8 @@ class AnimalApi {
     required String prompt,
   }) async {
     final query = {'prompt': prompt};
-    final res = await apiClient.get('$basePath/ai/search', query: query);
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final res = await dioApiClient.get('$basePath/ai/search', query: query);
+    final Map<String, dynamic> data = res.data as Map<String, dynamic>;
     return PaginatedResponseDto<AnimalDto>.fromJson(
       data,
       (j) => AnimalDto.fromJson(j),
@@ -59,8 +57,8 @@ class AnimalApi {
   }
 
   Future<AnimalDto> getAnimal(String animalUuid) async {
-    final res = await apiClient.get('$basePath/$animalUuid');
-    final json = jsonDecode(res.body) as Map<String, dynamic>;
+    final res = await dioApiClient.get('$basePath/$animalUuid');
+    final json = res.data as Map<String, dynamic>;
     return safeFromJson(
       json: json,
       fromJson: AnimalDto.fromJson,
@@ -69,84 +67,84 @@ class AnimalApi {
   }
 
   Future<AnimalDto> putAnimal(String animalUuid, AnimalDto payload) async {
-    final res = await apiClient.put('$basePath/$animalUuid', body: payload);
+    final res = await dioApiClient.put('$basePath/$animalUuid', body: payload);
 
     if (res.statusCode != 200) {
-      throw Exception('Failed to update animal ${res.body}');
+      throw Exception('Failed to update animal ${res.data}');
     }
-    return AnimalDto.fromJson(jsonDecode(res.body));
+    return AnimalDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<List<AnimalDto>> postAnimal(PostAnimalDto payload) async {
-    final res = await apiClient.post(basePath, body: payload);
+    final res = await dioApiClient.post(basePath, body: payload);
     if (res.statusCode != 201) {
-      throw Exception('Failed to create animal ${res.body}');
+      throw Exception('Failed to create animal ${res.data}');
     }
 
-    final animalsData = jsonDecode(res.body)['animals'] as List<dynamic>;
+    final animalsData = (res.data as Map<String, dynamic>)['animals'] as List<dynamic>;
     return animalsData.map((e) => AnimalDto.fromDynamicJson(e)).toList();
   }
 
   Future<EndAnimalsResponseDto> getEndAnimalsData(
     List<String> animalUuids,
   ) async {
-    final res = await apiClient.get(
+    final res = await dioApiClient.get(
       '$basePath/end',
       query: {'animals': animalUuids.join(',')},
     );
     if (res.statusCode != 200) {
-      throw Exception('Failed to get end animals data ${res.body}');
+      throw Exception('Failed to get end animals data ${res.data}');
     }
-    return EndAnimalsResponseDto.fromJson(jsonDecode(res.body));
+    return EndAnimalsResponseDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future endAnimals(
     List<String> animalUuids,
     EndAnimalFormDto form,
   ) async {
-    final res = await apiClient.put(
+    final res = await dioApiClient.put(
       '$basePath/end',
       query: {'animals': animalUuids.join(',')},
       body: form,
     );
     if (res.statusCode != 200) {
-      throw Exception('Failed to end animals ${res.body}');
+      throw Exception('Failed to end animals ${res.data}');
     }
   }
 
   Future<EndTypeSummaryDto> createEndType(String name) async {
-    final res = await apiClient.post(
+    final res = await dioApiClient.post(
       '/end-type',
       body: {'endTypeName': name},
     );
     if (res.statusCode != 201) {
-      throw Exception('Failed to create end type ${res.body}');
+      throw Exception('Failed to create end type ${res.data}');
     }
-    return EndTypeSummaryDto.fromJson(jsonDecode(res.body));
+    return EndTypeSummaryDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<EndReasonSummaryDto> createEndReason(String name) async {
-    final res = await apiClient.post(
+    final res = await dioApiClient.post(
       '/end-reason',
       body: {'endReasonName': name},
     );
     if (res.statusCode != 201) {
-      throw Exception('Failed to create end reason ${res.body}');
+      throw Exception('Failed to create end reason ${res.data}');
     }
-    return EndReasonSummaryDto.fromJson(jsonDecode(res.body));
+    return EndReasonSummaryDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<RackDto> moveAnimal(String animalUuid, String cageUuid) async {
-    final res = await apiClient.post(
+    final res = await dioApiClient.post(
       '$basePath/$animalUuid/move',
       body: {'animal': animalUuid, 'cage': cageUuid},
     );
     if (res.statusCode == 200) {
-      return RackDto.fromJson(jsonDecode(res.body));
+      return RackDto.fromJson(res.data as Map<String, dynamic>);
     }
     throw Exception(
       'Status code ${res.statusCode} while moving animal.\n'
-      '${res.body}',
+      '${res.data}',
     );
   }
 
@@ -169,11 +167,11 @@ class AnimalApi {
       ],
     );
     final queryString = params.buildQueryString();
-    final res = await apiClient.getWithQueryString(
+    final res = await dioApiClient.getWithQueryString(
       basePath,
       queryString: queryString,
     );
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data as Map<String, dynamic>;
     return PaginatedResponseDto<AnimalDto>.fromJson(
       data,
       (j) => AnimalDto.fromJson(j),
@@ -182,17 +180,17 @@ class AnimalApi {
 
   /// Get the family tree (parent litter + children litter) for an animal
   Future<FamilyTreeDto> getAnimalFamilyTree(String animalUuid) async {
-    final res = await apiClient.get('$basePath/$animalUuid/family-tree');
-    final json = jsonDecode(res.body) as Map<String, dynamic>;
+    final res = await dioApiClient.get('$basePath/$animalUuid/family-tree');
+    final json = res.data as Map<String, dynamic>;
     return FamilyTreeDto.fromJson(json);
   }
 
   /// Batch update animals with a PATCH request.
   /// Used to update strain on multiple animals at once.
   Future<void> patchAnimals(List<Map<String, dynamic>> updates) async {
-    final res = await apiClient.patch(basePath, body: updates);
+    final res = await dioApiClient.patch(basePath, body: updates);
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to patch animals: ${res.body}');
+      throw Exception('Failed to patch animals: ${res.data}');
     }
   }
 }

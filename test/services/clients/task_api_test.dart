@@ -1,18 +1,17 @@
-import 'dart:convert';
+import 'package:dio/dio.dart';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/task_dto.dart';
 
 import 'task_api_test.mocks.dart';
 
-/// Testable TaskApi that accepts ApiClient for testing.
+/// Testable TaskApi that accepts DioApiClient for testing.
 class TestableTaskApi {
-  final ApiClient apiClient;
+  final DioApiClient apiClient;
   static const String taskPath = '/task';
 
   TestableTaskApi(this.apiClient);
@@ -40,16 +39,16 @@ class TestableTaskApi {
     if (res.statusCode == 404) {
       return TaskListResponseDto(tasks: []);
     }
-    if (res.statusCode >= 400) {
+    if (res.statusCode != null && res.statusCode! >= 400) {
       throw Exception('Failed to load tasks: ${res.statusCode}');
     }
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data;
     return TaskListResponseDto.fromJson(data);
   }
 
   Future<TaskDto> getTask(String uuid) async {
     final res = await apiClient.get('$taskPath/$uuid');
-    return TaskDto.fromJson(jsonDecode(res.body));
+    return TaskDto.fromJson(res.data);
   }
 
   Future<TaskSummaryDto> getTaskSummary() async {
@@ -57,17 +56,17 @@ class TestableTaskApi {
     if (res.statusCode == 404) {
       return TaskSummaryDto(pending: 0, due: 0, overdue: 0, completedToday: 0);
     }
-    if (res.statusCode >= 400) {
+    if (res.statusCode != null && res.statusCode! >= 400) {
       throw Exception('Failed to load task summary: ${res.statusCode}');
     }
-    return TaskSummaryDto.fromJson(jsonDecode(res.body));
+    return TaskSummaryDto.fromJson(res.data);
   }
 }
 
-@GenerateMocks([ApiClient])
+@GenerateMocks([DioApiClient])
 void main() {
   group('TaskApi', () {
-    late MockApiClient mockApiClient;
+    late MockDioApiClient mockApiClient;
     late TestableTaskApi taskApi;
 
     final sampleTask = {
@@ -93,7 +92,7 @@ void main() {
     };
 
     setUp(() {
-      mockApiClient = MockApiClient();
+      mockApiClient = MockDioApiClient();
       taskApi = TestableTaskApi(mockApiClient);
     });
 
@@ -101,7 +100,7 @@ void main() {
       test('should return task list', () async {
         when(
           mockApiClient.get(any, query: anyNamed('query')),
-        ).thenAnswer((_) async => http.Response(jsonEncode(sampleTasksResponse), 200));
+        ).thenAnswer((_) async => Response(data: sampleTasksResponse, statusCode: 200, requestOptions: RequestOptions()));
 
         final result = await taskApi.getTasks();
 
@@ -113,7 +112,7 @@ void main() {
       test('should pass query params', () async {
         when(
           mockApiClient.get(any, query: anyNamed('query')),
-        ).thenAnswer((_) async => http.Response(jsonEncode(sampleTasksResponse), 200));
+        ).thenAnswer((_) async => Response(data: sampleTasksResponse, statusCode: 200, requestOptions: RequestOptions()));
 
         await taskApi.getTasks(status: 'pending', taskType: 'wean', limit: 50);
 
@@ -135,7 +134,7 @@ void main() {
       test('should return empty list on 404', () async {
         when(
           mockApiClient.get(any, query: anyNamed('query')),
-        ).thenAnswer((_) async => http.Response('', 404));
+        ).thenAnswer((_) async => Response(data: '', statusCode: 404, requestOptions: RequestOptions()));
 
         final result = await taskApi.getTasks();
 
@@ -146,7 +145,7 @@ void main() {
       test('should throw on 400', () async {
         when(
           mockApiClient.get(any, query: anyNamed('query')),
-        ).thenAnswer((_) async => http.Response('Bad Request', 400));
+        ).thenAnswer((_) async => Response(data: 'Bad Request', statusCode: 400, requestOptions: RequestOptions()));
 
         expect(() => taskApi.getTasks(), throwsA(isA<Exception>()));
       });
@@ -155,7 +154,7 @@ void main() {
     group('getTask', () {
       test('should return single task', () async {
         when(mockApiClient.get(any))
-            .thenAnswer((_) async => http.Response(jsonEncode(sampleTask), 200));
+            .thenAnswer((_) async => Response(data: sampleTask, statusCode: 200, requestOptions: RequestOptions()));
 
         final result = await taskApi.getTask('task-uuid-1');
 
@@ -168,7 +167,7 @@ void main() {
     group('getTaskSummary', () {
       test('should return summary', () async {
         when(mockApiClient.get(any)).thenAnswer(
-            (_) async => http.Response(jsonEncode(sampleSummaryResponse), 200));
+            (_) async => Response(data: sampleSummaryResponse, statusCode: 200, requestOptions: RequestOptions()));
 
         final result = await taskApi.getTaskSummary();
 
@@ -180,7 +179,7 @@ void main() {
 
       test('should return zero summary on 404', () async {
         when(mockApiClient.get(any))
-            .thenAnswer((_) async => http.Response('', 404));
+            .thenAnswer((_) async => Response(data: '', statusCode: 404, requestOptions: RequestOptions()));
 
         final result = await taskApi.getTaskSummary();
 
@@ -192,7 +191,7 @@ void main() {
 
       test('should throw on 400', () async {
         when(mockApiClient.get(any))
-            .thenAnswer((_) async => http.Response('Bad Request', 400));
+            .thenAnswer((_) async => Response(data: 'Bad Request', statusCode: 400, requestOptions: RequestOptions()));
 
         expect(() => taskApi.getTaskSummary(), throwsA(isA<Exception>()));
       });

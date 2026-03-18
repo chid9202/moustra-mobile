@@ -1,11 +1,10 @@
-import 'dart:convert';
+import 'package:dio/dio.dart';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/post_mating_dto.dart';
@@ -17,7 +16,7 @@ import 'mating_api_test.mocks.dart';
 
 // Testable version of MatingApi that accepts a client
 class TestableMatingApi {
-  final ApiClient apiClient;
+  final DioApiClient apiClient;
   static const String basePath = '/mating';
 
   TestableMatingApi(this.apiClient);
@@ -33,7 +32,7 @@ class TestableMatingApi {
       if (query != null) ...query,
     };
     final res = await apiClient.get(basePath, query: mergedQuery);
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data;
     return PaginatedResponseDto<MatingDto>.fromJson(
       data,
       (j) => MatingDto.fromJson(j),
@@ -42,42 +41,42 @@ class TestableMatingApi {
 
   Future<MatingDto> getMating(String matingUuid) async {
     final res = await apiClient.get('$basePath/$matingUuid');
-    return MatingDto.fromJson(jsonDecode(res.body));
+    return MatingDto.fromJson(res.data);
   }
 
   Future<MatingDto> createMating(PostMatingDto payload) async {
     final res = await apiClient.post(basePath, body: payload);
     if (res.statusCode != 201) {
-      throw Exception('Failed to create mating ${res.body}');
+      throw Exception('Failed to create mating ${res.data}');
     }
-    return MatingDto.fromJson(jsonDecode(res.body));
+    return MatingDto.fromJson(res.data);
   }
 
   Future<MatingDto> putMating(String matingUuid, PutMatingDto payload) async {
     final res = await apiClient.put('$basePath/$matingUuid', body: payload);
     if (res.statusCode != 200) {
-      throw Exception('Failed to update mating ${res.body}');
+      throw Exception('Failed to update mating ${res.data}');
     }
-    return MatingDto.fromJson(jsonDecode(res.body));
+    return MatingDto.fromJson(res.data);
   }
 }
 
-@GenerateMocks([ApiClient])
+@GenerateMocks([DioApiClient])
 void main() {
   group('MatingApi Tests', () {
-    late MockApiClient mockApiClient;
+    late MockDioApiClient mockApiClient;
     late TestableMatingApi matingApi;
 
     setUp(() {
-      mockApiClient = MockApiClient();
+      mockApiClient = MockDioApiClient();
       matingApi = TestableMatingApi(mockApiClient);
     });
 
     group('getMatingsPage', () {
       test('should return paginated matings response', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'results': [
               {
                 'matingId': 1,
@@ -100,8 +99,9 @@ void main() {
             'count': 1,
             'next': null,
             'previous': null,
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -120,14 +120,15 @@ void main() {
 
       test('should include query parameters in request', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'results': [],
             'count': 0,
             'next': null,
             'previous': null,
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -162,8 +163,8 @@ void main() {
       test('should return single mating', () async {
         // Arrange
         const matingUuid = 'test-mating-uuid';
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'matingId': 1,
             'matingUuid': matingUuid,
             'matingTag': 'M001',
@@ -174,8 +175,9 @@ void main() {
                 'physicalTag': 'A001',
               },
             ],
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(mockApiClient.get(any)).thenAnswer((_) async => mockResponse);
@@ -209,8 +211,8 @@ void main() {
           ),
         );
 
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'matingId': 1,
             'matingUuid': 'new-mating-uuid',
             'matingTag': 'M001',
@@ -226,8 +228,9 @@ void main() {
                 'physicalTag': 'A002',
               },
             ],
-          }),
-          201,
+          },
+          statusCode: 201,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -261,7 +264,7 @@ void main() {
           ),
         );
 
-        final mockResponse = http.Response('Bad Request', 400);
+        final mockResponse = Response(data: 'Bad Request', statusCode: 400, requestOptions: RequestOptions());
 
         when(
           mockApiClient.post(any, body: anyNamed('body')),
@@ -296,8 +299,8 @@ void main() {
           ),
         );
 
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'matingId': 1,
             'matingUuid': matingUuid,
             'matingTag': 'M001-UPDATED',
@@ -308,8 +311,9 @@ void main() {
                 'physicalTag': 'A001',
               },
             ],
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -345,7 +349,7 @@ void main() {
           ),
         );
 
-        final mockResponse = http.Response('Not Found', 404);
+        final mockResponse = Response(data: 'Not Found', statusCode: 404, requestOptions: RequestOptions());
 
         when(
           mockApiClient.put(any, body: anyNamed('body')),

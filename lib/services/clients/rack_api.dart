@@ -1,6 +1,4 @@
-import 'dart:convert';
-
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/dtos/post_rack_dto.dart';
 import 'package:moustra/services/dtos/put_rack_dto.dart';
@@ -10,27 +8,27 @@ class RackApi {
 
   Future<RackDto> getRack({String? rackUuid}) async {
     final path = rackUuid != null ? '$basePath/$rackUuid' : '$basePath/default';
-    final res = await apiClient.get(path);
+    final res = await dioApiClient.get(path);
     if (res.statusCode != 200) {
-      throw Exception('Failed to get rack: ${res.body}');
+      throw Exception('Failed to get rack: ${res.data}');
     }
-    return RackDto.fromJson(jsonDecode(res.body));
+    return RackDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<RackDto> createRack(PostRackDto payload) async {
-    final res = await apiClient.post('$basePath/new', body: payload);
+    final res = await dioApiClient.post('$basePath/new', body: payload);
     if (res.statusCode != 201) {
-      throw Exception('Failed to create rack: ${res.body}');
+      throw Exception('Failed to create rack: ${res.data}');
     }
-    return RackDto.fromJson(jsonDecode(res.body));
+    return RackDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<RackDto> updateRack(String rackUuid, PutRackDto payload) async {
-    final res = await apiClient.put('$basePath/$rackUuid', body: payload);
+    final res = await dioApiClient.put('$basePath/$rackUuid', body: payload);
     if (res.statusCode != 200) {
-      throw Exception('Failed to update rack: ${res.body}');
+      throw Exception('Failed to update rack: ${res.data}');
     }
-    return RackDto.fromJson(jsonDecode(res.body));
+    return RackDto.fromJson(res.data as Map<String, dynamic>);
   }
 }
 

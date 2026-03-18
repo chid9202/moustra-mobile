@@ -1,6 +1,4 @@
-import 'dart:convert';
-
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/post_cage_dto.dart';
@@ -21,8 +19,8 @@ class CageApi {
       'page_size': pageSize.toString(),
       if (query != null) ...query,
     };
-    final res = await apiClient.get(basePath, query: mergedQuery);
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final res = await dioApiClient.get(basePath, query: mergedQuery);
+    final Map<String, dynamic> data = res.data as Map<String, dynamic>;
     return PaginatedResponseDto<CageDto>.fromJson(
       data,
       (j) => CageDto.fromJson(j),
@@ -34,11 +32,11 @@ class CageApi {
     required ListQueryParams params,
   }) async {
     final queryString = params.buildQueryString();
-    final res = await apiClient.getWithQueryString(
+    final res = await dioApiClient.getWithQueryString(
       basePath,
       queryString: queryString,
     );
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data as Map<String, dynamic>;
     return PaginatedResponseDto<CageDto>.fromJson(
       data,
       (j) => CageDto.fromJson(j),
@@ -49,8 +47,8 @@ class CageApi {
     required String prompt,
   }) async {
     final query = {'prompt': prompt};
-    final res = await apiClient.get('$basePath/ai/search', query: query);
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final res = await dioApiClient.get('$basePath/ai/search', query: query);
+    final Map<String, dynamic> data = res.data as Map<String, dynamic>;
     return PaginatedResponseDto<CageDto>.fromJson(
       data,
       (j) => CageDto.fromJson(j),
@@ -58,23 +56,23 @@ class CageApi {
   }
 
   Future<CageDto> getCage(String cageUuid) async {
-    final res = await apiClient.get('$basePath/$cageUuid');
-    return CageDto.fromJson(jsonDecode(res.body));
+    final res = await dioApiClient.get('$basePath/$cageUuid');
+    return CageDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<CageDto> getCageByBarcode(String barcode) async {
     try {
-      final res = await apiClient.get('$basePath/barcode/$barcode');
+      final res = await dioApiClient.get('$basePath/barcode/$barcode');
       if (res.statusCode == 404) {
         throw Exception('Cage with barcode "$barcode" not found');
       }
       if (res.statusCode != 200) {
         throw Exception('Failed to get cage by barcode (${res.statusCode})');
       }
-      if (res.body.isEmpty) {
+      if (res.data == null) {
         throw Exception('Empty response from server');
       }
-      return CageDto.fromJson(jsonDecode(res.body));
+      return CageDto.fromJson(res.data as Map<String, dynamic>);
     } on FormatException catch (e) {
       throw Exception('Invalid response format: ${e.message}');
     } catch (e) {
@@ -89,11 +87,11 @@ class CageApi {
   }
 
   Future<CageDto> createCage(PostCageDto payload) async {
-    final res = await apiClient.post(basePath, body: payload);
+    final res = await dioApiClient.post(basePath, body: payload);
     if (res.statusCode != 201) {
-      throw Exception('Failed to create cage ${res.body}');
+      throw Exception('Failed to create cage ${res.data}');
     }
-    return CageDto.fromJson(jsonDecode(res.body));
+    return CageDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<RackDto> createCageInRack({
@@ -108,13 +106,13 @@ class CageApi {
     };
     if (xPosition != null) body['xPosition'] = xPosition;
     if (yPosition != null) body['yPosition'] = yPosition;
-    
-    final res = await apiClient.post(basePath, body: body);
+
+    final res = await dioApiClient.post(basePath, body: body);
     if (res.statusCode != 201) {
-      throw Exception('Failed to create cage in rack: ${res.body}');
+      throw Exception('Failed to create cage in rack: ${res.data}');
     }
     // The response should be a RackDto with the updated rack
-    return RackDto.fromJson(jsonDecode(res.body));
+    return RackDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   /// Create cage with animals, mating, and litter (wizard mode)
@@ -144,26 +142,26 @@ class CageApi {
     }
     if (litterStrainUuid != null) body['litterStrain'] = litterStrainUuid;
     if (litter != null) body['litter'] = litter;
-    
-    final res = await apiClient.post(basePath, body: body);
+
+    final res = await dioApiClient.post(basePath, body: body);
     if (res.statusCode != 201) {
-      throw Exception('Failed to create cage with animals: ${res.body}');
+      throw Exception('Failed to create cage with animals: ${res.data}');
     }
-    return RackDto.fromJson(jsonDecode(res.body));
+    return RackDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<CageDto> putCage(String cageUuid, PutCageDto payload) async {
-    final res = await apiClient.put('$basePath/$cageUuid', body: payload);
+    final res = await dioApiClient.put('$basePath/$cageUuid', body: payload);
     if (res.statusCode != 200) {
-      throw Exception('Failed to update cage ${res.body}');
+      throw Exception('Failed to update cage ${res.data}');
     }
-    return CageDto.fromJson(jsonDecode(res.body));
+    return CageDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<void> endCage(String cageUuid) async {
-    final res = await apiClient.post('$basePath/$cageUuid/end');
+    final res = await dioApiClient.post('$basePath/$cageUuid/end');
     if (res.statusCode != 204) {
-      throw Exception('Failed to end cage ${res.body}');
+      throw Exception('Failed to end cage ${res.data}');
     }
   }
 
@@ -172,14 +170,14 @@ class CageApi {
     required int x,
     required int y,
   }) async {
-    final res = await apiClient.put(
+    final res = await dioApiClient.put(
       '$basePath/$cageUuid/order',
       body: {'x': x, 'y': y},
     );
     if (res.statusCode != 200) {
-      throw Exception('Failed to move cage: ${res.body}');
+      throw Exception('Failed to move cage: ${res.data}');
     }
-    return RackDto.fromJson(jsonDecode(res.body));
+    return RackDto.fromJson(res.data as Map<String, dynamic>);
   }
 }
 

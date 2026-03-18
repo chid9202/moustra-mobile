@@ -26,7 +26,10 @@ class CageDetailedView extends StatelessWidget {
       return Center(
         child: Text(
           'No animals',
-          style: TextStyle(color: Colors.grey.shade400, fontSize: 48),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 48,
+          ),
         ),
       );
     }

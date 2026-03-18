@@ -119,15 +119,6 @@ class _SignupScreenState extends State<SignupScreen> {
           useBackgroundStore();
           useSettingStore();
         })
-        .catchError((e) {
-          debugPrint(e);
-          if (mounted) {
-            setState(() {
-              _loading = false;
-              _error = 'Failed to load profile: $e';
-            });
-          }
-        })
         .then((_) async {
           if (mounted) {
             await Future.delayed(const Duration(milliseconds: 300));
@@ -137,6 +128,15 @@ class _SignupScreenState extends State<SignupScreen> {
               });
               context.go('/cage/grid');
             }
+          }
+        })
+        .catchError((e) {
+          debugPrint(e.toString());
+          if (mounted) {
+            setState(() {
+              _loading = false;
+              _error = 'Failed to load profile: $e';
+            });
           }
         });
   }

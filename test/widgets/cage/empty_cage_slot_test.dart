@@ -40,37 +40,41 @@ void main() {
     });
 
     testWidgets('has correct styling', (WidgetTester tester) async {
+      final theme = TestHelpers.createMockTheme();
       await TestHelpers.pumpWidgetWithTheme(
         tester,
         EmptyCageSlot(onTap: () {}),
+        theme: theme,
       );
 
       // Verify Card properties
       final card = tester.widget<Card>(find.byType(Card));
       expect(card.elevation, 0);
       expect(card.margin, const EdgeInsets.all(16.0));
-      expect(card.color, Colors.grey.shade50);
-      
+      expect(card.color, theme.colorScheme.surfaceContainerHighest);
+
       // Verify Card has rounded corners
       final shape = card.shape as RoundedRectangleBorder;
       expect(shape.borderRadius, BorderRadius.circular(8.0));
-      
+
       // Verify the border style
       final borderSide = shape.side;
-      expect(borderSide.color, Colors.grey.shade300);
+      expect(borderSide.color, theme.colorScheme.outlineVariant);
       expect(borderSide.width, 1.5);
       expect(borderSide.style, BorderStyle.solid);
     });
 
     testWidgets('icon has correct size and color', (WidgetTester tester) async {
+      final theme = TestHelpers.createMockTheme();
       await TestHelpers.pumpWidgetWithTheme(
         tester,
         EmptyCageSlot(onTap: () {}),
+        theme: theme,
       );
 
       final icon = tester.widget<Icon>(find.byIcon(Icons.add));
       expect(icon.size, 32);
-      expect(icon.color, Colors.grey.shade400);
+      expect(icon.color, theme.colorScheme.onSurfaceVariant);
     });
 
     testWidgets('centers the icon', (WidgetTester tester) async {

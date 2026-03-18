@@ -63,22 +63,29 @@ class _CageInteractiveViewState extends State<CageInteractiveView> {
     //   childWidget = CageCompactView(cage: widget.cage);
     // }
 
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final borderColor = shouldHighlight
         ? Colors.yellow.shade700
         : (_isDragOver
               ? (_isValidTarget ? Colors.green : Colors.red)
-              : Colors.blueGrey.shade400);
+              : (isDarkMode ? Colors.blueGrey.shade700 : Colors.blueGrey.shade400));
     final borderWidth = shouldHighlight ? 3.0 : (_isDragOver ? 3.0 : 2.0);
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     final cardContent = Container(
       margin: const EdgeInsets.all(6.0),
       decoration: BoxDecoration(
-        color: shouldHighlight ? Colors.yellow.shade50 : Colors.white,
+        color: shouldHighlight
+            ? (isDark ? Colors.yellow.shade900.withOpacity(0.3) : Colors.yellow.shade50)
+            : colorScheme.surface,
         borderRadius: BorderRadius.circular(12.0),
         border: Border.all(color: borderColor, width: borderWidth),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

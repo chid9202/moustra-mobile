@@ -151,9 +151,10 @@ void removeAnimalFromCage(String cageUuid, String animalUuid) {
   final currentStore = rackStore.value;
   if (currentStore == null) return;
   final rackData = currentStore.rackData;
-  rackData.cages
-      ?.firstWhere((cage) => cage.cageUuid == cageUuid)
-      .animals
+  final cage = rackData.cages
+      ?.cast<RackCageDto?>()
+      .firstWhere((cage) => cage?.cageUuid == cageUuid, orElse: () => null);
+  cage?.animals
       ?.removeWhere((animal) => animal.animalUuid == animalUuid);
   rackStore.value = RackStoreDto(
     rackData: rackData,

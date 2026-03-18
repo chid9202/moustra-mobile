@@ -1,9 +1,8 @@
-import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
@@ -12,7 +11,7 @@ import 'cage_api_test.mocks.dart';
 
 // Testable version of CageApi that accepts a client
 class TestableCageApi {
-  final ApiClient apiClient;
+  final DioApiClient apiClient;
   static const String basePath = '/cage';
 
   TestableCageApi(this.apiClient);
@@ -28,7 +27,7 @@ class TestableCageApi {
       if (query != null) ...query,
     };
     final res = await apiClient.get(basePath, query: mergedQuery);
-    final Map<String, dynamic> data = jsonDecode(res.body);
+    final Map<String, dynamic> data = res.data;
     return PaginatedResponseDto<CageDto>.fromJson(
       data,
       (j) => CageDto.fromJson(j),
@@ -37,7 +36,7 @@ class TestableCageApi {
 
   Future<CageDto> getCage(String cageUuid) async {
     final res = await apiClient.get('$basePath/$cageUuid');
-    return CageDto.fromJson(jsonDecode(res.body));
+    return CageDto.fromJson(res.data);
   }
 
   Future<RackDto> createCageInRack({
@@ -55,15 +54,15 @@ class TestableCageApi {
 
     final res = await apiClient.post(basePath, body: body);
     if (res.statusCode != 201) {
-      throw Exception('Failed to create cage in rack: ${res.body}');
+      throw Exception('Failed to create cage in rack: ${res.data}');
     }
-    return RackDto.fromJson(jsonDecode(res.body));
+    return RackDto.fromJson(res.data);
   }
 
   Future<void> endCage(String cageUuid) async {
     final res = await apiClient.post('$basePath/$cageUuid/end');
     if (res.statusCode != 204) {
-      throw Exception('Failed to end cage ${res.body}');
+      throw Exception('Failed to end cage ${res.data}');
     }
   }
 
@@ -77,28 +76,28 @@ class TestableCageApi {
       body: {'x': x, 'y': y},
     );
     if (res.statusCode != 200) {
-      throw Exception('Failed to move cage: ${res.body}');
+      throw Exception('Failed to move cage: ${res.data}');
     }
-    return RackDto.fromJson(jsonDecode(res.body));
+    return RackDto.fromJson(res.data);
   }
 }
 
-@GenerateMocks([ApiClient])
+@GenerateMocks([DioApiClient])
 void main() {
   group('CageApi Tests', () {
-    late MockApiClient mockApiClient;
+    late MockDioApiClient mockApiClient;
     late TestableCageApi cageApi;
 
     setUp(() {
-      mockApiClient = MockApiClient();
+      mockApiClient = MockDioApiClient();
       cageApi = TestableCageApi(mockApiClient);
     });
 
     group('getCagesPage', () {
       test('should return paginated cages response', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'results': [
               {
                 'cageId': 1,
@@ -136,8 +135,9 @@ void main() {
             'count': 2,
             'next': null,
             'previous': null,
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -158,14 +158,15 @@ void main() {
 
       test('should include query parameters in request', () async {
         // Arrange
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'results': [],
             'count': 0,
             'next': null,
             'previous': null,
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -199,8 +200,8 @@ void main() {
       test('should return single cage', () async {
         // Arrange
         const cageUuid = 'test-uuid';
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'cageId': 1,
             'cageUuid': cageUuid,
             'cageTag': 'C001',
@@ -215,8 +216,9 @@ void main() {
               },
             },
             'animals': [],
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(mockApiClient.get(any)).thenAnswer((_) async => mockResponse);
@@ -237,8 +239,8 @@ void main() {
         const cageTag = 'New Cage';
         const rackUuid = 'rack-uuid';
 
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'rackId': 1,
             'rackUuid': rackUuid,
             'rackName': 'Rack A',
@@ -250,8 +252,9 @@ void main() {
                 'cageTag': cageTag,
               }
             ],
-          }),
-          201,
+          },
+          statusCode: 201,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -282,8 +285,8 @@ void main() {
         const xPosition = 2;
         const yPosition = 1;
 
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'rackId': 1,
             'rackUuid': rackUuid,
             'rackName': 'Rack A',
@@ -297,8 +300,9 @@ void main() {
                 'yPosition': yPosition,
               }
             ],
-          }),
-          201,
+          },
+          statusCode: 201,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -334,14 +338,15 @@ void main() {
         const rackUuid = 'rack-uuid';
         const xPosition = 3;
 
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'rackId': 1,
             'rackUuid': rackUuid,
             'rackName': 'Rack A',
             'cages': [],
-          }),
-          201,
+          },
+          statusCode: 201,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -374,14 +379,15 @@ void main() {
         const rackUuid = 'rack-uuid';
         const yPosition = 2;
 
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'rackId': 1,
             'rackUuid': rackUuid,
             'rackName': 'Rack A',
             'cages': [],
-          }),
-          201,
+          },
+          statusCode: 201,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -410,7 +416,7 @@ void main() {
 
       test('should throw exception on non-201 status', () async {
         // Arrange
-        final mockResponse = http.Response('Bad Request', 400);
+        final mockResponse = Response(data: 'Bad Request', statusCode: 400, requestOptions: RequestOptions());
 
         when(
           mockApiClient.post(any, body: anyNamed('body')),
@@ -431,8 +437,8 @@ void main() {
         const x = 3;
         const y = 1;
 
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'rackId': 1,
             'rackUuid': 'rack-uuid',
             'rackName': 'Rack A',
@@ -446,8 +452,9 @@ void main() {
                 'yPosition': y,
               }
             ],
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -474,14 +481,15 @@ void main() {
         const x = 0;
         const y = 0;
 
-        final mockResponse = http.Response(
-          jsonEncode({
+        final mockResponse = Response(
+          data: {
             'rackId': 1,
             'rackUuid': 'rack-uuid',
             'rackName': 'Rack A',
             'cages': [],
-          }),
-          200,
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(),
         );
 
         when(
@@ -503,7 +511,7 @@ void main() {
       test('should throw exception on non-200 status', () async {
         // Arrange
         const cageUuid = 'cage-uuid';
-        final mockResponse = http.Response('Bad Request', 400);
+        final mockResponse = Response(data: 'Bad Request', statusCode: 400, requestOptions: RequestOptions());
 
         when(
           mockApiClient.put(any, body: anyNamed('body')),
@@ -519,7 +527,7 @@ void main() {
       test('should throw exception on 404 status', () async {
         // Arrange
         const cageUuid = 'nonexistent-cage';
-        final mockResponse = http.Response('Not Found', 404);
+        final mockResponse = Response(data: 'Not Found', statusCode: 404, requestOptions: RequestOptions());
 
         when(
           mockApiClient.put(any, body: anyNamed('body')),
@@ -535,7 +543,7 @@ void main() {
       test('should throw exception on 409 conflict status', () async {
         // Arrange
         const cageUuid = 'cage-uuid';
-        final mockResponse = http.Response('Position already occupied', 409);
+        final mockResponse = Response(data: 'Position already occupied', statusCode: 409, requestOptions: RequestOptions());
 
         when(
           mockApiClient.put(any, body: anyNamed('body')),
@@ -553,7 +561,7 @@ void main() {
       test('should end cage successfully', () async {
         // Arrange
         const cageUuid = 'cage-uuid';
-        final mockResponse = http.Response('', 204);
+        final mockResponse = Response(data: '', statusCode: 204, requestOptions: RequestOptions());
 
         when(
           mockApiClient.post(any),
@@ -569,7 +577,7 @@ void main() {
       test('should throw exception on non-204 status', () async {
         // Arrange
         const cageUuid = 'cage-uuid';
-        final mockResponse = http.Response('Cage has animals', 400);
+        final mockResponse = Response(data: 'Cage has animals', statusCode: 400, requestOptions: RequestOptions());
 
         when(
           mockApiClient.post(any),

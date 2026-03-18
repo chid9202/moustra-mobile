@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:moustra/services/clients/api_client.dart';
+import 'package:moustra/services/clients/dio_api_client.dart';
 
 class EventApi {
   /// Fire-and-forget event tracking.
@@ -8,7 +8,7 @@ class EventApi {
   void trackEvent(String eventName) {
     final source = Platform.isIOS ? 'iOS' : 'Android';
     try {
-      apiClient.post(
+      dioApiClient.post(
         '/event',
         body: {
           'eventName': 'mobile_$eventName',

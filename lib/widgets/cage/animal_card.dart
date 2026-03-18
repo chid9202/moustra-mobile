@@ -51,10 +51,11 @@ class _AnimalCardState extends State<AnimalCard> {
   }
 
   Color _getGenderBackgroundColor() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final sex = widget.animal.sex?.toUpperCase();
-    if (sex == 'M') return Colors.blue.shade50;
-    if (sex == 'F') return Colors.pink.shade50;
-    return Colors.grey.shade100;
+    if (sex == 'M') return isDark ? Colors.blue.shade900.withOpacity(0.4) : Colors.blue.shade50;
+    if (sex == 'F') return isDark ? Colors.pink.shade900.withOpacity(0.4) : Colors.pink.shade50;
+    return isDark ? Colors.grey.shade800 : Colors.grey.shade100;
   }
 
   Widget _buildGenderBadge({double size = 36}) {
@@ -81,17 +82,21 @@ class _AnimalCardState extends State<AnimalCard> {
 
   Widget _buildCardContent({bool forFeedback = false}) {
     final shouldHighlight = _shouldHighlight();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
     final content = Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
       decoration: BoxDecoration(
         border: Border.all(
           color: shouldHighlight
               ? Colors.yellow.shade700
-              : Colors.grey.shade200,
+              : (isDark ? colorScheme.outlineVariant : Colors.grey.shade200),
           width: shouldHighlight ? 2.0 : 1.0,
         ),
         borderRadius: BorderRadius.circular(8.0),
-        color: shouldHighlight ? Colors.yellow.shade50 : Colors.grey.shade50,
+        color: shouldHighlight
+            ? (isDark ? Colors.yellow.shade900.withOpacity(0.3) : Colors.yellow.shade50)
+            : (isDark ? colorScheme.surfaceContainerHighest : Colors.grey.shade50),
       ),
       child: Row(
         children: [
@@ -110,10 +115,10 @@ class _AnimalCardState extends State<AnimalCard> {
                     Flexible(
                       child: Text(
                         widget.animal.physicalTag ?? 'No tag',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                          color: colorScheme.onSurface,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -134,7 +139,7 @@ class _AnimalCardState extends State<AnimalCard> {
                   _formatGenotypes(),
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.grey.shade600,
+                    color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w400,
                   ),
                   overflow: TextOverflow.ellipsis,
