@@ -32,11 +32,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       length: 3,
       child: Column(
         children: [
-          const TabBar(
+          TabBar(
             tabs: [
-              Tab(text: 'Overview'),
-              Tab(text: 'Compliance'),
-              Tab(text: 'Reports'),
+              Semantics(label: 'Overview Tab', child: const Tab(text: 'Overview')),
+              Semantics(label: 'Compliance Tab', child: const Tab(text: 'Compliance')),
+              Semantics(label: 'Reports Tab', child: const Tab(text: 'Reports')),
             ],
           ),
           Expanded(

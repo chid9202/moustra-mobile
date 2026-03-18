@@ -32,7 +32,10 @@ class WizardStepper extends StatelessWidget {
     final isCompleted = index < activeStep;
     final label = ColonyWizardConstants.stepLabels[index];
 
-    return InkWell(
+    return Semantics(
+      label: 'Step ${index + 1}: $label',
+      button: true,
+      child: InkWell(
       onTap: () => onStepTapped(index),
       borderRadius: BorderRadius.circular(8),
       child: Padding(
@@ -101,6 +104,7 @@ class WizardStepper extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }

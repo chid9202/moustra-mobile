@@ -248,19 +248,23 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Physical Tag Field
-              TextFormField(
-                controller: _physicalTagController,
-                decoration: const InputDecoration(
-                  labelText: 'Physical Tag',
-                  hintText: 'Enter physical tag',
-                  border: OutlineInputBorder(),
+              Semantics(
+                label: 'Physical Tag',
+                textField: true,
+                child: TextFormField(
+                  controller: _physicalTagController,
+                  decoration: const InputDecoration(
+                    labelText: 'Physical Tag',
+                    hintText: 'Enter physical tag',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a physical tag';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a physical tag';
-                  }
-                  return null;
-                },
               ),
 
               const SizedBox(height: 16),
@@ -381,14 +385,18 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
               const SizedBox(height: 16),
 
               // Comment Field
-              TextFormField(
-                controller: _commentController,
-                decoration: const InputDecoration(
-                  labelText: 'Comment',
-                  hintText: 'Enter any additional comments',
-                  border: OutlineInputBorder(),
+              Semantics(
+                label: 'Comment',
+                textField: true,
+                child: TextFormField(
+                  controller: _commentController,
+                  decoration: const InputDecoration(
+                    labelText: 'Comment',
+                    hintText: 'Enter any additional comments',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
                 ),
-                maxLines: 3,
               ),
 
               // End Information (read-only, shown only for ended animals)
@@ -452,11 +460,15 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
               ],
 
               // Save Button
-              SizedBox(
-                width: double.infinity,
-                child: MoustraButtonPrimary(
-                  onPressed: _saveAnimal,
-                  label: 'Save Animal',
+              Semantics(
+                label: 'Save Animal',
+                button: true,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: MoustraButtonPrimary(
+                    onPressed: _saveAnimal,
+                    label: 'Save Animal',
+                  ),
                 ),
               ),
             ],

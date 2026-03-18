@@ -10,37 +10,57 @@ class MoustraAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       centerTitle: true,
       leading: Builder(
-        builder: (context) => IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () => Scaffold.of(context).openDrawer(),
+        builder: (context) => Semantics(
+          label: 'Open menu',
+          button: true,
+          child: IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
       ),
       actions: [
         const NotificationBell(),
-        IconButton(
-          icon: const Icon(Icons.task_alt),
-          tooltip: 'Tasks',
-          onPressed: () => context.go('/task'),
+        Semantics(
+          label: 'Tasks',
+          button: true,
+          child: IconButton(
+            icon: const Icon(Icons.task_alt),
+            tooltip: 'Tasks',
+            onPressed: () => context.go('/task'),
+          ),
         ),
-        IconButton(
-          icon: const Icon(Icons.calendar_month),
-          tooltip: 'Calendar',
-          onPressed: () => context.go('/calendar'),
+        Semantics(
+          label: 'Calendar',
+          button: true,
+          child: IconButton(
+            icon: const Icon(Icons.calendar_month),
+            tooltip: 'Calendar',
+            onPressed: () => context.go('/calendar'),
+          ),
         ),
-        IconButton(
-          icon: const Icon(Icons.smart_toy),
-          tooltip: 'Cheese AI',
-          onPressed: () => context.go('/ai'),
+        Semantics(
+          label: 'Cheese AI',
+          button: true,
+          child: IconButton(
+            icon: const Icon(Icons.smart_toy),
+            tooltip: 'Cheese AI',
+            onPressed: () => context.go('/ai'),
+          ),
         ),
       ],
       flexibleSpace: Container(
         alignment: Alignment.bottomCenter,
-        child: GestureDetector(
-          onTap: () => context.go('/cage/grid'),
-          child: Image.asset(
-            'assets/icons/app_icon.png',
-            height: 64,
-            width: 64,
+        child: Semantics(
+          label: 'Home',
+          button: true,
+          child: GestureDetector(
+            onTap: () => context.go('/cage/grid'),
+            child: Image.asset(
+              'assets/icons/app_icon.png',
+              height: 64,
+              width: 64,
+            ),
           ),
         ),
       ),

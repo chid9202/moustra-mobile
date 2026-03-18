@@ -45,7 +45,10 @@ class _NotificationBellState extends State<NotificationBell> {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
+    return Semantics(
+      label: 'Notifications',
+      button: true,
+      child: IconButton(
       icon: Badge(
         isLabelVisible: _unreadCount > 0,
         label: Text(
@@ -55,6 +58,7 @@ class _NotificationBellState extends State<NotificationBell> {
         child: const Icon(Icons.notifications_outlined),
       ),
       onPressed: () => context.go('/notification'),
+    ),
     );
   }
 }

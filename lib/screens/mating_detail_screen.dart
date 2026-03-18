@@ -595,19 +595,23 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
                 const SizedBox(height: 16),
               ],
 
-              TextFormField(
-                controller: _matingTagController,
-                decoration: const InputDecoration(
-                  labelText: 'Mating Tag',
-                  hintText: 'Enter mating tag',
-                  border: OutlineInputBorder(),
+              Semantics(
+                label: 'Mating Tag',
+                textField: true,
+                child: TextFormField(
+                  controller: _matingTagController,
+                  decoration: const InputDecoration(
+                    labelText: 'Mating Tag',
+                    hintText: 'Enter mating tag',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a mating tag';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a mating tag';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 16),
               SelectAnimal(
@@ -728,25 +732,33 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
 
               // Disband button (only for existing, non-disbanded matings)
               if (isEditing && !isDisbanded) ...[
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
+                Semantics(
+                  label: 'Disband Mating',
+                  button: true,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                      ),
+                      onPressed: _showDisbandDialog,
+                      child: const Text('Disband Mating'),
                     ),
-                    onPressed: _showDisbandDialog,
-                    child: const Text('Disband Mating'),
                   ),
                 ),
                 const SizedBox(height: 12),
               ],
 
-              SizedBox(
-                width: double.infinity,
-                child: MoustraButtonPrimary(
-                  label: 'Save Mating',
-                  onPressed: isDisbanded ? null : _saveMating,
+              Semantics(
+                label: 'Save Mating',
+                button: true,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: MoustraButtonPrimary(
+                    label: 'Save Mating',
+                    onPressed: isDisbanded ? null : _saveMating,
+                  ),
                 ),
               ),
             ],

@@ -397,19 +397,23 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Strain Name Field
-              TextFormField(
-                controller: _strainNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Strain Name',
-                  hintText: 'Enter strain name',
-                  border: OutlineInputBorder(),
+              Semantics(
+                label: 'Strain Name',
+                textField: true,
+                child: TextFormField(
+                  controller: _strainNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Strain Name',
+                    hintText: 'Enter strain name',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a strain name';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a strain name';
-                  }
-                  return null;
-                },
               ),
 
               const SizedBox(height: 16),
@@ -495,28 +499,36 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
               const SizedBox(height: 32),
 
               // Save Button
-              SizedBox(
-                width: double.infinity,
-                child: MoustraButtonPrimary(
-                  label: 'Save',
-                  onPressed: _saveStrain,
+              Semantics(
+                label: 'Save',
+                button: true,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: MoustraButtonPrimary(
+                    label: 'Save',
+                    onPressed: _saveStrain,
+                  ),
                 ),
               ),
 
               // Deactivate/Activate Button (only for existing strains)
               if (_strainUuid != null && _strainUuid != 'new') ...[
                 const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _toggleActive,
-                    icon: Icon(
-                      _isActive ? Icons.block : Icons.check_circle,
-                    ),
-                    label: Text(_isActive ? 'Deactivate' : 'Activate'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor:
-                          _isActive ? Colors.red : Colors.green,
+                Semantics(
+                  label: _isActive ? 'Deactivate' : 'Activate',
+                  button: true,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _toggleActive,
+                      icon: Icon(
+                        _isActive ? Icons.block : Icons.check_circle,
+                      ),
+                      label: Text(_isActive ? 'Deactivate' : 'Activate'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor:
+                            _isActive ? Colors.red : Colors.green,
+                      ),
                     ),
                   ),
                 ),

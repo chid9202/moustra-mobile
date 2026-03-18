@@ -204,10 +204,14 @@ class AppMenu extends StatelessWidget {
           ),
 
           // Logout
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Logout', style: TextStyle(color: Colors.red)),
-            onTap: () => _handleLogout(context),
+          Semantics(
+            label: 'Logout',
+            button: true,
+            child: ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Logout', style: TextStyle(color: Colors.red)),
+              onTap: () => _handleLogout(context),
+            ),
           ),
 
           // Bottom padding for safe area
@@ -291,15 +295,19 @@ class AppMenu extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 16, top: 12, bottom: 4),
-          child: Text(
-            group.label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.0,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+        Semantics(
+          label: group.label,
+          header: true,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16, top: 12, bottom: 4),
+            child: Text(
+              group.label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.0,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
             ),
           ),
         ),
@@ -324,27 +332,31 @@ class AppMenu extends StatelessWidget {
     final theme = Theme.of(context);
     final activeColor = theme.colorScheme.primary;
 
-    return ListTile(
-      contentPadding: indent
-          ? const EdgeInsets.only(left: 32, right: 16)
-          : null,
-      leading: Icon(
-        item.icon,
-        color: isActive ? activeColor : null,
-      ),
-      title: Text(
-        item.display,
-        style: TextStyle(
+    return Semantics(
+      label: item.display,
+      button: true,
+      child: ListTile(
+        contentPadding: indent
+            ? const EdgeInsets.only(left: 32, right: 16)
+            : null,
+        leading: Icon(
+          item.icon,
           color: isActive ? activeColor : null,
-          fontWeight: isActive ? FontWeight.w600 : null,
         ),
+        title: Text(
+          item.display,
+          style: TextStyle(
+            color: isActive ? activeColor : null,
+            fontWeight: isActive ? FontWeight.w600 : null,
+          ),
+        ),
+        selected: isActive,
+        selectedTileColor: activeColor.withValues(alpha: 0.08),
+        onTap: () {
+          Navigator.of(context).pop();
+          context.go(item.route);
+        },
       ),
-      selected: isActive,
-      selectedTileColor: activeColor.withValues(alpha: 0.08),
-      onTap: () {
-        Navigator.of(context).pop();
-        context.go(item.route);
-      },
     );
   }
 

@@ -439,19 +439,23 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                 disabled: _litterDataLoaded,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _litterTagController,
-                decoration: const InputDecoration(
-                  labelText: 'Litter Tag',
-                  hintText: 'Enter litter tag',
-                  border: OutlineInputBorder(),
+              Semantics(
+                label: 'Litter Tag',
+                textField: true,
+                child: TextFormField(
+                  controller: _litterTagController,
+                  decoration: const InputDecoration(
+                    labelText: 'Litter Tag',
+                    hintText: 'Enter litter tag',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a litter tag';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a litter tag';
-                  }
-                  return null;
-                },
               ),
               if (isNew) ...[
                 const SizedBox(height: 16),
@@ -603,10 +607,14 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    FilledButton.icon(
-                      onPressed: _showAddPupsDialog,
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Add Pups'),
+                    Semantics(
+                      label: 'Add Pups',
+                      button: true,
+                      child: FilledButton.icon(
+                        onPressed: _showAddPupsDialog,
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Add Pups'),
+                      ),
                     ),
                   ],
                 ),
@@ -660,11 +668,15 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                   initialNotes: _litterData?.notes,
                 ),
 
-              SizedBox(
-                width: double.infinity,
-                child: MoustraButtonPrimary(
-                  onPressed: _selectedMating == null ? null : _saveLitter,
-                  label: isNew ? 'Create Litter' : 'Update Litter',
+              Semantics(
+                label: isNew ? 'Create Litter' : 'Update Litter',
+                button: true,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: MoustraButtonPrimary(
+                    onPressed: _selectedMating == null ? null : _saveLitter,
+                    label: isNew ? 'Create Litter' : 'Update Litter',
+                  ),
                 ),
               ),
             ],

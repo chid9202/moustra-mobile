@@ -121,10 +121,14 @@ class _MovableFabMenuState extends State<MovableFabMenu> {
                         ],
                       ),
                     ),
-                  FloatingActionButton(
-                    heroTag: widget.heroTag,
-                    onPressed: () => _setMenuOpen(!_menuOpen),
-                    child: _menuOpen ? widget.closeIcon : widget.menuIcon,
+                  Semantics(
+                    label: _menuOpen ? 'Close menu' : 'Open actions menu',
+                    button: true,
+                    child: FloatingActionButton(
+                      heroTag: widget.heroTag,
+                      onPressed: () => _setMenuOpen(!_menuOpen),
+                      child: _menuOpen ? widget.closeIcon : widget.menuIcon,
+                    ),
                   ),
                 ],
               ),
@@ -137,17 +141,21 @@ class _MovableFabMenuState extends State<MovableFabMenu> {
 
   Widget _buildAction(FabMenuAction action) {
     final bool isEnabled = action.enabled && action.onPressed != null;
-    return FilledButton.icon(
-      onPressed: isEnabled
-          ? () {
-              action.onPressed?.call();
-              if (action.closeOnTap) {
-                _setMenuOpen(false);
+    return Semantics(
+      label: action.label,
+      button: true,
+      child: FilledButton.icon(
+        onPressed: isEnabled
+            ? () {
+                action.onPressed?.call();
+                if (action.closeOnTap) {
+                  _setMenuOpen(false);
+                }
               }
-            }
-          : null,
-      icon: action.icon,
-      label: Text(action.label),
+            : null,
+        icon: action.icon,
+        label: Text(action.label),
+      ),
     );
   }
 }

@@ -273,19 +273,23 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                controller: _cageTagController,
-                decoration: const InputDecoration(
-                  labelText: 'Cage Tag',
-                  hintText: 'Enter cage tag',
-                  border: OutlineInputBorder(),
+              Semantics(
+                label: 'Cage Tag',
+                textField: true,
+                child: TextFormField(
+                  controller: _cageTagController,
+                  decoration: const InputDecoration(
+                    labelText: 'Cage Tag',
+                    hintText: 'Enter cage tag',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a cage tag';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a cage tag';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 16),
               SelectOwner(
@@ -317,28 +321,40 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                 hintText: 'Select set up date (optional)',
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _barcodeController,
-                decoration: InputDecoration(
-                  labelText: 'Barcode',
-                  hintText: 'Enter or scan barcode',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.qr_code_scanner),
-                    onPressed: _scanBarcode,
-                    tooltip: 'Scan barcode',
+              Semantics(
+                label: 'Barcode',
+                textField: true,
+                child: TextFormField(
+                  controller: _barcodeController,
+                  decoration: InputDecoration(
+                    labelText: 'Barcode',
+                    hintText: 'Enter or scan barcode',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: Semantics(
+                      label: 'Scan barcode',
+                      button: true,
+                      child: IconButton(
+                        icon: const Icon(Icons.qr_code_scanner),
+                        onPressed: _scanBarcode,
+                        tooltip: 'Scan barcode',
+                      ),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _commentController,
-                decoration: const InputDecoration(
-                  labelText: 'Comment',
-                  hintText: 'Enter any additional comments',
-                  border: OutlineInputBorder(),
+              Semantics(
+                label: 'Comment',
+                textField: true,
+                child: TextFormField(
+                  controller: _commentController,
+                  decoration: const InputDecoration(
+                    labelText: 'Comment',
+                    hintText: 'Enter any additional comments',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
                 ),
-                maxLines: 3,
               ),
               const SizedBox(height: 32),
 
@@ -364,11 +380,15 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                   entityType: NoteEntityType.cage,
                   initialNotes: _cageData?.notes,
                 ),
-              SizedBox(
-                width: double.infinity,
-                child: MoustraButtonPrimary(
-                  onPressed: _saveCage,
-                  label: 'Save Cage',
+              Semantics(
+                label: 'Save Cage',
+                button: true,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: MoustraButtonPrimary(
+                    onPressed: _saveCage,
+                    label: 'Save Cage',
+                  ),
                 ),
               ),
             ],

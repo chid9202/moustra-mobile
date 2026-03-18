@@ -167,10 +167,14 @@ class _ColonyWizardScreenState extends State<ColonyWizardScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: _onClose,
-            tooltip: 'Exit wizard',
+          Semantics(
+            label: 'Exit wizard',
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: _onClose,
+              tooltip: 'Exit wizard',
+            ),
           ),
         ],
       ),
@@ -192,16 +196,24 @@ class _ColonyWizardScreenState extends State<ColonyWizardScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          OutlinedButton.icon(
-            onPressed: _onBack,
-            icon: const Icon(Icons.arrow_back),
-            label: const Text('Back'),
+          Semantics(
+            label: 'Back',
+            button: true,
+            child: OutlinedButton.icon(
+              onPressed: _onBack,
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Back'),
+            ),
           ),
           if (activeStep < 4)
-            FilledButton.icon(
-              onPressed: _onNext,
-              icon: const Icon(Icons.arrow_forward),
-              label: const Text('Next'),
+            Semantics(
+              label: 'Next',
+              button: true,
+              child: FilledButton.icon(
+                onPressed: _onNext,
+                icon: const Icon(Icons.arrow_forward),
+                label: const Text('Next'),
+              ),
             ),
         ],
       ),

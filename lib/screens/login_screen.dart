@@ -377,70 +377,81 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                             ],
 
                             // Email field
-                            TextFormField(
-                              controller: _emailController,
-                              focusNode: _emailFocusNode,
-                              keyboardType: TextInputType.emailAddress,
-                              textInputAction: TextInputAction.next,
-                              autocorrect: false,
-                              enabled: !_loading,
-                              autofillHints: const [AutofillHints.email],
-                              decoration: InputDecoration(
-                                labelText: 'Email',
-                                hintText: 'Enter your email',
-                                prefixIcon: const Icon(Icons.email_outlined),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                            Semantics(
+                              label: 'Email',
+                              textField: true,
+                              child: TextFormField(
+                                controller: _emailController,
+                                focusNode: _emailFocusNode,
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
+                                autocorrect: false,
+                                enabled: !_loading,
+                                autofillHints: const [AutofillHints.email],
+                                decoration: InputDecoration(
+                                  labelText: 'Email',
+                                  hintText: 'Enter your email',
+                                  prefixIcon: const Icon(Icons.email_outlined),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  filled: true,
+                                  fillColor: colorScheme.surfaceContainerHighest
+                                      .withValues(alpha: 0.3),
                                 ),
-                                filled: true,
-                                fillColor: colorScheme.surfaceContainerHighest
-                                    .withValues(alpha: 0.3),
+                                validator: _validateEmail,
+                                onFieldSubmitted: (_) {
+                                  _passwordFocusNode.requestFocus();
+                                },
                               ),
-                              validator: _validateEmail,
-                              onFieldSubmitted: (_) {
-                                _passwordFocusNode.requestFocus();
-                              },
                             ),
                             const SizedBox(height: 16),
 
                             // Password field
-                            TextFormField(
-                              controller: _passwordController,
-                              focusNode: _passwordFocusNode,
-                              obscureText: _obscurePassword,
-                              textInputAction: TextInputAction.done,
-                              enabled: !_loading,
-                              autofillHints: const [AutofillHints.password],
-                              decoration: InputDecoration(
-                                labelText: 'Password',
-                                hintText: 'Enter your password',
-                                prefixIcon: const Icon(Icons.lock_outlined),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_outlined
-                                        : Icons.visibility_off_outlined,
+                            Semantics(
+                              label: 'Password',
+                              textField: true,
+                              child: TextFormField(
+                                controller: _passwordController,
+                                focusNode: _passwordFocusNode,
+                                obscureText: _obscurePassword,
+                                textInputAction: TextInputAction.done,
+                                enabled: !_loading,
+                                autofillHints: const [AutofillHints.password],
+                                decoration: InputDecoration(
+                                  labelText: 'Password',
+                                  hintText: 'Enter your password',
+                                  prefixIcon: const Icon(Icons.lock_outlined),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword
+                                          ? Icons.visibility_outlined
+                                          : Icons.visibility_off_outlined,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscurePassword = !_obscurePassword;
+                                      });
+                                    },
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  filled: true,
+                                  fillColor: colorScheme.surfaceContainerHighest
+                                      .withValues(alpha: 0.3),
                                 ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                filled: true,
-                                fillColor: colorScheme.surfaceContainerHighest
-                                    .withValues(alpha: 0.3),
+                                validator: _validatePassword,
+                                onFieldSubmitted: (_) => _handleLogin(),
                               ),
-                              validator: _validatePassword,
-                              onFieldSubmitted: (_) => _handleLogin(),
                             ),
                             const SizedBox(height: 24),
 
                             // Sign in button
-                            FilledButton(
+                            Semantics(
+                              label: 'Sign In',
+                              button: true,
+                              child: FilledButton(
                               onPressed: _loading ? null : _handleLogin,
                               style: FilledButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
@@ -466,6 +477,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
+                            ),
                             ),
                             const SizedBox(height: 16),
 
@@ -502,24 +514,32 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                             const SizedBox(height: 16),
 
                             // Google Sign In button
-                            _SocialLoginButton(
-                              onPressed: _loading
-                                  ? null
-                                  : () => _handleSocialLogin('google-oauth2'),
+                            Semantics(
                               label: 'Continue with Google',
-                              icon: _GoogleIcon(),
-                              colorScheme: colorScheme,
+                              button: true,
+                              child: _SocialLoginButton(
+                                onPressed: _loading
+                                    ? null
+                                    : () => _handleSocialLogin('google-oauth2'),
+                                label: 'Continue with Google',
+                                icon: _GoogleIcon(),
+                                colorScheme: colorScheme,
+                              ),
                             ),
                             const SizedBox(height: 12),
 
                             // Microsoft Sign In button
-                            _SocialLoginButton(
-                              onPressed: _loading
-                                  ? null
-                                  : () => _handleSocialLogin('windowslive'),
+                            Semantics(
                               label: 'Continue with Microsoft',
-                              icon: _MicrosoftIcon(),
-                              colorScheme: colorScheme,
+                              button: true,
+                              child: _SocialLoginButton(
+                                onPressed: _loading
+                                    ? null
+                                    : () => _handleSocialLogin('windowslive'),
+                                label: 'Continue with Microsoft',
+                                icon: _MicrosoftIcon(),
+                                colorScheme: colorScheme,
+                              ),
                             ),
                             const SizedBox(height: 24),
 
@@ -535,22 +555,26 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                                     fontSize: 14,
                                   ),
                                 ),
-                                TextButton(
-                                  onPressed: _loading
-                                      ? null
-                                      : () => context.go('/signup'),
-                                  style: TextButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: Size.zero,
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: Text(
-                                    'Sign up',
-                                    style: TextStyle(
-                                      color: colorScheme.primary,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
+                                Semantics(
+                                  label: 'Sign Up',
+                                  button: true,
+                                  child: TextButton(
+                                    onPressed: _loading
+                                        ? null
+                                        : () => context.go('/signup'),
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: Text(
+                                      'Sign up',
+                                      style: TextStyle(
+                                        color: colorScheme.primary,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 ),
