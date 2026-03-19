@@ -117,7 +117,10 @@ class _SelectMatingState extends State<SelectMating> {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return Semantics(
+      label: widget.label,
+      button: true,
+      child: InkWell(
       onTap: widget.disabled ? null : _showMatingPicker,
       child: InputDecorator(
         decoration: InputDecoration(
@@ -155,6 +158,7 @@ class _SelectMatingState extends State<SelectMating> {
                 ],
               ),
       ),
+    ),
     );
   }
 }
