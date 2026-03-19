@@ -1,0 +1,115 @@
+appId: com.moustra.app
+---
+# Mating CRUD — Full Create + Edit + Verify
+# Edit: pressKey: Enter triggers onFieldSubmitted → _saveMating()
+
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Email"
+- inputText: "admin+29917@moustra.com"
+- tapOn:
+    text: "Password"
+- inputText: "admin+29917"
+- tapOn:
+    text: "Sign In"
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 20000
+- waitForAnimationToEnd:
+    timeout: 10000
+
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Mating"
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: mating-01-list
+
+# CREATE
+- tapOn:
+    text: "Open actions menu"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    text: "Create Mating"
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- tapOn:
+    text: "Mating Tag"
+- inputText: "QA-MATING-CRUD"
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Select male (coordinate y≈285)
+- tapOn:
+    point: "200,285"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    point: "200,220"
+- waitForAnimationToEnd:
+    timeout: 1000
+- tapOn:
+    text: "OK"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Select female (coordinate y≈370)
+- tapOn:
+    point: "200,370"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    point: "200,220"
+- waitForAnimationToEnd:
+    timeout: 1000
+- tapOn:
+    text: "OK"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Scroll to Save and tap
+- swipe:
+    start: "50%, 80%"
+    end: "50%, 30%"
+    duration: 500
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    text: "Save Mating"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: mating-02-after-create
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: mating-03-list
+
+# EDIT
+- tapOn:
+    text: "QA-MATING-CRUD"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: mating-04-edit-form
+
+- tapOn:
+    text: "Mating Tag"
+    optional: true
+- eraseText: 25
+- inputText: "QA-MATING-UPDATED"
+# Enter triggers _saveMating()
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: mating-05-after-edit
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: mating-06-verify
+- takeScreenshot: mating-07-final

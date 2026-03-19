@@ -1,0 +1,57 @@
+appId: com.moustra.app
+---
+# Debug: test if Save Cage is findable while keyboard is up on edit form
+
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Email"
+- inputText: "admin+29917@moustra.com"
+- tapOn:
+    text: "Password"
+- inputText: "admin+29917"
+- tapOn:
+    text: "Sign In"
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 20000
+- waitForAnimationToEnd:
+    timeout: 10000
+
+# Navigate to cages and open an existing cage for edit
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Cages"
+- waitForAnimationToEnd:
+    timeout: 8000
+
+# Tap first edit button to open edit form
+- tapOn:
+    text: "Edit .*"
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: debug-01-edit-form
+
+# Tap Cage Tag to open keyboard
+- tapOn:
+    text: "Cage Tag"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: debug-02-keyboard-up
+
+# Try scrollUntilVisible within the form's SingleChildScrollView
+- scrollUntilVisible:
+    element:
+      text: "Save Cage"
+    direction: DOWN
+    timeout: 10000
+    speed: 20
+    centerElement: true
+- takeScreenshot: debug-03-save-found
+- tapOn:
+    text: "Save Cage"
+- takeScreenshot: debug-04-after-save
