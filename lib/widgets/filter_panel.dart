@@ -13,6 +13,8 @@ class FilterPanel extends StatefulWidget {
   final List<PreparedFilter> preparedFilters;
   final int selectedPresetIndex;
   final ValueChanged<int>? onPresetSelected;
+  final bool isEditMode;
+  final VoidCallback? onEditToggle;
 
   const FilterPanel({
     super.key,
@@ -25,6 +27,8 @@ class FilterPanel extends StatefulWidget {
     this.preparedFilters = const [],
     this.selectedPresetIndex = -1,
     this.onPresetSelected,
+    this.isEditMode = false,
+    this.onEditToggle,
   });
 
   @override
@@ -181,6 +185,17 @@ class _FilterPanelState extends State<FilterPanel> {
     widget.onClear?.call();
   }
 
+  String? _sortSummary() {
+    if (widget.initialSort == null) return null;
+    final label = widget.sortFields
+            .where((f) => f.field == widget.initialSort!.field)
+            .firstOrNull
+            ?.label ??
+        widget.initialSort!.field;
+    final arrow = widget.initialSort!.order == SortOrder.asc ? '↑' : '↓';
+    return '$arrow $label';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -196,6 +211,44 @@ class _FilterPanelState extends State<FilterPanel> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Row(
               children: [
+                ActionChip(
+                  avatar: Icon(
+                    Icons.edit_outlined,
+                    size: 16,
+                    color: widget.isEditMode
+                        ? theme.colorScheme.onSecondaryContainer
+                        : null,
+                  ),
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Edit Rows',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: widget.isEditMode
+                              ? theme.colorScheme.onSecondaryContainer
+                              : null,
+                        ),
+                      ),
+                      if (widget.isEditMode) ...[
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.close,
+                          size: 14,
+                          color: theme.colorScheme.onSecondaryContainer,
+                        ),
+                      ],
+                    ],
+                  ),
+                  backgroundColor: widget.isEditMode
+                      ? theme.colorScheme.secondaryContainer
+                      : null,
+                  onPressed: widget.onEditToggle,
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                ),
+                const SizedBox(width: 8),
                 Icon(
                   _isExpanded ? Icons.filter_list_off : Icons.filter_list,
                   size: 20,
@@ -238,6 +291,18 @@ class _FilterPanelState extends State<FilterPanel> {
             ),
           ),
         ),
+
+        // Sort summary (collapsed only)
+        if (!_isExpanded && _sortSummary() != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 16, bottom: 4),
+            child: Text(
+              _sortSummary()!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
 
         // Expandable filter content
         if (_isExpanded) ...[
