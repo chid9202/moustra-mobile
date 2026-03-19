@@ -229,6 +229,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           'assets/icons/app_icon.png',
                           height: 100,
                           width: 100,
+                          semanticLabel: 'Moustra logo',
                         ),
                         const SizedBox(height: 24),
 
@@ -292,65 +293,76 @@ class _SignupScreenState extends State<SignupScreen> {
                         ],
 
                         // Email field
-                        TextFormField(
-                          controller: _emailController,
-                          focusNode: _emailFocusNode,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          autocorrect: false,
-                          enabled: !_loading,
-                          autofillHints: const [AutofillHints.email],
-                          decoration: InputDecoration(
-                            labelText: 'Email',
-                            hintText: 'Enter your email',
-                            prefixIcon: const Icon(Icons.email_outlined),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                        Semantics(
+                          label: 'Email',
+                          textField: true,
+                          child: TextFormField(
+                            controller: _emailController,
+                            focusNode: _emailFocusNode,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            autocorrect: false,
+                            enabled: !_loading,
+                            autofillHints: const [AutofillHints.email],
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              hintText: 'Enter your email',
+                              prefixIcon: const Icon(Icons.email_outlined),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: colorScheme.surfaceContainerHighest
+                                  .withValues(alpha: 0.3),
                             ),
-                            filled: true,
-                            fillColor: colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.3),
+                            validator: _validateEmail,
+                            onFieldSubmitted: (_) {
+                              _passwordFocusNode.requestFocus();
+                            },
                           ),
-                          validator: _validateEmail,
-                          onFieldSubmitted: (_) {
-                            _passwordFocusNode.requestFocus();
-                          },
                         ),
                         const SizedBox(height: 16),
 
                         // Password field
-                        TextFormField(
-                          controller: _passwordController,
-                          focusNode: _passwordFocusNode,
-                          obscureText: _obscurePassword,
-                          textInputAction: TextInputAction.done,
-                          enabled: !_loading,
-                          autofillHints: const [AutofillHints.newPassword],
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            hintText: 'Enter your password',
-                            prefixIcon: const Icon(Icons.lock_outlined),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
+                        Semantics(
+                          label: 'Password',
+                          textField: true,
+                          child: TextFormField(
+                            controller: _passwordController,
+                            focusNode: _passwordFocusNode,
+                            obscureText: _obscurePassword,
+                            textInputAction: TextInputAction.done,
+                            enabled: !_loading,
+                            autofillHints: const [AutofillHints.newPassword],
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              hintText: 'Enter your password',
+                              prefixIcon: const Icon(Icons.lock_outlined),
+                              suffixIcon: IconButton(
+                                tooltip: _obscurePassword
+                                    ? 'Show password'
+                                    : 'Hide password',
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: colorScheme.surfaceContainerHighest
+                                  .withValues(alpha: 0.3),
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            filled: true,
-                            fillColor: colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.3),
+                            validator: _validatePassword,
+                            onFieldSubmitted: (_) => _handleSignup(),
                           ),
-                          validator: _validatePassword,
-                          onFieldSubmitted: (_) => _handleSignup(),
                         ),
                         const SizedBox(height: 12),
 
@@ -366,30 +378,34 @@ class _SignupScreenState extends State<SignupScreen> {
                         const SizedBox(height: 24),
 
                         // Sign up button
-                        FilledButton(
-                          onPressed: _loading ? null : _handleSignup,
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                        Semantics(
+                          label: 'Sign Up',
+                          button: true,
+                          child: FilledButton(
+                            onPressed: _loading ? null : _handleSignup,
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
+                            child: _loading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Sign Up',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                           ),
-                          child: _loading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  'Sign Up',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
                         ),
                         const SizedBox(height: 24),
 
@@ -405,21 +421,26 @@ class _SignupScreenState extends State<SignupScreen> {
                                 fontSize: 14,
                               ),
                             ),
-                            TextButton(
-                              onPressed: _loading
-                                  ? null
-                                  : () => context.go('/login'),
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: Text(
-                                'Log in',
-                                style: TextStyle(
-                                  color: colorScheme.primary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
+                            Semantics(
+                              label: 'Log In',
+                              button: true,
+                              child: TextButton(
+                                onPressed: _loading
+                                    ? null
+                                    : () => context.go('/login'),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  'Log in',
+                                  style: TextStyle(
+                                    color: colorScheme.primary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ),

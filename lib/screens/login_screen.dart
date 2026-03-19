@@ -146,8 +146,11 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _postLogin(ProfileRequestDto request) async {
+    debugPrint('[LoginScreen] _postLogin called for ${request.email}');
     try {
+      debugPrint('[LoginScreen] Calling profileService.getProfile at ${Env.apiBaseUrl}...');
       final profile = await profileService.getProfile(request);
+      debugPrint('[LoginScreen] getProfile returned: $profile');
       profileState.value = profile;
       // Initialize all stores in parallel without awaiting
       useAccountStore();
@@ -223,15 +226,28 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
 
     final email = _emailController.text.trim();
     final password = _passwordController.text;
+    debugPrint('[LoginScreen] _handleLogin called with email: $email');
 
     try {
       if (!mounted) return;
+      debugPrint('[LoginScreen] Calling authService.loginWithPassword...');
       await authService.loginWithPassword(email, password);
+      debugPrint('[LoginScreen] loginWithPassword returned successfully');
       // Notify the system to save credentials for autofill
       TextInput.finishAutofillContext(shouldSave: true);
-      // If login succeeds, the auth listener will handle loading state
-      // through _postLogin() until navigation completes
+      // Explicitly call _postLogin since the auth listener may not fire
+      // if authState was already true (e.g. session restored on init but
+      // profile fetch failed, leaving user on login screen).
+      if (authService.isLoggedIn && mounted) {
+        final req = ProfileRequestDto(
+          email: authService.user?.email ?? email,
+          firstName: authService.user?.givenName ?? '',
+          lastName: authService.user?.familyName ?? '',
+        );
+        await _postLogin(req);
+      }
     } catch (e) {
+      debugPrint('[LoginScreen] loginWithPassword threw: $e');
       if (mounted) {
         String errorMessage = e.toString();
         // Clean up the error message
@@ -319,6 +335,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                               'assets/icons/app_icon.png',
                               height: 100,
                               width: 100,
+                              semanticLabel: 'Moustra logo',
                             ),
                             const SizedBox(height: 24),
 
@@ -423,6 +440,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                                   hintText: 'Enter your password',
                                   prefixIcon: const Icon(Icons.lock_outlined),
                                   suffixIcon: IconButton(
+                                    tooltip: _obscurePassword
+                                        ? 'Show password'
+                                        : 'Hide password',
                                     icon: Icon(
                                       _obscurePassword
                                           ? Icons.visibility_outlined
@@ -452,32 +472,32 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                               label: 'Sign In',
                               button: true,
                               child: FilledButton(
-                              onPressed: _loading ? null : _handleLogin,
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
+                                onPressed: _loading ? null : _handleLogin,
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                                child: _loading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Sign In',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
                               ),
-                              child: _loading
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Sign In',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                            ),
                             ),
                             const SizedBox(height: 16),
 
@@ -596,13 +616,17 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
               child: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(8),
-                  child: GestureDetector(
-                    onTap: () => _showAuth0Domain(context),
-                    child: Text(
-                      _version,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.onSurfaceVariant,
+                  child: Semantics(
+                    label: 'Show Auth0 domain',
+                    button: true,
+                    child: GestureDetector(
+                      onTap: () => _showAuth0Domain(context),
+                      child: Text(
+                        _version,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ),

@@ -253,6 +253,9 @@ class AuthService {
   /// Returns true on success, throws exception on failure
   Future<bool> loginWithPassword(String email, String password) async {
     try {
+      print('[AuthService] loginWithPassword called for $email');
+      print('[AuthService] Auth0 domain: ${Env.auth0Domain}');
+      print('[AuthService] Posting to https://${Env.auth0Domain}/oauth/token');
       final response = await http.post(
         Uri.parse('https://${Env.auth0Domain}/oauth/token'),
         headers: {'Content-Type': 'application/json'},
@@ -266,6 +269,8 @@ class AuthService {
           'realm': Env.auth0Connection,
         }),
       );
+      print('[AuthService] Response status: ${response.statusCode}');
+      print('[AuthService] Response body (first 200): ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> tokenData = jsonDecode(response.body);
