@@ -98,19 +98,23 @@ class _SelectStrainState extends State<SelectStrain> {
     return Row(
       children: [
         Expanded(
-          child: InkWell(
-            onTap: showStrainPicker,
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: widget.label ?? 'Strains',
-                border: OutlineInputBorder(),
-              ),
-              child: Text(
-                widget.selectedStrain?.strainName ?? 'Select strain',
-                style: TextStyle(
-                  color: widget.selectedStrain != null
-                      ? Theme.of(context).textTheme.bodyLarge?.color
-                      : Theme.of(context).hintColor,
+          child: Semantics(
+            label: widget.label ?? 'Strains',
+            button: true,
+            child: InkWell(
+              onTap: showStrainPicker,
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: widget.label ?? 'Strains',
+                  border: OutlineInputBorder(),
+                ),
+                child: Text(
+                  widget.selectedStrain?.strainName ?? 'Select strain',
+                  style: TextStyle(
+                    color: widget.selectedStrain != null
+                        ? Theme.of(context).textTheme.bodyLarge?.color
+                        : Theme.of(context).hintColor,
+                  ),
                 ),
               ),
             ),

@@ -38,7 +38,10 @@ class SelectDate extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: InkWell(
+          child: Semantics(
+            label: labelText,
+            button: true,
+            child: InkWell(
             onTap: () => _selectDate(context),
             child: InputDecorator(
               decoration: InputDecoration(
@@ -66,6 +69,7 @@ class SelectDate extends StatelessWidget {
                 ],
               ),
             ),
+          ),
           ),
         ),
         // if (selectedDate != null) ...[

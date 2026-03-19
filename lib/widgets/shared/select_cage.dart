@@ -107,7 +107,10 @@ class _SelectCageState extends State<SelectCage> {
     return Row(
       children: [
         Expanded(
-          child: InkWell(
+          child: Semantics(
+            label: widget.label ?? 'Cages',
+            button: true,
+            child: InkWell(
             onTap: widget.disabled != true ? showCagePicker : null,
             child: InputDecorator(
               decoration: InputDecoration(
@@ -127,6 +130,7 @@ class _SelectCageState extends State<SelectCage> {
                 ),
               ),
             ),
+          ),
           ),
         ),
         if (widget.selectedCage != null && !widget.disabled) ...[
