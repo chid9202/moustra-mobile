@@ -234,15 +234,23 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
           'Pregnancy: ${event.female?.physicalTag ?? 'Unknown'}',
         ),
         actions: [
-          IconButton(
-            onPressed: _isSaving ? null : _save,
-            icon: const Icon(Icons.save),
-            tooltip: 'Save',
+          Semantics(
+            label: 'Save Plug Event',
+            button: true,
+            child: IconButton(
+              onPressed: _isSaving ? null : _save,
+              icon: const Icon(Icons.save),
+              tooltip: 'Save',
+            ),
           ),
-          IconButton(
-            onPressed: _delete,
-            icon: const Icon(Icons.delete, color: Colors.red),
-            tooltip: 'Delete',
+          Semantics(
+            label: 'Delete Plug Event',
+            button: true,
+            child: IconButton(
+              onPressed: _delete,
+              icon: const Icon(Icons.delete, color: Colors.red),
+              tooltip: 'Delete',
+            ),
           ),
         ],
       ),

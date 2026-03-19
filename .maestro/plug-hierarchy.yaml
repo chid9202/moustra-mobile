@@ -1,0 +1,54 @@
+appId: com.moustra.app
+---
+# Navigate to plug event create form and dump hierarchy
+
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Email"
+- inputText: "admin+29917@moustra.com"
+- tapOn:
+    text: "Password"
+- inputText: "admin+29917"
+- tapOn:
+    text: "Sign In"
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 20000
+- waitForAnimationToEnd:
+    timeout: 10000
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      text: "Plug Events"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    text: "Plug Events"
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn:
+    text: "Open actions menu"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    text: "Record Plug Event"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: plug-hierarchy-form
+
+# Try tapping every possible text on the form
+- tapOn:
+    text: "Female"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: plug-hierarchy-after-female-tap
+
+# Force fail to dump hierarchy
+- tapOn:
+    text: "XYZZY_DUMP_HIERARCHY_12345"

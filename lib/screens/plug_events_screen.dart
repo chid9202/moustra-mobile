@@ -263,12 +263,16 @@ class _PlugEventGridSource extends DataGridSource {
     return DataGridRowAdapter(
       cells: [
         Center(
-          child: IconButton(
-            icon: const Icon(Icons.visibility),
-            tooltip: 'View',
-            onPressed: () {
-              context.go('/plug-event/$uuid');
-            },
+          child: Semantics(
+            label: 'View Plug Event',
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.visibility),
+              tooltip: 'View',
+              onPressed: () {
+                context.go('/plug-event/$uuid');
+              },
+            ),
           ),
         ),
         cellText(row.getCells()[1].value),

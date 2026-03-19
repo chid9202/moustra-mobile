@@ -1,0 +1,100 @@
+appId: com.moustra.app
+---
+# Plug Event CRUD — Create via Mating auto-populate + Edit
+# Calibrated coordinates (402x874):
+#   Mating: y=228, Female: y=302, Male: y=376
+
+# ========== LOGIN ==========
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Email"
+- inputText: "admin+29917@moustra.com"
+- tapOn:
+    text: "Password"
+- inputText: "admin+29917"
+- tapOn:
+    text: "Sign In"
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 20000
+- waitForAnimationToEnd:
+    timeout: 10000
+
+# ========== NAVIGATE ==========
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      text: "Plug Events"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    text: "Plug Events"
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: plug-01-list
+
+# ========== CREATE ==========
+- tapOn:
+    text: "Open actions menu"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    text: "Record Plug Event"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: plug-02-create-form
+
+# Select Mating first (y=228) — this auto-populates male/female
+- tapOn:
+    point: "201,228"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: plug-03-mating-dialog
+
+# Pick first mating in dialog — ListTile onTap auto-closes dialog
+# Dialog title ~y=190, first ListTile center ~y=290
+- tapOn:
+    point: "200,290"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: plug-04-after-mating
+
+# Now female should be auto-populated — save
+- tapOn:
+    text: "Save Plug Event"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: plug-05-after-create
+
+# ========== VERIFY ==========
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: plug-06-list-after-create
+
+# ========== VIEW DETAIL (coordinate: view icon first row) ==========
+- tapOn:
+    point: "30,275"
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: plug-07-detail
+
+# ========== EDIT Comment ==========
+- tapOn:
+    text: "Comment"
+    optional: true
+- inputText: "QA plug edit test"
+- takeScreenshot: plug-08-comment
+
+# Save via app bar save icon (top right)
+- tapOn:
+    point: "340,55"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: plug-09-after-edit
+- takeScreenshot: plug-10-final
