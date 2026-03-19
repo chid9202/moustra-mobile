@@ -1,0 +1,70 @@
+appId: com.moustra.app
+---
+# Logout then login — NO launchApp so we keep flutter run logs
+
+# 1. We should be on home screen (logged in). Open drawer.
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: lt-01-drawer
+
+# 2. Tap Settings
+- tapOn:
+    text: "Settings"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: lt-02-settings
+
+# 3. Scroll down to find Log Out
+- scrollUntilVisible:
+    element:
+      text: "Log Out"
+    direction: DOWN
+    timeout: 10000
+
+# 4. Tap Log Out
+- tapOn:
+    text: "Log Out"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: lt-03-logout-dialog
+
+# 5. Confirm Log Out in dialog
+- tapOn:
+    text: "Log Out"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: lt-04-logged-out
+
+# 6. Now login
+- tapOn:
+    text: "Email"
+- inputText: "admin+29917@moustra.com"
+
+- tapOn:
+    text: "Password"
+- inputText: "admin+29917"
+
+# Dismiss keyboard
+- tapOn:
+    point: "200,200"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: lt-05-credentials
+
+# 7. Tap Sign In
+- tapOn:
+    text: "Sign In"
+- takeScreenshot: lt-06-sign-in-tapped
+
+# 8. Dismiss iOS alert if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# 9. Wait for home screen
+- extendedWaitUntil:
+    visible: "Open menu"
+    timeout: 30000
+- takeScreenshot: lt-07-logged-in

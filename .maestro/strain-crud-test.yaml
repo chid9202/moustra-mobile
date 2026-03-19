@@ -1,0 +1,154 @@
+appId: com.moustra.app
+---
+# Strain CRUD Test — Create, Edit, Update flow
+# Tests form interactions: create a strain, then edit it
+
+# 1. Launch and login
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Email"
+- inputText: "admin+29917@moustra.com"
+- tapOn:
+    text: "Password"
+- inputText: "admin+29917"
+- tapOn:
+    text: "Sign In"
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 20000
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: crud-01-home
+
+# 2. Navigate to Strain list
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Strain"
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: crud-02-strain-list
+
+# ========== CREATE FLOW ==========
+
+# 3. Open FAB menu and tap Create Strain
+- tapOn:
+    text: "Open actions menu"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    text: "Create Strain"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: crud-03-create-form
+
+# 4. Fill Strain Name
+- tapOn:
+    text: "Strain Name"
+- inputText: "QA CRUD Test 0319"
+- takeScreenshot: crud-04-name-entered
+
+# 5. Dismiss keyboard by tapping elsewhere
+- tapOn:
+    point: "200,200"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# 6. Fill Comment
+- tapOn:
+    text: "Comment"
+    optional: true
+- inputText: "Created by automated QA test"
+- takeScreenshot: crud-05-comment
+
+# 7. Dismiss keyboard
+- tapOn:
+    point: "200,200"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# 8. Save
+- scrollUntilVisible:
+    element:
+      text: "Save"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    text: "Save"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: crud-06-after-create
+
+# ========== EDIT FLOW ==========
+
+# 9. Should be back on strain list — tap the strain name to navigate (new tappable rows!)
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    text: "QA CRUD Test 0319"
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: crud-07-edit-form
+
+# 10. Verify we're on the edit form — Strain Name should be pre-filled
+- takeScreenshot: crud-08-edit-form-loaded
+
+# 11. Clear and modify the strain name
+- tapOn:
+    text: "Strain Name"
+- eraseText: 25
+- inputText: "QA CRUD EDITED 0319"
+- takeScreenshot: crud-09-name-edited
+
+# 12. Dismiss keyboard
+- tapOn:
+    point: "200,200"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# 13. Modify the comment
+- tapOn:
+    text: "Comment"
+    optional: true
+- eraseText: 40
+- inputText: "Edited by automated QA test"
+- takeScreenshot: crud-10-comment-edited
+
+# 14. Dismiss keyboard
+- tapOn:
+    point: "200,200"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# 15. Save the edit
+- scrollUntilVisible:
+    element:
+      text: "Save"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    text: "Save"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: crud-11-after-edit-save
+
+# 16. Verify back on list with updated name
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: crud-12-final-list
+
+# ========== VERIFY EDIT PERSISTED ==========
+
+# 17. Tap the edited strain to verify changes saved
+- tapOn:
+    text: "QA CRUD EDITED 0319"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: crud-13-verify-edit
+
+- takeScreenshot: crud-14-final

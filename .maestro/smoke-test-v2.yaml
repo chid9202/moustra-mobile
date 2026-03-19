@@ -1,0 +1,124 @@
+appId: com.moustra.app
+---
+# Moustra Mobile Smoke Test v2 — Coordinate-based (iPhone 16 Pro, 402x874 grid)
+# Corrected coordinates from fresh screenshot analysis
+
+# 1. Screenshot login screen
+- takeScreenshot: v2-01-login-screen
+
+# 2. Tap email field (center ~201,480)
+- tapOn:
+    point: "201,480"
+- inputText: "admin+29917@moustra.com"
+- takeScreenshot: v2-02-email-entered
+
+# 3. Tap password field (center ~201,570)
+- tapOn:
+    point: "201,570"
+- inputText: "admin+29917"
+- takeScreenshot: v2-03-password-entered
+
+# 4. Hide keyboard first (tap somewhere neutral)
+- tapOn:
+    point: "201,300"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# 5. Tap Sign In button (center ~201,665)
+- tapOn:
+    point: "201,665"
+- takeScreenshot: v2-04-sign-in-tapped
+
+# 6. Wait for login to complete
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 15000
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: v2-05-post-login
+
+# 7. Wait extra time for home screen to fully load
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: v2-06-home-screen
+
+# 8. Open navigation drawer (swipe from left edge)
+- swipe:
+    start: "2%, 50%"
+    end: "80%, 50%"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: v2-07-drawer-open
+
+# 9. Navigate to Cages — menu item positions (drawer is ~70% width)
+# From previous drawer screenshot analysis:
+# COLONY section: Racks (~y=290), Cages (~y=340)
+# ANIMALS section: Strain (~y=410), Animal (~y=460)
+# BREEDING section: Mating (~y=530), Litter (~y=580)
+# Bottom: User (~y=670), Settings (~y=720), Logout (~y=770)
+
+# Tap "Cages"
+- tapOn:
+    point: "140,340"
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: v2-08-cages
+
+# 10. Open drawer
+- swipe:
+    start: "2%, 50%"
+    end: "80%, 50%"
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# 11. Tap "Animal"
+- tapOn:
+    point: "140,460"
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: v2-09-animals
+
+# 12. Open drawer
+- swipe:
+    start: "2%, 50%"
+    end: "80%, 50%"
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# 13. Tap "Mating"
+- tapOn:
+    point: "140,530"
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: v2-10-matings
+
+# 14. Open drawer
+- swipe:
+    start: "2%, 50%"
+    end: "80%, 50%"
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# 15. Tap "Litter"
+- tapOn:
+    point: "140,580"
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: v2-11-litters
+
+# 16. Open drawer
+- swipe:
+    start: "2%, 50%"
+    end: "80%, 50%"
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# 17. Tap "Settings"
+- tapOn:
+    point: "140,720"
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: v2-12-settings
+
+# 18. Final screenshot
+- takeScreenshot: v2-13-final

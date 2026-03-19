@@ -1,0 +1,112 @@
+appId: com.moustra.app
+---
+# Moustra Mobile Smoke Test — Full Navigation
+# Target: iPhone 16 Pro Simulator, iOS 18.4
+# Credentials: Dev environment
+
+# 1. Screenshot login screen
+- takeScreenshot: 01-login-screen
+
+# 2. Tap email field (center of bounds [25,356][377,412])
+- tapOn:
+    point: "201,384"
+- inputText: "admin+29917@moustra.com"
+- takeScreenshot: 02-email-entered
+
+# 3. Tap password field (center of bounds [25,428][377,484])
+- tapOn:
+    point: "201,456"
+- inputText: "admin+29917"
+- takeScreenshot: 03-password-entered
+
+# 4. Tap Sign In button (center of bounds [25,508][377,563])
+- tapOn:
+    point: "201,536"
+- takeScreenshot: 04-sign-in-tapped
+
+# 5. Wait for login to complete and home screen to load
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 20000
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: 05-home-loaded
+
+# 6. Open navigation drawer (swipe from left edge)
+- swipe:
+    start: "2%, 50%"
+    end: "80%, 50%"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: 06-drawer-open
+
+# 7. Navigate to Animals
+- tapOn:
+    text: "Animals"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: 07-animals
+
+# 8. Open drawer again
+- swipe:
+    start: "2%, 50%"
+    end: "80%, 50%"
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# 9. Navigate to Cages
+- tapOn:
+    text: "Cages"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: 08-cages
+
+# 10. Open drawer again
+- swipe:
+    start: "2%, 50%"
+    end: "80%, 50%"
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# 11. Navigate to Matings
+- tapOn:
+    text: "Matings"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: 09-matings
+
+# 12. Open drawer again
+- swipe:
+    start: "2%, 50%"
+    end: "80%, 50%"
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# 13. Navigate to Litters
+- tapOn:
+    text: "Litters"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: 10-litters
+
+# 14. Open drawer again
+- swipe:
+    start: "2%, 50%"
+    end: "80%, 50%"
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# 15. Navigate to Settings
+- tapOn:
+    text: "Settings"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: 11-settings
+
+# 16. Final screenshot
+- takeScreenshot: 12-final

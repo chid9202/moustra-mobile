@@ -1,0 +1,56 @@
+appId: com.moustra.app
+---
+# Debug login test v3
+
+# 1. Launch app fresh
+- launchApp
+
+# 2. Wait for app to settle
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: debug-01-after-launch
+
+# 3. Tap email field and enter credentials
+- tapOn:
+    text: "Email"
+- inputText: "admin+29917@moustra.com"
+
+# 4. Tap password field and enter password
+- tapOn:
+    text: "Password"
+- inputText: "admin+29917"
+
+# 5. Dismiss keyboard by tapping the logo area
+- tapOn:
+    point: "200,200"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: debug-02-fields-filled
+
+# 6. Tap Sign In
+- tapOn:
+    text: "Sign In"
+- takeScreenshot: debug-03-sign-in-tapped
+
+# 7. Wait a moment for the iOS alert to appear
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# 8. Dismiss iOS password alert if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+- takeScreenshot: debug-04-after-dismiss
+
+# 9. Wait for login to complete — look for "Open menu" (hamburger)
+- extendedWaitUntil:
+    visible: "Open menu"
+    timeout: 20000
+- takeScreenshot: debug-05-logged-in
+
+# 10. Test navigation
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: debug-06-drawer-open

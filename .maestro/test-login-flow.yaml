@@ -1,0 +1,70 @@
+appId: com.moustra.app
+---
+# Test login flow WITHOUT launchApp — attach to running flutter instance
+# This way we get Flutter console logs during the test
+
+# 1. First, navigate to logout if we're on home screen
+# Try tapping Open menu to check if we're logged in
+- tapOn:
+    text: "Open menu"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: flow-01-initial
+
+# 2. Try to find Settings to log out
+- tapOn:
+    text: "Settings"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: flow-02-settings
+
+# 3. Scroll down and look for logout
+- tapOn:
+    text: "Log Out"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# 4. Confirm logout if dialog appears
+- tapOn:
+    text: "Log Out"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: flow-03-after-logout
+
+# 5. Now we should be on login screen — try login
+- tapOn:
+    text: "Email"
+    optional: true
+- inputText: "admin+29917@moustra.com"
+
+- tapOn:
+    text: "Password"
+    optional: true
+- inputText: "admin+29917"
+
+# Dismiss keyboard by tapping logo area
+- tapOn:
+    point: "200,200"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: flow-04-credentials-entered
+
+# 6. Tap Sign In
+- tapOn:
+    text: "Sign In"
+    optional: true
+- takeScreenshot: flow-05-sign-in-tapped
+
+# 7. Dismiss any iOS alerts
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# 8. Wait longer for login
+- waitForAnimationToEnd:
+    timeout: 30000
+- takeScreenshot: flow-06-after-wait

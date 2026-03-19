@@ -1,0 +1,8 @@
+appId: com.moustra.app
+---
+- launchApp:
+    stopApp: false
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "XYZZY_DUMP_HIERARCHY"
