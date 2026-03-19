@@ -175,7 +175,7 @@ class _LittersScreenState extends State<LittersScreen> {
                       )
                     else
                       FabMenuAction(
-                        label: 'Add Litter',
+                        label: 'Create Litter',
                         icon: const Icon(Icons.add),
                         onPressed: () {
                           context.go('/litter/new');

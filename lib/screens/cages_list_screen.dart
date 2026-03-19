@@ -240,7 +240,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
                         onPressed: _scanBarcode,
                       ),
                       FabMenuAction(
-                        label: 'Add Cage',
+                        label: 'Create Cage',
                         icon: const Icon(Icons.add),
                         onPressed: () {
                           eventApi.trackEvent('add_cage');
