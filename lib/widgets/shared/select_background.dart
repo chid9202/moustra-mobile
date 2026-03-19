@@ -126,7 +126,10 @@ class _SelectBackgroundState extends State<SelectBackground> {
       });
     }
 
-    return InkWell(
+    return Semantics(
+      label: 'Backgrounds',
+      button: true,
+      child: InkWell(
       onTap: showBackgroundPicker,
       child: InputDecorator(
         decoration: const InputDecoration(
@@ -155,6 +158,7 @@ class _SelectBackgroundState extends State<SelectBackground> {
                 }).toList(),
               ),
       ),
+    ),
     );
   }
 

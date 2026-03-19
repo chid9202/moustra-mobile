@@ -117,7 +117,10 @@ class _MultiSelectAnimalState extends State<MultiSelectAnimal> {
     return Row(
       children: [
         Expanded(
-          child: InkWell(
+          child: Semantics(
+            label: widget.label,
+            button: true,
+            child: InkWell(
             onTap: widget.disabled != true ? showAnimalPicker : null,
             child: InputDecorator(
               decoration: InputDecoration(
@@ -153,6 +156,7 @@ class _MultiSelectAnimalState extends State<MultiSelectAnimal> {
                       }).toList(),
                     ),
             ),
+          ),
           ),
         ),
         if (widget.selectedAnimals.isNotEmpty && !widget.disabled) ...[

@@ -111,23 +111,27 @@ class _SelectAnimalState extends State<SelectAnimal> {
     return Row(
       children: [
         Expanded(
-          child: InkWell(
-            onTap: widget.disabled != true ? showAnimalPicker : null,
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: widget.label,
-                border: OutlineInputBorder(),
-                enabled: !widget.disabled,
-                disabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+          child: Semantics(
+            label: widget.label,
+            button: true,
+            child: InkWell(
+              onTap: widget.disabled != true ? showAnimalPicker : null,
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: widget.label,
+                  border: OutlineInputBorder(),
+                  enabled: !widget.disabled,
+                  disabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
                 ),
-              ),
-              child: Text(
-                widget.selectedAnimal?.physicalTag ?? widget.placeholderText,
-                style: TextStyle(
-                  color: widget.selectedAnimal != null
-                      ? Theme.of(context).textTheme.bodyLarge?.color
-                      : Theme.of(context).hintColor,
+                child: Text(
+                  widget.selectedAnimal?.physicalTag ?? widget.placeholderText,
+                  style: TextStyle(
+                    color: widget.selectedAnimal != null
+                        ? Theme.of(context).textTheme.bodyLarge?.color
+                        : Theme.of(context).hintColor,
+                  ),
                 ),
               ),
             ),
