@@ -37,15 +37,18 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
   List<FilterParam> _activeFilters = [];
   SortParam? _activeSort = AnimalFilterConfig.defaultSort;
   int _selectedPresetIndex = 0;
+  late final ValueNotifier<SortParam?> _sortNotifier;
 
   @override
   void initState() {
     super.initState();
+    _sortNotifier = ValueNotifier(AnimalFilterConfig.defaultSort);
     _applyPreset(0);
   }
 
   @override
   void dispose() {
+    _sortNotifier.dispose();
     super.dispose();
   }
 
@@ -54,6 +57,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     _selectedPresetIndex = index;
     _activeFilters = List.from(preset.filters);
     _activeSort = preset.sort;
+    _sortNotifier.value = preset.sort;
   }
 
   void _onPresetSelected(int index) {
@@ -70,6 +74,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     setState(() {
       _activeFilters = filters;
       _activeSort = sort;
+      _sortNotifier.value = sort;
       _selectedPresetIndex = PreparedFilter.findMatchingPreset(
         AnimalFilterConfig.preparedFilters,
         filters,
@@ -83,6 +88,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     setState(() {
       _activeFilters = [];
       _activeSort = AnimalFilterConfig.defaultSort;
+      _sortNotifier.value = AnimalFilterConfig.defaultSort;
       _selectedPresetIndex = -1;
     });
     _controller.reload();
@@ -154,13 +160,14 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                 controller: _controller,
                 searchPlaceholder: 'Try "Search Animal in mating"',
                 onSortChanged: (columnName, ascending) {
-                  // Update sort from column header click
+                  final sort = SortParam(
+                    field: columnName,
+                    order: ascending ? SortOrder.asc : SortOrder.desc,
+                  );
                   setState(() {
-                    _activeSort = SortParam(
-                      field: columnName,
-                      order: ascending ? SortOrder.asc : SortOrder.desc,
-                    );
+                    _activeSort = sort;
                   });
+                  _sortNotifier.value = sort;
                   _controller.reload();
                 },
                 onRowTap: _isEditMode
@@ -181,7 +188,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                     ),
                   ...AnimalListColumn.getColumns(
                     includeSelect: _isEndingMode,
-                    activeSort: _activeSort,
+                    sortNotifier: _sortNotifier,
                   ),
                 ],
                 sourceBuilder: (rows) => _AnimalGridSource(

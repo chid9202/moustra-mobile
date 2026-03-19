@@ -64,6 +64,7 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
   late int _pageSize;
   int _totalCount = 0;
   bool _isLoading = true;
+  String? _lastSortedColumn;
   bool _sortAscending = true;
   bool _useAiSearch = true;
   String _searchTerm = '';
@@ -213,8 +214,14 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
                     final GridColumn col = widget.columns[ci];
                     if (col.allowSorting != true) return;
                     final String name = col.columnName;
-                    // Toggle order
-                    _sortAscending = !_sortAscending;
+                    setState(() {
+                      if (_lastSortedColumn == name) {
+                        _sortAscending = !_sortAscending;
+                      } else {
+                        _lastSortedColumn = name;
+                        _sortAscending = true;
+                      }
+                    });
                     widget.onSortChanged?.call(name, _sortAscending);
                   } else if (ri > 0 && ri <= _rows.length) {
                     widget.onRowTap?.call(_rows[ri - 1]);

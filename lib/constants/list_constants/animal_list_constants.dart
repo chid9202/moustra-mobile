@@ -35,29 +35,34 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
 
   static List<GridColumn> getColumns({
     bool includeSelect = true,
-    SortParam? activeSort,
+    required ValueNotifier<SortParam?> sortNotifier,
   }) {
     Widget sortableLabel(String text, String field, {double leftPadding = 4}) {
-      final isActive = activeSort?.field == field;
-      final isAsc = activeSort?.order == SortOrder.asc;
-      return Padding(
-        padding: EdgeInsets.only(left: leftPadding, right: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(text),
-            const SizedBox(width: 2),
-            Opacity(
-              opacity: isActive ? 1.0 : 0.35,
-              child: Icon(
-                isActive
-                    ? (isAsc ? Icons.arrow_upward : Icons.arrow_downward)
-                    : Icons.unfold_more,
-                size: 12,
-              ),
+      return ValueListenableBuilder<SortParam?>(
+        valueListenable: sortNotifier,
+        builder: (context, activeSort, _) {
+          final isActive = activeSort?.field == field;
+          final isAsc = activeSort?.order == SortOrder.asc;
+          return Padding(
+            padding: EdgeInsets.only(left: leftPadding, right: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(text),
+                const SizedBox(width: 2),
+                Opacity(
+                  opacity: isActive ? 1.0 : 0.35,
+                  child: Icon(
+                    isActive
+                        ? (isAsc ? Icons.arrow_upward : Icons.arrow_downward)
+                        : Icons.unfold_more,
+                    size: 12,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       );
     }
 
