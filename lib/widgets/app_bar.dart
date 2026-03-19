@@ -15,6 +15,7 @@ class MoustraAppBar extends StatelessWidget implements PreferredSizeWidget {
           button: true,
           child: IconButton(
             icon: const Icon(Icons.menu),
+            tooltip: 'Open menu',
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
@@ -60,6 +61,7 @@ class MoustraAppBar extends StatelessWidget implements PreferredSizeWidget {
               'assets/icons/app_icon.png',
               height: 64,
               width: 64,
+              semanticLabel: 'Moustra home',
             ),
           ),
         ),

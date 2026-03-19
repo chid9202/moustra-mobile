@@ -100,12 +100,7 @@ const _insightsItem = _MenuItemDef(
 
 /// Bottom utility items
 const List<_MenuItemDef> _bottomItems = [
-  _MenuItemDef(
-    id: 'user',
-    icon: Icons.groups,
-    display: 'User',
-    route: '/user',
-  ),
+  _MenuItemDef(id: 'user', icon: Icons.groups, display: 'User', route: '/user'),
   _MenuItemDef(
     id: 'settings',
     icon: Icons.settings,
@@ -228,10 +223,7 @@ class AppMenu extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).dividerColor,
-            width: 1,
-          ),
+          bottom: BorderSide(color: Theme.of(context).dividerColor, width: 1),
         ),
       ),
       child: ValueListenableBuilder<ProfileResponseDto?>(
@@ -247,6 +239,7 @@ class AppMenu extends StatelessWidget {
                     'assets/icons/app_icon.png',
                     height: 56,
                     width: 56,
+                    semanticLabel: 'Moustra logo',
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -255,8 +248,8 @@ class AppMenu extends StatelessWidget {
                         profile?.labName ?? 'Moustra',
                       ),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -271,11 +264,10 @@ class AppMenu extends StatelessWidget {
                   Text(
                     profile.position!,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.6),
-                        ),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
                   ),
               ],
             ],
@@ -339,10 +331,7 @@ class AppMenu extends StatelessWidget {
         contentPadding: indent
             ? const EdgeInsets.only(left: 32, right: 16)
             : null,
-        leading: Icon(
-          item.icon,
-          color: isActive ? activeColor : null,
-        ),
+        leading: Icon(item.icon, color: isActive ? activeColor : null),
         title: Text(
           item.display,
           style: TextStyle(

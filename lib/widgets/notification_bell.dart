@@ -49,16 +49,14 @@ class _NotificationBellState extends State<NotificationBell> {
       label: 'Notifications',
       button: true,
       child: IconButton(
-      icon: Badge(
-        isLabelVisible: _unreadCount > 0,
-        label: Text(
-          _badgeLabel,
-          style: const TextStyle(fontSize: 10),
+        tooltip: 'Notifications',
+        icon: Badge(
+          isLabelVisible: _unreadCount > 0,
+          label: Text(_badgeLabel, style: const TextStyle(fontSize: 10)),
+          child: const Icon(Icons.notifications_outlined),
         ),
-        child: const Icon(Icons.notifications_outlined),
+        onPressed: () => context.go('/notification'),
       ),
-      onPressed: () => context.go('/notification'),
-    ),
     );
   }
 }
