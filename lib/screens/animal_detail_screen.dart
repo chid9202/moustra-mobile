@@ -258,6 +258,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                     hintText: 'Enter physical tag',
                     border: OutlineInputBorder(),
                   ),
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _saveAnimal(),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter a physical tag';

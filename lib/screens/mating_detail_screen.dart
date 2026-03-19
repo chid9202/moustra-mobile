@@ -605,6 +605,8 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
                     hintText: 'Enter mating tag',
                     border: OutlineInputBorder(),
                   ),
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _saveMating(),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter a mating tag';

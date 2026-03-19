@@ -407,6 +407,8 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
                     hintText: 'Enter strain name',
                     border: OutlineInputBorder(),
                   ),
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _saveStrain(),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter a strain name';

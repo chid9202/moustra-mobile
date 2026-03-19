@@ -283,6 +283,8 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                     hintText: 'Enter cage tag',
                     border: OutlineInputBorder(),
                   ),
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _saveCage(),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter a cage tag';

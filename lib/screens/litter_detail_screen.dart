@@ -449,6 +449,8 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                     hintText: 'Enter litter tag',
                     border: OutlineInputBorder(),
                   ),
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _saveLitter(),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter a litter tag';
