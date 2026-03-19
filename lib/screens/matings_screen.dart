@@ -204,21 +204,29 @@ class _MatingGridSource extends DataGridSource {
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
     final String uuid = row.getCells()[0].value as String;
+    final String matingTag = row.getCells()[1].value as String? ?? '';
     final BuildContext context = this.context;
     List<String> asList(dynamic v) => (v as List<String>? ?? <String>[]);
 
     return DataGridRowAdapter(
       cells: [
         Center(
-          child: IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: 'Edit',
-            onPressed: () {
-              context.go('/mating/$uuid');
-            },
+          child: Semantics(
+            label: 'Edit $matingTag',
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Edit',
+              onPressed: () {
+                context.go('/mating/$uuid');
+              },
+            ),
           ),
         ),
-        cellText(row.getCells()[1].value),
+        GestureDetector(
+          onTap: () => context.go('/mating/$uuid'),
+          child: cellText(row.getCells()[1].value),
+        ),
         cellText(row.getCells()[2].value),
         cellText(row.getCells()[3].value),
         cellText(row.getCells()[4].value),

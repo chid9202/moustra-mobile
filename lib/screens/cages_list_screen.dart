@@ -453,6 +453,7 @@ class _CageGridSource extends DataGridSource {
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
     final String uuid = row.getCells()[0].value as String;
+    final String cageTag = '${row.getCells()[2].value}';
     final bool isChecked = selected.contains(uuid);
     return DataGridRowAdapter(
       cells: [
@@ -467,15 +468,22 @@ class _CageGridSource extends DataGridSource {
         ),
         // Edit button
         Center(
-          child: IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: 'Edit',
-            onPressed: () {
-              context.go('/cage/$uuid');
-            },
+          child: Semantics(
+            label: 'Edit $cageTag',
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Edit',
+              onPressed: () {
+                context.go('/cage/$uuid');
+              },
+            ),
           ),
         ),
-        cellText('${row.getCells()[2].value}', textAlign: Alignment.center),
+        GestureDetector(
+          onTap: () => context.go('/cage/$uuid'),
+          child: cellText('${row.getCells()[2].value}', textAlign: Alignment.center),
+        ),
         cellText(row.getCells()[3].value),
         cellText(row.getCells()[4].value),
         cellText('${row.getCells()[5].value}', textAlign: Alignment.center),

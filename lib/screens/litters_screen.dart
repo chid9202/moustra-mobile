@@ -312,22 +312,32 @@ class _LitterGridSource extends DataGridSource {
     );
 
     // Edit column
+    final String litterTag = values[LitterListColumn.litterTag.name] as String? ?? '';
     cells.add(
       Center(
-        child: IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: 'Edit',
-          onPressed: uuid == null
-              ? null
-              : () {
-                  context.go('/litter/$uuid');
-                },
+        child: Semantics(
+          label: 'Edit $litterTag',
+          button: true,
+          child: IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit',
+            onPressed: uuid == null
+                ? null
+                : () {
+                    context.go('/litter/$uuid');
+                  },
+          ),
         ),
       ),
     );
 
     // Data columns
-    cells.add(cellText(values[LitterListColumn.litterTag.name] as String?));
+    cells.add(
+      GestureDetector(
+        onTap: uuid == null ? null : () => context.go('/litter/$uuid'),
+        child: cellText(values[LitterListColumn.litterTag.name] as String?),
+      ),
+    );
     cells.add(cellText(values[LitterListColumn.strain.name] as String?));
     cells.add(cellText('${values[LitterListColumn.numberOfPups.name] ?? ''}'));
     cells.add(cellText(values[LitterListColumn.wean.name] as String?));

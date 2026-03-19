@@ -416,10 +416,16 @@ class _AnimalGridSource extends DataGridSource {
       ),
     );
     String? valueFor(AnimalListColumn column) => values[column.name] as String?;
-    cells.add(Padding(
-      padding: const EdgeInsets.only(left: 8),
-      child: cellText(valueFor(AnimalListColumn.physicalTag)),
-    ));
+    final String animalTag = valueFor(AnimalListColumn.physicalTag) ?? '';
+    cells.add(
+      GestureDetector(
+        onTap: uuid == null ? null : () => context.go('/animal/$uuid'),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: cellText(valueFor(AnimalListColumn.physicalTag)),
+        ),
+      ),
+    );
     cells.add(
       cellText(valueFor(AnimalListColumn.sex)),
     );
