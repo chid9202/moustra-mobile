@@ -11,7 +11,7 @@ class UserListDto {
   final String role;
   final bool isActive;
   final String? position;
-  final AccountSettingDto accountSetting;
+  final AccountSettingDto? accountSetting;
   final bool onboarded;
   final LabDto lab;
 
@@ -23,7 +23,7 @@ class UserListDto {
     required this.role,
     required this.isActive,
     this.position,
-    required this.accountSetting,
+    this.accountSetting,
     required this.onboarded,
     required this.lab,
   });
@@ -59,9 +59,9 @@ class AccountSettingDto {
   final bool animalCreationTour;
 
   AccountSettingDto({
-    required this.enableDailyReport,
-    required this.onboardingTour,
-    required this.animalCreationTour,
+    this.enableDailyReport = false,
+    this.onboardingTour = false,
+    this.animalCreationTour = false,
   });
 
   factory AccountSettingDto.fromJson(Map<String, dynamic> json) =>

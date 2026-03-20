@@ -14,9 +14,11 @@ UserListDto _$UserListDtoFromJson(Map<String, dynamic> json) => UserListDto(
   role: json['role'] as String,
   isActive: json['isActive'] as bool,
   position: json['position'] as String?,
-  accountSetting: AccountSettingDto.fromJson(
-    json['accountSetting'] as Map<String, dynamic>,
-  ),
+  accountSetting: json['accountSetting'] == null
+      ? null
+      : AccountSettingDto.fromJson(
+          json['accountSetting'] as Map<String, dynamic>,
+        ),
   onboarded: json['onboarded'] as bool,
   lab: LabDto.fromJson(json['lab'] as Map<String, dynamic>),
 );
@@ -30,7 +32,7 @@ Map<String, dynamic> _$UserListDtoToJson(UserListDto instance) =>
       'role': instance.role,
       'isActive': instance.isActive,
       'position': instance.position,
-      'accountSetting': instance.accountSetting.toJson(),
+      'accountSetting': instance.accountSetting?.toJson(),
       'onboarded': instance.onboarded,
       'lab': instance.lab.toJson(),
     };
@@ -51,9 +53,9 @@ Map<String, dynamic> _$UserDtoToJson(UserDto instance) => <String, dynamic>{
 
 AccountSettingDto _$AccountSettingDtoFromJson(Map<String, dynamic> json) =>
     AccountSettingDto(
-      enableDailyReport: json['enableDailyReport'] as bool,
-      onboardingTour: json['onboardingTour'] as bool,
-      animalCreationTour: json['animalCreationTour'] as bool,
+      enableDailyReport: json['enableDailyReport'] as bool? ?? false,
+      onboardingTour: json['onboardingTour'] as bool? ?? false,
+      animalCreationTour: json['animalCreationTour'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$AccountSettingDtoToJson(AccountSettingDto instance) =>
