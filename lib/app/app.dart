@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:moustra/app/mui_color.dart';
 import 'package:moustra/app/router.dart';
 import 'package:moustra/app/theme.dart';
 import 'package:moustra/services/connectivity_service.dart';
@@ -17,14 +16,7 @@ class App extends StatelessWidget {
         return MaterialApp.router(
           debugShowCheckedModeBanner: false,
           theme: appTheme, // Light theme
-          darkTheme: darkTheme.copyWith(
-            scaffoldBackgroundColor: darkColorScheme.surface,
-            appBarTheme: AppBarTheme(
-              backgroundColor: darkColorScheme.surface,
-              foregroundColor: darkColorScheme.onSurface,
-              elevation: 0,
-            ),
-          ),
+          darkTheme: appDarkTheme,
           themeMode: themeMode,
           routerConfig: appRouter,
           builder: (context, child) {

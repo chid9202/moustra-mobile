@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/app/mui_color.dart';
 
 void showAppSnackBar(
   BuildContext context,
@@ -10,9 +11,10 @@ void showAppSnackBar(
   debugPrint(
       '[SnackBar${isError ? " ERROR" : isSuccess ? " SUCCESS" : ""}] $message');
 
+  final mui = Theme.of(context).extension<MUIExtraColors>();
   Color? backgroundColor;
-  if (isError) backgroundColor = Colors.red;
-  if (isSuccess) backgroundColor = Colors.green;
+  if (isError) backgroundColor = Theme.of(context).colorScheme.error;
+  if (isSuccess) backgroundColor = mui?.success;
 
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/app/mui_color.dart';
+import 'package:moustra/config/constants.dart';
 
 enum ButtonVariant { primary, secondary, success, warning, error, info }
 
@@ -96,31 +97,35 @@ class MoustraButton extends StatelessWidget {
         foregroundColor = colorScheme.onSecondary;
         break;
       case ButtonVariant.success:
-        backgroundColor = mui?.success ?? const Color(0xFF2E7D32);
+        backgroundColor = mui?.success ?? const Color(0xFF52C41A);
         foregroundColor = Colors.white;
         break;
       case ButtonVariant.warning:
-        backgroundColor = mui?.warning ?? const Color(0xFFED6C02);
-        foregroundColor = Colors.white;
+        backgroundColor = mui?.warning ?? const Color(0xFFFAAD14);
+        foregroundColor = neutral900; // dark text on gold for contrast
         break;
       case ButtonVariant.error:
         backgroundColor = colorScheme.error;
         foregroundColor = colorScheme.onError;
         break;
       case ButtonVariant.info:
-        backgroundColor = mui?.info ?? const Color(0xFF0288D1);
+        backgroundColor = mui?.info ?? const Color(0xFF348ADC);
         foregroundColor = Colors.white;
         break;
     }
 
-    final size = _getButtonSize();
+    final sizeData = _getButtonSize();
 
     return FilledButton.styleFrom(
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,
-      padding: size.padding,
-      minimumSize: size.minimumSize,
-      textStyle: size.textStyle,
+      padding: sizeData.padding,
+      minimumSize: sizeData.minimumSize,
+      textStyle: sizeData.textStyle,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppConstants.radiusDefault),
+      ),
     );
   }
 
@@ -132,8 +137,9 @@ class MoustraButton extends StatelessWidget {
         return colorScheme.onPrimary;
       case ButtonVariant.secondary:
         return colorScheme.onSecondary;
-      case ButtonVariant.success:
       case ButtonVariant.warning:
+        return neutral900;
+      case ButtonVariant.success:
       case ButtonVariant.info:
         return Colors.white;
       case ButtonVariant.error:
@@ -145,23 +151,23 @@ class MoustraButton extends StatelessWidget {
     switch (size) {
       case ButtonSize.small:
         return _ButtonSizeData(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          minimumSize: const Size(80, 32),
-          textStyle: const TextStyle(fontSize: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          minimumSize: const Size(80, 36),
+          textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
           iconSize: 16,
         );
       case ButtonSize.medium:
         return _ButtonSizeData(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           minimumSize: const Size(100, 40),
-          textStyle: const TextStyle(fontSize: 14),
+          textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
           iconSize: 18,
         );
       case ButtonSize.large:
         return _ButtonSizeData(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           minimumSize: const Size(120, 48),
-          textStyle: const TextStyle(fontSize: 16),
+          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
           iconSize: 20,
         );
     }
