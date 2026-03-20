@@ -10,16 +10,16 @@ UserListDto _$UserListDtoFromJson(Map<String, dynamic> json) => UserListDto(
   accountId: (json['accountId'] as num).toInt(),
   accountUuid: json['accountUuid'] as String,
   user: UserDto.fromJson(json['user'] as Map<String, dynamic>),
-  status: json['status'] as String,
-  role: json['role'] as String,
-  isActive: json['isActive'] as bool,
+  status: json['status'] as String? ?? '',
+  role: json['role'] as String? ?? 'User',
+  isActive: json['isActive'] as bool? ?? true,
   position: json['position'] as String?,
   accountSetting: json['accountSetting'] == null
       ? null
       : AccountSettingDto.fromJson(
           json['accountSetting'] as Map<String, dynamic>,
         ),
-  onboarded: json['onboarded'] as bool,
+  onboarded: json['onboarded'] as bool? ?? false,
   lab: LabDto.fromJson(json['lab'] as Map<String, dynamic>),
 );
 
@@ -38,10 +38,10 @@ Map<String, dynamic> _$UserListDtoToJson(UserListDto instance) =>
     };
 
 UserDto _$UserDtoFromJson(Map<String, dynamic> json) => UserDto(
-  email: json['email'] as String,
-  firstName: json['firstName'] as String,
-  lastName: json['lastName'] as String,
-  isActive: json['isActive'] as bool,
+  email: json['email'] as String? ?? '',
+  firstName: json['firstName'] as String? ?? '',
+  lastName: json['lastName'] as String? ?? '',
+  isActive: json['isActive'] as bool? ?? true,
 );
 
 Map<String, dynamic> _$UserDtoToJson(UserDto instance) => <String, dynamic>{

@@ -9,9 +9,11 @@ class UserListDto {
   final UserDto user;
   final String status;
   final String role;
+  @JsonKey(defaultValue: true)
   final bool isActive;
   final String? position;
   final AccountSettingDto? accountSetting;
+  @JsonKey(defaultValue: false)
   final bool onboarded;
   final LabDto lab;
 
@@ -21,10 +23,10 @@ class UserListDto {
     required this.user,
     required this.status,
     required this.role,
-    required this.isActive,
+    this.isActive = true,
     this.position,
     this.accountSetting,
-    required this.onboarded,
+    this.onboarded = false,
     required this.lab,
   });
 
@@ -38,13 +40,14 @@ class UserDto {
   final String email;
   final String firstName;
   final String lastName;
+  @JsonKey(defaultValue: true)
   final bool isActive;
 
   UserDto({
     required this.email,
     required this.firstName,
     required this.lastName,
-    required this.isActive,
+    this.isActive = true,
   });
 
   factory UserDto.fromJson(Map<String, dynamic> json) =>
