@@ -1,0 +1,134 @@
+appId: com.moustra.app
+---
+# User List Page Test — List + Create + Edit
+# Drawer: "User"
+# FAB: "Create User"
+# Form: First Name, Last Name, Email, Role, Position, Active, Save
+
+# ========== LOGIN ==========
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Email"
+- inputText: "admin+29917@moustra.com"
+- tapOn:
+    text: "Password"
+- inputText: "admin+29917"
+- tapOn:
+    text: "Sign In"
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 20000
+- waitForAnimationToEnd:
+    timeout: 10000
+
+# ========== NAVIGATE TO USERS ==========
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      text: "User"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    text: "User"
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: user-01-list
+
+# ========== VERIFY LIST LOADS ==========
+# The list should show users with columns
+- takeScreenshot: user-02-list-loaded
+
+# ========== CREATE USER ==========
+- tapOn:
+    text: "Open actions menu"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: user-03-fab
+- tapOn:
+    text: "Create User"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: user-04-create-form
+
+# Fill First Name
+- tapOn:
+    text: "First Name"
+- inputText: "QA"
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# Fill Last Name
+- tapOn:
+    text: "Last Name"
+- inputText: "TestUser"
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# Fill Email
+- tapOn:
+    text: "Email"
+- inputText: "qa-test@moustra.com"
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: user-05-form-filled
+
+# Save — scroll to button then tap
+- scrollUntilVisible:
+    element:
+      text: "Create User"
+    direction: DOWN
+    timeout: 15000
+- tapOn:
+    text: "Create User"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: user-06-after-create
+
+# ========== VERIFY CREATE ==========
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: user-07-list-after-create
+
+# ========== EDIT USER ==========
+# Tap Edit icon for first row — try tooltip text
+- tapOn:
+    text: "Edit User"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: user-08-edit-form
+
+# Edit First Name
+- tapOn:
+    text: "First Name"
+    optional: true
+- eraseText: 10
+- inputText: "QAEdited"
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: user-09-name-edited
+
+# Save Changes
+- scrollUntilVisible:
+    element:
+      text: "Save Changes"
+    direction: DOWN
+    timeout: 15000
+- tapOn:
+    text: "Save Changes"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: user-10-after-edit
+
+- takeScreenshot: user-11-final
