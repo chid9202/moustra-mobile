@@ -149,26 +149,29 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
         // Prepared filter tabs
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              ChoiceChip(
-                label: const Text('Active'),
-                selected: _selectedTab == _PreparedTab.active,
-                onSelected: (_) => _onTabChanged(_PreparedTab.active),
-              ),
-              const SizedBox(width: 8),
-              ChoiceChip(
-                label: const Text('Completed'),
-                selected: _selectedTab == _PreparedTab.completed,
-                onSelected: (_) => _onTabChanged(_PreparedTab.completed),
-              ),
-              const SizedBox(width: 8),
-              ChoiceChip(
-                label: const Text('All'),
-                selected: _selectedTab == _PreparedTab.all,
-                onSelected: (_) => _onTabChanged(_PreparedTab.all),
-              ),
-            ],
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                ChoiceChip(
+                  label: const Text('Active'),
+                  selected: _selectedTab == _PreparedTab.active,
+                  onSelected: (_) => _onTabChanged(_PreparedTab.active),
+                ),
+                const SizedBox(width: 8),
+                ChoiceChip(
+                  label: const Text('Completed'),
+                  selected: _selectedTab == _PreparedTab.completed,
+                  onSelected: (_) => _onTabChanged(_PreparedTab.completed),
+                ),
+                const SizedBox(width: 8),
+                ChoiceChip(
+                  label: const Text('All'),
+                  selected: _selectedTab == _PreparedTab.all,
+                  onSelected: (_) => _onTabChanged(_PreparedTab.all),
+                ),
+              ],
+            ),
           ),
         ),
         FilterPanel(
