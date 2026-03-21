@@ -84,16 +84,18 @@ class _UsersScreenState extends State<UsersScreen> {
           ),
         ),
         Expanded(
-          child: PaginatedDataGrid<UserListDto>(
+          child: Builder(builder: (context) {
+            final columns = UserListColumn.getColumns(
+              settingFields: _tableSetting?.tableSettingFields.toList(),
+            );
+            return PaginatedDataGrid<UserListDto>(
             controller: _controller,
             onSortChanged: (columnName, ascending) {
               _controller.reload();
             },
-            columns: UserListColumn.getColumns(
-              settingFields: _tableSetting?.tableSettingFields.toList(),
-            ),
+            columns: columns,
             sourceBuilder: (rows) =>
-                _UserGridSource(records: rows, context: context),
+                _UserGridSource(records: rows, context: context, columns: columns),
             fetchPage: (page, pageSize) async {
               final pageData = await usersApi.getUsers();
               return PaginatedResult<UserListDto>(
@@ -101,7 +103,8 @@ class _UsersScreenState extends State<UsersScreen> {
                 results: pageData,
               );
             },
-          ),
+          );
+          }),
         ),
       ],
     );
@@ -111,8 +114,13 @@ class _UsersScreenState extends State<UsersScreen> {
 class _UserGridSource extends DataGridSource {
   final List<UserListDto> records;
   final BuildContext context;
+  final List<GridColumn> columns;
 
-  _UserGridSource({required this.records, required this.context}) {
+  _UserGridSource({
+    required this.records,
+    required this.context,
+    required this.columns,
+  }) {
     _dataGridRows = records.map(UserListColumn.getDataGridRow).toList();
   }
 
@@ -123,54 +131,71 @@ class _UserGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final String status = row.getCells()[5].value as String;
+    final Map<String, Object?> values = {
+      for (final cell in row.getCells()) cell.columnName: cell.value,
+    };
+    final String status = (values['status'] as String?) ?? '';
 
-    return DataGridRowAdapter(
-      cells: [
-        Center(
-          child: IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: 'Edit User',
-            onPressed: () {
-              final String accountUuid = records
-                  .where((user) => user.accountId == row.getCells()[0].value)
-                  .first
-                  .accountUuid;
-              context.go('/user/$accountUuid');
-            },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[1].value),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[2].value),
-        ),
-        Center(child: Text(row.getCells()[3].value)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(row.getCells()[4].value),
-        ),
-        Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: status == 'Active' ? Colors.green : Colors.red,
-              borderRadius: BorderRadius.circular(12),
+    Widget buildCell(String columnName) {
+      switch (columnName) {
+        case 'accountId':
+          return Center(
+            child: IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Edit User',
+              onPressed: () {
+                final String accountUuid = records
+                    .where(
+                        (user) => user.accountId == values['accountId'] as int?)
+                    .first
+                    .accountUuid;
+                context.go('/user/$accountUuid');
+              },
             ),
-            child: Text(
-              status,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+          );
+        case 'name':
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text((values['name'] as String?) ?? ''),
+          );
+        case 'email':
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text((values['email'] as String?) ?? ''),
+          );
+        case 'role':
+          return Center(child: Text((values['role'] as String?) ?? ''));
+        case 'position':
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text((values['position'] as String?) ?? ''),
+          );
+        case 'status':
+          return Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: status == 'Active' ? Colors.green : Colors.red,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                status,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-        ),
-      ],
+          );
+        default:
+          return const SizedBox.shrink();
+      }
+    }
+
+    return DataGridRowAdapter(
+      cells: columns.map((col) => buildCell(col.columnName)).toList(),
     );
   }
 }

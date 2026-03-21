@@ -170,7 +170,13 @@ class _CagesListScreenState extends State<CagesListScreen> {
         Expanded(
           child: Stack(
             children: [
-              PaginatedDataGrid<CageDto>(
+              Builder(builder: (context) {
+                final cageColumns = CageListColumn.getColumns(
+                  includeSelect: _isEndingMode,
+                  useEid: settingStore.value?.labSetting.useEid ?? false,
+                  settingFields: _tableSetting?.tableSettingFields.toList(),
+                );
+                return PaginatedDataGrid<CageDto>(
                 controller: _controller,
                 searchPlaceholder: 'Try "Search cage C-101"',
                 onSortChanged: (columnName, ascending) {
@@ -182,17 +188,14 @@ class _CagesListScreenState extends State<CagesListScreen> {
                   });
                   _controller.reload();
                 },
-                columns: CageListColumn.getColumns(
-                  includeSelect: _isEndingMode,
-                  useEid: settingStore.value?.labSetting.useEid ?? false,
-                  settingFields: _tableSetting?.tableSettingFields.toList(),
-                ),
+                columns: cageColumns,
                 sourceBuilder: (rows) => _CageGridSource(
                   records: rows,
                   context: context,
                   selected: _selected,
                   onToggle: _onToggleSelected,
                   isEndingMode: _isEndingMode,
+                  columns: cageColumns,
                 ),
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
@@ -233,7 +236,8 @@ class _CagesListScreenState extends State<CagesListScreen> {
                       );
                     },
                 rowHeightEstimator: (index, row) => _estimateLines(row),
-              ),
+              );
+              }),
               Positioned.fill(
                 child: MovableFabMenu(
                   controller: _fabController,
@@ -462,6 +466,7 @@ class _CageGridSource extends DataGridSource {
   final Set<String> selected;
   final void Function(String uuid, bool selected) onToggle;
   final bool isEndingMode;
+  final List<GridColumn> columns;
 
   _CageGridSource({
     required this.records,
@@ -469,6 +474,7 @@ class _CageGridSource extends DataGridSource {
     required this.selected,
     required this.onToggle,
     required this.isEndingMode,
+    required this.columns,
   }) {
     _rows = records.map(CageListColumn.getDataGridRow).toList();
   }
@@ -480,48 +486,56 @@ class _CageGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final String uuid = row.getCells()[0].value as String;
-    final String cageTag = '${row.getCells()[2].value}';
+    final Map<String, Object?> values = {
+      for (final cell in row.getCells()) cell.columnName: cell.value,
+    };
+    final String uuid = (values[CageListColumn.select.name] as String?) ?? '';
+    final String cageTag = '${values[CageListColumn.cageTag.name] ?? ''}';
     final bool isChecked = selected.contains(uuid);
-    return DataGridRowAdapter(
-      cells: [
-        // Select checkbox (only visible in ending mode)
-        Center(
-          child: Checkbox(
-            value: isChecked,
-            onChanged: (v) {
-              onToggle(uuid, v ?? false);
-            },
-          ),
-        ),
-        // Edit button
-        Center(
-          child: Semantics(
-            label: 'Edit $cageTag',
-            button: true,
-            child: IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit',
-              onPressed: () {
-                context.go('/cage/$uuid');
+
+    Widget buildCell(String columnName) {
+      switch (columnName) {
+        case 'select':
+          return Center(
+            child: Checkbox(
+              value: isChecked,
+              onChanged: (v) {
+                onToggle(uuid, v ?? false);
               },
             ),
-          ),
-        ),
-        GestureDetector(
-          onTap: () => context.go('/cage/$uuid'),
-          child: cellText('${row.getCells()[2].value}', textAlign: Alignment.center),
-        ),
-        cellText(row.getCells()[3].value),
-        cellText(row.getCells()[4].value),
-        cellText('${row.getCells()[5].value}', textAlign: Alignment.center),
-        cellTextList(row.getCells()[6].value),
-        cellTextList(row.getCells()[7].value),
-        cellText(row.getCells()[8].value),
-        cellText(row.getCells()[9].value),
-        cellText(row.getCells()[10].value),
-        cellText(row.getCells()[11].value),
-      ],
+          );
+        case 'edit':
+          return Center(
+            child: Semantics(
+              label: 'Edit $cageTag',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.edit),
+                tooltip: 'Edit',
+                onPressed: () {
+                  context.go('/cage/$uuid');
+                },
+              ),
+            ),
+          );
+        case 'cage_tag':
+          return GestureDetector(
+            onTap: () => context.go('/cage/$uuid'),
+            child: cellText(cageTag, textAlign: Alignment.center),
+          );
+        case 'num':
+          return cellText('${values[CageListColumn.numberOfAnimals.name] ?? ''}', textAlign: Alignment.center);
+        case 'tags':
+          return cellTextList((values[CageListColumn.animalTags.name] as List<String>?) ?? []);
+        case 'genotypes':
+          return cellTextList((values[CageListColumn.genotypes.name] as List<String>?) ?? []);
+        default:
+          return cellText(values[columnName]?.toString());
+      }
+    }
+
+    return DataGridRowAdapter(
+      cells: columns.map((col) => buildCell(col.columnName)).toList(),
     );
   }
 }

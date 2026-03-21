@@ -146,7 +146,11 @@ class _StrainsScreenState extends State<StrainsScreen> {
         Expanded(
           child: Stack(
             children: [
-              PaginatedDataGrid<StrainDto>(
+              Builder(builder: (context) {
+                final strainColumns = StrainListColumn.getColumns(
+                  settingFields: _tableSetting?.tableSettingFields.toList(),
+                );
+                return PaginatedDataGrid<StrainDto>(
                 controller: _controller,
                 searchPlaceholder: 'Try "Search strain B6"',
                 onSortChanged: (columnName, ascending) {
@@ -158,14 +162,13 @@ class _StrainsScreenState extends State<StrainsScreen> {
                   });
                   _controller.reload();
                 },
-                columns: StrainListColumn.getColumns(
-                  settingFields: _tableSetting?.tableSettingFields.toList(),
-                ),
+                columns: strainColumns,
                 sourceBuilder: (rows) => _StrainGridSource(
                   records: rows,
                   selected: _selected,
                   onToggle: _onToggleSelected,
                   context: context,
+                  columns: strainColumns,
                 ),
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
@@ -205,7 +208,8 @@ class _StrainsScreenState extends State<StrainsScreen> {
                     results: pageData.results,
                   );
                 },
-              ),
+              );
+              }),
               Positioned.fill(
                 child: MovableFabMenu(
                   controller: _fabController,
@@ -269,12 +273,14 @@ class _StrainGridSource extends DataGridSource {
   final Set<String> selected;
   final void Function(String uuid, bool selected) onToggle;
   final BuildContext context;
+  final List<GridColumn> columns;
 
   _StrainGridSource({
     required this.records,
     required this.selected,
     required this.onToggle,
     required this.context,
+    required this.columns,
   }) {
     _dataGridRows = records.map(StrainListColumn.getDataGridRow).toList();
   }
@@ -286,54 +292,63 @@ class _StrainGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final String uuid = row.getCells()[0].value as String;
-    final String strainName = row.getCells()[2].value as String? ?? '';
+    final Map<String, Object?> values = {
+      for (final cell in row.getCells()) cell.columnName: cell.value,
+    };
+    final String uuid = (values[StrainListColumn.select.name] as String?) ?? '';
+    final String strainName = (values[StrainListColumn.strainName.name] as String?) ?? '';
     final bool isChecked = selected.contains(uuid);
-    return DataGridRowAdapter(
-      cells: [
-        Center(
-          child: Checkbox(
-            value: isChecked,
-            onChanged: (v) {
-              onToggle(uuid, v ?? false);
-            },
-          ),
-        ),
-        Center(
-          child: Semantics(
-            label: 'Edit $strainName',
-            button: true,
-            child: IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit',
-              onPressed: () {
-                context.go('/strain/$uuid');
+
+    Widget buildCell(String columnName) {
+      switch (columnName) {
+        case 'select':
+          return Center(
+            child: Checkbox(
+              value: isChecked,
+              onChanged: (v) {
+                onToggle(uuid, v ?? false);
               },
             ),
-          ),
-        ),
-        GestureDetector(
-          onTap: () => context.go('/strain/$uuid'),
-          child: cellText(row.getCells()[2].value),
-        ),
-        cellText('${row.getCells()[3].value}', textAlign: Alignment.center),
-        Center(child: ColorPicker(hex: row.getCells()[4].value)),
-        cellText(row.getCells()[5].value),
-        cellText(row.getCells()[6].value),
-        cellText(row.getCells()[7].value),
-        cellText(row.getCells()[8].value),
-        Center(
-          child: Icon(
-            (row.getCells()[9].value as bool)
-                ? Icons.check_circle
-                : Icons.cancel,
-            color: (row.getCells()[9].value as bool)
-                ? Colors.green
-                : Colors.red,
-            size: 18,
-          ),
-        ),
-      ],
+          );
+        case 'edit':
+          return Center(
+            child: Semantics(
+              label: 'Edit $strainName',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.edit),
+                tooltip: 'Edit',
+                onPressed: () {
+                  context.go('/strain/$uuid');
+                },
+              ),
+            ),
+          );
+        case 'name':
+          return GestureDetector(
+            onTap: () => context.go('/strain/$uuid'),
+            child: cellText(strainName),
+          );
+        case 'animals':
+          return cellText('${values[StrainListColumn.animals.name] ?? ''}', textAlign: Alignment.center);
+        case 'color':
+          return Center(child: ColorPicker(hex: (values[StrainListColumn.color.name] as String?) ?? ''));
+        case 'active':
+          final bool isActive = (values[StrainListColumn.active.name] as bool?) ?? false;
+          return Center(
+            child: Icon(
+              isActive ? Icons.check_circle : Icons.cancel,
+              color: isActive ? Colors.green : Colors.red,
+              size: 18,
+            ),
+          );
+        default:
+          return cellText(values[columnName]?.toString());
+      }
+    }
+
+    return DataGridRowAdapter(
+      cells: columns.map((col) => buildCell(col.columnName)).toList(),
     );
   }
 }

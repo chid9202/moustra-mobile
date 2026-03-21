@@ -127,7 +127,11 @@ class _MatingsScreenState extends State<MatingsScreen> {
         Expanded(
           child: Stack(
             children: [
-              PaginatedDataGrid<MatingDto>(
+              Builder(builder: (context) {
+                final matingColumns = MatingListColumn.getColumns(
+                  settingFields: _tableSetting?.tableSettingFields.toList(),
+                );
+                return PaginatedDataGrid<MatingDto>(
                 controller: _controller,
                 searchPlaceholder: 'Try "Search mating M-42"',
                 onSortChanged: (columnName, ascending) {
@@ -139,11 +143,9 @@ class _MatingsScreenState extends State<MatingsScreen> {
                   });
                   _controller.reload();
                 },
-                columns: MatingListColumn.getColumns(
-                  settingFields: _tableSetting?.tableSettingFields.toList(),
-                ),
+                columns: matingColumns,
                 sourceBuilder: (rows) =>
-                    _MatingGridSource(records: rows, context: context),
+                    _MatingGridSource(records: rows, context: context, columns: matingColumns),
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
                     page: page,
@@ -173,7 +175,8 @@ class _MatingsScreenState extends State<MatingsScreen> {
                   );
                 },
                 rowHeightEstimator: (index, row) => _estimateLines(row),
-              ),
+              );
+              }),
               Positioned.fill(
                 child: MovableFabMenu(
                   controller: _fabController,
@@ -220,8 +223,9 @@ class _MatingsScreenState extends State<MatingsScreen> {
 class _MatingGridSource extends DataGridSource {
   final List<MatingDto> records;
   final BuildContext context;
+  final List<GridColumn> columns;
 
-  _MatingGridSource({required this.records, required this.context}) {
+  _MatingGridSource({required this.records, required this.context, required this.columns}) {
     _rows = records.map(MatingListColumn.getDataGridRow).toList();
   }
 
@@ -232,41 +236,45 @@ class _MatingGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final String uuid = row.getCells()[0].value as String;
-    final String matingTag = row.getCells()[1].value as String? ?? '';
-    final BuildContext context = this.context;
+    final Map<String, Object?> values = {
+      for (final cell in row.getCells()) cell.columnName: cell.value,
+    };
+    final String uuid = (values[MatingListColumn.edit.name] as String?) ?? '';
+    final String matingTag = (values[MatingListColumn.matingTag.name] as String?) ?? '';
     List<String> asList(dynamic v) => (v as List<String>? ?? <String>[]);
 
-    return DataGridRowAdapter(
-      cells: [
-        Center(
-          child: Semantics(
-            label: 'Edit $matingTag',
-            button: true,
-            child: IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit',
-              onPressed: () {
-                context.go('/mating/$uuid');
-              },
+    Widget buildCell(String columnName) {
+      switch (columnName) {
+        case 'edit':
+          return Center(
+            child: Semantics(
+              label: 'Edit $matingTag',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.edit),
+                tooltip: 'Edit',
+                onPressed: () {
+                  context.go('/mating/$uuid');
+                },
+              ),
             ),
-          ),
-        ),
-        GestureDetector(
-          onTap: () => context.go('/mating/$uuid'),
-          child: cellText(row.getCells()[1].value),
-        ),
-        cellText(row.getCells()[2].value),
-        cellText(row.getCells()[3].value),
-        cellText(row.getCells()[4].value),
-        cellText(row.getCells()[5].value),
-        cellTextList(asList(row.getCells()[6].value)),
-        cellTextList(asList(row.getCells()[7].value)),
-        cellText(row.getCells()[8].value),
-        cellText(row.getCells()[9].value),
-        cellText(row.getCells()[10].value),
-        cellText(row.getCells()[11].value),
-      ],
+          );
+        case 'mating_tag':
+          return GestureDetector(
+            onTap: () => context.go('/mating/$uuid'),
+            child: cellText(matingTag),
+          );
+        case 'female_tag':
+          return cellTextList(asList(values[MatingListColumn.femaleTag.name]));
+        case 'female_genotypes':
+          return cellTextList(asList(values[MatingListColumn.femaleGenotypes.name]));
+        default:
+          return cellText(values[columnName]?.toString());
+      }
+    }
+
+    return DataGridRowAdapter(
+      cells: columns.map((col) => buildCell(col.columnName)).toList(),
     );
   }
 }

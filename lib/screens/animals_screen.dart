@@ -148,6 +148,25 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     );
   }
 
+  List<GridColumn> get _animalColumns => [
+    if (_isEditMode)
+      GridColumn(
+        columnName: 'edit_stripe',
+        width: 4,
+        label: Builder(
+          builder: (ctx) => Container(
+            color: Theme.of(ctx).colorScheme.primary,
+          ),
+        ),
+        allowSorting: false,
+      ),
+    ...AnimalListColumn.getColumns(
+      includeSelect: _isEndingMode,
+      sortNotifier: _sortNotifier,
+      settingFields: _tableSetting?.tableSettingFields.toList(),
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -201,24 +220,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                     ? (AnimalDto animal) =>
                         context.go('/animal/${animal.animalUuid}')
                     : null,
-                columns: [
-                  if (_isEditMode)
-                    GridColumn(
-                      columnName: 'edit_stripe',
-                      width: 4,
-                      label: Builder(
-                        builder: (ctx) => Container(
-                          color: Theme.of(ctx).colorScheme.primary,
-                        ),
-                      ),
-                      allowSorting: false,
-                    ),
-                  ...AnimalListColumn.getColumns(
-                    includeSelect: _isEndingMode,
-                    sortNotifier: _sortNotifier,
-                    settingFields: _tableSetting?.tableSettingFields.toList(),
-                  ),
-                ],
+                columns: _animalColumns,
                 sourceBuilder: (rows) => _AnimalGridSource(
                   records: rows,
                   selected: _selected,
@@ -226,6 +228,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   context: context,
                   isEndingMode: _isEndingMode,
                   isEditMode: _isEditMode,
+                  columns: _animalColumns,
                 ),
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
@@ -397,6 +400,7 @@ class _AnimalGridSource extends DataGridSource {
   final BuildContext context;
   final bool isEndingMode;
   final bool isEditMode;
+  final List<GridColumn> columns;
 
   _AnimalGridSource({
     required this.records,
@@ -405,6 +409,7 @@ class _AnimalGridSource extends DataGridSource {
     required this.context,
     required this.isEndingMode,
     required this.isEditMode,
+    required this.columns,
   }) {
     _rows = records.map(AnimalListColumn.getDataGridRow).toList();
   }
@@ -421,62 +426,55 @@ class _AnimalGridSource extends DataGridSource {
     };
     final String? uuid = values[AnimalListColumn.select.name] as String?;
     final bool isChecked = uuid != null && selected.contains(uuid);
-    final List<Widget> cells = [];
-    if (isEditMode) {
-      cells.add(
-        Builder(
-          builder: (c) => Container(
-            color: Theme.of(c).colorScheme.primary,
-          ),
-        ),
-      );
-    }
-    cells.add(
-      Center(
-        child: Checkbox(
-          value: isChecked,
-          onChanged: uuid == null
-              ? null
-              : (v) {
-                  onToggle(uuid, v ?? false);
-                },
-        ),
-      ),
-    );
     String? valueFor(AnimalListColumn column) => values[column.name] as String?;
-    final String animalTag = valueFor(AnimalListColumn.physicalTag) ?? '';
-    cells.add(
-      GestureDetector(
-        onTap: uuid == null ? null : () => context.go('/animal/$uuid'),
-        child: Padding(
-          padding: const EdgeInsets.only(left: 8),
-          child: cellText(valueFor(AnimalListColumn.physicalTag)),
-        ),
-      ),
-    );
-    cells.add(
-      cellText(valueFor(AnimalListColumn.sex)),
-    );
-    cells.add(
-      cellText(valueFor(AnimalListColumn.dob)),
-    );
-    cells.add(cellText(valueFor(AnimalListColumn.genotypes)));
-    cells.add(cellText(valueFor(AnimalListColumn.status)));
-    cells.add(cellText(valueFor(AnimalListColumn.age)));
-    cells.add(cellText(valueFor(AnimalListColumn.wean)));
-    cells.add(cellText(valueFor(AnimalListColumn.cage)));
-    cells.add(cellText(valueFor(AnimalListColumn.strain)));
-    cells.add(cellText(valueFor(AnimalListColumn.sire)));
-    cells.add(cellText(valueFor(AnimalListColumn.dam)));
-    cells.add(cellText(valueFor(AnimalListColumn.owner)));
-    cells.add(cellText(valueFor(AnimalListColumn.created)));
+
+    Widget buildCell(String columnName) {
+      switch (columnName) {
+        case 'edit_stripe':
+          return Builder(
+            builder: (c) => Container(
+              color: Theme.of(c).colorScheme.primary,
+            ),
+          );
+        case 'select':
+          return Center(
+            child: Checkbox(
+              value: isChecked,
+              onChanged: uuid == null
+                  ? null
+                  : (v) {
+                      onToggle(uuid, v ?? false);
+                    },
+            ),
+          );
+        case 'physical_tag':
+          return GestureDetector(
+            onTap: uuid == null ? null : () => context.go('/animal/$uuid'),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: cellText(valueFor(AnimalListColumn.physicalTag)),
+            ),
+          );
+        default:
+          // All other columns use the enum name mapping
+          final col = AnimalListColumn.values.cast<AnimalListColumn?>().firstWhere(
+            (c) => c!.field == columnName,
+            orElse: () => null,
+          );
+          if (col != null) {
+            return cellText(values[col.name]?.toString());
+          }
+          return cellText(values[columnName]?.toString());
+      }
+    }
+
     return DataGridRowAdapter(
       color: isEditMode
           ? Theme.of(context).colorScheme.secondaryContainer.withValues(
               alpha: 0.25,
             )
           : null,
-      cells: cells,
+      cells: columns.map((col) => buildCell(col.columnName)).toList(),
     );
   }
 }

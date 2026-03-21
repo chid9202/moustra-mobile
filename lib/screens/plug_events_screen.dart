@@ -196,7 +196,11 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
         Expanded(
           child: Stack(
             children: [
-              PaginatedDataGrid<PlugEventDto>(
+              Builder(builder: (context) {
+                final plugColumns = PlugEventListColumn.getColumns(
+                  settingFields: _tableSetting?.tableSettingFields.toList(),
+                );
+                return PaginatedDataGrid<PlugEventDto>(
                 controller: _controller,
                 searchPlaceholder: 'Search by female tag...',
                 onSortChanged: (columnName, ascending) {
@@ -208,11 +212,9 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
                   });
                   _controller.reload();
                 },
-                columns: PlugEventListColumn.getColumns(
-                  settingFields: _tableSetting?.tableSettingFields.toList(),
-                ),
+                columns: plugColumns,
                 sourceBuilder: (rows) =>
-                    _PlugEventGridSource(records: rows, context: context),
+                    _PlugEventGridSource(records: rows, context: context, columns: plugColumns),
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
                     page: page,
@@ -241,7 +243,8 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
                     results: pageData.results,
                   );
                 },
-              ),
+              );
+              }),
               Positioned.fill(
                 child: MovableFabMenu(
                   controller: _fabController,
@@ -275,8 +278,9 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
 class _PlugEventGridSource extends DataGridSource {
   final List<PlugEventDto> records;
   final BuildContext context;
+  final List<GridColumn> columns;
 
-  _PlugEventGridSource({required this.records, required this.context}) {
+  _PlugEventGridSource({required this.records, required this.context, required this.columns}) {
     _rows = records.map(PlugEventListColumn.getDataGridRow).toList();
   }
 
@@ -287,32 +291,38 @@ class _PlugEventGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final String uuid = row.getCells()[0].value as String;
+    final Map<String, Object?> values = {
+      for (final cell in row.getCells()) cell.columnName: cell.value,
+    };
+    final String uuid = (values[PlugEventListColumn.edit.name] as String?) ?? '';
+    final String currentEday = (values[PlugEventListColumn.currentEday.name] as String?) ?? '';
+    final String targetEday = (values[PlugEventListColumn.targetEday.name] as String?) ?? '';
+
+    Widget buildCell(String columnName) {
+      switch (columnName) {
+        case 'edit':
+          return Center(
+            child: Semantics(
+              label: 'View Plug Event',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.visibility),
+                tooltip: 'View',
+                onPressed: () {
+                  context.go('/plug-event/$uuid');
+                },
+              ),
+            ),
+          );
+        case 'current_eday':
+          return _edayCellText(currentEday, targetEday);
+        default:
+          return cellText(values[columnName]?.toString());
+      }
+    }
 
     return DataGridRowAdapter(
-      cells: [
-        Center(
-          child: Semantics(
-            label: 'View Plug Event',
-            button: true,
-            child: IconButton(
-              icon: const Icon(Icons.visibility),
-              tooltip: 'View',
-              onPressed: () {
-                context.go('/plug-event/$uuid');
-              },
-            ),
-          ),
-        ),
-        cellText(row.getCells()[1].value),
-        _edayCellText(row.getCells()[2].value, row.getCells()[3].value),
-        cellText(row.getCells()[3].value),
-        cellText(row.getCells()[4].value),
-        cellText(row.getCells()[5].value),
-        cellText(row.getCells()[6].value),
-        cellText(row.getCells()[7].value),
-        cellText(row.getCells()[8].value),
-      ],
+      cells: columns.map((col) => buildCell(col.columnName)).toList(),
     );
   }
 

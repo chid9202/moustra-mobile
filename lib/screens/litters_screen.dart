@@ -93,6 +93,11 @@ class _LittersScreenState extends State<LittersScreen> {
     );
   }
 
+  List<GridColumn> get _litterColumns => LitterListColumn.getColumns(
+    includeSelect: _isEndingMode,
+    settingFields: _tableSetting?.tableSettingFields.toList(),
+  );
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -135,16 +140,14 @@ class _LittersScreenState extends State<LittersScreen> {
                   });
                   _controller.reload();
                 },
-                columns: LitterListColumn.getColumns(
-                  includeSelect: _isEndingMode,
-                  settingFields: _tableSetting?.tableSettingFields.toList(),
-                ),
+                columns: _litterColumns,
                 sourceBuilder: (rows) => _LitterGridSource(
                   records: rows,
                   context: context,
                   selected: _selected,
                   onToggle: _onToggleSelected,
                   isEndingMode: _isEndingMode,
+                  columns: _litterColumns,
                 ),
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
@@ -300,6 +303,7 @@ class _LitterGridSource extends DataGridSource {
   final Set<String> selected;
   final void Function(String uuid, bool selected) onToggle;
   final bool isEndingMode;
+  final List<GridColumn> columns;
 
   _LitterGridSource({
     required this.records,
@@ -307,6 +311,7 @@ class _LitterGridSource extends DataGridSource {
     required this.selected,
     required this.onToggle,
     required this.isEndingMode,
+    required this.columns,
   }) {
     _rows = records.map(LitterListColumn.getDataGridRow).toList();
   }
@@ -323,56 +328,57 @@ class _LitterGridSource extends DataGridSource {
     };
     final String? uuid = values[LitterListColumn.select.name] as String?;
     final bool isChecked = uuid != null && selected.contains(uuid);
-    final List<Widget> cells = [];
-
-    // Select checkbox column
-    cells.add(
-      Center(
-        child: Checkbox(
-          value: isChecked,
-          onChanged: uuid == null
-              ? null
-              : (v) {
-                  onToggle(uuid, v ?? false);
-                },
-        ),
-      ),
-    );
-
-    // Edit column
     final String litterTag = values[LitterListColumn.litterTag.name] as String? ?? '';
-    cells.add(
-      Center(
-        child: Semantics(
-          label: 'Edit $litterTag',
-          button: true,
-          child: IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: 'Edit',
-            onPressed: uuid == null
-                ? null
-                : () {
-                    context.go('/litter/$uuid');
-                  },
-          ),
-        ),
-      ),
-    );
 
-    // Data columns
-    cells.add(
-      GestureDetector(
-        onTap: uuid == null ? null : () => context.go('/litter/$uuid'),
-        child: cellText(values[LitterListColumn.litterTag.name] as String?),
-      ),
-    );
-    cells.add(cellText(values[LitterListColumn.strain.name] as String?));
-    cells.add(cellText('${values[LitterListColumn.numberOfPups.name] ?? ''}'));
-    cells.add(cellText(values[LitterListColumn.wean.name] as String?));
-    cells.add(cellText(values[LitterListColumn.dob.name] as String?));
-    cells.add(cellText(values[LitterListColumn.owner.name] as String?));
-    cells.add(cellText(values[LitterListColumn.created.name] as String?));
+    Widget buildCell(String columnName) {
+      switch (columnName) {
+        case 'select':
+          return Center(
+            child: Checkbox(
+              value: isChecked,
+              onChanged: uuid == null
+                  ? null
+                  : (v) {
+                      onToggle(uuid, v ?? false);
+                    },
+            ),
+          );
+        case 'edit':
+          return Center(
+            child: Semantics(
+              label: 'Edit $litterTag',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.edit),
+                tooltip: 'Edit',
+                onPressed: uuid == null
+                    ? null
+                    : () {
+                        context.go('/litter/$uuid');
+                      },
+              ),
+            ),
+          );
+        case 'litter_tag':
+          return GestureDetector(
+            onTap: uuid == null ? null : () => context.go('/litter/$uuid'),
+            child: cellText(litterTag),
+          );
+        default:
+          // Use enum name to look up value
+          final col = LitterListColumn.values.cast<LitterListColumn?>().firstWhere(
+            (c) => c!.field == columnName,
+            orElse: () => null,
+          );
+          if (col != null) {
+            return cellText('${values[col.name] ?? ''}');
+          }
+          return cellText(values[columnName]?.toString());
+      }
+    }
 
-    return DataGridRowAdapter(cells: cells);
+    return DataGridRowAdapter(
+      cells: columns.map((col) => buildCell(col.columnName)).toList(),
+    );
   }
 }
