@@ -1,9 +1,50 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:moustra/widgets/notification_bell.dart';
+import 'package:moustra/services/clients/notification_api.dart';
 
-class MoustraAppBar extends StatelessWidget implements PreferredSizeWidget {
+class MoustraAppBar extends StatefulWidget implements PreferredSizeWidget {
   const MoustraAppBar({super.key});
+
+  @override
+  State<MoustraAppBar> createState() => _MoustraAppBarState();
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _MoustraAppBarState extends State<MoustraAppBar> {
+  int _unreadCount = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUnreadCount();
+    _timer = Timer.periodic(const Duration(seconds: 60), (_) {
+      _fetchUnreadCount();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchUnreadCount() async {
+    try {
+      final count = await notificationService.getUnreadCount();
+      if (mounted) {
+        setState(() => _unreadCount = count);
+      }
+    } catch (_) {
+      // Silently fail — badge just won't update
+    }
+  }
+
+  String get _badgeLabel => _unreadCount > 99 ? '99+' : '$_unreadCount';
 
   @override
   Widget build(BuildContext context) {
@@ -21,33 +62,69 @@ class MoustraAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
-        const NotificationBell(),
-        Semantics(
-          label: 'Tasks',
-          button: true,
-          child: IconButton(
-            icon: const Icon(Icons.task_alt),
-            tooltip: 'Tasks',
-            onPressed: () => context.go('/task'),
+        PopupMenuButton<String>(
+          icon: Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: Badge(
+              isLabelVisible: _unreadCount > 0,
+              offset: const Offset(6, -6),
+              label: Text(_badgeLabel, style: const TextStyle(fontSize: 10)),
+              child: const Icon(Icons.more_vert),
+            ),
           ),
-        ),
-        Semantics(
-          label: 'Calendar',
-          button: true,
-          child: IconButton(
-            icon: const Icon(Icons.calendar_month),
-            tooltip: 'Calendar',
-            onPressed: () => context.go('/calendar'),
-          ),
-        ),
-        Semantics(
-          label: 'Cheese AI',
-          button: true,
-          child: IconButton(
-            icon: const Icon(Icons.smart_toy),
-            tooltip: 'Cheese AI',
-            onPressed: () => context.go('/ai'),
-          ),
+          tooltip: 'More',
+          onSelected: (value) {
+            context.go(value);
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: '/notification',
+              child: Row(
+                children: [
+                  Badge(
+                    isLabelVisible: _unreadCount > 0,
+                    label: Text(
+                      _badgeLabel,
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                    child: const Icon(Icons.notifications_outlined),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text('Notifications'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: '/task',
+              child: Row(
+                children: [
+                  Icon(Icons.task_alt),
+                  SizedBox(width: 12),
+                  Text('Tasks'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: '/calendar',
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_month),
+                  SizedBox(width: 12),
+                  Text('Calendar'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: '/ai',
+              child: Row(
+                children: [
+                  Icon(Icons.smart_toy),
+                  SizedBox(width: 12),
+                  Text('Cheese AI'),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
       flexibleSpace: Container(
@@ -68,7 +145,4 @@ class MoustraAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
