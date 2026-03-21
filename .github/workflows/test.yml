@@ -39,6 +39,11 @@ jobs:
           sed -i "s/sdk: '>=2.18.0 <4.0.0'/sdk: ^3.9.0/" lib/api/generated/pubspec.yaml
           cd lib/api/generated && dart pub get && dart run build_runner build --delete-conflicting-outputs
 
+      - name: Create env files
+        run: |
+          cp .env.test .env
+          cp .env.test .env.production
+
       - name: Install dependencies
         run: flutter pub get
 
