@@ -13,11 +13,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.3'
           channel: 'stable'
           cache: true
+
+      - name: Generate API client
+        run: |
+          npx @openapitools/openapi-generator-cli generate \
+            -i openapi.yml \
+            -g dart-dio \
+            -o lib/api/generated \
+            --additional-properties=pubName=moustra_api,useEnumExtension=true \
+            --skip-validate-spec
+          sed -i "s/sdk: '>=2.18.0 <4.0.0'/sdk: ^3.9.0/" lib/api/generated/pubspec.yaml
+          cd lib/api/generated && dart pub get && dart run build_runner build --delete-conflicting-outputs
 
       - name: Install dependencies
         run: flutter pub get
