@@ -42,8 +42,8 @@ void main() {
       expect(dto.role, equals('admin'));
       expect(dto.isActive, isTrue);
       expect(dto.position, equals('PI'));
-      expect(dto.accountSetting.enableDailyReport, isTrue);
-      expect(dto.accountSetting.onboardingTour, isFalse);
+      expect(dto.accountSetting!.enableDailyReport, isTrue);
+      expect(dto.accountSetting!.onboardingTour, isFalse);
       expect(dto.onboarded, isTrue);
       expect(dto.lab.labName, equals('Mouse Lab'));
     });
