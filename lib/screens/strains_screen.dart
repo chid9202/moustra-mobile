@@ -8,8 +8,11 @@ import 'package:moustra/services/clients/strain_api.dart';
 import 'package:moustra/services/models/list_query_params.dart';
 import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/widgets/color_picker.dart';
+import 'package:moustra/stores/table_setting_store.dart';
+import 'package:moustra/widgets/column_settings_sheet.dart';
 import 'package:moustra/widgets/filter_panel.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
@@ -31,9 +34,20 @@ class _StrainsScreenState extends State<StrainsScreen> {
   SortParam? _activeSort = StrainFilterConfig.defaultSort;
   int _selectedPresetIndex = -1;
 
+  // Table settings
+  TableSettingSLR? _tableSetting;
+
   @override
   void initState() {
     super.initState();
+    _loadTableSetting();
+  }
+
+  Future<void> _loadTableSetting() async {
+    final setting = await getTableSetting('StrainList');
+    if (mounted && setting != null) {
+      setState(() => _tableSetting = setting);
+    }
   }
 
   void _onFiltersApplied(List<FilterParam> filters, SortParam? sort) {
@@ -114,6 +128,19 @@ class _StrainsScreenState extends State<StrainsScreen> {
           preparedFilters: StrainFilterConfig.preparedFilters,
           selectedPresetIndex: _selectedPresetIndex,
           onPresetSelected: _onPresetSelected,
+          onColumnSettingsTap: _tableSetting != null
+              ? () => showColumnSettingsSheet(
+                    context: context,
+                    baseName: 'StrainList',
+                    tableSetting: _tableSetting!,
+                    onSettingsChanged: () {
+                      final updated = tableSettingStore.value['StrainList'];
+                      if (updated != null && mounted) {
+                        setState(() => _tableSetting = updated);
+                      }
+                    },
+                  )
+              : null,
         ),
         const Divider(height: 1),
         Expanded(
@@ -131,7 +158,9 @@ class _StrainsScreenState extends State<StrainsScreen> {
                   });
                   _controller.reload();
                 },
-                columns: StrainListColumn.getColumns(),
+                columns: StrainListColumn.getColumns(
+                  settingFields: _tableSetting?.tableSettingFields.toList(),
+                ),
                 sourceBuilder: (rows) => _StrainGridSource(
                   records: rows,
                   selected: _selected,

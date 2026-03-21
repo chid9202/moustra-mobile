@@ -15,6 +15,7 @@ class FilterPanel extends StatefulWidget {
   final ValueChanged<int>? onPresetSelected;
   final bool isEditMode;
   final VoidCallback? onEditToggle;
+  final VoidCallback? onColumnSettingsTap;
 
   const FilterPanel({
     super.key,
@@ -29,6 +30,7 @@ class FilterPanel extends StatefulWidget {
     this.onPresetSelected,
     this.isEditMode = false,
     this.onEditToggle,
+    this.onColumnSettingsTap,
   });
 
   @override
@@ -248,6 +250,19 @@ class _FilterPanelState extends State<FilterPanel> {
                   visualDensity: VisualDensity.compact,
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                 ),
+                if (widget.onColumnSettingsTap != null) ...[
+                  const SizedBox(width: 4),
+                  ActionChip(
+                    avatar: const Icon(Icons.view_column, size: 16),
+                    label: const Text(
+                      'Columns',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    onPressed: widget.onColumnSettingsTap,
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                  ),
+                ],
                 const SizedBox(width: 8),
                 Icon(
                   _isExpanded ? Icons.filter_list_off : Icons.filter_list,

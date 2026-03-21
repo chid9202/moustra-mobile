@@ -4,6 +4,7 @@ import 'package:moustra/helpers/datetime_helper.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum CageListColumn implements ListColumn<CageDto> {
@@ -31,8 +32,9 @@ enum CageListColumn implements ListColumn<CageDto> {
   static List<GridColumn> getColumns({
     bool includeSelect = false,
     bool useEid = false,
+    List<TableSettingFieldSLR>? settingFields,
   }) {
-    return [
+    final columns = [
       GridColumn(
         columnName: CageListColumn.select.field,
         width: selectColumnWidth,
@@ -108,6 +110,7 @@ enum CageListColumn implements ListColumn<CageDto> {
         allowSorting: true,
       ),
     ];
+    return applyTableSettings(columns, settingFields);
   }
 
   static DataGridRow getDataGridRow(CageDto cage) {

@@ -25,8 +25,13 @@ import 'package:moustra/services/clients/dio_api_client.dart' as _i3;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
-class _FakeResponse_0<T> extends _i1.SmartFake implements _i2.Response<T> {
-  _FakeResponse_0(Object parent, Invocation parentInvocation)
+class _FakeDio_0 extends _i1.SmartFake implements _i2.Dio {
+  _FakeDio_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeResponse_1<T> extends _i1.SmartFake implements _i2.Response<T> {
+  _FakeResponse_1(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -37,6 +42,14 @@ class MockDioApiClient extends _i1.Mock implements _i3.DioApiClient {
   MockDioApiClient() {
     _i1.throwOnMissingStub(this);
   }
+
+  @override
+  _i2.Dio get dio =>
+      (super.noSuchMethod(
+            Invocation.getter(#dio),
+            returnValue: _FakeDio_0(this, Invocation.getter(#dio)),
+          )
+          as _i2.Dio);
 
   @override
   _i4.Future<_i2.Response<dynamic>> get(
@@ -51,7 +64,7 @@ class MockDioApiClient extends _i1.Mock implements _i3.DioApiClient {
               {#query: query, #withoutAccountPrefix: withoutAccountPrefix},
             ),
             returnValue: _i4.Future<_i2.Response<dynamic>>.value(
-              _FakeResponse_0<dynamic>(
+              _FakeResponse_1<dynamic>(
                 this,
                 Invocation.method(
                   #get,
@@ -79,7 +92,7 @@ class MockDioApiClient extends _i1.Mock implements _i3.DioApiClient {
               },
             ),
             returnValue: _i4.Future<_i2.Response<dynamic>>.value(
-              _FakeResponse_0<dynamic>(
+              _FakeResponse_1<dynamic>(
                 this,
                 Invocation.method(
                   #getWithQueryString,
@@ -112,7 +125,7 @@ class MockDioApiClient extends _i1.Mock implements _i3.DioApiClient {
               },
             ),
             returnValue: _i4.Future<_i2.Response<dynamic>>.value(
-              _FakeResponse_0<dynamic>(
+              _FakeResponse_1<dynamic>(
                 this,
                 Invocation.method(
                   #post,
@@ -141,7 +154,7 @@ class MockDioApiClient extends _i1.Mock implements _i3.DioApiClient {
               {#body: body, #withoutAccountPrefix: withoutAccountPrefix},
             ),
             returnValue: _i4.Future<_i2.Response<dynamic>>.value(
-              _FakeResponse_0<dynamic>(
+              _FakeResponse_1<dynamic>(
                 this,
                 Invocation.method(
                   #postWithoutAuth,
@@ -162,7 +175,7 @@ class MockDioApiClient extends _i1.Mock implements _i3.DioApiClient {
       (super.noSuchMethod(
             Invocation.method(#put, [path], {#body: body, #query: query}),
             returnValue: _i4.Future<_i2.Response<dynamic>>.value(
-              _FakeResponse_0<dynamic>(
+              _FakeResponse_1<dynamic>(
                 this,
                 Invocation.method(#put, [path], {#body: body, #query: query}),
               ),
@@ -179,7 +192,7 @@ class MockDioApiClient extends _i1.Mock implements _i3.DioApiClient {
       (super.noSuchMethod(
             Invocation.method(#patch, [path], {#body: body, #query: query}),
             returnValue: _i4.Future<_i2.Response<dynamic>>.value(
-              _FakeResponse_0<dynamic>(
+              _FakeResponse_1<dynamic>(
                 this,
                 Invocation.method(#patch, [path], {#body: body, #query: query}),
               ),
@@ -192,7 +205,7 @@ class MockDioApiClient extends _i1.Mock implements _i3.DioApiClient {
       (super.noSuchMethod(
             Invocation.method(#delete, [path]),
             returnValue: _i4.Future<_i2.Response<dynamic>>.value(
-              _FakeResponse_0<dynamic>(
+              _FakeResponse_1<dynamic>(
                 this,
                 Invocation.method(#delete, [path]),
               ),
@@ -214,7 +227,7 @@ class MockDioApiClient extends _i1.Mock implements _i3.DioApiClient {
               {#file: file, #fileFieldName: fileFieldName, #fields: fields},
             ),
             returnValue: _i4.Future<_i2.Response<dynamic>>.value(
-              _FakeResponse_0<dynamic>(
+              _FakeResponse_1<dynamic>(
                 this,
                 Invocation.method(
                   #uploadFile,

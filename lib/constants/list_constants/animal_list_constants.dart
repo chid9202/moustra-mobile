@@ -6,6 +6,7 @@ import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum AnimalListColumn implements ListColumn<AnimalDto> {
@@ -36,6 +37,7 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
   static List<GridColumn> getColumns({
     bool includeSelect = true,
     required ValueNotifier<SortParam?> sortNotifier,
+    List<TableSettingFieldSLR>? settingFields,
   }) {
     Widget sortableLabel(String text, String field, {double leftPadding = 4}) {
       return ValueListenableBuilder<SortParam?>(
@@ -66,7 +68,7 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
       );
     }
 
-    return [
+    final columns = [
       GridColumn(
         columnName: AnimalListColumn.select.field,
         width: selectColumnWidth,
@@ -187,6 +189,7 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
         allowSorting: true,
       ),
     ];
+    return applyTableSettings(columns, settingFields);
   }
 
   static DataGridRow getDataGridRow(AnimalDto a) {

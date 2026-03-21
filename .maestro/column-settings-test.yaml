@@ -1,0 +1,359 @@
+appId: com.moustra.app
+---
+# Column Settings E2E — Full test with toggles
+
+# ============================================================
+# LOGIN
+# ============================================================
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Email"
+- inputText: "admin+29917@moustra.com"
+- tapOn:
+    text: "Password"
+- inputText: "admin+29917"
+- tapOn:
+    text: "Sign In"
+- extendedWaitUntil:
+    visible:
+      text: "Open menu"
+    timeout: 30000
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# ============================================================
+# GROUP 1: Animals Screen — full validation
+# ============================================================
+
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Animal"
+- waitForAnimationToEnd:
+    timeout: 8000
+
+# 1.1 — Columns chip appears
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- takeScreenshot: colset-01-columns-chip
+
+# 1.2 — Open sheet, verify contents
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible:
+    text: "Column Settings"
+- assertVisible:
+    text: "Reset to Defaults"
+- takeScreenshot: colset-02-sheet-open
+
+# Reset to known state first
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+
+# 1.3 — Toggle column off (tap switch on 2nd row ~y530)
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: colset-03-toggle-off
+
+# Close sheet
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Verify grid still works (no crash)
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 10000
+- takeScreenshot: colset-04-grid-after-toggle
+
+# 1.6 — Reopen to check persistence
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible:
+    text: "Column Settings"
+- takeScreenshot: colset-05-persistence
+
+# 1.4 — Toggle back on (same position)
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: colset-06-toggle-on
+
+# 1.5 — Reset to Defaults
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- assertVisible:
+    text: "Column Settings"
+- takeScreenshot: colset-07-reset
+
+# Dismiss
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# ============================================================
+# GROUP 2: All other screens — chip + sheet + toggle
+# ============================================================
+
+# 2.1 — Cages
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Cages"
+- waitForAnimationToEnd:
+    timeout: 8000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible:
+    text: "Column Settings"
+# Toggle off first data column
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: colset-08-cages-toggle
+# Reset
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+# Verify no crash
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 10000
+- takeScreenshot: colset-09-cages-ok
+
+# 2.2 — Matings
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Mating"
+- waitForAnimationToEnd:
+    timeout: 8000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible:
+    text: "Column Settings"
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: colset-10-matings-toggle
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 10000
+- takeScreenshot: colset-11-matings-ok
+
+# 2.3 — Litters
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Litter"
+- waitForAnimationToEnd:
+    timeout: 8000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible:
+    text: "Column Settings"
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: colset-12-litters-toggle
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 10000
+- takeScreenshot: colset-13-litters-ok
+
+# 2.4 — Strains
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Strain"
+- waitForAnimationToEnd:
+    timeout: 8000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible:
+    text: "Column Settings"
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: colset-14-strains-toggle
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 10000
+- takeScreenshot: colset-15-strains-ok
+
+# 2.5 — Plug Events
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Plug Events"
+- waitForAnimationToEnd:
+    timeout: 8000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible:
+    text: "Column Settings"
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: colset-16-plug-events-toggle
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 10000
+- takeScreenshot: colset-17-plug-events-ok
+
+# ============================================================
+# GROUP 4: Edge cases
+# ============================================================
+
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Animal"
+- waitForAnimationToEnd:
+    timeout: 8000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# 4.1 — Rapid toggle (3x on same switch)
+- tapOn:
+    point: "370,530"
+- tapOn:
+    point: "370,530"
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: colset-18-rapid-toggle
+
+# 4.2 — Toggle + immediate reset
+- tapOn:
+    point: "370,530"
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- assertVisible:
+    text: "Column Settings"
+- takeScreenshot: colset-19-toggle-then-reset
+
+# Final cleanup
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: colset-20-final

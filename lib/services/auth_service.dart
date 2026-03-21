@@ -9,6 +9,7 @@ import 'package:moustra/services/error_context_service.dart';
 import 'package:moustra/services/log_service.dart';
 import 'package:moustra/services/secure_store.dart';
 import 'package:moustra/stores/auth_store.dart';
+import 'package:moustra/stores/table_setting_store.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 
 class AppCredentials {
@@ -321,6 +322,8 @@ class AuthService {
     authState.value = false;
     // Clear error context to prevent stale user data in error reports
     errorContextService.clear();
+    // Clear table settings cache
+    clearTableSettingStore();
   }
 
   Future<void> clearAll() async {

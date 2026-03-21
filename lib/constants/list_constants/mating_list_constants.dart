@@ -6,6 +6,7 @@ import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum MatingListColumn implements ListColumn<MatingDto> {
@@ -31,8 +32,10 @@ enum MatingListColumn implements ListColumn<MatingDto> {
   @override
   String get enumName => name;
 
-  static List<GridColumn> getColumns() {
-    return [
+  static List<GridColumn> getColumns({
+    List<TableSettingFieldSLR>? settingFields,
+  }) {
+    final columns = [
       GridColumn(
         columnName: MatingListColumn.edit.field,
         width: editColumnWidth,
@@ -112,6 +115,7 @@ enum MatingListColumn implements ListColumn<MatingDto> {
         allowSorting: true,
       ),
     ];
+    return applyTableSettings(columns, settingFields);
   }
 
   static DataGridRow getDataGridRow(MatingDto m) {

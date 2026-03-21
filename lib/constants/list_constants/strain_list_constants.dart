@@ -5,6 +5,7 @@ import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:moustra/helpers/strain_helper.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum StrainListColumn implements ListColumn<StrainDto> {
@@ -27,8 +28,10 @@ enum StrainListColumn implements ListColumn<StrainDto> {
   @override
   String get enumName => name;
 
-  static List<GridColumn> getColumns() {
-    return [
+  static List<GridColumn> getColumns({
+    List<TableSettingFieldSLR>? settingFields,
+  }) {
+    final columns = [
       GridColumn(
         columnName: StrainListColumn.select.field,
         width: selectColumnWidth,
@@ -89,6 +92,7 @@ enum StrainListColumn implements ListColumn<StrainDto> {
         label: Center(child: Text(StrainListColumn.active.label)),
       ),
     ];
+    return applyTableSettings(columns, settingFields);
   }
 
   static DataGridRow getDataGridRow(StrainDto strain) {

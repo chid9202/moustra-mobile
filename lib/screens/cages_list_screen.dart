@@ -12,7 +12,10 @@ import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:moustra/helpers/util_helper.dart';
 import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/stores/setting_store.dart';
+import 'package:moustra/stores/table_setting_store.dart';
+import 'package:moustra/widgets/column_settings_sheet.dart';
 import 'package:moustra/widgets/filter_panel.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
@@ -38,11 +41,22 @@ class _CagesListScreenState extends State<CagesListScreen> {
   SortParam? _activeSort = CageFilterConfig.defaultSort;
   int _selectedPresetIndex = 0;
 
+  // Table settings
+  TableSettingSLR? _tableSetting;
+
   @override
   void initState() {
     super.initState();
     // Apply default preset on load
     _applyPreset(0);
+    _loadTableSetting();
+  }
+
+  Future<void> _loadTableSetting() async {
+    final setting = await getTableSetting('CageList');
+    if (mounted && setting != null) {
+      setState(() => _tableSetting = setting);
+    }
   }
 
   @override
@@ -138,6 +152,19 @@ class _CagesListScreenState extends State<CagesListScreen> {
           preparedFilters: CageFilterConfig.preparedFilters,
           selectedPresetIndex: _selectedPresetIndex,
           onPresetSelected: _onPresetSelected,
+          onColumnSettingsTap: _tableSetting != null
+              ? () => showColumnSettingsSheet(
+                    context: context,
+                    baseName: 'CageList',
+                    tableSetting: _tableSetting!,
+                    onSettingsChanged: () {
+                      final updated = tableSettingStore.value['CageList'];
+                      if (updated != null && mounted) {
+                        setState(() => _tableSetting = updated);
+                      }
+                    },
+                  )
+              : null,
         ),
         const Divider(height: 1),
         Expanded(
@@ -158,6 +185,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
                 columns: CageListColumn.getColumns(
                   includeSelect: _isEndingMode,
                   useEid: settingStore.value?.labSetting.useEid ?? false,
+                  settingFields: _tableSetting?.tableSettingFields.toList(),
                 ),
                 sourceBuilder: (rows) => _CageGridSource(
                   records: rows,

@@ -4,7 +4,10 @@ import 'package:moustra/constants/list_constants/user_list_constants.dart';
 import 'package:moustra/services/dtos/user_list_dto.dart';
 import 'package:moustra/services/clients/users_api.dart';
 import 'package:moustra/services/clients/dio_api_client.dart';
+import 'package:moustra/stores/table_setting_store.dart';
+import 'package:moustra/widgets/column_settings_sheet.dart';
 import 'package:moustra/widgets/shared/button.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 
@@ -20,10 +23,21 @@ class UsersScreen extends StatefulWidget {
 class _UsersScreenState extends State<UsersScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
 
+  // Table settings
+  TableSettingSLR? _tableSetting;
+
   @override
   void initState() {
     super.initState();
     _controller.reload();
+    _loadTableSetting();
+  }
+
+  Future<void> _loadTableSetting() async {
+    final setting = await getTableSetting('UserList');
+    if (mounted && setting != null) {
+      setState(() => _tableSetting = setting);
+    }
   }
 
   @override
@@ -48,6 +62,23 @@ class _UsersScreenState extends State<UsersScreen> {
                     }
                   },
                 ),
+                if (_tableSetting != null)
+                  MoustraButton.icon(
+                    label: 'Columns',
+                    icon: Icons.view_column,
+                    variant: ButtonVariant.secondary,
+                    onPressed: () => showColumnSettingsSheet(
+                      context: context,
+                      baseName: 'UserList',
+                      tableSetting: _tableSetting!,
+                      onSettingsChanged: () {
+                        final updated = tableSettingStore.value['UserList'];
+                        if (updated != null && mounted) {
+                          setState(() => _tableSetting = updated);
+                        }
+                      },
+                    ),
+                  ),
               ],
             ),
           ),
@@ -58,7 +89,9 @@ class _UsersScreenState extends State<UsersScreen> {
             onSortChanged: (columnName, ascending) {
               _controller.reload();
             },
-            columns: UserListColumn.getColumns(),
+            columns: UserListColumn.getColumns(
+              settingFields: _tableSetting?.tableSettingFields.toList(),
+            ),
             sourceBuilder: (rows) =>
                 _UserGridSource(records: rows, context: context),
             fetchPage: (page, pageSize) async {

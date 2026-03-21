@@ -6,8 +6,11 @@ import 'package:moustra/constants/list_constants/plug_event_list_constants.dart'
 import 'package:moustra/services/clients/plug_api.dart';
 import 'package:moustra/services/dtos/plug_event_dto.dart';
 import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra/stores/table_setting_store.dart';
+import 'package:moustra/widgets/column_settings_sheet.dart';
 import 'package:moustra/widgets/filter_panel.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
@@ -32,10 +35,21 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
     order: SortOrder.desc,
   );
 
+  // Table settings
+  TableSettingSLR? _tableSetting;
+
   @override
   void initState() {
     super.initState();
     _applyTabFilters(_selectedTab);
+    _loadTableSetting();
+  }
+
+  Future<void> _loadTableSetting() async {
+    final setting = await getTableSetting('PlugEventList');
+    if (mounted && setting != null) {
+      setState(() => _tableSetting = setting);
+    }
   }
 
   void _applyTabFilters(_PreparedTab tab) {
@@ -164,6 +178,19 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
           initialSort: _activeSort,
           onApply: _onFiltersApplied,
           onClear: _onFiltersClear,
+          onColumnSettingsTap: _tableSetting != null
+              ? () => showColumnSettingsSheet(
+                    context: context,
+                    baseName: 'PlugEventList',
+                    tableSetting: _tableSetting!,
+                    onSettingsChanged: () {
+                      final updated = tableSettingStore.value['PlugEventList'];
+                      if (updated != null && mounted) {
+                        setState(() => _tableSetting = updated);
+                      }
+                    },
+                  )
+              : null,
         ),
         const Divider(height: 1),
         Expanded(
@@ -181,7 +208,9 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
                   });
                   _controller.reload();
                 },
-                columns: PlugEventListColumn.getColumns(),
+                columns: PlugEventListColumn.getColumns(
+                  settingFields: _tableSetting?.tableSettingFields.toList(),
+                ),
                 sourceBuilder: (rows) =>
                     _PlugEventGridSource(records: rows, context: context),
                 fetchPage: (page, pageSize) async {

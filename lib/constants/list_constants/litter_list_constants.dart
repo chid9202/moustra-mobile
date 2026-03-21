@@ -3,6 +3,7 @@ import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/helpers/datetime_helper.dart';
 import 'package:moustra/services/dtos/litter_dto.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum LitterListColumn implements ListColumn<LitterDto> {
@@ -25,8 +26,11 @@ enum LitterListColumn implements ListColumn<LitterDto> {
   @override
   String get enumName => name;
 
-  static List<GridColumn> getColumns({bool includeSelect = false}) {
-    return [
+  static List<GridColumn> getColumns({
+    bool includeSelect = false,
+    List<TableSettingFieldSLR>? settingFields,
+  }) {
+    final columns = [
       GridColumn(
         columnName: LitterListColumn.select.field,
         width: selectColumnWidth,
@@ -89,6 +93,7 @@ enum LitterListColumn implements ListColumn<LitterDto> {
         allowSorting: true,
       ),
     ];
+    return applyTableSettings(columns, settingFields);
   }
 
   static DataGridRow getDataGridRow(LitterDto litter) {

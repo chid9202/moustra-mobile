@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/constants/list_constants/common.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/services/dtos/user_list_dto.dart';
 
 class UserListColumn {
-  static List<GridColumn> getColumns() {
-    return [
+  static List<GridColumn> getColumns({
+    List<TableSettingFieldSLR>? settingFields,
+  }) {
+    final columns = [
       GridColumn(
         columnName: 'accountId',
         label: Container(
@@ -69,6 +73,7 @@ class UserListColumn {
         ),
       ),
     ];
+    return applyTableSettings(columns, settingFields);
   }
 
   static DataGridRow getDataGridRow(UserListDto user) {

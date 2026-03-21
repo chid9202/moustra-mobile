@@ -6,8 +6,11 @@ import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:moustra/services/clients/litter_api.dart';
 import 'package:moustra/services/models/list_query_params.dart';
 import 'package:moustra/constants/list_constants/litter_list_constants.dart';
+import 'package:moustra/stores/table_setting_store.dart';
+import 'package:moustra/widgets/column_settings_sheet.dart';
 import 'package:moustra/widgets/filter_panel.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
@@ -30,9 +33,20 @@ class _LittersScreenState extends State<LittersScreen> {
   List<FilterParam> _activeFilters = [];
   SortParam? _activeSort = LitterFilterConfig.defaultSort;
 
+  // Table settings
+  TableSettingSLR? _tableSetting;
+
   @override
   void initState() {
     super.initState();
+    _loadTableSetting();
+  }
+
+  Future<void> _loadTableSetting() async {
+    final setting = await getTableSetting('LitterList');
+    if (mounted && setting != null) {
+      setState(() => _tableSetting = setting);
+    }
   }
 
   void _onFiltersApplied(List<FilterParam> filters, SortParam? sort) {
@@ -91,6 +105,19 @@ class _LittersScreenState extends State<LittersScreen> {
           initialSort: _activeSort,
           onApply: _onFiltersApplied,
           onClear: _onFiltersClear,
+          onColumnSettingsTap: _tableSetting != null
+              ? () => showColumnSettingsSheet(
+                    context: context,
+                    baseName: 'LitterList',
+                    tableSetting: _tableSetting!,
+                    onSettingsChanged: () {
+                      final updated = tableSettingStore.value['LitterList'];
+                      if (updated != null && mounted) {
+                        setState(() => _tableSetting = updated);
+                      }
+                    },
+                  )
+              : null,
         ),
         const Divider(height: 1),
         Expanded(
@@ -110,6 +137,7 @@ class _LittersScreenState extends State<LittersScreen> {
                 },
                 columns: LitterListColumn.getColumns(
                   includeSelect: _isEndingMode,
+                  settingFields: _tableSetting?.tableSettingFields.toList(),
                 ),
                 sourceBuilder: (rows) => _LitterGridSource(
                   records: rows,

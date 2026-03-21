@@ -9,8 +9,11 @@ import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/services/models/list_query_params.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
+import 'package:moustra/stores/table_setting_store.dart';
+import 'package:moustra/widgets/column_settings_sheet.dart';
 import 'package:moustra/widgets/filter_panel.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
@@ -29,9 +32,20 @@ class _MatingsScreenState extends State<MatingsScreen> {
   List<FilterParam> _activeFilters = [];
   SortParam? _activeSort = MatingFilterConfig.defaultSort;
 
+  // Table settings
+  TableSettingSLR? _tableSetting;
+
   @override
   void initState() {
     super.initState();
+    _loadTableSetting();
+  }
+
+  Future<void> _loadTableSetting() async {
+    final setting = await getTableSetting('MatingList');
+    if (mounted && setting != null) {
+      setState(() => _tableSetting = setting);
+    }
   }
 
   @override
@@ -95,6 +109,19 @@ class _MatingsScreenState extends State<MatingsScreen> {
           initialSort: _activeSort,
           onApply: _onFiltersApplied,
           onClear: _onFiltersClear,
+          onColumnSettingsTap: _tableSetting != null
+              ? () => showColumnSettingsSheet(
+                    context: context,
+                    baseName: 'MatingList',
+                    tableSetting: _tableSetting!,
+                    onSettingsChanged: () {
+                      final updated = tableSettingStore.value['MatingList'];
+                      if (updated != null && mounted) {
+                        setState(() => _tableSetting = updated);
+                      }
+                    },
+                  )
+              : null,
         ),
         const Divider(height: 1),
         Expanded(
@@ -112,7 +139,9 @@ class _MatingsScreenState extends State<MatingsScreen> {
                   });
                   _controller.reload();
                 },
-                columns: MatingListColumn.getColumns(),
+                columns: MatingListColumn.getColumns(
+                  settingFields: _tableSetting?.tableSettingFields.toList(),
+                ),
                 sourceBuilder: (rows) =>
                     _MatingGridSource(records: rows, context: context),
                 fetchPage: (page, pageSize) async {

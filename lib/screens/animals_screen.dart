@@ -10,7 +10,10 @@ import 'package:moustra/services/dtos/end_animals_dto.dart';
 import 'package:moustra/services/models/list_query_params.dart';
 import 'package:moustra/services/models/prepared_filter.dart';
 import 'package:moustra/stores/profile_store.dart';
+import 'package:moustra/stores/table_setting_store.dart';
+import 'package:moustra/widgets/column_settings_sheet.dart';
 import 'package:moustra/widgets/filter_panel.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/services/clients/event_api.dart';
@@ -39,11 +42,22 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
   int _selectedPresetIndex = 0;
   late final ValueNotifier<SortParam?> _sortNotifier;
 
+  // Table settings
+  TableSettingSLR? _tableSetting;
+
   @override
   void initState() {
     super.initState();
     _sortNotifier = ValueNotifier(AnimalFilterConfig.defaultSort);
     _applyPreset(0);
+    _loadTableSetting();
+  }
+
+  Future<void> _loadTableSetting() async {
+    final setting = await getTableSetting('AnimalList');
+    if (mounted && setting != null) {
+      setState(() => _tableSetting = setting);
+    }
   }
 
   @override
@@ -151,6 +165,19 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
           onPresetSelected: _onPresetSelected,
           isEditMode: _isEditMode,
           onEditToggle: () => setState(() => _isEditMode = !_isEditMode),
+          onColumnSettingsTap: _tableSetting != null
+              ? () => showColumnSettingsSheet(
+                    context: context,
+                    baseName: 'AnimalList',
+                    tableSetting: _tableSetting!,
+                    onSettingsChanged: () {
+                      final updated = tableSettingStore.value['AnimalList'];
+                      if (updated != null && mounted) {
+                        setState(() => _tableSetting = updated);
+                      }
+                    },
+                  )
+              : null,
         ),
         const Divider(height: 1),
         Expanded(
@@ -189,6 +216,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   ...AnimalListColumn.getColumns(
                     includeSelect: _isEndingMode,
                     sortNotifier: _sortNotifier,
+                    settingFields: _tableSetting?.tableSettingFields.toList(),
                   ),
                 ],
                 sourceBuilder: (rows) => _AnimalGridSource(

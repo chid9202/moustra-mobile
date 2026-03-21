@@ -3,6 +3,7 @@ import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/helpers/datetime_helper.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/services/dtos/plug_event_dto.dart';
+import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum PlugEventListColumn implements ListColumn<PlugEventDto> {
@@ -24,8 +25,10 @@ enum PlugEventListColumn implements ListColumn<PlugEventDto> {
   @override
   String get enumName => name;
 
-  static List<GridColumn> getColumns() {
-    return [
+  static List<GridColumn> getColumns({
+    List<TableSettingFieldSLR>? settingFields,
+  }) {
+    final columns = [
       GridColumn(
         columnName: PlugEventListColumn.edit.field,
         width: editColumnWidth,
@@ -81,6 +84,7 @@ enum PlugEventListColumn implements ListColumn<PlugEventDto> {
         allowSorting: true,
       ),
     ];
+    return applyTableSettings(columns, settingFields);
   }
 
   static DataGridRow getDataGridRow(PlugEventDto p) {

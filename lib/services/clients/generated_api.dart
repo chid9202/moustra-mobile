@@ -1,4 +1,5 @@
 import 'package:moustra_api/moustra_api.dart';
+import 'package:moustra/config/api_config.dart';
 import 'package:moustra/services/clients/dio_client.dart';
 import 'package:moustra/stores/profile_store.dart';
 
@@ -9,8 +10,15 @@ class GeneratedApi {
   late final MoustraApi _api;
 
   GeneratedApi() {
+    // Generated API paths already include /api/v1 prefix, so strip it from
+    // the base URL to avoid doubling (e.g. /api/v1/api/v1/...).
+    final dio = createDio();
+    final rawBase = ApiConfig.baseUrl;
+    if (rawBase.endsWith('/api/v1')) {
+      dio.options.baseUrl = rawBase.substring(0, rawBase.length - '/api/v1'.length);
+    }
     _api = MoustraApi(
-      dio: createDio(),
+      dio: dio,
       interceptors: [], // We handle auth in our own Dio interceptors
     );
   }
