@@ -213,91 +213,101 @@ class _FilterPanelState extends State<FilterPanel> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Row(
               children: [
-                ActionChip(
-                  avatar: Icon(
-                    Icons.edit_outlined,
-                    size: 16,
-                    color: widget.isEditMode
-                        ? theme.colorScheme.onSecondaryContainer
-                        : null,
-                  ),
-                  label: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Edit Rows',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: widget.isEditMode
-                              ? theme.colorScheme.onSecondaryContainer
+                Flexible(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ActionChip(
+                          avatar: Icon(
+                            Icons.edit_outlined,
+                            size: 16,
+                            color: widget.isEditMode
+                                ? theme.colorScheme.onSecondaryContainer
+                                : null,
+                          ),
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Edit Rows',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: widget.isEditMode
+                                      ? theme.colorScheme.onSecondaryContainer
+                                      : null,
+                                ),
+                              ),
+                              if (widget.isEditMode) ...[
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.close,
+                                  size: 14,
+                                  color: theme.colorScheme.onSecondaryContainer,
+                                ),
+                              ],
+                            ],
+                          ),
+                          backgroundColor: widget.isEditMode
+                              ? theme.colorScheme.secondaryContainer
                               : null,
+                          onPressed: widget.onEditToggle,
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
                         ),
-                      ),
-                      if (widget.isEditMode) ...[
-                        const SizedBox(width: 4),
+                        if (widget.onColumnSettingsTap != null) ...[
+                          const SizedBox(width: 4),
+                          ActionChip(
+                            avatar: const Icon(Icons.view_column, size: 16),
+                            label: const Text(
+                              'Columns',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            onPressed: widget.onColumnSettingsTap,
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                          ),
+                        ],
+                        const SizedBox(width: 8),
                         Icon(
-                          Icons.close,
-                          size: 14,
-                          color: theme.colorScheme.onSecondaryContainer,
+                          _isExpanded ? Icons.filter_list_off : Icons.filter_list,
+                          size: 20,
+                          color: hasFilters ? theme.colorScheme.primary : null,
                         ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Filters & Sort',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: hasFilters ? theme.colorScheme.primary : null,
+                          ),
+                        ),
+                        if (hasFilters) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '${_filterRows.length}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: theme.colorScheme.onPrimaryContainer,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                  backgroundColor: widget.isEditMode
-                      ? theme.colorScheme.secondaryContainer
-                      : null,
-                  onPressed: widget.onEditToggle,
-                  visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                ),
-                if (widget.onColumnSettingsTap != null) ...[
-                  const SizedBox(width: 4),
-                  ActionChip(
-                    avatar: const Icon(Icons.view_column, size: 16),
-                    label: const Text(
-                      'Columns',
-                      style: TextStyle(fontSize: 12),
                     ),
-                    onPressed: widget.onColumnSettingsTap,
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                  ),
-                ],
-                const SizedBox(width: 8),
-                Icon(
-                  _isExpanded ? Icons.filter_list_off : Icons.filter_list,
-                  size: 20,
-                  color: hasFilters ? theme.colorScheme.primary : null,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Filters & Sort',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: hasFilters ? theme.colorScheme.primary : null,
                   ),
                 ),
-                if (hasFilters) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${_filterRows.length}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                  ),
-                ],
-                const Spacer(),
+                const SizedBox(width: 4),
                 Icon(
                   _isExpanded ? Icons.expand_less : Icons.expand_more,
                   size: 20,
