@@ -1,0 +1,55 @@
+appId: com.moustra.app
+---
+# Reusable Login Flow — Dev Environment
+# Usage: - runFlow: shared/login.yaml
+#
+# Handles:
+# - Launching app
+# - Entering credentials
+# - Dismissing keyboard before Sign In
+# - Dismissing iOS "Save Password" / "Update Password" dialog
+# - Waiting for home screen
+
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 10000
+
+# Enter email
+- tapOn:
+    text: "Email"
+- inputText: "admin+29917@moustra.com"
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# Enter password
+- tapOn:
+    text: "Password"
+- inputText: "admin+29917"
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# Dismiss keyboard by tapping neutral area (logo)
+- tapOn:
+    point: "200,200"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Tap Sign In
+- tapOn:
+    text: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Dismiss iOS password save dialog if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Wait for home screen to load (hamburger menu = "Open menu")
+- extendedWaitUntil:
+    visible: "Open menu"
+    timeout: 30000
+- waitForAnimationToEnd:
+    timeout: 5000

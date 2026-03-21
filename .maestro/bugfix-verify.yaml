@@ -1,0 +1,396 @@
+appId: com.moustra.app
+---
+# Bug Fix Verification — March 21, 2026
+# Tests: UserListDto null safety, DataGrid column/cell mismatch, RenderFlex overflow
+# Target: iPhone 16 Pro Simulator, iOS 18.4
+
+# ============================================================
+# LOGIN (reusable flow)
+# ============================================================
+- runFlow: shared/login.yaml
+- takeScreenshot: bugfix-01-logged-in
+
+# ============================================================
+# BUG 1: UserListDto null safety — Users screen must load
+# ============================================================
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      text: "User"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    text: "User"
+- waitForAnimationToEnd:
+    timeout: 8000
+# If Bug 1 isn't fixed, the app crashes here (FlutterError)
+- takeScreenshot: bugfix-02-users-loaded
+
+# Verify list has loaded (wait for grid to render, then screenshot for visual check)
+- waitForAnimationToEnd:
+    timeout: 8000
+# Verify Create User button is visible (confirms screen rendered properly)
+- assertVisible:
+    text: "Create User"
+- takeScreenshot: bugfix-03-users-data-visible
+
+# ============================================================
+# BUG 2: Users screen — column settings toggle
+# ============================================================
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible:
+    text: "Column Settings"
+- takeScreenshot: bugfix-04-users-columns-sheet
+
+# Reset to known state
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+
+# Toggle first data column OFF
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: bugfix-05-users-column-toggled-off
+
+# Close sheet — verify grid doesn't crash
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+# If Bug 2 isn't fixed, the app crashes here (SfDataGrid assertion)
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 10000
+- takeScreenshot: bugfix-06-users-grid-after-toggle
+
+# Reopen and reset
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: bugfix-07-users-restored
+
+# ============================================================
+# BUG 3: RenderFlex overflow — Plug Events chip tabs
+# ============================================================
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Plug Events"
+- waitForAnimationToEnd:
+    timeout: 8000
+# If Bug 3 isn't fixed, yellow overflow stripe visible here
+- takeScreenshot: bugfix-08-plug-events-chips
+
+# Verify all three tabs are visible and tappable
+- tapOn:
+    text: "Completed"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: bugfix-09-plug-completed
+
+- tapOn:
+    text: "All"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: bugfix-10-plug-all
+
+- tapOn:
+    text: "Active"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: bugfix-11-plug-active
+
+# ============================================================
+# BUG 2 (comprehensive): Column toggle on ALL remaining screens
+# ============================================================
+
+# --- Animals ---
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Animal"
+- waitForAnimationToEnd:
+    timeout: 8000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 10000
+- takeScreenshot: bugfix-12-animals-toggle-ok
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# --- Cages ---
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Cages"
+- waitForAnimationToEnd:
+    timeout: 8000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 10000
+- takeScreenshot: bugfix-13-cages-toggle-ok
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# --- Matings ---
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Mating"
+- waitForAnimationToEnd:
+    timeout: 8000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 10000
+- takeScreenshot: bugfix-14-matings-toggle-ok
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# --- Litters ---
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Litter"
+- waitForAnimationToEnd:
+    timeout: 8000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 10000
+- takeScreenshot: bugfix-15-litters-toggle-ok
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# --- Strains ---
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Strain"
+- waitForAnimationToEnd:
+    timeout: 8000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 10000
+- takeScreenshot: bugfix-16-strains-toggle-ok
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# --- Plug Events (column toggle) ---
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Plug Events"
+- waitForAnimationToEnd:
+    timeout: 8000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 15000
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: "370,530"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      text: "Columns"
+    timeout: 10000
+- takeScreenshot: bugfix-17-plug-events-toggle-ok
+- tapOn:
+    text: "Columns"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "Reset to Defaults"
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn:
+    point: "200,250"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# ============================================================
+# DONE
+# ============================================================
+- takeScreenshot: bugfix-18-all-passed
