@@ -7,8 +7,8 @@ part of 'user_list_dto.dart';
 // **************************************************************************
 
 UserListDto _$UserListDtoFromJson(Map<String, dynamic> json) => UserListDto(
-  accountId: (json['accountId'] as num).toInt(),
-  accountUuid: json['accountUuid'] as String,
+  accountId: (json['accountId'] as num?)?.toInt() ?? 0,
+  accountUuid: json['accountUuid'] as String? ?? '',
   user: UserDto.fromJson(json['user'] as Map<String, dynamic>),
   status: json['status'] as String? ?? '',
   role: json['role'] as String? ?? 'User',
@@ -66,9 +66,9 @@ Map<String, dynamic> _$AccountSettingDtoToJson(AccountSettingDto instance) =>
     };
 
 LabDto _$LabDtoFromJson(Map<String, dynamic> json) => LabDto(
-  labId: (json['labId'] as num).toInt(),
-  labUuid: json['labUuid'] as String,
-  labName: json['labName'] as String,
+  labId: (json['labId'] as num?)?.toInt() ?? 0,
+  labUuid: json['labUuid'] as String? ?? '',
+  labName: json['labName'] as String? ?? '',
 );
 
 Map<String, dynamic> _$LabDtoToJson(LabDto instance) => <String, dynamic>{

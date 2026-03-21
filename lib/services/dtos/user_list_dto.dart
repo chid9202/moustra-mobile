@@ -4,12 +4,16 @@ part 'user_list_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class UserListDto {
+  @JsonKey(defaultValue: 0)
   final int accountId;
+  @JsonKey(defaultValue: '')
   final String accountUuid;
   final UserDto user;
+  @JsonKey(defaultValue: '')
   final String status;
+  @JsonKey(defaultValue: 'User')
   final String role;
-  @JsonKey(defaultValue: true)
+  @JsonKey(name: 'isActive', defaultValue: true)
   final bool isActive;
   final String? position;
   final AccountSettingDto? accountSetting;
@@ -18,11 +22,11 @@ class UserListDto {
   final LabDto lab;
 
   UserListDto({
-    required this.accountId,
-    required this.accountUuid,
+    this.accountId = 0,
+    this.accountUuid = '',
     required this.user,
-    required this.status,
-    required this.role,
+    this.status = '',
+    this.role = 'User',
     this.isActive = true,
     this.position,
     this.accountSetting,
@@ -37,16 +41,19 @@ class UserListDto {
 
 @JsonSerializable(explicitToJson: true)
 class UserDto {
+  @JsonKey(defaultValue: '')
   final String email;
+  @JsonKey(defaultValue: '')
   final String firstName;
+  @JsonKey(defaultValue: '')
   final String lastName;
   @JsonKey(defaultValue: true)
   final bool isActive;
 
   UserDto({
-    required this.email,
-    required this.firstName,
-    required this.lastName,
+    this.email = '',
+    this.firstName = '',
+    this.lastName = '',
     this.isActive = true,
   });
 
@@ -57,8 +64,11 @@ class UserDto {
 
 @JsonSerializable(explicitToJson: true)
 class AccountSettingDto {
+  @JsonKey(defaultValue: false)
   final bool enableDailyReport;
+  @JsonKey(defaultValue: false)
   final bool onboardingTour;
+  @JsonKey(defaultValue: false)
   final bool animalCreationTour;
 
   AccountSettingDto({
@@ -74,11 +84,14 @@ class AccountSettingDto {
 
 @JsonSerializable(explicitToJson: true)
 class LabDto {
+  @JsonKey(defaultValue: 0)
   final int labId;
+  @JsonKey(defaultValue: '')
   final String labUuid;
+  @JsonKey(defaultValue: '')
   final String labName;
 
-  LabDto({required this.labId, required this.labUuid, required this.labName});
+  LabDto({this.labId = 0, this.labUuid = '', this.labName = ''});
 
   factory LabDto.fromJson(Map<String, dynamic> json) => _$LabDtoFromJson(json);
   Map<String, dynamic> toJson() => _$LabDtoToJson(this);
