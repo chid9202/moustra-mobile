@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:moustra/app/mui_color.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
 
 void main() {
@@ -30,6 +31,7 @@ void main() {
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          theme: lightTheme,
           home: Scaffold(
             body: Builder(
               builder: (context) => ElevatedButton(
@@ -45,7 +47,7 @@ void main() {
       await tester.pump();
 
       final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
-      expect(snackBar.backgroundColor, Colors.red);
+      expect(snackBar.backgroundColor, lightTheme.colorScheme.error);
       expect(find.text('Error'), findsOneWidget);
     });
 
@@ -53,6 +55,7 @@ void main() {
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          theme: lightTheme,
           home: Scaffold(
             body: Builder(
               builder: (context) => ElevatedButton(
@@ -69,7 +72,8 @@ void main() {
       await tester.pump();
 
       final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
-      expect(snackBar.backgroundColor, Colors.green);
+      final expectedSuccess = lightTheme.extension<MUIExtraColors>()!.success;
+      expect(snackBar.backgroundColor, expectedSuccess);
       expect(find.text('Saved'), findsOneWidget);
     });
 

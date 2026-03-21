@@ -60,10 +60,13 @@ void main() {
         _makeField(fieldName: 'col_b', fieldOrder: 2, fieldVisible: false),
       ];
       final result = applyTableSettings(columns, settings);
-      // select (control) + col_a (visible) = 2
-      expect(result.length, 2);
+      // All columns kept; hidden ones have visible=false
+      expect(result.length, 3);
       expect(result[0].columnName, 'select');
       expect(result[1].columnName, 'col_a');
+      expect(result[1].visible, true);
+      expect(result[2].columnName, 'col_b');
+      expect(result[2].visible, false);
     });
 
     test('reorders columns by fieldOrder', () {
@@ -136,7 +139,7 @@ void main() {
       expect(result[2].columnName, 'col_unknown');
     });
 
-    test('all data columns hidden leaves only control columns', () {
+    test('all data columns hidden leaves only control columns visible', () {
       final columns = [
         _makeColumn('select'),
         _makeColumn('col_a'),
@@ -147,8 +150,11 @@ void main() {
         _makeField(fieldName: 'col_b', fieldOrder: 2, fieldVisible: false),
       ];
       final result = applyTableSettings(columns, settings);
-      expect(result.length, 1);
+      // All columns kept; hidden data columns have visible=false
+      expect(result.length, 3);
       expect(result[0].columnName, 'select');
+      expect(result[1].visible, false);
+      expect(result[2].visible, false);
     });
 
     test('combined visibility and ordering', () {
@@ -166,12 +172,15 @@ void main() {
         _makeField(fieldName: 'col_d', fieldOrder: 3, fieldVisible: true),
       ];
       final result = applyTableSettings(columns, settings);
-      // edit (control) + col_c (order 2) + col_d (order 3) + col_a (order 4) = 4
-      expect(result.length, 4);
+      // All 5 columns kept; col_b hidden via visible=false, ordered by fieldOrder
+      expect(result.length, 5);
       expect(result[0].columnName, 'edit');
-      expect(result[1].columnName, 'col_c');
-      expect(result[2].columnName, 'col_d');
-      expect(result[3].columnName, 'col_a');
+      expect(result[1].columnName, 'col_b');
+      expect(result[1].visible, false);
+      expect(result[2].columnName, 'col_c');
+      expect(result[2].visible, true);
+      expect(result[3].columnName, 'col_d');
+      expect(result[4].columnName, 'col_a');
     });
   });
 

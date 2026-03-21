@@ -50,7 +50,7 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(text),
+                Flexible(child: Text(text, overflow: TextOverflow.ellipsis)),
                 const SizedBox(width: 2),
                 Opacity(
                   opacity: isActive ? 1.0 : 0.35,
