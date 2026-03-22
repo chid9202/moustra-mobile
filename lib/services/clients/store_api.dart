@@ -26,9 +26,18 @@ class StoreApi<T> {
 
   Future<List<T>> getStore(StoreKeys key) async {
     final res = await dioApiClient.get('$basePath/${key.path}');
-    final List<dynamic> data = res.data as List<dynamic>;
+    if (res.statusCode != 200) {
+      throw Exception('Failed to get ${key.path} store: ${res.statusCode}');
+    }
+    final responseData = res.data;
+    if (responseData is! List) {
+      throw Exception(
+        'Unexpected response type for ${key.path} store: '
+        '${responseData.runtimeType}',
+      );
+    }
     final List<T> result = [];
-    for (var e in data) {
+    for (var e in responseData) {
       result.add(key.fromJson(e));
     }
     return result;

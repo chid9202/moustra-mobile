@@ -102,6 +102,9 @@ class AuthService {
       local_auth.LocalAuthentication();
   late final Auth0 _auth0;
 
+  /// Lock to prevent concurrent token refreshes.
+  Future<AppCredentials?>? _refreshLock;
+
   AuthService() {
     _auth0 = Auth0(Env.auth0Domain, Env.auth0ClientId);
   }
@@ -398,6 +401,20 @@ class AuthService {
       // Handle any authentication errors (user cancelled, failed, etc.)
       log.w('[AuthService] Biometric unlock error: $e');
       return null;
+    }
+  }
+
+  /// Public refresh that coalesces concurrent callers.
+  /// Returns non-null credentials on success, null on failure (user must re-login).
+  Future<AppCredentials?> refreshTokensIfNeeded() async {
+    // If a refresh is already in-flight, piggyback on it.
+    if (_refreshLock != null) return _refreshLock!;
+
+    _refreshLock = _refreshTokens();
+    try {
+      return await _refreshLock!;
+    } finally {
+      _refreshLock = null;
     }
   }
 
