@@ -52,6 +52,31 @@ Dio createDio() {
       }
       return handler.next(options);
     },
+    onResponse: (response, handler) async {
+      // Intercept 401 responses (validateStatus lets all codes through).
+      // Try to refresh the token and retry the original request once.
+      if (response.statusCode == 401) {
+        final creds = await authService.refreshTokensIfNeeded();
+        if (creds != null) {
+          // Retry the original request with the new token.
+          final opts = response.requestOptions;
+          opts.headers['Authorization'] = 'Bearer ${creds.accessToken}';
+          try {
+            final retryResponse = await dio.fetch(opts);
+            return handler.next(retryResponse);
+          } on DioException catch (e) {
+            // If the retry itself fails, fall through to normal handling.
+            if (e.response != null) {
+              return handler.next(e.response!);
+            }
+            return handler.reject(e);
+          }
+        }
+        // Refresh failed — force logout so user re-authenticates.
+        await authService.logout();
+      }
+      return handler.next(response);
+    },
     onError: (error, handler) {
       // Map timeout / connection errors to typed API exceptions
       switch (error.type) {
