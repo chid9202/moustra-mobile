@@ -67,6 +67,24 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     authState.addListener(_authListener!);
     _loadVersion();
 
+    // If authService.init() already restored the session before this widget
+    // was mounted, the ValueNotifier change was missed (no listener yet).
+    // Check the current value and trigger _postLogin immediately.
+    if (authService.isLoggedIn) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _loading = true;
+        });
+        final req = ProfileRequestDto(
+          email: authService.user?.email ?? '',
+          firstName: authService.user?.givenName ?? '',
+          lastName: authService.user?.familyName ?? '',
+        );
+        _postLogin(req);
+      });
+    }
+
     // Detect autofill: track when each field changes to identify rapid
     // simultaneous population (autofill sets both fields within milliseconds)
     _emailController.addListener(() {
