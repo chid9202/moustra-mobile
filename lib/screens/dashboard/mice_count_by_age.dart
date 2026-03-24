@@ -44,17 +44,22 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
       });
   }
 
-  @override
-  Widget build(BuildContext context) {
+  List<Map<String, dynamic>> get _sortedAgeData {
     final selected = strains.firstWhere(
       (s) => (s['strainUuid'] ?? '') == _selectedStrainUuid,
       orElse: () => strains.isNotEmpty ? strains.first : <String, dynamic>{},
     );
-    final ageData = (selected['ageData'] as List<dynamic>? ?? <dynamic>[]);
-    final maxWidth = max(
-      MediaQuery.of(context).size.width * 0.85,
-      ageData.length * 20.0,
-    );
+    final ageData = (selected['ageData'] as List<dynamic>? ?? <dynamic>[])
+        .cast<Map<String, dynamic>>();
+    final sorted = List<Map<String, dynamic>>.from(ageData)
+      ..sort((a, b) =>
+          ((a['sortOrder'] as int?) ?? 0).compareTo((b['sortOrder'] as int?) ?? 0));
+    return sorted;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ageData = _sortedAgeData;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,25 +98,18 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
           ],
         ),
         const SizedBox(height: 8),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: InteractiveViewer(
-            panAxis: PanAxis.horizontal,
-            child: SizedBox(
-              height: 300,
-              width: maxWidth,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                child: BarChart(
-                  BarChartData(
-                    alignment: BarChartAlignment.spaceAround,
-                    gridData: const FlGridData(show: true),
-                    borderData: borderData,
-                    titlesData: titlesData,
-                    barTouchData: barTouchData,
-                    barGroups: barGroups,
-                  ),
-                ),
+        SizedBox(
+          height: 300,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                gridData: const FlGridData(show: true),
+                borderData: borderData,
+                titlesData: _buildTitlesData(ageData),
+                barTouchData: _buildBarTouchData(ageData),
+                barGroups: _buildBarGroups(ageData),
               ),
             ),
           ),
@@ -120,23 +118,26 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
     );
   }
 
-  BarTouchData get barTouchData => BarTouchData(
-    enabled: true,
-    touchTooltipData: BarTouchTooltipData(
-      fitInsideVertically: true,
-      fitInsideHorizontally: true,
-      getTooltipColor: (group) => const Color(0xFF2D3142),
-      tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      tooltipMargin: 8,
-      getTooltipItem:
-          (
+  BarTouchData _buildBarTouchData(List<Map<String, dynamic>> ageData) =>
+      BarTouchData(
+        enabled: true,
+        touchTooltipData: BarTouchTooltipData(
+          fitInsideVertically: true,
+          fitInsideHorizontally: true,
+          getTooltipColor: (group) => const Color(0xFF2D3142),
+          tooltipPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          tooltipMargin: 8,
+          getTooltipItem: (
             BarChartGroupData group,
             int groupIndex,
             BarChartRodData rod,
             int rodIndex,
           ) {
             final count = rod.toY;
-            final weeks = group.x;
+            final label = groupIndex < ageData.length
+                ? (ageData[groupIndex]['ageBucket'] ?? '').toString()
+                : '';
             return BarTooltipItem(
               '${count.toStringAsFixed(0)}'
               ' ${count == 1 ? 'mouse' : 'mice'}\n',
@@ -147,7 +148,7 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
               ),
               children: <TextSpan>[
                 TextSpan(
-                  text: '$weeks week${weeks == 1 ? '' : 's'} old',
+                  text: label,
                   style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 12,
@@ -157,71 +158,72 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
               ],
             );
           },
-    ),
-  );
+        ),
+      );
 
-  FlTitlesData get titlesData => FlTitlesData(
-    leftTitles: AxisTitles(
-      sideTitles: SideTitles(
-        showTitles: true,
-        reservedSize: 24,
-        getTitlesWidget: (value, meta) {
-          if (value != value.roundToDouble()) {
-            return Container();
-          }
-          return Transform.rotate(
-            angle: -0.5,
-            child: Text(
-              value.toInt().toString(),
-              style: const TextStyle(fontSize: 12),
-            ),
-          );
-        },
-      ),
-    ),
-    bottomTitles: AxisTitles(
-      axisNameSize: 20,
-      axisNameWidget: Padding(
-        padding: const EdgeInsets.fromLTRB(48, 0, 0, 0),
-        child: Align(alignment: Alignment.centerLeft, child: Text('Weeks')),
-      ),
-      sideTitles: SideTitles(
-        showTitles: true,
-        interval: 20,
-        reservedSize: 20,
-        getTitlesWidget: (value, meta) {
-          return Transform.rotate(
-            angle: -0.6,
-            child: Text(
-              value.toInt().toString(),
-              style: const TextStyle(fontSize: 12),
-            ),
-          );
-        },
-      ),
-    ),
-    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-  );
+  FlTitlesData _buildTitlesData(List<Map<String, dynamic>> ageData) =>
+      FlTitlesData(
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 24,
+            getTitlesWidget: (value, meta) {
+              if (value != value.roundToDouble()) {
+                return Container();
+              }
+              return Transform.rotate(
+                angle: -0.5,
+                child: Text(
+                  value.toInt().toString(),
+                  style: const TextStyle(fontSize: 12),
+                ),
+              );
+            },
+          ),
+        ),
+        bottomTitles: AxisTitles(
+          axisNameSize: 20,
+          axisNameWidget: Padding(
+            padding: const EdgeInsets.fromLTRB(48, 0, 0, 0),
+            child:
+                Align(alignment: Alignment.centerLeft, child: Text('Age')),
+          ),
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 28,
+            getTitlesWidget: (value, meta) {
+              final idx = value.toInt();
+              if (idx < 0 || idx >= ageData.length) return const SizedBox();
+              return Transform.rotate(
+                angle: -0.4,
+                child: Text(
+                  (ageData[idx]['ageBucket'] ?? '').toString(),
+                  style: const TextStyle(fontSize: 10),
+                ),
+              );
+            },
+          ),
+        ),
+        rightTitles:
+            const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles:
+            const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      );
 
   FlBorderData get borderData => FlBorderData(
-    show: true,
-    border: const Border(bottom: BorderSide(color: Colors.black, width: 1)),
-  );
+        show: true,
+        border:
+            const Border(bottom: BorderSide(color: Colors.black, width: 1)),
+      );
 
-  List<BarChartGroupData> get barGroups {
-    final selected = strains.firstWhere(
-      (s) => (s['strainUuid'] ?? '') == _selectedStrainUuid,
-      orElse: () => strains.isNotEmpty ? strains.first : <String, dynamic>{},
-    );
-    final ageData = (selected['ageData'] as List<dynamic>? ?? <dynamic>[]);
-    return ageData.map((e) {
-      final int week = (e['ageInWeeks'] as int? ?? 0);
-      final int count = (e['count'] as int? ?? 0);
+  List<BarChartGroupData> _buildBarGroups(
+      List<Map<String, dynamic>> ageData) {
+    return List.generate(ageData.length, (i) {
+      final count = (ageData[i]['count'] as int?) ?? 0;
       return BarChartGroupData(
-        x: week,
+        x: i,
         barRods: [BarChartRodData(toY: count.toDouble())],
       );
-    }).toList();
+    });
   }
 }

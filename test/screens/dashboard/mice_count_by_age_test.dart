@@ -4,7 +4,7 @@ import 'package:moustra/screens/dashboard/mice_count_by_age.dart';
 
 void main() {
   group('MouseCountByAge', () {
-    testWidgets('renders title and dropdown with data', (
+    testWidgets('renders title and dropdown with bucketed data', (
       WidgetTester tester,
     ) async {
       final data = <String, dynamic>{
@@ -14,8 +14,12 @@ void main() {
             'strainUuid': '00000000-0000-0000-0000-000000000000',
             'strainName': 'All',
             'ageData': <dynamic>[
-              {'ageInWeeks': 4, 'count': 10},
-              {'ageInWeeks': 8, 'count': 5},
+              {'ageBucket': '0-4 wk', 'count': 10, 'sortOrder': 0},
+              {'ageBucket': '4-8 wk', 'count': 5, 'sortOrder': 1},
+              {'ageBucket': '8-12 wk', 'count': 0, 'sortOrder': 2},
+              {'ageBucket': '12-26 wk', 'count': 3, 'sortOrder': 3},
+              {'ageBucket': '26-52 wk', 'count': 0, 'sortOrder': 4},
+              {'ageBucket': '52+ wk', 'count': 1, 'sortOrder': 5},
             ],
           },
         ],
@@ -70,14 +74,24 @@ void main() {
             'strainUuid': '00000000-0000-0000-0000-000000000000',
             'strainName': 'All',
             'ageData': <dynamic>[
-              {'ageInWeeks': 4, 'count': 15},
+              {'ageBucket': '0-4 wk', 'count': 15, 'sortOrder': 0},
+              {'ageBucket': '4-8 wk', 'count': 0, 'sortOrder': 1},
+              {'ageBucket': '8-12 wk', 'count': 0, 'sortOrder': 2},
+              {'ageBucket': '12-26 wk', 'count': 0, 'sortOrder': 3},
+              {'ageBucket': '26-52 wk', 'count': 0, 'sortOrder': 4},
+              {'ageBucket': '52+ wk', 'count': 0, 'sortOrder': 5},
             ],
           },
           {
             'strainUuid': 'strain-uuid-1',
             'strainName': 'C57BL/6',
             'ageData': <dynamic>[
-              {'ageInWeeks': 4, 'count': 10},
+              {'ageBucket': '0-4 wk', 'count': 10, 'sortOrder': 0},
+              {'ageBucket': '4-8 wk', 'count': 0, 'sortOrder': 1},
+              {'ageBucket': '8-12 wk', 'count': 0, 'sortOrder': 2},
+              {'ageBucket': '12-26 wk', 'count': 0, 'sortOrder': 3},
+              {'ageBucket': '26-52 wk', 'count': 0, 'sortOrder': 4},
+              {'ageBucket': '52+ wk', 'count': 0, 'sortOrder': 5},
             ],
           },
         ],
