@@ -13,6 +13,15 @@ class CheeseAiScreen extends StatefulWidget {
   State<CheeseAiScreen> createState() => _CheeseAiScreenState();
 }
 
+const _suggestionPresets = [
+  (icon: '\u{1F4CA}', label: 'Show my colony overview', message: 'Show me my colony overview'),
+  (icon: '\u{1F42D}', label: 'Animals due for weaning', message: 'Show animals that are due for weaning'),
+  (icon: '\u{1F9EC}', label: 'Colony breakdown by strain', message: 'Break down my colony by strain'),
+  (icon: '\u{1F4CB}', label: 'Cages with low occupancy', message: 'Show cages with low occupancy'),
+  (icon: '\u{1F9F9}', label: 'Cage consolidation plan', message: 'Generate a cage consolidation plan'),
+  (icon: '\u{1F930}', label: 'Active pregnancies', message: 'Show active pregnancies and expected delivery dates'),
+];
+
 class _CheeseAiScreenState extends State<CheeseAiScreen> {
   final List<AiChatMessageDto> _messages = [];
   final TextEditingController _inputController = TextEditingController();
@@ -71,6 +80,18 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
         showAppSnackBar(context, 'Failed to load chat history', isError: true);
       }
     }
+  }
+
+  void _clearChat() {
+    setState(() {
+      _messages.clear();
+      _inputController.clear();
+    });
+  }
+
+  void _handlePresetTap(String message) {
+    _inputController.text = message;
+    _handleSubmit();
   }
 
   void _scrollToBottom() {
@@ -176,21 +197,25 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isEmpty = _messages.isEmpty && !_isLoading;
+
     return Column(
       children: [
+        if (_messages.isNotEmpty)
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8, top: 4),
+              child: TextButton.icon(
+                onPressed: _isStreaming ? null : _clearChat,
+                icon: const Icon(Icons.add_comment_outlined, size: 18),
+                label: const Text('New Chat'),
+              ),
+            ),
+          ),
         Expanded(
-          child: _messages.isEmpty && !_isLoading
-              ? Center(
-                  child: Text(
-                    'Ask Cheese AI anything about your colony...',
-                    style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.5),
-                    ),
-                  ),
-                )
+          child: isEmpty
+              ? _buildSuggestionPresets()
               : ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.all(16),
@@ -210,6 +235,44 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
         ),
         _buildInputBar(),
       ],
+    );
+  }
+
+  Widget _buildSuggestionPresets() {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Hi! I\'m Cheese \u{1F9C0} \u2014 what can I help you with?',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: _suggestionPresets.map((preset) {
+                return ActionChip(
+                  avatar: Text(preset.icon, style: const TextStyle(fontSize: 16)),
+                  label: Text(preset.label),
+                  onPressed: () => _handlePresetTap(preset.message),
+                  side: BorderSide(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

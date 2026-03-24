@@ -85,7 +85,7 @@ void main() {
       });
     });
 
-    testWidgets('shows empty state message after history load fails', (
+    testWidgets('shows suggestion presets after history load fails', (
       WidgetTester tester,
     ) async {
       await runZonedGuarded(() async {
@@ -100,11 +100,12 @@ void main() {
 
         await tester.pumpAndSettle(const Duration(seconds: 2));
 
-        // After failed history load, should show empty state
+        // After failed history load, should show suggestion presets
         expect(
-          find.text('Ask Cheese AI anything about your colony...'),
+          find.textContaining('what can I help you with?'),
           findsOneWidget,
         );
+        expect(find.byType(ActionChip), findsWidgets);
       }, (error, stack) {
         // Suppress API errors
       });
