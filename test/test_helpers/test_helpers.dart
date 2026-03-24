@@ -2,11 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/app/mui_color.dart';
-import 'package:moustra/services/clients/api_exceptions.dart';
 import 'package:moustra/services/clients/dio_api_client.dart';
 
 /// A no-op DioApiClient for widget tests.
-/// All methods throw [ApiNetworkException] immediately without touching Dio,
+/// All methods return empty successful responses without touching Dio,
 /// preventing the zero-duration timers that [DioMixin.fetch] creates in
 /// FakeAsync zones.
 class NoOpDioApiClient extends DioApiClient {
@@ -16,7 +15,7 @@ class NoOpDioApiClient extends DioApiClient {
     Map<String, String>? query,
     bool withoutAccountPrefix = false,
   }) async =>
-      throw ApiNetworkException(message: 'No network in tests');
+      Response(requestOptions: RequestOptions(path: path), statusCode: 200, data: {});
 
   @override
   Future<Response<dynamic>> getWithQueryString(
@@ -24,7 +23,7 @@ class NoOpDioApiClient extends DioApiClient {
     required String queryString,
     bool withoutAccountPrefix = false,
   }) async =>
-      throw ApiNetworkException(message: 'No network in tests');
+      Response(requestOptions: RequestOptions(path: path), statusCode: 200, data: {});
 
   @override
   Future<Response<dynamic>> post(
@@ -33,7 +32,7 @@ class NoOpDioApiClient extends DioApiClient {
     Map<String, String>? query,
     bool withoutAccountPrefix = false,
   }) async =>
-      throw ApiNetworkException(message: 'No network in tests');
+      Response(requestOptions: RequestOptions(path: path), statusCode: 200, data: {});
 
   @override
   Future<Response<dynamic>> postWithoutAuth(
@@ -41,7 +40,7 @@ class NoOpDioApiClient extends DioApiClient {
     Object? body,
     bool withoutAccountPrefix = false,
   }) async =>
-      throw ApiNetworkException(message: 'No network in tests');
+      Response(requestOptions: RequestOptions(path: path), statusCode: 200, data: {});
 
   @override
   Future<Response<dynamic>> put(
@@ -49,7 +48,7 @@ class NoOpDioApiClient extends DioApiClient {
     Object? body,
     Map<String, String>? query,
   }) async =>
-      throw ApiNetworkException(message: 'No network in tests');
+      Response(requestOptions: RequestOptions(path: path), statusCode: 200, data: {});
 
   @override
   Future<Response<dynamic>> patch(
@@ -57,11 +56,11 @@ class NoOpDioApiClient extends DioApiClient {
     Object? body,
     Map<String, String>? query,
   }) async =>
-      throw ApiNetworkException(message: 'No network in tests');
+      Response(requestOptions: RequestOptions(path: path), statusCode: 200, data: {});
 
   @override
   Future<Response<dynamic>> delete(String path) async =>
-      throw ApiNetworkException(message: 'No network in tests');
+      Response(requestOptions: RequestOptions(path: path), statusCode: 200, data: {});
 }
 
 /// Install [NoOpDioApiClient] as the global [dioApiClient] for widget tests.

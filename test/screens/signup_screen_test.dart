@@ -12,7 +12,7 @@ void main() {
     } catch (e) {
       // If .env file doesn't exist or can't be loaded, initialize with empty values
       // Env class will use fallback values
-      dotenv.env.clear();
+      dotenv.loadFromString(envString: '', isOptional: true);
     }
   });
 

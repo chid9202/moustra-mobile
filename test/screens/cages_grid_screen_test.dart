@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/screens/cages_grid_screen.dart';
 import 'package:moustra/stores/rack_store.dart';
@@ -8,6 +9,19 @@ import '../test_helpers/test_helpers.dart';
 import '../test_helpers/mock_data.dart';
 
 void main() {
+  setUpAll(() async {
+    installNoOpDioApiClient();
+    try {
+      await dotenv.load(fileName: '.env');
+    } catch (e) {
+      dotenv.loadFromString(envString: '', isOptional: true);
+    }
+  });
+
+  tearDownAll(() {
+    restoreDioApiClient();
+  });
+
   group('CagesGridScreen', () {
     setUp(() {
       // Reset rackStore to null before each test

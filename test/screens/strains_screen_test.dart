@@ -28,7 +28,7 @@ void main() {
     try {
       await dotenv.load(fileName: '.env');
     } catch (e) {
-      dotenv.env.clear();
+      dotenv.loadFromString(envString: '', isOptional: true);
     }
   });
 

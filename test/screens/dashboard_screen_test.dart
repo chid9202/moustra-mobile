@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/screens/dashboard_screen.dart';
 import '../test_helpers/test_helpers.dart';
 
 void main() {
+  setUpAll(() async {
+    installNoOpDioApiClient();
+    try {
+      await dotenv.load(fileName: '.env');
+    } catch (e) {
+      dotenv.loadFromString(envString: '', isOptional: true);
+    }
+  });
+
+  tearDownAll(() {
+    restoreDioApiClient();
+  });
+
   group('DashboardScreen', () {
     testWidgets('renders correctly with default state', (
       WidgetTester tester,
