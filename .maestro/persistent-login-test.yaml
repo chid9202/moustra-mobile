@@ -1,0 +1,114 @@
+appId: com.moustra.app
+---
+# Persistent Login Test — Verify session survives app restart
+# Target: iPhone 16 Pro Simulator, iOS 18.4
+# Credentials: Dev environment
+#
+# Flow:
+#   1. Log in with credentials
+#   2. Verify home screen loaded
+#   3. Force-close the app (stopApp)
+#   4. Relaunch the app (launchApp)
+#   5. Assert home screen appears WITHOUT re-entering credentials
+#
+# This validates that:
+#   - Refresh token is stored in SecureStore after login
+#   - AuthService.init() silently refreshes on next launch
+#   - User is not shown the login screen again
+
+# ── Step 1: Fresh start — clear any previous state ──
+- stopApp
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: pl-01-fresh-login-screen
+
+# ── Step 2: Log in ──
+- tapOn:
+    text: "Email"
+- inputText: "admin+29917@moustra.com"
+- waitForAnimationToEnd:
+    timeout: 1000
+
+- tapOn:
+    text: "Password"
+- inputText: "admin+29917"
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# Dismiss keyboard
+- tapOn:
+    point: "200,200"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- tapOn:
+    text: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Dismiss iOS "Save Password" dialog if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# ── Step 3: Verify home screen loaded ──
+- extendedWaitUntil:
+    visible: "Open menu"
+    timeout: 30000
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: pl-02-home-after-login
+
+# ── Step 4: Force-close the app ──
+- stopApp
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# ── Step 5: Relaunch WITHOUT clearing state ──
+# This is the key: clearState is NOT set, so SecureStore (Keychain) is preserved
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 10000
+
+# ── Step 6: Assert persistent login worked ──
+# If session persistence works, we should see the home screen (hamburger menu)
+# NOT the login screen (no "Email" or "Sign In" fields)
+- extendedWaitUntil:
+    visible: "Open menu"
+    timeout: 30000
+- takeScreenshot: pl-03-home-after-restart
+
+# ── Step 7: Verify we can interact (not a stale screen) ──
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: pl-04-drawer-after-restart
+
+# ── Step 8: Verify user identity is preserved ──
+# Navigate to Settings to confirm user info is loaded
+- tapOn:
+    text: "Settings"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: pl-05-settings-after-restart
+
+# ── Cleanup: Log out to reset state for other tests ──
+- scrollUntilVisible:
+    element:
+      text: "Log Out"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    text: "Log Out"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    text: "Log Out"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: pl-06-logged-out-cleanup
