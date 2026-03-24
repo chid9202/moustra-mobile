@@ -44,7 +44,7 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
     super.dispose();
   }
 
-  Future<void> _loadHistory() async {
+  Future<void> _loadHistory({bool showEmptyNotice = false}) async {
     try {
       final items = await aiApi.getChatHistory();
       // Sort by createdAt ascending
@@ -71,7 +71,14 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
       }
 
       if (mounted) {
-        setState(() => _messages.addAll(messages));
+        if (messages.isEmpty && showEmptyNotice) {
+          showAppSnackBar(context, 'No previous chat found');
+          return;
+        }
+        setState(() {
+          _messages.clear();
+          _messages.addAll(messages);
+        });
         _scrollToBottom();
       }
     } catch (e) {
@@ -269,6 +276,21 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
                   ),
                 );
               }).toList(),
+            ),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: () => _loadHistory(showEmptyNotice: true),
+              icon: Icon(
+                Icons.history,
+                size: 18,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+              label: Text(
+                'Load previous chat',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                ),
+              ),
             ),
           ],
         ),
