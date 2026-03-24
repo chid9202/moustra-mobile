@@ -1,8 +1,7 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:local_auth/local_auth.dart' as local_auth;
 
 import 'package:moustra/config/env.dart';
 import 'package:moustra/services/error_context_service.dart';
@@ -98,8 +97,6 @@ class AppUserProfile {
 
 class AuthService {
   AppCredentials? _credentials;
-  final local_auth.LocalAuthentication _localAuth =
-      local_auth.LocalAuthentication();
   late final Auth0 _auth0;
 
   /// Lock to prevent concurrent token refreshes.
@@ -116,15 +113,21 @@ class AuthService {
 
   Future<void> init() async {
     // Attempt silent token refresh using stored refresh token
+    debugPrint('[AuthService.init] Checking for refresh token...');
     final hasRefreshToken = await SecureStore.hasRefreshToken();
+    debugPrint('[AuthService.init] hasRefreshToken=$hasRefreshToken');
     if (hasRefreshToken) {
+      debugPrint('[AuthService.init] Attempting token refresh...');
       final creds = await _refreshTokens();
+      debugPrint('[AuthService.init] refreshTokens result: ${creds != null ? "SUCCESS" : "FAILED"}');
       if (creds != null) {
         // Session restored silently
+        debugPrint('[AuthService.init] Session restored silently!');
         return;
       }
     }
     // No refresh token or refresh failed — require login
+    debugPrint('[AuthService.init] No session to restore, showing login');
     _credentials = null;
     authState.value = false;
   }
@@ -177,7 +180,7 @@ class AuthService {
       await SecureStore.saveIdToken(creds.idToken);
       await SecureStore.saveExpiresAt(creds.expiresAt.toIso8601String());
 
-      authState.value = isLoggedIn;
+      authState.value = true;
       return true;
     } catch (e) {
       log.w('[AuthService] Social login error: $e');
@@ -257,9 +260,8 @@ class AuthService {
   /// Returns true on success, throws exception on failure
   Future<bool> loginWithPassword(String email, String password) async {
     try {
-      print('[AuthService] loginWithPassword called for $email');
-      print('[AuthService] Auth0 domain: ${Env.auth0Domain}');
-      print('[AuthService] Posting to https://${Env.auth0Domain}/oauth/token');
+      debugPrint('[AuthService] loginWithPassword called for $email');
+      debugPrint('[AuthService] Posting to https://${Env.auth0Domain}/oauth/token');
       final response = await http.post(
         Uri.parse('https://${Env.auth0Domain}/oauth/token'),
         headers: {'Content-Type': 'application/json'},
@@ -273,8 +275,7 @@ class AuthService {
           'realm': Env.auth0Connection,
         }),
       );
-      print('[AuthService] Response status: ${response.statusCode}');
-      print('[AuthService] Response body (first 200): ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
+      debugPrint('[AuthService] Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> tokenData = jsonDecode(response.body);
@@ -297,7 +298,7 @@ class AuthService {
         await SecureStore.saveIdToken(creds.idToken);
         await SecureStore.saveExpiresAt(creds.expiresAt.toIso8601String());
 
-        authState.value = isLoggedIn;
+        authState.value = true;
         return true;
       } else {
         // Parse error response
@@ -339,69 +340,6 @@ class AuthService {
     authState.value = false;
     // Clear error context to prevent stale user data in error reports
     errorContextService.clear();
-  }
-
-  /// Check if device supports biometrics and if biometrics are enrolled
-  Future<bool> canUseBiometrics() async {
-    try {
-      final canCheckBiometrics = await _localAuth.canCheckBiometrics;
-      if (!canCheckBiometrics) {
-        return false;
-      }
-
-      final availableBiometrics = await _localAuth.getAvailableBiometrics();
-      return availableBiometrics.isNotEmpty &&
-          (availableBiometrics.contains(local_auth.BiometricType.face) ||
-              availableBiometrics.contains(
-                local_auth.BiometricType.fingerprint,
-              ) ||
-              availableBiometrics.contains(local_auth.BiometricType.strong) ||
-              availableBiometrics.contains(local_auth.BiometricType.weak));
-    } catch (e) {
-      log.e('Error checking biometrics: $e', tag: 'Auth');
-      return false;
-    }
-  }
-
-  /// Unlock stored credentials using biometric authentication
-  /// Returns AppCredentials on success, null on failure/cancel
-  Future<AppCredentials?> unlockWithBiometrics() async {
-    try {
-      // Check if biometrics are available
-      if (!await canUseBiometrics()) {
-        return null;
-      }
-
-      // Check if refresh token exists
-      if (!await SecureStore.hasRefreshToken()) {
-        return null;
-      }
-
-      // Determine biometric message based on platform
-      String reason;
-      if (Platform.isIOS) {
-        reason = 'Authenticate with Face ID to unlock your account';
-      } else {
-        reason = 'Authenticate with biometrics to unlock your account';
-      }
-
-      // Show biometric prompt
-      final authenticated = await _localAuth.authenticate(
-        localizedReason: reason,
-      );
-
-      if (!authenticated) {
-        // User cancelled or failed authentication
-        return null;
-      }
-
-      // Biometric authentication successful, refresh tokens
-      return await _refreshTokens();
-    } catch (e) {
-      // Handle any authentication errors (user cancelled, failed, etc.)
-      log.w('[AuthService] Biometric unlock error: $e');
-      return null;
-    }
   }
 
   /// Public refresh that coalesces concurrent callers.

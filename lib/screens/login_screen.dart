@@ -41,6 +41,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   DateTime? _emailLastChanged;
   DateTime? _passwordLastChanged;
   bool _autofillSubmitted = false;
+  bool _postLoginInProgress = false;
 
   @override
   void initState() {
@@ -49,16 +50,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     _authListener = () {
       if (!mounted) return;
       if (authService.isLoggedIn) {
-        setState(() {
-          _loading = true;
-        });
-        final req = ProfileRequestDto(
-          email: authService.user?.email ?? '',
-          firstName: authService.user?.givenName ?? '',
-          lastName: authService.user?.familyName ?? '',
-        );
-        _postLogin(req);
+        _triggerPostLoginIfNeeded();
       } else {
+        _postLoginInProgress = false;
         setState(() {
           _loading = false;
         });
@@ -72,16 +66,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     // Check the current value and trigger _postLogin immediately.
     if (authService.isLoggedIn) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        setState(() {
-          _loading = true;
-        });
-        final req = ProfileRequestDto(
-          email: authService.user?.email ?? '',
-          firstName: authService.user?.givenName ?? '',
-          lastName: authService.user?.familyName ?? '',
-        );
-        _postLogin(req);
+        _triggerPostLoginIfNeeded();
       });
     }
 
@@ -163,6 +148,22 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  /// Single entry point for post-login profile fetch.
+  /// Guards against concurrent calls — only one _postLogin runs at a time.
+  void _triggerPostLoginIfNeeded() {
+    if (_postLoginInProgress || !authService.isLoggedIn || !mounted) return;
+    _postLoginInProgress = true;
+    setState(() {
+      _loading = true;
+    });
+    final req = ProfileRequestDto(
+      email: authService.user?.email ?? '',
+      firstName: authService.user?.givenName ?? '',
+      lastName: authService.user?.familyName ?? '',
+    );
+    _postLogin(req);
+  }
+
   Future<void> _postLogin(ProfileRequestDto request) async {
     debugPrint('[LoginScreen] _postLogin called for ${request.email}');
     try {
@@ -185,6 +186,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
         // Give time to process the autofill save request before navigating
         await Future.delayed(const Duration(milliseconds: 300));
         if (mounted) {
+          _postLoginInProgress = false;
           setState(() {
             _loading = false;
           });
@@ -193,8 +195,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
       }
     } catch (e) {
       debugPrint('Post-login error: $e');
-      // Log out so the user can retry login with a clean auth state
-      await authService.logout();
+      _postLoginInProgress = false;
+      // DON'T logout on transient errors — only show error and let user retry.
+      // The 401 interceptor in dio_client handles real auth failures.
       if (mounted) {
         String errorMessage = e.toString();
         if (errorMessage.startsWith('Exception: ')) {
@@ -202,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
         }
         setState(() {
           _loading = false;
-          _error = errorMessage;
+          _error = 'Unable to load your profile. Please try again.\n$errorMessage';
         });
       }
     }
@@ -216,17 +219,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
         await authService.init();
       }
       if (!mounted) return;
-      if (authService.isLoggedIn) {
-        setState(() {
-          _loading = true;
-        });
-        final req = ProfileRequestDto(
-          email: authService.user?.email ?? '',
-          firstName: authService.user?.givenName ?? '',
-          lastName: authService.user?.familyName ?? '',
-        );
-        _postLogin(req);
-      }
+      _triggerPostLoginIfNeeded();
     }
   }
 
@@ -253,17 +246,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
       debugPrint('[LoginScreen] loginWithPassword returned successfully');
       // Notify the system to save credentials for autofill
       TextInput.finishAutofillContext(shouldSave: true);
-      // Explicitly call _postLogin since the auth listener may not fire
-      // if authState was already true (e.g. session restored on init but
-      // profile fetch failed, leaving user on login screen).
-      if (authService.isLoggedIn && mounted) {
-        final req = ProfileRequestDto(
-          email: authService.user?.email ?? email,
-          firstName: authService.user?.givenName ?? '',
-          lastName: authService.user?.familyName ?? '',
-        );
-        await _postLogin(req);
-      }
+      // Trigger post-login if the auth listener didn't already fire
+      // (e.g. authState was already true from a restored session).
+      _triggerPostLoginIfNeeded();
     } catch (e) {
       debugPrint('[LoginScreen] loginWithPassword threw: $e');
       if (mounted) {
