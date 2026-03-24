@@ -28,6 +28,7 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
   bool _isStreaming = false;
+  bool _isLoadingHistory = true;
   StreamSubscription<String>? _streamSubscription;
 
   @override
@@ -45,6 +46,7 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
   }
 
   Future<void> _loadHistory({bool showEmptyNotice = false}) async {
+    setState(() => _isLoadingHistory = true);
     try {
       final items = await aiApi.getChatHistory();
       // Sort by createdAt ascending
@@ -85,6 +87,10 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
       debugPrint('Error loading chat history: $e');
       if (mounted) {
         showAppSnackBar(context, 'Failed to load chat history', isError: true);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingHistory = false);
       }
     }
   }
@@ -221,7 +227,9 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
             ),
           ),
         Expanded(
-          child: isEmpty
+          child: _isLoadingHistory
+              ? const Center(child: CircularProgressIndicator())
+              : isEmpty
               ? _buildSuggestionPresets()
               : ListView.builder(
                   controller: _scrollController,
