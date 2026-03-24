@@ -3,6 +3,7 @@ import 'package:moustra/services/clients/notification_api.dart';
 import 'package:moustra/services/dtos/notification_dto.dart';
 import 'package:moustra/widgets/notification_detail_sheet.dart';
 import 'package:moustra/widgets/notification_item.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -19,6 +20,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_isLoading) {
+      eventApi.trackEvent('view_notifications');
       _loadNotifications();
     }
   }

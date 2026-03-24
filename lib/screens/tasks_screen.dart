@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:moustra/services/clients/task_api.dart';
 import 'package:moustra/services/dtos/task_dto.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 /// Status/priority color maps matching web
 const Map<String, Color> _statusColors = {
@@ -76,6 +77,7 @@ class _TasksScreenState extends State<TasksScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_tasks');
     _loadData();
   }
 

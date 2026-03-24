@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../state/wizard_state.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class WelcomeStep extends StatefulWidget {
   const WelcomeStep({super.key});
@@ -17,6 +18,7 @@ class _WelcomeStepState extends State<WelcomeStep> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('wizard_step_welcome');
     if (wizardState.totalExpectedCages > 0) {
       _cageCountController.text = wizardState.totalExpectedCages.toString();
     }
@@ -29,6 +31,7 @@ class _WelcomeStepState extends State<WelcomeStep> {
   }
 
   void _onSkip() {
+    eventApi.trackEvent('wizard_skip');
     context.go('/cage/grid');
   }
 

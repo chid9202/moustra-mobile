@@ -11,12 +11,14 @@ import 'package:moustra/screens/feedback_screen.dart';
 // import 'package:moustra/screens/settings/subscription_tab.dart';
 import 'package:moustra/services/dtos/profile_dto.dart';
 import 'package:moustra/stores/profile_store.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    eventApi.trackEvent('view_settings');
     return ValueListenableBuilder<ProfileResponseDto?>(
       valueListenable: profileState,
       builder: (context, profile, _) {

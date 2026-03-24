@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/clients/animal_api.dart';
@@ -114,6 +115,7 @@ class _ReviewStepState extends State<ReviewStep> {
   }
 
   void _onFinish() {
+    eventApi.trackEvent('wizard_finish');
     // Reset wizard state
     wizardState.reset();
     // Navigate to dashboard

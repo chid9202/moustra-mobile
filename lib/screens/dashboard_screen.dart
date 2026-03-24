@@ -9,6 +9,7 @@ import 'package:moustra/screens/dashboard/mice_by_sex.dart';
 import 'package:moustra/screens/dashboard/mice_count_by_age.dart';
 import 'package:moustra/screens/dashboard/reports_tab.dart';
 import 'package:moustra/services/clients/dashboard_api.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -23,6 +24,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_dashboard');
     _future = dashboardService.getDashboard();
   }
 

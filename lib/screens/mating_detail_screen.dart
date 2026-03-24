@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/services/clients/event_api.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/animal_constants.dart';
 import 'package:moustra/helpers/account_helper.dart';
@@ -62,6 +63,7 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_mating');
     _loadDefaultOwner();
   }
 
@@ -241,6 +243,7 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
         ),
       );
       if (!mounted) return;
+      eventApi.trackEvent('end_mating');
       showAppSnackBar(context, 'Mating disbanded successfully!', isSuccess: true);
       if (widget.fromCageGrid) {
         context.go('/cage/grid');
@@ -269,6 +272,7 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
             comment: _commentController.text,
           );
           await MatingApi().createMating(mating);
+          eventApi.trackEvent('create_mating');
           // Refresh related stores
           await refreshAnimalStore();
           await refreshCageStore();
@@ -292,6 +296,7 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
           await refreshAnimalStore();
           await refreshCageStore();
           await refreshStrainStore();
+          eventApi.trackEvent('update_mating');
           showAppSnackBar(context, 'Mating updated successfully!', isSuccess: true);
         }
         // Navigate back to the appropriate page based on where we came from
@@ -434,7 +439,10 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => context.go('/litter/new?matingUuid=${_matingUuid}'),
+                  onPressed: () {
+                    eventApi.trackEvent('add_litter_from_mating');
+                    context.go('/litter/new?matingUuid=${_matingUuid}');
+                  },
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text('Add Litter'),
                 ),

@@ -4,6 +4,7 @@ import 'package:moustra/services/clients/plug_api.dart';
 import 'package:moustra/services/dtos/plug_event_dto.dart';
 import 'package:moustra/services/dtos/post_plug_check_dto.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class PlugCheckScreen extends StatefulWidget {
   const PlugCheckScreen({super.key});
@@ -25,6 +26,7 @@ class _PlugCheckScreenState extends State<PlugCheckScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('plug_check_view');
     _loadActiveEvents();
   }
 

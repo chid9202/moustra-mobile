@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/services/clients/event_api.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/services/clients/animal_api.dart';
@@ -60,6 +61,7 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_litter');
     _loadDefaultOwner();
     _loadMatingIfProvided();
   }
@@ -286,6 +288,7 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
 
     if (result == true && mounted) {
       try {
+        eventApi.trackEvent('add_pups');
         final updatedLitter = await litterService.addPubsToLitter(
           _litterUuid!,
           numberOfMale: males,
@@ -328,6 +331,7 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
         
         if (isNew) {
           await litterService.createLitter(litter);
+          eventApi.trackEvent('create_litter');
         } else {
           await litterService.putLitter(
             _litterUuid!,
@@ -342,6 +346,7 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
               strain: _selectedStrain,
             ),
           );
+          eventApi.trackEvent('update_litter');
           
           // Check if strain changed and there are pups to update
           if (_strainChanged() && 

@@ -13,6 +13,7 @@ import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra_api/moustra_api.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 enum _PreparedTab { active, completed, all }
 
@@ -41,6 +42,7 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_plug_events');
     _applyTabFilters(_selectedTab);
     _loadTableSetting();
   }

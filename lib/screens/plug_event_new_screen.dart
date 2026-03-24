@@ -9,6 +9,7 @@ import 'package:moustra/widgets/shared/select_animal.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/widgets/shared/select_mating.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class PlugEventNewScreen extends StatefulWidget {
   final String? matingUuid;
@@ -105,6 +106,7 @@ class _PlugEventNewScreenState extends State<PlugEventNewScreen> {
       );
 
       await plugService.createPlugEvent(dto);
+      eventApi.trackEvent('create_plug_event');
 
       if (mounted) {
         showAppSnackBar(context, 'Plug event created successfully', isSuccess: true);
