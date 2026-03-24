@@ -10,6 +10,7 @@ import 'steps/cages_animals_step.dart';
 import 'steps/review_step.dart';
 import 'widgets/wizard_stepper.dart';
 import 'widgets/undo_snackbar.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class ColonyWizardScreen extends StatefulWidget {
   const ColonyWizardScreen({super.key});
@@ -24,6 +25,7 @@ class _ColonyWizardScreenState extends State<ColonyWizardScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('wizard_start');
     _pageController = PageController(initialPage: wizardState.activeStep);
     wizardState.addListener(_onWizardStateChanged);
   }

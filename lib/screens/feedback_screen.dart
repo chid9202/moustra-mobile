@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/services/clients/lab_setting_api.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -32,6 +33,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         subject: _subjectController.text.trim(),
         message: _messageController.text.trim(),
       );
+      eventApi.trackEvent('submit_feedback');
 
       if (mounted) {
         showAppSnackBar(context, 'Thanks for your feedback!', isSuccess: true);

@@ -13,6 +13,7 @@ import 'package:moustra/services/dtos/protocol_dto.dart';
 import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
 import 'package:moustra/stores/animal_store.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class ProtocolDetailScreen extends StatefulWidget {
   const ProtocolDetailScreen({super.key});
@@ -40,6 +41,7 @@ class _ProtocolDetailScreenState extends State<ProtocolDetailScreen>
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_protocol');
     _tabController = TabController(length: 4, vsync: this);
   }
 

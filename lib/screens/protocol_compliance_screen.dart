@@ -4,6 +4,7 @@ import 'package:moustra/services/clients/protocol_api.dart';
 import 'package:moustra/services/dtos/compliance_summary_dto.dart';
 import 'package:moustra/services/dtos/protocol_alert_dto.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class ProtocolComplianceScreen extends StatefulWidget {
   const ProtocolComplianceScreen({super.key});
@@ -22,6 +23,7 @@ class _ProtocolComplianceScreenState extends State<ProtocolComplianceScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_compliance');
     _loadData();
   }
 

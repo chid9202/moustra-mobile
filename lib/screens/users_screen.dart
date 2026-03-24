@@ -10,6 +10,7 @@ import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 final usersApi = UsersApi(dioApiClient);
 
@@ -29,6 +30,7 @@ class _UsersScreenState extends State<UsersScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_users');
     _controller.reload();
     _loadTableSetting();
   }

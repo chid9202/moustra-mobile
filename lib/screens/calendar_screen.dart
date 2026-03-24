@@ -5,6 +5,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:moustra/constants/calendar_constants.dart';
 import 'package:moustra/services/clients/calendar_api.dart';
 import 'package:moustra/services/dtos/calendar_event_dto.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -24,6 +25,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_calendar');
     _selectedDay = _normalizeDate(DateTime.now());
     _fetchEvents(_focusedDay);
   }

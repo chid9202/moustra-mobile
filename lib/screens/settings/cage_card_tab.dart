@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/cage_card_template_api.dart';
 import 'package:moustra/services/dtos/cage_card_template_dto.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class CageCardTab extends StatefulWidget {
   const CageCardTab({super.key});
@@ -18,6 +19,7 @@ class _CageCardTabState extends State<CageCardTab> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('cage_card_template_view');
     _loadTemplates();
   }
 

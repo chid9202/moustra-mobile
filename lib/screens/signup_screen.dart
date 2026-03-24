@@ -15,6 +15,7 @@ import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/stores/rack_store.dart';
 import 'package:moustra/stores/setting_store.dart';
 import 'package:moustra/stores/strain_store.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -146,6 +147,8 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    eventApi.trackEvent('signup_attempt');
 
     // Check password policy
     if (!_hasMinLength || !_hasEnoughCharacterTypes) {

@@ -10,6 +10,7 @@ import 'package:moustra/widgets/dialogs/plug_event_outcome_dialog.dart';
 import 'package:moustra/widgets/note/note_list.dart';
 import 'package:moustra/widgets/shared/select_date.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class PlugEventDetailScreen extends StatefulWidget {
   const PlugEventDetailScreen({super.key});
@@ -38,6 +39,7 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_isLoading) {
+      eventApi.trackEvent('view_plug_event');
       _loadData();
     }
   }
@@ -93,6 +95,7 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
       );
 
       final updated = await plugService.updatePlugEvent(uuid, dto);
+      eventApi.trackEvent('update_plug_event');
       if (mounted) {
         setState(() {
           _plugEvent = updated;
@@ -141,6 +144,7 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
 
     try {
       await plugService.deletePlugEvent(uuid);
+      eventApi.trackEvent('delete_plug_event');
       if (mounted) {
         showAppSnackBar(context, 'Plug event deleted');
         context.go('/plug-event');

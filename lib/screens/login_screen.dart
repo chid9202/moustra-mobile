@@ -18,6 +18,7 @@ import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/stores/rack_store.dart';
 import 'package:moustra/stores/setting_store.dart';
 import 'package:moustra/stores/strain_store.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -228,6 +229,8 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    eventApi.trackEvent('login_attempt');
 
     if (!mounted) return;
     setState(() {

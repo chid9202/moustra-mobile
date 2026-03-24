@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/services/clients/event_api.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/cell_text.dart';
 import 'package:moustra/constants/list_constants/litter_filter_config.dart';
@@ -39,6 +40,7 @@ class _LittersScreenState extends State<LittersScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_litters');
     _loadTableSetting();
   }
 
@@ -273,6 +275,7 @@ class _LittersScreenState extends State<LittersScreen> {
       setState(() {
         _isEndingLitters = true;
       });
+      eventApi.trackEvent('end_litter');
       await litterService.endLitters(_selected.toList(), endDate);
       if (!mounted) {
         return;

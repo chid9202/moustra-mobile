@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/services/clients/event_api.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/animal_constants.dart';
 import 'package:moustra/constants/list_constants/cell_text.dart';
@@ -38,6 +39,7 @@ class _MatingsScreenState extends State<MatingsScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_matings');
     _loadTableSetting();
   }
 
@@ -186,6 +188,7 @@ class _MatingsScreenState extends State<MatingsScreen> {
                       label: 'Create Mating',
                       icon: const Icon(Icons.add),
                       onPressed: () {
+                        eventApi.trackEvent('create_mating');
                         context.go('/mating/new');
                       },
                     ),
