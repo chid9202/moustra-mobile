@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:moustra/services/clients/task_api.dart';
 import 'package:moustra/services/dtos/task_dto.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class TaskCreateScreen extends StatefulWidget {
   const TaskCreateScreen({super.key});
@@ -58,6 +59,7 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
             : null,
       );
       await taskService.createTask(dto);
+      eventApi.trackEvent('create_task');
       if (mounted) {
         showAppSnackBar(context, 'Task created', isSuccess: true);
         context.go('/task');

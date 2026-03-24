@@ -15,6 +15,7 @@ import 'package:moustra/constants/cages_grid_constants.dart';
 import 'package:moustra/widgets/dialogs/add_or_update_rack.dart';
 import 'package:moustra/widgets/cage/empty_cage_slot.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class CagesGridScreen extends StatefulWidget {
   const CagesGridScreen({super.key});
@@ -46,6 +47,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_cage_grid');
     _transformationController.addListener(_onTransformationChanged);
     _initializeScreen();
   }

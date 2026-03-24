@@ -5,6 +5,7 @@ import 'package:moustra/services/dtos/protocol_dto.dart';
 import 'package:moustra/stores/protocol_store.dart';
 import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class ProtocolFormScreen extends StatefulWidget {
   const ProtocolFormScreen({super.key});
@@ -156,8 +157,10 @@ class _ProtocolFormScreenState extends State<ProtocolFormScreen> {
     try {
       if (_isEditing) {
         await protocolApi.updateProtocol(_protocolUuid!, data);
+        eventApi.trackEvent('update_protocol');
       } else {
         await protocolApi.createProtocol(data);
+        eventApi.trackEvent('create_protocol');
       }
       await refreshProtocolStore();
       if (mounted) {

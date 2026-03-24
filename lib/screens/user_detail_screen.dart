@@ -6,6 +6,7 @@ import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/widgets/shared/button.dart';
 import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 final usersApi = UsersApi(dioApiClient);
 
@@ -45,6 +46,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_user');
     if (widget.userUuid != null) {
       _loadUser();
     }
@@ -106,6 +108,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         );
 
         await usersApi.createUser(profile.accountUuid, createUserData);
+        eventApi.trackEvent('create_user');
         if (mounted) {
           showAppSnackBar(context, 'User invited successfully', isSuccess: true);
           // Navigate back to users list
@@ -124,6 +127,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         );
 
         await usersApi.updateUser(widget.userUuid!, userData);
+        eventApi.trackEvent('update_user');
         if (mounted) {
           showAppSnackBar(context, 'User updated successfully', isSuccess: true);
           context.go('/user');

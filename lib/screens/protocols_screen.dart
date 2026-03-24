@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/services/clients/protocol_api.dart';
 import 'package:moustra/services/dtos/protocol_dto.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class ProtocolsScreen extends StatefulWidget {
   const ProtocolsScreen({super.key});
@@ -17,6 +18,7 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_protocols');
     _loadProtocols();
   }
 

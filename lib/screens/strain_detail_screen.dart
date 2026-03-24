@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/services/clients/event_api.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:moustra/services/clients/animal_api.dart';
@@ -46,6 +47,7 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_strain');
     _loadDefaultOwner();
   }
 
@@ -238,6 +240,7 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
             genotypes: _genotypes,
           );
           await StrainApi().createStrain(strain);
+          eventApi.trackEvent('create_strain');
           showAppSnackBar(context, 'Strain created successfully!', isSuccess: true);
         } else {
           // Update existing strain
@@ -258,6 +261,7 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
               genotypes: _genotypes,
             ),
           );
+          eventApi.trackEvent('update_strain');
           showAppSnackBar(context, 'Strain updated successfully!', isSuccess: true);
         }
         context.go('/strain');

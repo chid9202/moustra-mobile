@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:moustra/services/clients/ai_api.dart';
 import 'package:moustra/services/dtos/ai_dto.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/services/clients/event_api.dart';
 
 class CheeseAiScreen extends StatefulWidget {
   const CheeseAiScreen({super.key});
@@ -88,6 +89,7 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
   Future<void> _handleSubmit() async {
     final text = _inputController.text.trim();
     if (text.isEmpty || _isStreaming) return;
+    eventApi.trackEvent('cheese_ai_send');
 
     _inputController.clear();
 

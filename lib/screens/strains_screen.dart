@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moustra/services/clients/event_api.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/cell_text.dart';
 import 'package:moustra/constants/list_constants/strain_filter_config.dart';
@@ -40,6 +41,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
   @override
   void initState() {
     super.initState();
+    eventApi.trackEvent('view_strains');
     _loadTableSetting();
   }
 
@@ -220,6 +222,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
                       label: 'Create Strain',
                       icon: const Icon(Icons.add),
                       onPressed: () {
+                        eventApi.trackEvent('create_strain');
                         if (context.mounted) {
                           context.go('/strain/new');
                         }
