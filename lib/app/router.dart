@@ -21,6 +21,7 @@ import 'package:moustra/screens/protocol_compliance_screen.dart';
 import 'package:moustra/screens/strain_detail_screen.dart';
 import 'package:moustra/screens/end_animal_screen.dart';
 import 'package:moustra/screens/colony_wizard/colony_wizard_screen.dart';
+import 'package:moustra/screens/onboarding/onboarding_screen.dart';
 import 'package:moustra/stores/auth_store.dart';
 import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/widgets/app_bar.dart';
@@ -70,6 +71,12 @@ final GoRouter appRouter = GoRouter(
       path: '/colony-wizard',
       pageBuilder: (context, state) =>
           const MaterialPage(child: ColonyWizardScreen()),
+    ),
+    // Onboarding - full screen without app shell
+    GoRoute(
+      path: '/onboarding',
+      pageBuilder: (context, state) =>
+          const MaterialPage(child: OnboardingScreen()),
     ),
     ShellRoute(
       pageBuilder: (context, state, child) => MaterialPage(
@@ -332,6 +339,15 @@ final GoRouter appRouter = GoRouter(
       final hasAccount = profileState.value?.accountUuid != null;
       return hasAccount ? '/cage/grid' : null;
     }
+    // Onboarding guard: redirect un-onboarded users
+    if (path != '/onboarding' && path != '/colony-wizard') {
+      final isOnboarded = profileState.value?.onboarded ?? true;
+      if (!isOnboarded) {
+        debugPrint('not onboarded, redirecting');
+        return '/onboarding';
+      }
+    }
+
     debugPrint('logged in');
     return null;
   },

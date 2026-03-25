@@ -127,7 +127,11 @@ class _SignupScreenState extends State<SignupScreen> {
               setState(() {
                 _loading = false;
               });
-              context.go('/cage/grid');
+              if (profileState.value?.onboarded == true) {
+                context.go('/cage/grid');
+              } else {
+                context.go('/onboarding');
+              }
             }
           }
         })

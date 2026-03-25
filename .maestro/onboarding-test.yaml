@@ -1,0 +1,126 @@
+appId: com.moustra.app
+---
+# Onboarding Flow E2E Test
+# Uses the "Restart Onboarding" button in Settings to force the onboarding
+# flow regardless of current account state. No DB reset needed.
+
+- launchApp:
+    clearKeychain: true
+    clearState: true
+- waitForAnimationToEnd:
+    timeout: 10000
+
+# === DISMISS UPDATE DIALOG IF PRESENT ===
+- tapOn:
+    text: "LATER"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# === LOGIN ===
+- tapOn:
+    text: "Email"
+- inputText: "admin+29917@moustra.com"
+- waitForAnimationToEnd:
+    timeout: 1000
+
+- tapOn:
+    text: "Password"
+- inputText: "admin+29917"
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# Dismiss keyboard
+- tapOn:
+    point: "200,200"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- tapOn:
+    text: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Dismiss iOS password save dialog
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for home screen
+- extendedWaitUntil:
+    visible: "Open menu"
+    timeout: 30000
+- takeScreenshot: 01-home-screen
+
+# === NAVIGATE TO SETTINGS → RESTART ONBOARDING ===
+- tapOn:
+    text: "Open menu"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- tapOn:
+    text: "Settings"
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- tapOn:
+    text: "Restart Onboarding"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: 02-onboarding-step0-lab
+
+# === STEP 0: YOUR LAB ===
+# Lab name field should be pre-filled for existing user, just tap Next
+- tapOn:
+    text: "Next"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 03-onboarding-step1-position
+
+# === STEP 1: TELL US WHO YOU ARE ===
+# Position may already be pre-filled from existing account data.
+# If it shows the label "Position" (empty), tap to select. Otherwise skip.
+- tapOn:
+    text: "Position"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1000
+- tapOn:
+    text: "Principal Investigator"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1000
+- takeScreenshot: 04-position-step
+
+- tapOn:
+    text: "Next"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 05-onboarding-step2-invite
+
+# === STEP 2: INVITE USERS ===
+# Skip invites, tap Next
+- tapOn:
+    text: "Next"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 06-onboarding-step3-migration
+
+# === STEP 3: SELECT MIGRATION METHOD ===
+- tapOn:
+    text: "Start from scratch"
+- waitForAnimationToEnd:
+    timeout: 1000
+- takeScreenshot: 07-migration-selected
+
+- tapOn:
+    text: "Get Started"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: 08-after-completion
+
+# === VERIFY: BACK AT HOME SCREEN ===
+- extendedWaitUntil:
+    visible: "Open menu"
+    timeout: 30000
+- takeScreenshot: 09-home-screen-confirmed

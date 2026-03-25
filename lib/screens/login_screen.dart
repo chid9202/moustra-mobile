@@ -191,7 +191,11 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
           setState(() {
             _loading = false;
           });
-          context.go('/cage/grid');
+          if (profileState.value?.onboarded == true) {
+            context.go('/cage/grid');
+          } else {
+            context.go('/onboarding');
+          }
         }
       }
     } catch (e) {

@@ -6,6 +6,8 @@ import 'package:moustra/services/clients/lab_setting_api.dart';
 import 'package:moustra/services/dtos/lab_setting_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/stores/account_store.dart';
+import 'package:moustra/services/dtos/profile_dto.dart';
+import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/stores/setting_store.dart';
 import 'package:moustra/widgets/shared/button.dart';
 
@@ -171,8 +173,10 @@ class _LabSettingsTabState extends State<LabSettingsTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Colony Setup Wizard Card
+            // Setup Section — Colony Wizard + Restart Onboarding
             _buildWizardCard(context),
+            const SizedBox(height: 8),
+            _buildRestartOnboardingCard(context),
             const SizedBox(height: 16),
 
             Card(
@@ -293,6 +297,87 @@ class _LabSettingsTabState extends State<LabSettingsTab> {
               onPressed: _saveSettings,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRestartOnboardingCard(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Semantics(
+      label: 'Restart Onboarding',
+      button: true,
+      child: Card(
+        child: InkWell(
+          onTap: () {
+            // Update local profile state to mark as not onboarded so the
+            // router guard redirects to onboarding.
+            final profile = profileState.value;
+            if (profile != null) {
+              profileState.value = ProfileResponseDto(
+                accountUuid: profile.accountUuid,
+                firstName: profile.firstName,
+                lastName: profile.lastName,
+                email: profile.email,
+                labName: profile.labName,
+                labUuid: profile.labUuid,
+                onboarded: false,
+                onboardedDate: profile.onboardedDate,
+                position: profile.position,
+                role: profile.role,
+                plan: profile.plan,
+              );
+            }
+            context.go('/onboarding');
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.outline,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.refresh,
+                    color: theme.colorScheme.onInverseSurface,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Restart Onboarding',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Go through the setup wizard again',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
