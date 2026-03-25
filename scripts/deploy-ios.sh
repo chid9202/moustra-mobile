@@ -2,16 +2,13 @@
 set -e
 
 # Moustra iOS Deploy Script
-# Usage: ./scripts/deploy-ios.sh
+# Usage: ./scripts/deploy-ios.sh [x.y.z] | ./scripts/deploy-ios.sh --bump build|patch|minor|major
 
-cd "$(dirname "$0")/.."
-export PATH="$HOME/.asdf/shims:$PATH"
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
+source "$(dirname "$0")/deploy-common.sh"
 
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m'
+DEPLOY_PLATFORM_NAME="iOS"
+
+deploy_prepare_release_if_needed "$@"
 
 echo -e "${GREEN}━━━ Building iOS ━━━${NC}"
 flutter build ios --release --dart-define=ENV_FILENAME=.env.production --no-codesign
