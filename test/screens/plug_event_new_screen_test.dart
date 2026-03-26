@@ -106,10 +106,10 @@ void main() {
       expect(find.text('Target E-Day'), findsOneWidget);
     });
 
-    testWidgets('has Comment text field', (WidgetTester tester) async {
+    testWidgets('Comment field is hidden', (WidgetTester tester) async {
       await pumpPlugEventNewScreen(tester);
 
-      expect(find.text('Comment'), findsOneWidget);
+      expect(find.text('Comment'), findsNothing);
     });
 
     testWidgets('has Save button', (WidgetTester tester) async {
@@ -182,8 +182,8 @@ void main() {
     ) async {
       await pumpPlugEventNewScreen(tester);
 
-      // Target E-Day and Comment text fields
-      expect(find.byType(TextFormField), findsNWidgets(2));
+      // Target E-Day text field (Comment is hidden)
+      expect(find.byType(TextFormField), findsNWidgets(1));
     });
   });
 }

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:moustra/widgets/cage/cage_header_menu.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
-import 'package:moustra/helpers/rack_utils.dart';
-
 class CageHeader extends StatelessWidget {
   final RackCageDto cage;
   final bool showMenu;
@@ -11,10 +9,17 @@ class CageHeader extends StatelessWidget {
   const CageHeader({required this.cage, this.showMenu = false, super.key});
 
   String? get _positionLabel {
-    if (cage.xPosition == null || cage.yPosition == null) return null;
-    return getRackPositionLabel(
-      RackGridPosition(x: cage.xPosition!, y: cage.yPosition!),
-    );
+    final x = cage.xPosition;
+    final y = cage.yPosition;
+    if (x == null || y == null) return null;
+    // Convert row index to letter(s): 0→A, 25→Z, 26→AA, etc.
+    var row = y;
+    var letters = '';
+    do {
+      letters = String.fromCharCode(65 + (row % 26)) + letters;
+      row = row ~/ 26 - 1;
+    } while (row >= 0);
+    return '$letters${x + 1}';
   }
 
   @override

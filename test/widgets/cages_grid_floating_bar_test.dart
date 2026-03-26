@@ -42,6 +42,7 @@ void main() {
               onRackSelected: (_) {},
               onAddRack: () {},
               onEditRack: () {},
+              onOpenRack: () {},
               searchType: CagesGridConstants.searchTypeAnimalTag,
               searchQuery: '',
               onSearchTypeChanged: (value) {
@@ -87,6 +88,7 @@ void main() {
               onRackSelected: (_) {},
               onAddRack: () {},
               onEditRack: () {},
+              onOpenRack: () {},
               searchType: lastSearchType,
               searchQuery: lastSearchQuery,
               onSearchTypeChanged: (value) {
@@ -118,6 +120,7 @@ void main() {
                 onRackSelected: (_) {},
                 onAddRack: () {},
                 onEditRack: () {},
+              onOpenRack: () {},
                 searchType: lastSearchType,
                 searchQuery: 'test query',
                 onSearchTypeChanged: (value) {
