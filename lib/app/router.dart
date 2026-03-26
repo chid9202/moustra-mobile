@@ -38,6 +38,7 @@ import 'package:moustra/screens/dashboard_screen.dart';
 import 'package:moustra/screens/settings_screen.dart';
 import 'package:moustra/services/auth_service.dart';
 import 'package:moustra/services/error_context_service.dart';
+import 'package:moustra/screens/rack_detail_screen.dart';
 import 'package:moustra/screens/login_screen.dart';
 import 'package:moustra/screens/signup_screen.dart';
 
@@ -116,6 +117,11 @@ final GoRouter appRouter = GoRouter(
           path: '/cage/grid',
           pageBuilder: (context, state) =>
               const MaterialPage(child: CagesGridScreen()),
+        ),
+        GoRoute(
+          path: '/rack/:rackUuid',
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: RackDetailScreen()),
         ),
         GoRoute(
           path: '/cage/new',

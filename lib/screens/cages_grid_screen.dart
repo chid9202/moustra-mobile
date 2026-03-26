@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:moustra/widgets/cage/cage_interactive_view.dart';
+import 'package:go_router/go_router.dart';
 import 'package:moustra/widgets/cages_grid_floating_bar.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/dtos/stores/rack_store_dto.dart';
@@ -344,6 +345,11 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
               onRackSelected: _switchRack,
               onAddRack: () => _showRackDialog(isEdit: false),
               onEditRack: () => _showRackDialog(isEdit: true),
+              onOpenRack: () {
+                if (_selectedRack != null) {
+                  context.push('/rack/${_selectedRack!.rackUuid}');
+                }
+              },
               searchType: _searchType,
               searchQuery: _searchQuery,
               onSearchTypeChanged: (value) {

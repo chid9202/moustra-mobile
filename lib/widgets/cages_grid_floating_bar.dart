@@ -8,6 +8,7 @@ class CagesGridFloatingBar extends StatefulWidget {
   final Function(RackSimpleDto) onRackSelected;
   final VoidCallback onAddRack;
   final VoidCallback onEditRack;
+  final VoidCallback onOpenRack;
   final String searchType;
   final String searchQuery;
   final Function(String) onSearchTypeChanged;
@@ -21,6 +22,7 @@ class CagesGridFloatingBar extends StatefulWidget {
     required this.onRackSelected,
     required this.onAddRack,
     required this.onEditRack,
+    required this.onOpenRack,
     required this.searchType,
     required this.searchQuery,
     required this.onSearchTypeChanged,
@@ -96,6 +98,7 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
                   onRackSelected: widget.onRackSelected,
                   onAddRack: widget.onAddRack,
                   onEditRack: widget.onEditRack,
+                  onOpenRack: widget.onOpenRack,
                   searchType: widget.searchType,
                   searchQuery: widget.searchQuery,
                   onSearchTypeChanged: widget.onSearchTypeChanged,
@@ -111,6 +114,7 @@ class _CagesGridFloatingBarState extends State<CagesGridFloatingBar> {
                   onRackSelected: widget.onRackSelected,
                   onAddRack: widget.onAddRack,
                   onEditRack: widget.onEditRack,
+                  onOpenRack: widget.onOpenRack,
                   searchType: widget.searchType,
                   onSearchTypeChanged: widget.onSearchTypeChanged,
                   onSearchQueryChanged: widget.onSearchQueryChanged,
@@ -177,16 +181,28 @@ class SettingsButton extends StatelessWidget {
   const SettingsButton({
     required this.onAddRack,
     required this.onEditRack,
+    required this.onOpenRack,
     super.key,
   });
 
   final VoidCallback onAddRack;
   final VoidCallback onEditRack;
+  final VoidCallback onOpenRack;
 
   @override
   Widget build(BuildContext context) {
     return MenuAnchor(
       menuChildren: [
+        MenuItemButton(
+          onPressed: () => onOpenRack(),
+          child: const Row(
+            children: [
+              Icon(Icons.open_in_new, size: 20),
+              SizedBox(width: 8),
+              Text('Open Rack'),
+            ],
+          ),
+        ),
         MenuItemButton(
           onPressed: () => onAddRack(),
           child: const Row(
@@ -355,6 +371,7 @@ class WideLayout extends StatelessWidget {
     required this.onRackSelected,
     required this.onAddRack,
     required this.onEditRack,
+    required this.onOpenRack,
     required this.searchType,
     required this.onSearchTypeChanged,
     required this.onSearchQueryChanged,
@@ -368,6 +385,7 @@ class WideLayout extends StatelessWidget {
   final void Function(RackSimpleDto) onRackSelected;
   final VoidCallback onAddRack;
   final VoidCallback onEditRack;
+  final VoidCallback onOpenRack;
   final String searchType;
   final void Function(String) onSearchTypeChanged;
   final void Function(String) onSearchQueryChanged;
@@ -391,7 +409,7 @@ class WideLayout extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              SettingsButton(onAddRack: onAddRack, onEditRack: onEditRack),
+              SettingsButton(onAddRack: onAddRack, onEditRack: onEditRack, onOpenRack: onOpenRack),
             ],
           ),
         ),
@@ -438,6 +456,7 @@ class CompactLayout extends StatelessWidget {
     required this.onRackSelected,
     required this.onAddRack,
     required this.onEditRack,
+    required this.onOpenRack,
     required this.searchType,
     required this.searchQuery,
     required this.onSearchTypeChanged,
@@ -455,6 +474,7 @@ class CompactLayout extends StatelessWidget {
   final void Function(RackSimpleDto) onRackSelected;
   final VoidCallback onAddRack;
   final VoidCallback onEditRack;
+  final VoidCallback onOpenRack;
   final String searchType;
   final String searchQuery;
   final void Function(String) onSearchTypeChanged;
@@ -482,7 +502,7 @@ class CompactLayout extends StatelessWidget {
                   selectedRack: selectedRack,
                 ),
               ),
-              SettingsButton(onAddRack: onAddRack, onEditRack: onEditRack),
+              SettingsButton(onAddRack: onAddRack, onEditRack: onEditRack, onOpenRack: onOpenRack),
               SearchIconButton(searchQuery, toggleSearch: toggleSearch),
               const SizedBox(width: 8),
               ZoomIndicator(zoomLevel),
