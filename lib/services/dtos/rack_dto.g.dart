@@ -91,7 +91,7 @@ RackCageOwnerDto _$RackCageOwnerDtoFromJson(Map<String, dynamic> json) =>
     RackCageOwnerDto(
       accountId: (json['accountId'] as num?)?.toInt(),
       accountUuid: json['accountUuid'] as String?,
-      user: (json['user'] as num?)?.toInt(),
+      user: json['user'],
       role: json['role'] as String?,
       isActive: json['isActive'] as bool?,
     );

@@ -328,17 +328,7 @@ class _EndAnimalScreenState extends State<EndAnimalScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Comment
-            TextFormField(
-              controller: _commentController,
-              decoration: const InputDecoration(
-                labelText: 'Comment',
-                hintText: 'Enter any additional comments',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
+            // HIDDEN: Comment field hidden - use Note instead
 
             // End Cage checkbox
             SwitchListTile(

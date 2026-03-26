@@ -40,11 +40,13 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
     return GoRouterState.of(context).pathParameters['rackUuid'] ?? '';
   }
 
-  Future<void> _fetchRack() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _fetchRack({bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
     try {
       final rack = await rackApi.getRack(rackUuid: _rackUuid);
       if (mounted) {
@@ -56,7 +58,7 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.toString();
+          if (!silent) _error = e.toString();
           _isLoading = false;
         });
       }
@@ -120,7 +122,7 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
         }
       }
       setState(() => _selectedCageUuid = null);
-      await _fetchRack();
+      await _fetchRack(silent: true);
     } catch (e) {
       if (mounted) {
         showAppSnackBar(context, 'Failed to update cage position', isError: true);
@@ -136,6 +138,23 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
       setState(() => _selectedCageUuid = null);
     } else {
       setState(() => _selectedCageUuid = cageUuid);
+    }
+  }
+
+  Future<void> _handleUnsetPosition(String cageUuid) async {
+    setState(() => _isMoving = true);
+    try {
+      await cageApi.unsetCagePosition(cageUuid);
+      if (mounted) {
+        showAppSnackBar(context, 'Position cleared', isSuccess: true);
+      }
+      await _fetchRack(silent: true);
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(context, 'Failed to clear position', isError: true);
+      }
+    } finally {
+      if (mounted) setState(() => _isMoving = false);
     }
   }
 
@@ -254,18 +273,13 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
                 rackWidth,
                 rackHeight,
                 cagesByPosition,
+                overflowCages: overflowCages,
               ),
             ),
 
-            // Overflow cages warning
-            if (overflowCages.isNotEmpty)
-              SliverToBoxAdapter(
-                child: _buildOverflowCages(overflowCages),
-              ),
-
             // Cage list header
             SliverToBoxAdapter(
-              child: _buildCageListHeader(cageRows.length),
+              child: _buildCageListHeader(cageRows.length, overflowCages.length),
             ),
 
             // Cage list
@@ -400,8 +414,9 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
     RackDto rack,
     int rackWidth,
     int rackHeight,
-    Map<String, RackCageWithPosition> cagesByPosition,
-  ) {
+    Map<String, RackCageWithPosition> cagesByPosition, {
+    List<RackCageWithPosition> overflowCages = const [],
+  }) {
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Card(
@@ -462,6 +477,45 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
                 ],
               ),
               const SizedBox(height: 8),
+              // Unpositioned cages (arrange mode only)
+              if (_isArrangeMode && overflowCages.isNotEmpty) ...[
+                Text(
+                  'Unpositioned (${overflowCages.length}) — select, then tap an empty cell',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.grey[600],
+                      ),
+                ),
+                const SizedBox(height: 6),
+                SizedBox(
+                  height: 36,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: overflowCages.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 6),
+                    itemBuilder: (context, index) {
+                      final cwp = overflowCages[index];
+                      final isSelected = cwp.cage.cageUuid == _selectedCageUuid;
+                      return ActionChip(
+                        label: Text(
+                          cwp.cage.cageTag ?? '(untagged)',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        backgroundColor: isSelected
+                            ? Theme.of(context).colorScheme.primaryContainer
+                            : null,
+                        side: BorderSide(
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : Colors.grey.shade400,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => _handleOverflowCageTap(cwp.cage.cageUuid),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
               // Grid
               Stack(
                 children: [
@@ -514,6 +568,9 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
                                 context.push('/cage/${cage.cageUuid}');
                               }
                             },
+                            onUnset: _isArrangeMode && cage != null
+                                ? () => _handleUnsetPosition(cage.cageUuid)
+                                : null,
                           );
                         },
                       ),
@@ -540,73 +597,7 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
     );
   }
 
-  Widget _buildOverflowCages(List<RackCageWithPosition> overflowCages) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Card(
-        elevation: 0,
-        color: Colors.orange.shade50,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Colors.orange.shade300),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.warning_amber, color: Colors.orange.shade700, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Unpositioned Cages (${overflowCages.length})',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.orange.shade800,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _isArrangeMode
-                    ? 'Select one, then tap an empty cell above to place it.'
-                    : 'Enter Arrange mode to place them, or expand the rack.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[700],
-                    ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: overflowCages.map((cwp) {
-                  final isSelected = cwp.cage.cageUuid == _selectedCageUuid;
-                  return ActionChip(
-                    label: Text(cwp.cage.cageTag ?? '(untagged)'),
-                    backgroundColor: isSelected
-                        ? Theme.of(context).colorScheme.primaryContainer
-                        : null,
-                    side: BorderSide(
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.orange.shade400,
-                    ),
-                    onPressed: _isArrangeMode
-                        ? () => _handleOverflowCageTap(cwp.cage.cageUuid)
-                        : null,
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCageListHeader(int count) {
+  Widget _buildCageListHeader(int count, int unpositionedCount) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(
@@ -620,7 +611,7 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            '$count cage${count == 1 ? '' : 's'}',
+            '$count cage${count == 1 ? '' : 's'} total${unpositionedCount > 0 ? ' · $unpositionedCount unpositioned' : ''}',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Colors.grey[600],
                 ),
@@ -684,6 +675,11 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
     final cage = cwp.cage;
     final animalCount = cage.animals?.length ?? 0;
     final ownerName = getOwnerName(cage.owner);
+    final rack = _rack;
+    final isPositioned = cwp.position != null &&
+        rack != null &&
+        cwp.position!.x < (rack.rackWidth ?? 1) &&
+        cwp.position!.y < (rack.rackHeight ?? 1);
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
@@ -691,16 +687,20 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
         width: 42,
         height: 42,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5),
+          color: isPositioned
+              ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
+              : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(8),
         ),
         alignment: Alignment.center,
         child: Text(
-          cwp.positionLabel.isNotEmpty ? cwp.positionLabel : '–',
+          isPositioned ? cwp.positionLabel : '—',
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 13,
-            color: Theme.of(context).colorScheme.primary,
+            color: isPositioned
+                ? Theme.of(context).colorScheme.primary
+                : Colors.grey[400],
           ),
         ),
       ),
@@ -824,6 +824,7 @@ class _SnapshotCell extends StatelessWidget {
   final bool isValidTarget;
   final bool isArrangeMode;
   final VoidCallback onTap;
+  final VoidCallback? onUnset;
 
   const _SnapshotCell({
     required this.positionLabel,
@@ -834,6 +835,7 @@ class _SnapshotCell extends StatelessWidget {
     required this.isValidTarget,
     required this.isArrangeMode,
     required this.onTap,
+    this.onUnset,
   });
 
   @override
@@ -871,13 +873,27 @@ class _SnapshotCell extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              positionLabel,
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.grey[500],
-                fontWeight: FontWeight.w500,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  positionLabel,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey[500],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (onUnset != null)
+                  GestureDetector(
+                    onTap: onUnset,
+                    child: Icon(
+                      Icons.close,
+                      size: 14,
+                      color: Colors.grey[400],
+                    ),
+                  ),
+              ],
             ),
             Text(
               cageTag ?? (isArrangeMode && isValidTarget ? 'Move here' : 'Empty'),

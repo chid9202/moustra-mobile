@@ -592,15 +592,7 @@ class _LitterDetailScreenState extends State<LitterDetailScreen> {
                 label: 'Strain',
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _commentController,
-                decoration: const InputDecoration(
-                  labelText: 'Comment (Optional)',
-                  hintText: 'Enter any additional comments',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-              ),
+              // HIDDEN: Comment field hidden - use Note instead
               const SizedBox(height: 32),
 
               // Pubs Section

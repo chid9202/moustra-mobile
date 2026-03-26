@@ -410,15 +410,7 @@ class _PlugEventDetailScreenState extends State<PlugEventDetailScreen> {
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
-                  controller: _commentController,
-                  decoration: const InputDecoration(
-                    labelText: 'Comment',
-                    hintText: 'Enter any additional comments',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                ),
+                // HIDDEN: Comment field hidden - use Note instead
               ],
             ),
             const SizedBox(height: 12),

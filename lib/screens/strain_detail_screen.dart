@@ -467,16 +467,7 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
 
               const SizedBox(height: 16),
 
-              // Comment Field
-              TextFormField(
-                controller: _commentController,
-                decoration: const InputDecoration(
-                  labelText: 'Comment',
-                  hintText: 'Enter any additional comments',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-              ),
+              // HIDDEN: Comment field hidden - use Note instead
 
               const SizedBox(height: 16),
 

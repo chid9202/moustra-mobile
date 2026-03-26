@@ -387,19 +387,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
               const SizedBox(height: 16),
 
               // Comment Field
-              Semantics(
-                label: 'Comment',
-                textField: true,
-                child: TextFormField(
-                  controller: _commentController,
-                  decoration: const InputDecoration(
-                    labelText: 'Comment',
-                    hintText: 'Enter any additional comments',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                ),
-              ),
+              // HIDDEN: Comment field hidden - use Note instead
 
               // End Information (read-only, shown only for ended animals)
               if (_animalData?.endDate != null) ...[

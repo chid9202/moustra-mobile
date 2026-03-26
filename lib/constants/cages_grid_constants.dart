@@ -23,7 +23,7 @@ class CagesGridConstants {
     return (cageWidth * rackWidth) + (crossAxisSpacing * (rackWidth - 1));
   }
 
-  static const double childAspectRatio = 0.8; // Taller cells to fit 5 animals
+  static const double childAspectRatio = 0.92; // Taller cells to fit ~5.5 visible animals
   static const double maxCageHeight = 800.0; // Maximum height for a cage
   static const double zoomFitPaddingMargin = 40.0;
 

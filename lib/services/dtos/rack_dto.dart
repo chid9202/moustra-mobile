@@ -89,7 +89,7 @@ class RackCageStrainDto {
 class RackCageOwnerDto {
   final int? accountId;
   final String? accountUuid;
-  final int? user;
+  final dynamic user;
   final String? role;
   final bool? isActive;
 

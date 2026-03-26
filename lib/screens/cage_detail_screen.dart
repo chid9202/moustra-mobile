@@ -345,19 +345,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              Semantics(
-                label: 'Comment',
-                textField: true,
-                child: TextFormField(
-                  controller: _commentController,
-                  decoration: const InputDecoration(
-                    labelText: 'Comment',
-                    hintText: 'Enter any additional comments',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                ),
-              ),
+              // HIDDEN: Comment field hidden - use Note instead
               const SizedBox(height: 32),
 
               // Animals Section

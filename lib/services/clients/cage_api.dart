@@ -165,6 +165,16 @@ class CageApi {
     }
   }
 
+  Future<void> swapCage(String cageUuid, String targetCageUuid) async {
+    final res = await dioApiClient.put(
+      '$basePath/$cageUuid/swap',
+      body: {'targetCageUuid': targetCageUuid},
+    );
+    if (res.statusCode != 200) {
+      throw Exception('Failed to swap cages: ${res.data}');
+    }
+  }
+
   Future<RackDto> moveCage(
     String cageUuid, {
     required int x,
@@ -178,6 +188,16 @@ class CageApi {
       throw Exception('Failed to move cage: ${res.data}');
     }
     return RackDto.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  Future<void> unsetCagePosition(String cageUuid) async {
+    final res = await dioApiClient.put(
+      '$basePath/$cageUuid',
+      body: {'x_position': null, 'y_position': null},
+    );
+    if (res.statusCode != 200) {
+      throw Exception('Failed to clear cage position: ${res.data}');
+    }
   }
 }
 

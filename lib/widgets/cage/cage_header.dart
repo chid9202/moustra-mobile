@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:moustra/widgets/cage/cage_header_menu.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
+import 'package:moustra/helpers/rack_utils.dart';
 
 class CageHeader extends StatelessWidget {
   final RackCageDto cage;
@@ -9,10 +10,18 @@ class CageHeader extends StatelessWidget {
 
   const CageHeader({required this.cage, this.showMenu = false, super.key});
 
+  String? get _positionLabel {
+    if (cage.xPosition == null || cage.yPosition == null) return null;
+    return getRackPositionLabel(
+      RackGridPosition(x: cage.xPosition!, y: cage.yPosition!),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
+    final posLabel = _positionLabel;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
@@ -25,6 +34,27 @@ class CageHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Position label (top-left, like web)
+          if (posLabel != null) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.blueGrey.shade800
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                posLabel,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : Colors.blueGrey.shade800,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
           Expanded(
             child: Text.rich(
               TextSpan(
