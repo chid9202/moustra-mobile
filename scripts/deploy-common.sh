@@ -21,37 +21,28 @@ ensure_git_repo() {
 ensure_git_clean() {
   if ! git diff --quiet || ! git diff --cached --quiet; then
     echo -e "${RED}❌ Working tree has uncommitted changes.${NC}" >&2
-    echo -e "${RED}   Commit/stash them before running deploy.${NC}" >&2
+    echo -e "${RED}   Commit or stash them before running release tasks.${NC}" >&2
     exit 1
   fi
 
   if [[ -n "$(git ls-files --others --exclude-standard)" ]]; then
     echo -e "${RED}❌ Working tree has untracked files.${NC}" >&2
-    echo -e "${RED}   Clean them up (or add them) before running deploy.${NC}" >&2
+    echo -e "${RED}   Clean them up (or add them) before running release tasks.${NC}" >&2
     exit 1
   fi
-}
-
-ensure_branch_is_main_or_release() {
-  local branch
-  branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
-  if [[ "$branch" == "main" ]]; then
-    return 0
-  fi
-  if [[ "$branch" == release/* ]]; then
-    return 0
-  fi
-
-  echo -e "${RED}❌ Deploy must be run from 'main' or a 'release/*' branch (current: '$branch').${NC}" >&2
-  echo -e "${RED}   Run: git checkout main${NC}" >&2
-  exit 1
 }
 
 verify_production_env() {
-  if grep -q "login-dev.moustra.com" .env.production; then
-    echo -e "${RED}❌ .env.production contains dev domain!${NC}"
+  if [[ ! -f .env.production ]]; then
+    echo -e "${RED}❌ .env.production is missing.${NC}" >&2
     exit 1
   fi
+
+  if grep -q "login-dev.moustra.com" .env.production; then
+    echo -e "${RED}❌ .env.production contains dev domain!${NC}" >&2
+    exit 1
+  fi
+
   echo "✅ .env.production verified"
 }
 
@@ -63,9 +54,10 @@ parse_pubspec_version() {
 }
 
 set_pubspec_version_line() {
-  local vname="$1"
-  local bnum="$2"
-  local line="version: ${vname}+${bnum}"
+  local version_name="$1"
+  local build_num="$2"
+  local line="version: ${version_name}+${build_num}"
+
   if [[ "$(uname -s)" == Darwin ]]; then
     sed -i '' "s/^version: .*/${line}/" pubspec.yaml
   else
@@ -75,151 +67,168 @@ set_pubspec_version_line() {
 
 bump_marketing_version() {
   local kind="$1"
-  local vname="$2"
+  local version_name="$2"
   local major minor patch
-  IFS='.' read -r major minor patch <<< "$vname"
+
+  IFS='.' read -r major minor patch <<< "$version_name"
   major="${major:-0}"
   minor="${minor:-0}"
   patch="${patch:-0}"
+
   case "$kind" in
-    build) echo "$vname" ;;
+    build) echo "$version_name" ;;
     patch) echo "${major}.${minor}.$((patch + 1))" ;;
     minor) echo "${major}.$((minor + 1)).0" ;;
     major) echo "$((major + 1)).0.0" ;;
     *)
-      echo -e "${RED}Invalid bump: $kind (use build, patch, minor, or major)${NC}" >&2
+      echo -e "${RED}❌ Invalid bump: $kind (use build, patch, minor, or major).${NC}" >&2
       exit 1
       ;;
   esac
 }
 
-deploy_usage() {
-  local platform="${1:-${DEPLOY_PLATFORM_NAME:-}}"
-  if [[ -n "$platform" ]]; then
-    platform=" ($platform)"
-  fi
-
-  echo "Moustra deploy${platform} — optionally bumps pubspec.yaml, runs tests, commits release branch, deploys."
-  echo ""
-  echo "Usage:"
-  echo "  $0 --bump build|patch|minor|major"
-  echo "  $0 [x.y.z]              # marketing version; build number increments by 1"
-  echo "  $0                      # defaults to --bump patch"
-  echo ""
-  echo "Bump modes (marketing version + always increments build number by 1):"
-  echo "  build   1.0.7+26 → 1.0.7+27"
-  echo "  patch   1.0.7+26 → 1.0.8+27"
-  echo "  minor   1.0.7+26 → 1.1.0+27"
-  echo "  major   1.0.7+26 → 2.0.0+27"
-  echo ""
-  echo "Tip: For a full store release after Apple closes a \"train\", use --bump patch/minor/major."
-  exit 0
+run_flutter_tests() {
+  echo -e "\n${GREEN}━━━ Running tests ━━━${NC}"
+  flutter test
+  echo "✅ Tests passed"
 }
 
-deploy_prepare_release_if_needed() {
-  # Outputs (globals):
-  # - DEPLOY_VERSION_NAME
-  # - DEPLOY_BUILD_NUM
+prepare_release_usage() {
+  cat <<'EOF'
+Usage:
+  ./scripts/deploy.sh prepare --bump build|patch|minor|major [--push] [--tag] [--skip-tests]
+  ./scripts/deploy.sh prepare --version x.y.z [--push] [--tag] [--skip-tests]
 
+Notes:
+  - Runs from a clean main branch checkout.
+  - Bumps pubspec.yaml only.
+  - Does not create release branches.
+EOF
+}
+
+prepare_release() {
   ensure_git_repo
-  ensure_branch_is_main_or_release
+  ensure_git_clean
   verify_production_env
 
-  local branch
-  branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
-
-  if [[ "$branch" == release/* ]]; then
-    if [[ $# -gt 0 ]]; then
-      echo -e "${RED}❌ You're on '$branch'. Don't pass bump args here; switch to main to bump/create release.${NC}" >&2
-      exit 1
-    fi
-    parse_pubspec_version
-    DEPLOY_VERSION_NAME="$PUBSPEC_VERSION_NAME"
-    DEPLOY_BUILD_NUM="$PUBSPEC_BUILD_NUM"
-    echo -e "${GREEN}━━━ Deploying Moustra $DEPLOY_VERSION_NAME+$DEPLOY_BUILD_NUM (from existing release branch) ━━━${NC}"
-    return 0
-  fi
-
-  # On main: optionally bump + create/push release branch
-  ensure_git_clean
-
-  local BUMP_KIND=""
-  local EXPLICIT_VERSION=""
+  local bump_kind=""
+  local explicit_version=""
+  local should_push="false"
+  local should_tag="false"
+  local run_tests="true"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -h|--help) deploy_usage; exit 0 ;;
+      -h|--help)
+        prepare_release_usage
+        exit 0
+        ;;
       --bump)
         if [[ -z "${2:-}" ]]; then
-          echo -e "${RED}--bump requires an argument (build, patch, minor, major)${NC}" >&2
+          echo -e "${RED}❌ --bump requires an argument.${NC}" >&2
           exit 1
         fi
-        BUMP_KIND="$2"
+        bump_kind="$2"
         shift 2
         ;;
-      *)
-        if [[ -n "$EXPLICIT_VERSION" ]]; then
-          echo -e "${RED}Unexpected argument: $1${NC}" >&2
+      --version)
+        if [[ -z "${2:-}" ]]; then
+          echo -e "${RED}❌ --version requires an argument.${NC}" >&2
           exit 1
         fi
-        EXPLICIT_VERSION="$1"
+        explicit_version="$2"
+        shift 2
+        ;;
+      --push)
+        should_push="true"
         shift
+        ;;
+      --tag)
+        should_tag="true"
+        shift
+        ;;
+      --skip-tests)
+        run_tests="false"
+        shift
+        ;;
+      *)
+        echo -e "${RED}❌ Unexpected argument: $1${NC}" >&2
+        prepare_release_usage >&2
+        exit 1
         ;;
     esac
   done
 
-  if [[ -n "$BUMP_KIND" && -n "$EXPLICIT_VERSION" ]]; then
-    echo -e "${RED}Use either --bump or an explicit x.y.z, not both.${NC}" >&2
+  if [[ -n "$bump_kind" && -n "$explicit_version" ]]; then
+    echo -e "${RED}❌ Use either --bump or --version, not both.${NC}" >&2
     exit 1
   fi
 
-  if [[ -n "$BUMP_KIND" ]]; then
-    case "$BUMP_KIND" in
+  if [[ -z "$bump_kind" && -z "$explicit_version" ]]; then
+    echo -e "${RED}❌ You must pass either --bump or --version.${NC}" >&2
+    exit 1
+  fi
+
+  if [[ -n "$bump_kind" ]]; then
+    case "$bump_kind" in
       build|patch|minor|major) ;;
       *)
-        echo -e "${RED}Invalid --bump value: $BUMP_KIND${NC}" >&2
+        echo -e "${RED}❌ Invalid --bump value: $bump_kind${NC}" >&2
         exit 1
         ;;
     esac
   fi
 
-  parse_pubspec_version
-  local CURRENT_NAME="$PUBSPEC_VERSION_NAME"
-  local CURRENT_BUILD="$PUBSPEC_BUILD_NUM"
-
-  local VERSION_NAME=""
-  local NEW_BUILD=""
-
-  if [[ -n "$BUMP_KIND" ]]; then
-    VERSION_NAME="$(bump_marketing_version "$BUMP_KIND" "$CURRENT_NAME")"
-    NEW_BUILD=$((CURRENT_BUILD + 1))
-  elif [[ -n "$EXPLICIT_VERSION" ]]; then
-    VERSION_NAME="$EXPLICIT_VERSION"
-    NEW_BUILD=$((CURRENT_BUILD + 1))
-  else
-    BUMP_KIND="patch"
-    VERSION_NAME="$(bump_marketing_version "$BUMP_KIND" "$CURRENT_NAME")"
-    NEW_BUILD=$((CURRENT_BUILD + 1))
+  local current_branch
+  current_branch="$(git rev-parse --abbrev-ref HEAD)"
+  if [[ "$current_branch" != "main" ]]; then
+    git checkout main
   fi
 
-  DEPLOY_VERSION_NAME="$VERSION_NAME"
-  DEPLOY_BUILD_NUM="$NEW_BUILD"
+  git pull --ff-only origin main
+  ensure_git_clean
 
-  echo -e "${GREEN}━━━ Preparing release/$DEPLOY_VERSION_NAME ($DEPLOY_VERSION_NAME+$DEPLOY_BUILD_NUM) ━━━${NC}"
+  parse_pubspec_version
 
-  git pull origin main
-  git checkout -b "release/$DEPLOY_VERSION_NAME" 2>/dev/null || git checkout "release/$DEPLOY_VERSION_NAME"
+  local current_name="$PUBSPEC_VERSION_NAME"
+  local current_build="$PUBSPEC_BUILD_NUM"
+  local next_name=""
+  local next_build=""
 
-  set_pubspec_version_line "$DEPLOY_VERSION_NAME" "$DEPLOY_BUILD_NUM"
-  echo "✅ Bumped to $DEPLOY_VERSION_NAME+$DEPLOY_BUILD_NUM"
+  if [[ -n "$bump_kind" ]]; then
+    next_name="$(bump_marketing_version "$bump_kind" "$current_name")"
+  else
+    next_name="$explicit_version"
+  fi
+  next_build=$((current_build + 1))
 
-  echo -e "\n${GREEN}━━━ Running tests ━━━${NC}"
-  flutter test
-  echo "✅ Tests passed"
+  echo -e "${GREEN}━━━ Preparing release ${next_name}+${next_build} from main ━━━${NC}"
 
-  git add -A
-  git commit -m "Release $DEPLOY_VERSION_NAME" || echo "Nothing to commit"
-  git push -u origin "release/$DEPLOY_VERSION_NAME"
-  echo "✅ Pushed release/$DEPLOY_VERSION_NAME"
+  set_pubspec_version_line "$next_name" "$next_build"
+
+  if git diff --quiet -- pubspec.yaml; then
+    echo -e "${RED}❌ pubspec.yaml is already set to ${next_name}+${next_build}.${NC}" >&2
+    exit 1
+  fi
+
+  if [[ "$run_tests" == "true" ]]; then
+    run_flutter_tests
+  fi
+
+  git add pubspec.yaml
+  git commit -m "chore(release): bump version to ${next_name}+${next_build}"
+  echo "✅ Committed version bump"
+
+  if [[ "$should_tag" == "true" ]]; then
+    git tag -a "v${next_name}+${next_build}" -m "Release ${next_name}+${next_build}"
+    echo "✅ Created tag v${next_name}+${next_build}"
+  fi
+
+  if [[ "$should_push" == "true" ]]; then
+    git push origin main
+    if [[ "$should_tag" == "true" ]]; then
+      git push origin "v${next_name}+${next_build}"
+    fi
+    echo "✅ Pushed release commit"
+  fi
 }
-

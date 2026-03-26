@@ -1,287 +1,258 @@
 # Moustra Mobile Deployment Guide
 
-This guide covers how to deploy Moustra to the App Store (iOS) and Google Play Store (Android) using Fastlane.
+This guide describes the supported release flow for Moustra mobile.
 
-## Prerequisites
+## Release Model
 
-### iOS
-- Xcode installed with command line tools
-- Valid Apple Developer account
-- App Store Connect access
-- Certificates and provisioning profiles configured
+The release process is split into three actions:
 
-### Android
-- Android SDK installed
-- `android-secret.json` - Google Play service account key (place in `android/`)
-- `key.properties` - Signing configuration (place in `android/`)
-- `upload-keystore.jks` - Upload keystore file
+1. `prepare`
+   - Bumps the version in `pubspec.yaml`
+   - Commits the bump on `main`
+   - Optionally tags the release commit
+2. `candidate`
+   - Builds the app from the version already committed in git
+   - Uploads iOS to TestFlight
+   - Uploads Android to the selected Google Play track
+3. `promote`
+   - Reuses an existing uploaded build
+   - Submits iOS for App Store review
+   - Promotes Android between Play tracks without rebuilding
 
-### Ruby & Fastlane
+This is simpler than the previous flow because deployment no longer creates `release/*` branches or mutates git state while uploading to the stores.
+
+```mermaid
+flowchart TD
+    A["main branch"] --> B["prepare<br/>bump pubspec.yaml<br/>commit and optional tag"]
+    B --> C["candidate<br/>build from committed version"]
+    C --> D["iOS: upload to TestFlight"]
+    C --> E["Android: upload to internal/beta/production"]
+    D --> F["promote<br/>submit existing iOS build for App Store review"]
+    E --> G["promote<br/>advance existing Android release between Play tracks"]
+```
+
+## Entry Points
+
+### Unified Script
+
+Run all release actions from the project root:
+
 ```bash
-# Install Ruby (recommended via rbenv or asdf)
-# Install bundler
-gem install bundler
+./scripts/deploy.sh prepare --bump patch --push --tag
+./scripts/deploy.sh candidate --platform both --android-track internal
+./scripts/deploy.sh promote --platform both --android-to production --ios-build 47
+```
 
-# Install Fastlane dependencies (run in ios/ and android/ directories)
-cd ios && bundle install
-cd android && bundle install
+### Platform Scripts
+
+Use these when you only need one platform:
+
+```bash
+./scripts/deploy-ios.sh candidate
+./scripts/deploy-ios.sh promote --build 47
+
+./scripts/deploy-android.sh candidate --track internal
+./scripts/deploy-android.sh promote --to production
 ```
 
 ## Version Management
 
-The app version is managed in `pubspec.yaml`:
+The app version is stored in `pubspec.yaml`:
+
 ```yaml
-version: 1.0.7+26  # format: VERSION_NAME+BUILD_NUMBER
+version: 1.0.23+47
 ```
 
-Update this before each release. Fastlane lanes automatically sync this version to native projects.
+- `1.0.23` is the marketing version.
+- `47` is the build number.
 
-## iOS Deployment
+`./scripts/deploy.sh prepare` always reads the current version from a clean checkout of `main`, increments the build number, and commits only `pubspec.yaml`.
 
-Navigate to the `ios/` directory first:
-```bash
-cd ios
-```
-
-### Available Lanes
-
-| Lane | Description |
-|------|-------------|
-| `bundle exec fastlane build` | Build the app for App Store |
-| `bundle exec fastlane beta` | Build and upload to TestFlight |
-| `bundle exec fastlane release` | Build and upload to App Store Connect |
-| `bundle exec fastlane sync_metadata` | Download metadata from App Store Connect |
-| `bundle exec fastlane upload_metadata` | Upload metadata and screenshots only |
-
-### Common Workflows
-
-**TestFlight Release:**
-```bash
-# 1. Update version in pubspec.yaml
-# 2. Build Flutter app with production environment
-flutter build ios --release --dart-define-from-file=.env.production
-
-# 3. Upload to TestFlight
-cd ios
-bundle exec fastlane beta
-```
-
-**App Store Release:**
-```bash
-# 1. Update version in pubspec.yaml
-# 2. Build Flutter app
-flutter build ios --release --dart-define-from-file=.env.production
-
-# 3. Upload to App Store Connect
-cd ios
-bundle exec fastlane release
-```
-
-## Android Deployment
-
-Navigate to the `android/` directory first:
-```bash
-cd android
-```
-
-### Available Lanes
-
-| Lane | Description |
-|------|-------------|
-| `bundle exec fastlane build` | Build release AAB |
-| `bundle exec fastlane build_apk` | Build release APK |
-| `bundle exec fastlane internal` | Upload to Internal Testing track |
-| `bundle exec fastlane beta` | Upload to Beta (Closed Testing) track |
-| `bundle exec fastlane deploy` | Upload to Production track |
-| `bundle exec fastlane promote_to_beta` | Promote Internal to Beta |
-| `bundle exec fastlane promote_to_production` | Promote Beta to Production |
-| `bundle exec fastlane sync_metadata` | Download metadata from Google Play |
-| `bundle exec fastlane upload_metadata` | Upload metadata only |
-
-### Common Workflows
-
-**Internal Testing Release:**
-```bash
-# 1. Update version in pubspec.yaml
-# 2. Build Flutter app
-flutter build appbundle --release --dart-define-from-file=.env.production
-
-# 3. Upload to Internal Testing
-cd android
-bundle exec fastlane internal
-```
-
-**Production Release:**
-```bash
-# 1. Update version in pubspec.yaml
-# 2. Build Flutter app
-flutter build appbundle --release --dart-define-from-file=.env.production
-
-# 3. Upload to Production (or promote from beta)
-cd android
-bundle exec fastlane deploy
-# OR
-bundle exec fastlane promote_to_production
-```
-
-## Quick Release Commands
-
-For convenience, you can run these from the project root:
+### Prepare Options
 
 ```bash
-# iOS TestFlight
-flutter build ios --release --dart-define-from-file=.env.production && cd ios && bundle exec fastlane beta
-
-# Android Internal
-flutter build appbundle --release --dart-define-from-file=.env.production && cd android && bundle exec fastlane internal
+./scripts/deploy.sh prepare --bump build|patch|minor|major [--push] [--tag] [--skip-tests]
+./scripts/deploy.sh prepare --version x.y.z [--push] [--tag] [--skip-tests]
 ```
 
-## Environment Files
+Examples:
 
-- `.env` - Development environment
-- `.env.production` - Production environment (used for releases)
-- `.env.test` - Test environment
+```bash
+# 1.0.23+47 -> 1.0.24+48
+./scripts/deploy.sh prepare --bump patch --push --tag
+
+# 1.0.23+47 -> 1.0.23+48
+./scripts/deploy.sh prepare --bump build --push --tag
+
+# 1.0.23+47 -> 2.0.0+48
+./scripts/deploy.sh prepare --version 2.0.0 --push --tag
+```
+
+## Candidate Uploads
+
+Candidate uploads build from the version already committed in git.
+
+### iOS
+
+```bash
+./scripts/deploy.sh candidate --platform ios
+```
+
+This will:
+
+1. Verify `.env.production`
+2. Build Flutter iOS in release mode
+3. Archive the IPA with Fastlane
+4. Upload the IPA to TestFlight
+
+### Android
+
+```bash
+./scripts/deploy.sh candidate --platform android --android-track internal
+```
+
+Supported Android upload tracks:
+
+- `internal`
+- `beta`
+- `production`
+
+This will:
+
+1. Verify `.env.production`
+2. Build the AAB
+3. Verify the AAB includes `.env.production`
+4. Upload the AAB to the selected Play track
+
+### Both Platforms
+
+```bash
+./scripts/deploy.sh candidate --platform both --android-track internal
+```
+
+By default, `candidate` runs `flutter test` first. Use `--skip-tests` only when CI has already validated the commit.
+
+## Promotions
+
+Promotions do not rebuild the app and do not bump the version.
+
+### iOS
+
+```bash
+./scripts/deploy.sh promote --platform ios --ios-build 47
+```
+
+If `--ios-build` is omitted, Fastlane uses the build number from `pubspec.yaml`.
+
+### Android
+
+```bash
+./scripts/deploy.sh promote --platform android --android-to beta
+./scripts/deploy.sh promote --platform android --android-to production
+```
+
+- `beta` promotes `internal -> beta`
+- `production` promotes `beta -> production`
+
+### Both Platforms
+
+```bash
+./scripts/deploy.sh promote --platform both --android-to production --ios-build 47
+```
+
+## GitHub Actions
+
+Manual release automation is available in:
+
+`/.github/workflows/deploy.yml`
+
+The workflow supports:
+
+- `prepare_release`
+- `upload_candidate`
+- `promote_release`
+
+### Workflow Inputs
+
+- `action`: release action to run
+- `platform`: `ios`, `android`, or `both`
+- `version_bump`: used by `prepare_release`
+- `version_override`: explicit marketing version for `prepare_release`
+- `android_track`: upload track for Android candidate builds
+- `android_promote_to`: promotion target for Android
+- `ios_build`: existing iOS build number for promotion
+
+## GitHub Secrets
+
+Add these in **Settings > Secrets and variables > Actions**.
+
+### Required For All Release Actions
+
+- `ENV_PRODUCTION`
+
+### Required For iOS Candidate / Promote
+
+- `APPSTORE_API_PRIVATE_KEY`
+
+The workflow writes this to:
+
+`ios/fastlane/keys/AuthKey_HG69G96CXV.p8`
+
+### Required For Android Candidate / Promote
+
+- `PLAY_STORE_SERVICE_ACCOUNT_JSON`
+- `ANDROID_KEYSTORE_BASE64`
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEY_PASSWORD`
+- `ANDROID_STORE_PASSWORD`
+
+## CI Notes
+
+- `prepare_release` is safe on GitHub-hosted runners because it only updates git state.
+- Android candidate and promotion are fully wired for CI via secrets.
+- iOS candidate and promotion also require a runner with valid signing configuration for the Xcode archive step. If you do not have that on GitHub-hosted runners yet, use the same script flow locally on a configured Mac.
+
+## Local Prerequisites
+
+### iOS
+
+- Xcode with command line tools
+- Apple Developer account access
+- Valid signing configuration on the machine
+
+### Android
+
+- Android SDK
+- `android/android-secret.json`
+- `android/key.properties`
+- `android/upload-keystore.jks`
+
+### Ruby / Fastlane
+
+```bash
+cd ios && bundle install
+cd android && bundle install
+```
 
 ## Troubleshooting
 
-### iOS: "No profiles matching" error
-Ensure your provisioning profiles are up to date in Apple Developer Portal and downloaded to your Mac.
+### Dirty Working Tree
 
-### Android: "Unauthorized" error
-Verify that `android-secret.json` contains valid service account credentials with Google Play Developer API access.
+Release scripts refuse to run if git has tracked or untracked changes. Clean the tree first.
 
-### Build fails with version mismatch
-Make sure to build the Flutter app before running Fastlane:
-```bash
-flutter build ios --release  # or flutter build appbundle --release
-```
+### iOS Version Rejected
 
-### TestFlight upload seems stuck or fails with 504
+If App Store Connect says the version train is closed or the version must be higher, run a new `prepare` with `patch`, `minor`, or `major` instead of another build-only bump.
 
-The step *"Going to upload updated app to App Store Connect"* often shows **no progress for 10–30+ minutes**. The upload is still running; Apple’s servers are slow and the IPA can be large. **Do not interrupt** the terminal where the upload is running.
+### iOS Upload Is Slow Or Fails
 
-**504 Gateway Timeout:** Apple’s Content Delivery Service sometimes returns `504 gateway timed out` (e.g. "Failed to upload part number 1"). This is intermittent and not under your control. The deploy script **retries the upload up to 3 times** with a 60-second delay. If it still fails:
+The upload script retries Fastlane uploads and falls back to `xcrun altool`. Network instability to Apple’s CDN is the common cause.
 
-- Try again later (Apple’s side may be busy).
-- Use a stable network (avoid flaky Wi‑Fi or VPN).
-- **Fallback:** Upload the same IPA manually:
-  - **Transporter app:** [Mac App Store](https://apps.apple.com/app/transporter/id1450874784) — drag `ios/build/Moustra.ipa` into Transporter.
-  - **Xcode:** Window → Organizer → Distribute App → App Store Connect → Upload.
+### Android Uploaded The Wrong Artifact
 
-To investigate in a **new terminal** (read-only checks that won’t affect the upload):
+The Android candidate script now deletes any previous release AAB before building, so stale artifacts are not reused.
 
-1. **See how big the upload is**
-   ```bash
-   ls -lh /Users/daehanchi/Dev/moustra-mobile/ios/build/Moustra.ipa
-   ```
+## Metadata
 
-2. **Confirm the upload process is running and using the network**
-   ```bash
-   # Find the deploy/fastlane process (use the PID from your running terminal if you know it)
-   ps aux | grep -E 'deploy-ios|fastlane|ruby' | grep -v grep
-
-   # If you have the PID (e.g. 28625), list its network connections
-   lsof -p <PID> -i 2>/dev/null || lsof -i -c ruby 2>/dev/null
-   ```
-   Active TCP connections to Apple (e.g. `*.apple.com` or `*.apple.com.akadns.net`) mean the upload is in progress.
-
-3. **Optional: watch network activity**
-   - Open **Activity Monitor** → Network tab, or run `nettop` in a new terminal and look for `ruby` or `altool`/system processes sending data.
-
-If the process has open connections and network send is increasing, the upload is progressing; wait for it to finish. For future runs, you can use the `upload_only` lane after a successful build to re-upload the same IPA without rebuilding (faster iteration).
-
-## Metadata Locations
-
-- iOS: `ios/fastlane/metadata/`
-- Android: `android/fastlane/metadata/`
-
-Update these files to change app descriptions, keywords, screenshots, etc.
-
----
-
-## GitHub Actions CI/CD
-
-The project includes automated deployment via GitHub Actions. The workflow automatically handles version bumping and deploying to both platforms.
-
-### Setting Up GitHub Secrets
-
-Go to your repository's **Settings > Secrets and variables > Actions** and add the following secrets:
-
-#### Required for iOS
-
-| Secret | Description |
-|--------|-------------|
-| `APPSTORE_API_KEY_ID` | App Store Connect API Key ID (e.g., `ABC123XYZ`) |
-| `APPSTORE_API_ISSUER_ID` | App Store Connect API Issuer ID (UUID format) |
-| `APPSTORE_API_PRIVATE_KEY` | Contents of the `.p8` private key file |
-
-**To get App Store Connect API credentials:**
-1. Go to [App Store Connect > Users and Access > Keys](https://appstoreconnect.apple.com/access/api)
-2. Click "+" to generate a new key with "App Manager" access
-3. Download the `.p8` file (you can only download once!)
-4. Copy the Key ID and Issuer ID from the page
-
-#### Required for Android
-
-| Secret | Description |
-|--------|-------------|
-| `PLAY_STORE_SERVICE_ACCOUNT_JSON` | Full contents of `android-secret.json` |
-| `ANDROID_KEYSTORE_BASE64` | Base64-encoded keystore file |
-| `ANDROID_KEY_ALIAS` | Keystore key alias (e.g., `upload`) |
-| `ANDROID_KEY_PASSWORD` | Password for the key |
-| `ANDROID_STORE_PASSWORD` | Password for the keystore |
-
-**To encode keystore as base64:**
-```bash
-base64 -i android/upload-keystore.jks | pbcopy  # macOS (copies to clipboard)
-# OR
-base64 android/upload-keystore.jks > keystore.txt  # Linux (saves to file)
-```
-
-#### Required for Both
-
-| Secret | Description |
-|--------|-------------|
-| `ENV_PRODUCTION` | Full contents of `.env.production` file |
-
-### Running a Deployment
-
-1. Go to **Actions** tab in your GitHub repository
-2. Select **"Deploy to App Stores"** workflow
-3. Click **"Run workflow"**
-4. Choose your options:
-   - **Platform**: `ios`, `android`, or `both`
-   - **Version bump**: `build`, `patch`, `minor`, or `major`
-   - **Track**: `internal`, `beta`, or `production`
-5. Click **"Run workflow"**
-
-### Version Bump Options
-
-| Option | Before | After | Use Case |
-|--------|--------|-------|----------|
-| `build` | 1.0.7+26 | 1.0.7+27 | Bug fixes, minor updates |
-| `patch` | 1.0.7+26 | 1.0.8+27 | Bug fixes for release |
-| `minor` | 1.0.7+26 | 1.1.0+27 | New features |
-| `major` | 1.0.7+26 | 2.0.0+27 | Breaking changes |
-
-### What the Workflow Does
-
-1. **Bumps version** in `pubspec.yaml` and commits it
-2. **Builds Flutter app** with production environment
-3. **Deploys to selected platforms** via Fastlane
-4. **Creates a git tag** (e.g., `v1.0.8+27`)
-
-### Workflow File Location
-
-`.github/workflows/deploy.yml`
-
-### Typical Release Flow
-
-```
-1. Merge your feature branch to main
-2. Go to Actions > Deploy to App Stores > Run workflow
-3. Select: platform=both, version_bump=patch, track=internal
-4. Wait for deployment to complete
-5. Test on internal/TestFlight
-6. Run again with track=production when ready
-```
+- iOS metadata: `ios/fastlane/metadata/`
+- Android metadata: `android/fastlane/metadata/`
