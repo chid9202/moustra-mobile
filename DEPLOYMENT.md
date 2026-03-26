@@ -160,58 +160,6 @@ If `--ios-build` is omitted, Fastlane uses the build number from `pubspec.yaml`.
 ./scripts/deploy.sh promote --platform both --android-to production --ios-build 47
 ```
 
-## GitHub Actions
-
-Manual release automation is available in:
-
-`/.github/workflows/deploy.yml`
-
-The workflow supports:
-
-- `prepare_release`
-- `upload_candidate`
-- `promote_release`
-
-### Workflow Inputs
-
-- `action`: release action to run
-- `platform`: `ios`, `android`, or `both`
-- `version_bump`: used by `prepare_release`
-- `version_override`: explicit marketing version for `prepare_release`
-- `android_track`: upload track for Android candidate builds
-- `android_promote_to`: promotion target for Android
-- `ios_build`: existing iOS build number for promotion
-
-## GitHub Secrets
-
-Add these in **Settings > Secrets and variables > Actions**.
-
-### Required For All Release Actions
-
-- `ENV_PRODUCTION`
-
-### Required For iOS Candidate / Promote
-
-- `APPSTORE_API_PRIVATE_KEY`
-
-The workflow writes this to:
-
-`ios/fastlane/keys/AuthKey_HG69G96CXV.p8`
-
-### Required For Android Candidate / Promote
-
-- `PLAY_STORE_SERVICE_ACCOUNT_JSON`
-- `ANDROID_KEYSTORE_BASE64`
-- `ANDROID_KEY_ALIAS`
-- `ANDROID_KEY_PASSWORD`
-- `ANDROID_STORE_PASSWORD`
-
-## CI Notes
-
-- `prepare_release` is safe on GitHub-hosted runners because it only updates git state.
-- Android candidate and promotion are fully wired for CI via secrets.
-- iOS candidate and promotion also require a runner with valid signing configuration for the Xcode archive step. If you do not have that on GitHub-hosted runners yet, use the same script flow locally on a configured Mac.
-
 ## Local Prerequisites
 
 ### iOS
