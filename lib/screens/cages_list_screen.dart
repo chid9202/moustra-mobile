@@ -529,6 +529,8 @@ class _CageGridSource extends DataGridSource {
           return cellTextList((values[CageListColumn.animalTags.name] as List<String>?) ?? []);
         case 'genotypes':
           return cellTextList((values[CageListColumn.genotypes.name] as List<String>?) ?? []);
+        case 'rack':
+          return cellText(values[CageListColumn.rack.name]?.toString());
         default:
           return cellText(values[columnName]?.toString());
       }

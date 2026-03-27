@@ -6,7 +6,7 @@ void main() {
     group('getColumns', () {
       test('should return all columns with default parameters', () {
         final columns = CageListColumn.getColumns();
-        expect(columns.length, 12);
+        expect(columns.length, 13);
       });
 
       test('select column should be hidden by default', () {
@@ -105,6 +105,15 @@ void main() {
         );
         expect(editColumn.allowSorting, false);
       });
+
+      test('rack column should be present and not allow sorting', () {
+        final columns = CageListColumn.getColumns();
+        final rackColumn = columns.firstWhere(
+          (c) => c.columnName == CageListColumn.rack.field,
+        );
+        expect(rackColumn.visible, true);
+        expect(rackColumn.allowSorting, false);
+      });
     });
 
     group('enum values', () {
@@ -120,6 +129,11 @@ void main() {
       test('eid column should have correct field and label', () {
         expect(CageListColumn.eid.field, 'eid');
         expect(CageListColumn.eid.label, 'EID');
+      });
+
+      test('rack column should have correct field and label', () {
+        expect(CageListColumn.rack.field, 'rack');
+        expect(CageListColumn.rack.label, 'Rack');
       });
     });
   });

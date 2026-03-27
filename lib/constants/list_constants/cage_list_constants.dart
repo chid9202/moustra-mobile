@@ -16,6 +16,7 @@ enum CageListColumn implements ListColumn<CageDto> {
   numberOfAnimals('Number of Animals', 'num'),
   animalTags('Animal Tags', 'tags'),
   genotypes('Genotypes', 'genotypes'),
+  rack('Rack', 'rack'),
   status('Status', 'status'),
   endDate('End Date', 'end_date'),
   owner('Owner', 'owner'),
@@ -86,6 +87,12 @@ enum CageListColumn implements ListColumn<CageDto> {
         allowSorting: false,
       ),
       GridColumn(
+        columnName: CageListColumn.rack.field,
+        width: 160,
+        label: Center(child: Text(CageListColumn.rack.label)),
+        allowSorting: false,
+      ),
+      GridColumn(
         columnName: CageListColumn.status.field,
         width: 120,
         label: Center(child: Text(CageListColumn.status.label)),
@@ -153,6 +160,10 @@ enum CageListColumn implements ListColumn<CageDto> {
           value: cage.animals
               .map((a) => GenotypeHelper.formatGenotypes(a.genotypes))
               .toList(),
+        ),
+        DataGridCell<String>(
+          columnName: CageListColumn.rack.name,
+          value: cage.rack?.rackName ?? '',
         ),
         DataGridCell<String>(
           columnName: CageListColumn.status.name,

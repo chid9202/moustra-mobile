@@ -125,6 +125,114 @@ void main() {
       expect(cage.matingHistory, isEmpty);
     });
 
+    test('should create from JSON with rack', () {
+      final json = {
+        'cageId': 1,
+        'cageTag': 'C001',
+        'cageUuid': 'cage-uuid-1',
+        'owner': {
+          'accountId': 1,
+          'accountUuid': 'owner-uuid-1',
+          'user': {
+            'firstName': 'John',
+            'lastName': 'Doe',
+            'email': 'john@example.com',
+          },
+        },
+        'status': 'active',
+        'animals': [],
+        'rack': {
+          'rackId': 5,
+          'rackUuid': 'rack-uuid-5',
+          'rackName': 'Rack A',
+        },
+      };
+
+      final cage = CageDto.fromJson(json);
+
+      expect(cage.rack, isNotNull);
+      expect(cage.rack!.rackId, 5);
+      expect(cage.rack!.rackUuid, 'rack-uuid-5');
+      expect(cage.rack!.rackName, 'Rack A');
+    });
+
+    test('should create from JSON without rack', () {
+      final json = {
+        'cageId': 1,
+        'cageTag': 'C001',
+        'cageUuid': 'cage-uuid-1',
+        'owner': {
+          'accountId': 1,
+          'accountUuid': 'owner-uuid-1',
+          'user': {
+            'firstName': 'John',
+            'lastName': 'Doe',
+            'email': 'john@example.com',
+          },
+        },
+        'status': 'active',
+        'animals': [],
+      };
+
+      final cage = CageDto.fromJson(json);
+
+      expect(cage.rack, isNull);
+    });
+
+    test('should create from JSON with null rack', () {
+      final json = {
+        'cageId': 1,
+        'cageTag': 'C001',
+        'cageUuid': 'cage-uuid-1',
+        'owner': {
+          'accountId': 1,
+          'accountUuid': 'owner-uuid-1',
+          'user': {
+            'firstName': 'John',
+            'lastName': 'Doe',
+            'email': 'john@example.com',
+          },
+        },
+        'status': 'active',
+        'animals': [],
+        'rack': null,
+      };
+
+      final cage = CageDto.fromJson(json);
+
+      expect(cage.rack, isNull);
+    });
+
+    test('should convert to JSON with rack', () {
+      final json = {
+        'cageId': 1,
+        'cageTag': 'C001',
+        'cageUuid': 'cage-uuid-1',
+        'owner': {
+          'accountId': 1,
+          'accountUuid': 'owner-uuid-1',
+          'user': {
+            'firstName': 'John',
+            'lastName': 'Doe',
+            'email': 'john@example.com',
+          },
+        },
+        'status': 'active',
+        'animals': [],
+        'rack': {
+          'rackId': 5,
+          'rackUuid': 'rack-uuid-5',
+          'rackName': 'Rack A',
+        },
+      };
+
+      final cage = CageDto.fromJson(json);
+      final outputJson = cage.toJson();
+
+      expect(outputJson['rack'], isNotNull);
+      expect(outputJson['rack']['rackName'], 'Rack A');
+    });
+
     test('should convert to JSON with matingHistory', () {
       final json = {
         'cageId': 1,

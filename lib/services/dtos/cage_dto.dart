@@ -2,6 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:moustra/services/dtos/account_dto.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/mating_history_dto.dart';
+import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/services/dtos/note_dto.dart';
 
@@ -24,6 +25,7 @@ class CageDto {
   final DateTime? createdDate;
   final DateTime? endDate;
   final String status;
+  final RackSimpleDto? rack;
   final List<NoteDto>? notes;
   final List<MatingHistoryDto>? matingHistory;
 
@@ -43,6 +45,7 @@ class CageDto {
     this.createdDate,
     this.endDate,
     required this.status,
+    this.rack,
     this.notes,
     this.matingHistory,
   });
