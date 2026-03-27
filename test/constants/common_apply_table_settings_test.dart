@@ -109,17 +109,17 @@ void main() {
     test('control columns are never hidden by settings', () {
       final columns = [
         _makeColumn('select'),
-        _makeColumn('edit_stripe'),
+        _makeColumn('edit'),
         _makeColumn('col_a'),
       ];
-      // No settings for select/edit_stripe — they should still appear
+      // No settings for select/edit — they should still appear
       final settings = [
         _makeField(fieldName: 'col_a', fieldOrder: 1),
       ];
       final result = applyTableSettings(columns, settings);
       expect(result.length, 3);
       expect(result[0].columnName, 'select');
-      expect(result[1].columnName, 'edit_stripe');
+      expect(result[1].columnName, 'edit');
     });
 
     test('columns not in settings are kept at end', () {
@@ -188,8 +188,7 @@ void main() {
     test('contains expected control column names', () {
       expect(controlColumns, contains('select'));
       expect(controlColumns, contains('edit'));
-      expect(controlColumns, contains('edit_stripe'));
-      expect(controlColumns.length, 3);
+      expect(controlColumns.length, 2);
     });
   });
 }

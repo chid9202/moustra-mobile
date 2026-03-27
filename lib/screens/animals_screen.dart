@@ -31,7 +31,6 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
   final Set<String> _selected = <String>{};
   final int _pageSize = 1000;
-  bool _isEditMode = false;
   bool _isEndingMode = false;
   bool _isEndingAnimals = false;
   final MovableFabMenuController _fabController = MovableFabMenuController();
@@ -148,24 +147,11 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     );
   }
 
-  List<GridColumn> get _animalColumns => [
-    if (_isEditMode)
-      GridColumn(
-        columnName: 'edit_stripe',
-        width: 4,
-        label: Builder(
-          builder: (ctx) => Container(
-            color: Theme.of(ctx).colorScheme.primary,
-          ),
-        ),
-        allowSorting: false,
-      ),
-    ...AnimalListColumn.getColumns(
-      includeSelect: _isEndingMode,
-      sortNotifier: _sortNotifier,
-      settingFields: _tableSetting?.tableSettingFields.toList(),
-    ),
-  ];
+  List<GridColumn> get _animalColumns => AnimalListColumn.getColumns(
+    includeSelect: _isEndingMode,
+    sortNotifier: _sortNotifier,
+    settingFields: _tableSetting?.tableSettingFields.toList(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -182,8 +168,6 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
           preparedFilters: AnimalFilterConfig.preparedFilters,
           selectedPresetIndex: _selectedPresetIndex,
           onPresetSelected: _onPresetSelected,
-          isEditMode: _isEditMode,
-          onEditToggle: () => setState(() => _isEditMode = !_isEditMode),
           onColumnSettingsTap: _tableSetting != null
               ? () => showColumnSettingsSheet(
                     context: context,
@@ -216,10 +200,6 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   _sortNotifier.value = sort;
                   _controller.reload();
                 },
-                onRowTap: _isEditMode
-                    ? (AnimalDto animal) =>
-                        context.go('/animal/${animal.animalUuid}')
-                    : null,
                 columns: _animalColumns,
                 sourceBuilder: (rows) => _AnimalGridSource(
                   records: rows,
@@ -227,7 +207,6 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   onToggle: _onToggleSelected,
                   context: context,
                   isEndingMode: _isEndingMode,
-                  isEditMode: _isEditMode,
                   columns: _animalColumns,
                 ),
                 fetchPage: (page, pageSize) async {
@@ -399,7 +378,6 @@ class _AnimalGridSource extends DataGridSource {
   final void Function(String uuid, bool selected) onToggle;
   final BuildContext context;
   final bool isEndingMode;
-  final bool isEditMode;
   final List<GridColumn> columns;
 
   _AnimalGridSource({
@@ -408,7 +386,6 @@ class _AnimalGridSource extends DataGridSource {
     required this.onToggle,
     required this.context,
     required this.isEndingMode,
-    required this.isEditMode,
     required this.columns,
   }) {
     _rows = records.map(AnimalListColumn.getDataGridRow).toList();
@@ -430,12 +407,6 @@ class _AnimalGridSource extends DataGridSource {
 
     Widget buildCell(String columnName) {
       switch (columnName) {
-        case 'edit_stripe':
-          return Builder(
-            builder: (c) => Container(
-              color: Theme.of(c).colorScheme.primary,
-            ),
-          );
         case 'select':
           return Center(
             child: Checkbox(
@@ -469,11 +440,6 @@ class _AnimalGridSource extends DataGridSource {
     }
 
     return DataGridRowAdapter(
-      color: isEditMode
-          ? Theme.of(context).colorScheme.secondaryContainer.withValues(
-              alpha: 0.25,
-            )
-          : null,
       cells: columns.map((col) => buildCell(col.columnName)).toList(),
     );
   }

@@ -19,7 +19,7 @@ const double eidColumnWidth = 64;
 const double ownerColumnWidth = 160;
 
 /// Columns that are controlled by the screen, not by table settings.
-const Set<String> controlColumns = {'select', 'edit', 'edit_stripe'};
+const Set<String> controlColumns = {'select', 'edit'};
 
 /// Apply table setting fields to a list of GridColumns.
 /// Filters by visibility and reorders by fieldOrder.

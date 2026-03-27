@@ -13,8 +13,6 @@ class FilterPanel extends StatefulWidget {
   final List<PreparedFilter> preparedFilters;
   final int selectedPresetIndex;
   final ValueChanged<int>? onPresetSelected;
-  final bool isEditMode;
-  final VoidCallback? onEditToggle;
   final VoidCallback? onColumnSettingsTap;
 
   const FilterPanel({
@@ -28,8 +26,6 @@ class FilterPanel extends StatefulWidget {
     this.preparedFilters = const [],
     this.selectedPresetIndex = -1,
     this.onPresetSelected,
-    this.isEditMode = false,
-    this.onEditToggle,
     this.onColumnSettingsTap,
   });
 
@@ -219,45 +215,7 @@ class _FilterPanelState extends State<FilterPanel> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.edit_outlined,
-                            size: 16,
-                            color: widget.isEditMode
-                                ? theme.colorScheme.onSecondaryContainer
-                                : null,
-                          ),
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Edit Rows',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: widget.isEditMode
-                                      ? theme.colorScheme.onSecondaryContainer
-                                      : null,
-                                ),
-                              ),
-                              if (widget.isEditMode) ...[
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.close,
-                                  size: 14,
-                                  color: theme.colorScheme.onSecondaryContainer,
-                                ),
-                              ],
-                            ],
-                          ),
-                          backgroundColor: widget.isEditMode
-                              ? theme.colorScheme.secondaryContainer
-                              : null,
-                          onPressed: widget.onEditToggle,
-                          visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                        ),
                         if (widget.onColumnSettingsTap != null) ...[
-                          const SizedBox(width: 4),
                           ActionChip(
                             avatar: const Icon(Icons.view_column, size: 16),
                             label: const Text(
