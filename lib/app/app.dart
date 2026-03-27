@@ -30,6 +30,7 @@ class App extends StatelessWidget {
                 navigatorKey: appRouter.routerDelegate.navigatorKey,
                 barrierDismissible: false,
                 showIgnore: false,
+                showLater: false,
                 child: Column(
                   children: [
                     // Offline banner
