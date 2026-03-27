@@ -11,7 +11,7 @@ The release process is split into three actions:
    - Commits the bump on `main`
    - Optionally tags the release commit
 2. `candidate`
-   - Builds the app from the version already committed in git
+   - Builds the app from the current working tree using the version in `pubspec.yaml`
    - Uploads iOS to TestFlight
    - Uploads Android to the selected Google Play track
 3. `promote`
@@ -90,7 +90,7 @@ Examples:
 
 ## Candidate Uploads
 
-Candidate uploads build from the version already committed in git.
+Candidate uploads build from the current working tree using the version already set in `pubspec.yaml`.
 
 ### iOS
 
@@ -186,7 +186,7 @@ cd android && bundle install
 
 ### Dirty Working Tree
 
-Release scripts refuse to run if git has tracked or untracked changes. Clean the tree first.
+`prepare` refuses to run if git has tracked or untracked changes. `candidate` and `promote` do not require a clean tree.
 
 ### iOS Version Rejected
 

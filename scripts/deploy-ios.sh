@@ -47,7 +47,6 @@ verify_pubspec_matches_generated_xcconfig() {
 
 upload_candidate() {
   ensure_git_repo
-  ensure_git_clean
   verify_production_env
 
   echo -e "${GREEN}━━━ Building iOS ━━━${NC}"
