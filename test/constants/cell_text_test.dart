@@ -18,7 +18,7 @@ void main() {
       expect(find.byType(SafeText), findsOneWidget);
     });
 
-    testWidgets('renders empty string when value is null', (tester) async {
+    testWidgets('renders em dash when value is null', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -27,9 +27,31 @@ void main() {
         ),
       );
 
-      // SafeText converts null to ''
-      expect(find.byType(SafeText), findsOneWidget);
-      expect(find.text(''), findsOneWidget);
+      expect(find.text(emptyCellPlaceholder), findsOneWidget);
+    });
+
+    testWidgets('renders em dash when value is empty string', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: cellText(''),
+          ),
+        ),
+      );
+
+      expect(find.text(emptyCellPlaceholder), findsOneWidget);
+    });
+
+    testWidgets('renders em dash when value is whitespace only', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: cellText('   '),
+          ),
+        ),
+      );
+
+      expect(find.text(emptyCellPlaceholder), findsOneWidget);
     });
 
     testWidgets('returns a Padding widget', (tester) async {
@@ -87,7 +109,7 @@ void main() {
       expect(find.byType(SafeText), findsNWidgets(3));
     });
 
-    testWidgets('renders empty column for empty list', (tester) async {
+    testWidgets('renders em dash for empty list', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -97,7 +119,20 @@ void main() {
       );
 
       expect(find.byType(SafeText), findsNothing);
-      expect(find.byType(Column), findsOneWidget);
+      expect(find.text(emptyCellPlaceholder), findsOneWidget);
+    });
+
+    testWidgets('renders em dash when list contains only empty strings', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: cellTextList(['', '  ']),
+          ),
+        ),
+      );
+
+      expect(find.byType(SafeText), findsNothing);
+      expect(find.text(emptyCellPlaceholder), findsOneWidget);
     });
 
     testWidgets('returns a Padding widget', (tester) async {
