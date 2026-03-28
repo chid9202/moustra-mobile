@@ -17,6 +17,9 @@ PostCageDto _$PostCageDtoFromJson(Map<String, dynamic> json) => PostCageDto(
       : DateTime.parse(json['setUpDate'] as String),
   comment: json['comment'] as String?,
   barcode: json['barcode'] as String?,
+  rack: json['rack'] as String?,
+  xPosition: (json['xPosition'] as num?)?.toInt(),
+  yPosition: (json['yPosition'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$PostCageDtoToJson(PostCageDto instance) =>
@@ -27,4 +30,7 @@ Map<String, dynamic> _$PostCageDtoToJson(PostCageDto instance) =>
       'setUpDate': instance.setUpDate?.toIso8601String(),
       'comment': instance.comment,
       'barcode': instance.barcode,
+      'rack': instance.rack,
+      'xPosition': instance.xPosition,
+      'yPosition': instance.yPosition,
     };

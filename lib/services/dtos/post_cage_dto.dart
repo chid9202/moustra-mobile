@@ -12,6 +12,9 @@ class PostCageDto {
   final DateTime? setUpDate;
   final String? comment;
   final String? barcode;
+  final String? rack;
+  final int? xPosition;
+  final int? yPosition;
 
   PostCageDto({
     required this.cageTag,
@@ -20,6 +23,9 @@ class PostCageDto {
     this.setUpDate,
     this.comment,
     this.barcode,
+    this.rack,
+    this.xPosition,
+    this.yPosition,
   });
 
   factory PostCageDto.fromJson(Map<String, dynamic> json) =>

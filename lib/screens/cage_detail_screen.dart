@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/helpers/account_helper.dart';
+import 'package:moustra/helpers/rack_utils.dart';
 import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/clients/event_api.dart';
+import 'package:moustra/services/clients/rack_api.dart';
 import 'package:moustra/services/dtos/cage_dto.dart';
 import 'package:moustra/services/dtos/post_cage_dto.dart';
 import 'package:moustra/services/dtos/put_cage_dto.dart';
+import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
 import 'package:moustra/stores/cage_store.dart';
@@ -20,6 +23,7 @@ import 'package:moustra/services/dtos/note_entity_type.dart';
 import 'package:moustra/widgets/cage/cage_animals_list.dart';
 import 'package:moustra/widgets/cage/mating_history_section.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/widgets/rack_cage_grid.dart';
 
 class CageDetailScreen extends StatefulWidget {
   final bool fromCageGrid;
@@ -41,11 +45,23 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
   AccountStoreDto? _selectedOwner;
   CageDto? _cageData;
   bool _cageDataLoaded = false;
+  bool _cageTagManuallyEdited = false;
+
+  // Rack grid state (create mode)
+  RackDto? _selectedRack;
+  List<RackSimpleDto> _allRacks = [];
+  RackGridPosition? _selectedPosition;
+  String? _selectedCageUuidInGrid;
+  bool _isLoadingRack = false;
 
   String? get _cageUuid {
     final state = GoRouterState.of(context);
     return state.pathParameters['cageUuid'];
   }
+
+  bool get _isCreateMode => _cageUuid == null || _cageUuid == 'new';
+
+  bool _rackLoadStarted = false;
 
   @override
   void initState() {
@@ -59,6 +75,10 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
     if (!_cageDataLoaded) {
       _loadCageData();
     }
+    if (_isCreateMode && !_rackLoadStarted) {
+      _rackLoadStarted = true;
+      _loadDefaultRack();
+    }
   }
 
   void _loadDefaultOwner() async {
@@ -67,6 +87,79 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
       setState(() {
         _selectedOwner = owner;
       });
+    }
+  }
+
+  Future<void> _loadDefaultRack() async {
+    setState(() => _isLoadingRack = true);
+    try {
+      final rack = await rackApi.getRack();
+      if (mounted) {
+        setState(() {
+          _selectedRack = rack;
+          _allRacks = rack.racks ?? [];
+          _isLoadingRack = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading rack: $e');
+      if (mounted) {
+        setState(() => _isLoadingRack = false);
+      }
+    }
+  }
+
+  Future<void> _switchRack(String rackUuid) async {
+    setState(() {
+      _isLoadingRack = true;
+      _selectedPosition = null;
+      _selectedCageUuidInGrid = null;
+      if (!_cageTagManuallyEdited) {
+        _cageTagController.text = '';
+      }
+    });
+    try {
+      final rack = await rackApi.getRack(rackUuid: rackUuid);
+      if (mounted) {
+        setState(() {
+          _selectedRack = rack;
+          _allRacks = rack.racks ?? [];
+          _isLoadingRack = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error switching rack: $e');
+      if (mounted) {
+        setState(() => _isLoadingRack = false);
+      }
+    }
+  }
+
+  void _handlePositionSelected(int x, int y) {
+    setState(() {
+      _selectedPosition = RackGridPosition(x: x, y: y);
+      _selectedCageUuidInGrid = null;
+    });
+    _autoFillCageTag(x, y);
+  }
+
+  void _handleCageSelected(RackCageDto cage) {
+    if (cage.xPosition == null || cage.yPosition == null) return;
+    setState(() {
+      _selectedCageUuidInGrid = cage.cageUuid;
+      _selectedPosition = null;
+    });
+    _autoFillCageTag(cage.xPosition!, cage.yPosition!);
+  }
+
+  void _autoFillCageTag(int x, int y) {
+    if (_cageTagManuallyEdited) return;
+    final tag = generateCageTag(
+      _selectedRack?.rackName,
+      RackGridPosition(x: x, y: y),
+    );
+    if (tag != null) {
+      _cageTagController.text = tag;
     }
   }
 
@@ -92,8 +185,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                   genotypes: const [],
                 )
               : null;
-          _selectedSetUpDate =
-              cage.createdDate; // Using createdDate as setUpDate
+          _selectedSetUpDate = cage.createdDate;
           _selectedOwner = cage.owner.toAccountStoreDto();
           _cageData = cage;
           _cageDataLoaded = true;
@@ -155,28 +247,22 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
           barcode: _barcodeController.text.isEmpty
               ? null
               : _barcodeController.text,
+          rack: _selectedRack?.rackUuid,
+          xPosition: _selectedPosition?.x,
+          yPosition: _selectedPosition?.y,
         );
         await CageApi().createCage(cage);
         eventApi.trackEvent('create_cage');
-        // Refresh related stores
         await refreshCageStore();
         await refreshAnimalStore();
         if (mounted) {
-          showAppSnackBar(
-            context,
-            'Cage created successfully!',
-            isSuccess: true,
-          );
+          showAppSnackBar(context, 'Cage created successfully!', isSuccess: true);
         }
       } else {
         final cageData = _cageData;
         if (cageData == null) {
           if (mounted) {
-            showAppSnackBar(
-              context,
-              'Error: Cage data not loaded',
-              isError: true,
-            );
+            showAppSnackBar(context, 'Error: Cage data not loaded', isError: true);
           }
           return;
         }
@@ -199,19 +285,13 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
           ),
         );
         eventApi.trackEvent('update_cage');
-        // Refresh related stores
         await refreshCageStore();
         await refreshAnimalStore();
         if (mounted) {
-          showAppSnackBar(
-            context,
-            'Cage updated successfully!',
-            isSuccess: true,
-          );
+          showAppSnackBar(context, 'Cage updated successfully!', isSuccess: true);
         }
       }
 
-      // Navigate back to the appropriate page based on where we came from
       if (mounted) {
         if (widget.fromCageGrid) {
           context.go('/cage/grid');
@@ -227,20 +307,6 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
     }
   }
 
-  // Future<void> _printLabel() async {
-  //   if (_cageData == null) return;
-  //   final doc = CageLabelPdf.build(_cageData!);
-  //   await Printing.layoutPdf(
-  //     onLayout: (format) async => doc.save(),
-  //     name: 'cage-${_cageData!.cageTag}',
-  //     format: const PdfPageFormat(
-  //       125 * PdfPageFormat.mm,
-  //       74 * PdfPageFormat.mm,
-  //     ),
-  //   );
-  //   eventApi.trackEvent('print_label');
-  // }
-
   @override
   Widget build(BuildContext context) {
     if (_selectedOwner == null) {
@@ -253,7 +319,6 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            // Navigate back to the appropriate page based on where we came from
             if (widget.fromCageGrid) {
               context.go('/cage/grid');
             } else {
@@ -262,9 +327,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
           },
           icon: const Icon(Icons.arrow_back),
         ),
-        title: Text(
-          _cageUuid == null || _cageUuid == 'new' ? 'Create Cage' : 'Edit Cage',
-        ),
+        title: Text(_isCreateMode ? 'Create Cage' : 'Edit Cage'),
       ),
       body: Form(
         key: _formKey,
@@ -273,6 +336,28 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Rack grid for create mode
+              if (_isCreateMode) ...[
+                if (_isLoadingRack)
+                  const Center(child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator(),
+                  ))
+                else if (_selectedRack != null)
+                  RackCageGrid(
+                    racks: _allRacks,
+                    selectedRack: _selectedRack,
+                    selectedPosition: _selectedPosition,
+                    selectedCageUuid: _selectedCageUuidInGrid,
+                    onChangeRack: _switchRack,
+                    onSelectCage: _handleCageSelected,
+                    onCreateCage: (posLabel, x, y) =>
+                        _handlePositionSelected(x, y),
+                  ),
+                const SizedBox(height: 16),
+              ],
+
+              // Cage Tag
               Semantics(
                 label: 'Cage Tag',
                 textField: true,
@@ -285,6 +370,9 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                   ),
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _saveCage(),
+                  onChanged: (_) {
+                    _cageTagManuallyEdited = true;
+                  },
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter a cage tag';
@@ -345,11 +433,10 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // HIDDEN: Comment field hidden - use Note instead
               const SizedBox(height: 32),
 
               // Animals Section
-              if (_cageUuid != null && _cageUuid != 'new' && _cageData != null)
+              if (!_isCreateMode && _cageData != null)
                 CageAnimalsList(
                   animals: _cageData!.animals,
                   cageUuid: _cageUuid!,
@@ -357,14 +444,13 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                 ),
 
               // Mating History Section
-              if (_cageUuid != null &&
-                  _cageUuid != 'new' &&
+              if (!_isCreateMode &&
                   _cageData?.matingHistory != null &&
                   _cageData!.matingHistory!.isNotEmpty)
                 MatingHistorySection(matings: _cageData!.matingHistory!),
 
               // Notes Section
-              if (_cageUuid != null && _cageUuid != 'new')
+              if (!_isCreateMode)
                 NoteList(
                   entityUuid: _cageUuid,
                   entityType: NoteEntityType.cage,

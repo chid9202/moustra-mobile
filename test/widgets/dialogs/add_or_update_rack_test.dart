@@ -122,7 +122,9 @@ void main() {
       await tester.tap(find.text('Show Dialog'));
       await tester.pumpAndSettle();
 
-      // Tap Create without filling name
+      // Clear the pre-filled name, then tap Create
+      final nameField = find.widgetWithText(TextFormField, 'Rack Name');
+      await tester.enterText(nameField, '');
       await tester.tap(find.text('Create'));
       await tester.pump();
 

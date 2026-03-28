@@ -17,6 +17,8 @@ import 'package:moustra/widgets/dialogs/add_or_update_rack.dart';
 import 'package:moustra/widgets/cage/empty_cage_slot.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/event_api.dart';
+import 'package:moustra/helpers/rack_utils.dart';
+import 'package:moustra/stores/cage_store.dart';
 
 class CagesGridScreen extends StatefulWidget {
   const CagesGridScreen({super.key});
@@ -301,14 +303,17 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     }
 
     try {
+      final rackName = data.rackName;
+      final tag = generateCageTag(rackName, RackGridPosition(x: x, y: y)) ?? 'New Cage';
       await cageApi.createCageInRack(
-        cageTag: 'New Cage',
+        cageTag: tag,
         rackUuid: rackUuid,
         xPosition: x,
         yPosition: y,
       );
-      // Fetch the current rack again after successful creation
+      // Refresh stores after creation
       await _loadRackData(rackUuid: rackUuid);
+      await refreshCageStore();
       if (mounted) {
         showAppSnackBar(context, 'Cage created successfully', isSuccess: true);
       }

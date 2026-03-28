@@ -128,6 +128,15 @@ RackInsights getRackInsights(RackDto? rack) {
   );
 }
 
+/// Generate a cage tag from rack name + position.
+/// Format: {rackName}-{rowLetter}{colNumber} (e.g. R1-A1, test123-B3)
+String? generateCageTag(String? rackName, RackGridPosition? position) {
+  if (rackName == null || rackName.isEmpty || position == null) return null;
+  final posLabel = getRackPositionLabel(position);
+  if (posLabel.isEmpty) return null;
+  return '$rackName-$posLabel';
+}
+
 /// Get owner display name from RackCageOwnerDto
 String getOwnerName(RackCageOwnerDto? owner) {
   if (owner == null) return '-';

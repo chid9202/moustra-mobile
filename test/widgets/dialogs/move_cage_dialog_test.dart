@@ -4,6 +4,7 @@ import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/dtos/stores/rack_store_dto.dart';
 import 'package:moustra/stores/rack_store.dart';
 import 'package:moustra/widgets/dialogs/move_cage_dialog.dart';
+import 'package:moustra/widgets/rack_cage_grid.dart';
 import '../../test_helpers/test_helpers.dart';
 
 void main() {
@@ -22,6 +23,20 @@ void main() {
         rackName: 'Test Rack',
         rackWidth: 5,
         rackHeight: 4,
+        cages: [
+          RackCageDto(
+            cageUuid: 'cage-uuid-1',
+            cageTag: 'C001',
+            xPosition: 0,
+            yPosition: 0,
+          ),
+          RackCageDto(
+            cageUuid: 'cage-uuid-2',
+            cageTag: 'C002',
+            xPosition: 1,
+            yPosition: 0,
+          ),
+        ],
       ),
     );
   });
@@ -52,87 +67,7 @@ void main() {
       expect(find.text('Move Cage'), findsOneWidget);
     });
 
-    testWidgets('shows cage tag in content', (WidgetTester tester) async {
-      final cage = RackCageDto(
-        cageUuid: 'cage-uuid-1',
-        cageTag: 'C001',
-        xPosition: 0,
-        yPosition: 0,
-      );
-
-      await TestHelpers.pumpWidgetWithDialog(
-        tester,
-        MoveCageDialog(cage: cage),
-      );
-
-      await tester.tap(find.text('Show Dialog'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Cage: C001'), findsOneWidget);
-    });
-
-    testWidgets('shows "Untitled" when cageTag is null', (
-      WidgetTester tester,
-    ) async {
-      final cage = RackCageDto(
-        cageUuid: 'cage-uuid-1',
-        cageTag: null,
-        xPosition: 0,
-        yPosition: 0,
-      );
-
-      await TestHelpers.pumpWidgetWithDialog(
-        tester,
-        MoveCageDialog(cage: cage),
-      );
-
-      await tester.tap(find.text('Show Dialog'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Cage: Untitled'), findsOneWidget);
-    });
-
-    testWidgets('shows current position', (WidgetTester tester) async {
-      final cage = RackCageDto(
-        cageUuid: 'cage-uuid-1',
-        cageTag: 'C001',
-        xPosition: 2,
-        yPosition: 1,
-      );
-
-      await TestHelpers.pumpWidgetWithDialog(
-        tester,
-        MoveCageDialog(cage: cage),
-      );
-
-      await tester.tap(find.text('Show Dialog'));
-      await tester.pumpAndSettle();
-
-      // Position is 1-indexed: row = y+1 = 2, column = x+1 = 3
-      expect(find.text('Current Position: Row 2, Column 3'), findsOneWidget);
-    });
-
-    testWidgets('shows rack size information', (WidgetTester tester) async {
-      final cage = RackCageDto(
-        cageUuid: 'cage-uuid-1',
-        cageTag: 'C001',
-        xPosition: 0,
-        yPosition: 0,
-      );
-
-      await TestHelpers.pumpWidgetWithDialog(
-        tester,
-        MoveCageDialog(cage: cage),
-      );
-
-      await tester.tap(find.text('Show Dialog'));
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('5 columns'), findsOneWidget);
-      expect(find.textContaining('4 rows'), findsOneWidget);
-    });
-
-    testWidgets('shows Row and Column input fields', (
+    testWidgets('shows description with cage tag and rack name', (
       WidgetTester tester,
     ) async {
       final cage = RackCageDto(
@@ -150,18 +85,16 @@ void main() {
       await tester.tap(find.text('Show Dialog'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Row'), findsOneWidget);
-      expect(find.text('Column'), findsOneWidget);
+      expect(find.textContaining('C001'), findsAtLeastNWidgets(1));
+      expect(find.textContaining('Test Rack'), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('pre-fills row and column with current position', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('renders RackCageGrid', (WidgetTester tester) async {
       final cage = RackCageDto(
         cageUuid: 'cage-uuid-1',
         cageTag: 'C001',
-        xPosition: 3,
-        yPosition: 2,
+        xPosition: 0,
+        yPosition: 0,
       );
 
       await TestHelpers.pumpWidgetWithDialog(
@@ -172,9 +105,7 @@ void main() {
       await tester.tap(find.text('Show Dialog'));
       await tester.pumpAndSettle();
 
-      // 1-indexed: row = y+1 = 3, column = x+1 = 4
-      expect(find.text('3'), findsOneWidget); // row
-      expect(find.text('4'), findsOneWidget); // column
+      expect(find.byType(RackCageGrid), findsOneWidget);
     });
 
     testWidgets('shows Cancel and Move buttons', (
@@ -223,7 +154,7 @@ void main() {
       expect(find.byType(AlertDialog), findsNothing);
     });
 
-    testWidgets('validates same position error when Move is tapped', (
+    testWidgets('Move button is disabled until target is selected', (
       WidgetTester tester,
     ) async {
       final cage = RackCageDto(
@@ -241,15 +172,11 @@ void main() {
       await tester.tap(find.text('Show Dialog'));
       await tester.pumpAndSettle();
 
-      // Default values are already the current position (1, 1)
-      // Tapping Move should show validation error
-      await tester.tap(find.text('Move'));
-      await tester.pump();
-
-      expect(
-        find.text('New position must be different from current position'),
-        findsOneWidget,
+      // Move button should be present but the onPressed should be null
+      final moveButton = tester.widget<TextButton>(
+        find.widgetWithText(TextButton, 'Move'),
       );
+      expect(moveButton.onPressed, isNull);
     });
   });
 }

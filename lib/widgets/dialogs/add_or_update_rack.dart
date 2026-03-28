@@ -4,6 +4,7 @@ import 'package:moustra/services/clients/rack_api.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/dtos/post_rack_dto.dart';
 import 'package:moustra/services/dtos/put_rack_dto.dart';
+import 'package:moustra/stores/rack_store.dart';
 import 'package:moustra/stores/setting_store.dart';
 
 class AddOrUpdateRackDialog extends StatefulWidget {
@@ -26,11 +27,28 @@ class _AddOrUpdateRackDialogState extends State<AddOrUpdateRackDialog> {
 
   bool get _isEdit => widget.rackData != null;
 
+  String _getDefaultRackName() {
+    final existingRacks = rackStore.value?.rackData.racks ?? [];
+    // Find max order-like number from existing rack names
+    int maxOrder = 0;
+    for (final rack in existingRacks) {
+      final name = rack.rackName ?? '';
+      // Try to extract number from "R{n}" pattern
+      final match = RegExp(r'^R(\d+)$').firstMatch(name);
+      if (match != null) {
+        final num = int.tryParse(match.group(1)!) ?? 0;
+        if (num > maxOrder) maxOrder = num;
+      }
+    }
+    if (maxOrder > 0) return 'R${maxOrder + 1}';
+    return 'R${existingRacks.length + 1}';
+  }
+
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(
-      text: _isEdit ? widget.rackData!.rackName : '',
+      text: _isEdit ? widget.rackData!.rackName : _getDefaultRackName(),
     );
     _widthController = TextEditingController(
       text: _isEdit ? (widget.rackData!.rackWidth ?? 5).toString() : '',
