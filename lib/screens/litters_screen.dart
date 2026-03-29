@@ -6,6 +6,7 @@ import 'package:moustra/constants/list_constants/litter_filter_config.dart';
 import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:moustra/services/clients/litter_api.dart';
 import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra/constants/list_constants/common.dart' hide SortOrder;
 import 'package:moustra/constants/list_constants/litter_list_constants.dart';
 import 'package:moustra/stores/table_setting_store.dart';
 import 'package:moustra/widgets/column_settings_sheet.dart';
@@ -15,6 +16,12 @@ import 'package:moustra_api/moustra_api.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/models/cell_edit_state.dart';
+import 'package:moustra/widgets/cell_edit_modal.dart';
+import 'package:moustra/widgets/entity_picker_sheet.dart';
+import 'package:moustra/services/dtos/put_litter_dto.dart';
+import 'package:moustra/stores/strain_store.dart';
+import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
 
 class LittersScreen extends StatefulWidget {
   const LittersScreen({super.key});
@@ -29,6 +36,23 @@ class _LittersScreenState extends State<LittersScreen> {
   final Set<String> _selected = <String>{};
   bool _isEndingMode = false;
   bool _isEndingLitters = false;
+
+  List<LitterDto> _currentRows = [];
+
+  static final Map<String, EditFieldConfig> _editConfigs = {
+    'strain': const EditFieldConfig(
+      field: 'strain',
+      type: EditFieldType.autocomplete,
+    ),
+    'date_of_birth': const EditFieldConfig(
+      field: 'date_of_birth',
+      type: EditFieldType.date,
+    ),
+    'wean_date': const EditFieldConfig(
+      field: 'wean_date',
+      type: EditFieldType.date,
+    ),
+  };
 
   // Filter & Sort state
   List<FilterParam> _activeFilters = [];
@@ -95,9 +119,16 @@ class _LittersScreenState extends State<LittersScreen> {
     );
   }
 
-  List<GridColumn> get _litterColumns => LitterListColumn.getColumns(
-    includeSelect: _isEndingMode,
-    settingFields: _tableSetting?.tableSettingFields.toList(),
+  List<GridColumn> get _litterColumns => buildColumnsFromSettings(
+    _tableSetting?.tableSettingFields.toList(),
+    controlCols: _isEndingMode ? [
+      GridColumn(
+        columnName: 'select',
+        width: 42,
+        label: const Center(child: Text('')),
+        allowSorting: false,
+      ),
+    ] : null,
   );
 
   @override
@@ -131,6 +162,9 @@ class _LittersScreenState extends State<LittersScreen> {
           child: Stack(
             children: [
               PaginatedDataGrid<LitterDto>(
+                onRowTap: _isEndingMode ? null : (litter) {
+                  context.go('/litter/${litter.litterUuid}');
+                },
                 controller: _controller,
                 searchPlaceholder: 'Try "Search litter LTR-001"',
                 onSortChanged: (columnName, ascending) {
@@ -143,14 +177,22 @@ class _LittersScreenState extends State<LittersScreen> {
                   _controller.reload();
                 },
                 columns: _litterColumns,
-                sourceBuilder: (rows) => _LitterGridSource(
-                  records: rows,
-                  context: context,
-                  selected: _selected,
-                  onToggle: _onToggleSelected,
-                  isEndingMode: _isEndingMode,
-                  columns: _litterColumns,
-                ),
+                editFieldConfigs: _isEndingMode ? null : _editConfigs,
+                getRowId: (l) => l.litterUuid,
+                primaryColumn: 'litter_tag',
+                onCellEditTap: _isEndingMode ? null : _onCellEditTap,
+                onCellEditCommit: _isEndingMode ? null : _onCellEditCommit,
+                sourceBuilder: (rows) {
+                  _currentRows = rows;
+                  return _LitterGridSource(
+                    records: rows,
+                    context: context,
+                    selected: _selected,
+                    onToggle: _onToggleSelected,
+                    isEndingMode: _isEndingMode,
+                    columns: _litterColumns,
+                  );
+                },
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
                     page: page,
@@ -239,6 +281,117 @@ class _LittersScreenState extends State<LittersScreen> {
         ),
       ],
     );
+  }
+
+  void _onCellEditTap(LitterDto litter, String columnName) async {
+    if (_isEndingMode) return;
+
+    final config = _editConfigs[columnName];
+    if (config == null) return;
+
+    if (columnName == 'strain') {
+      final strains = strainStore.value ?? [];
+      if (!mounted) return;
+
+      final selected = await showEntityPickerSheet<StrainStoreDto>(
+        context: context,
+        options: strains,
+        getLabel: (s) => s.strainName,
+        getKey: (s) => s.strainUuid,
+        title: 'Select Strain',
+        searchHint: 'Search strains...',
+      );
+
+      if (selected != null) {
+        _onCellEditCommit(litter.litterUuid, 'strain', selected);
+      }
+      return;
+    }
+
+    // Date fields use cell edit modal
+    if (!mounted) return;
+
+    dynamic currentValue;
+    String fieldLabel = columnName;
+
+    switch (columnName) {
+      case 'date_of_birth':
+        currentValue = litter.dateOfBirth;
+        fieldLabel = 'Date of Birth';
+        break;
+      case 'wean_date':
+        currentValue = litter.weanDate;
+        fieldLabel = 'Wean Date';
+        break;
+    }
+
+    final result = await showCellEditModal(
+      context: context,
+      fieldLabel: fieldLabel,
+      config: config,
+      currentValue: currentValue,
+    );
+
+    if (result != null) {
+      _onCellEditCommit(litter.litterUuid, columnName, result);
+    }
+  }
+
+  Future<bool> _onCellEditCommit(
+    String rowId, String field, dynamic newValue,
+  ) async {
+    final litter = _currentRows.firstWhere(
+      (l) => l.litterUuid == rowId,
+      orElse: () => throw StateError('Row not found: $rowId'),
+    );
+
+    try {
+      StrainStoreDto? strain;
+      if (litter.strain != null) {
+        strain = await getStrainHook(litter.strain!.strainUuid);
+      }
+      DateTime? dateOfBirth = litter.dateOfBirth;
+      DateTime? weanDate = litter.weanDate;
+
+      switch (field) {
+        case 'strain':
+          strain = newValue as StrainStoreDto;
+          break;
+        case 'date_of_birth':
+          if (newValue is DateTime) {
+            dateOfBirth = newValue;
+          }
+          break;
+        case 'wean_date':
+          if (newValue is DateTime) {
+            weanDate = newValue;
+          }
+          break;
+      }
+
+      await litterService.putLitter(
+        litter.litterUuid,
+        PutLitterDto(
+          litterTag: litter.litterTag,
+          strain: strain,
+          dateOfBirth: dateOfBirth,
+          weanDate: weanDate,
+          owner: litter.owner?.toAccountStoreDto(),
+          comment: litter.comment,
+        ),
+      );
+
+      if (mounted) {
+        showAppSnackBar(context, 'Updated successfully', isSuccess: true);
+      }
+      _controller.reload();
+      return true;
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(context, 'Update failed: $e', isError: true);
+      }
+      return false;
+    }
   }
 
   void _onToggleSelected(String uuid, bool selected) {
@@ -344,22 +497,6 @@ class _LitterGridSource extends DataGridSource {
                   : (v) {
                       onToggle(uuid, v ?? false);
                     },
-            ),
-          );
-        case 'edit':
-          return Center(
-            child: Semantics(
-              label: 'Edit $litterTag',
-              button: true,
-              child: IconButton(
-                icon: const Icon(Icons.edit),
-                tooltip: 'Edit',
-                onPressed: uuid == null
-                    ? null
-                    : () {
-                        context.go('/litter/$uuid');
-                      },
-              ),
             ),
           );
         case 'litter_tag':

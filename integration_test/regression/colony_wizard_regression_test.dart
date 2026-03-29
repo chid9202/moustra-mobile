@@ -5,8 +5,8 @@ import 'package:integration_test/integration_test.dart';
 import 'package:moustra/app/app.dart';
 import 'package:moustra/services/auth_service.dart';
 
-import 'robots/login_robot.dart';
-import 'robots/colony_wizard_robot.dart';
+import '../robots/login_robot.dart';
+import '../robots/colony_wizard_robot.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

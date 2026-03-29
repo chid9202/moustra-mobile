@@ -91,8 +91,11 @@ dart run build_runner build -d
 # Run specific test
 flutter test test/path/to/test_file.dart
 
-# Integration tests (requires device/emulator)
-flutter test integration_test/app_test.dart
+# Smoke integration tests (device/emulator + .env.test)
+flutter test integration_test/smoke/login_dashboard_smoke_test.dart
+
+# Regression integration tests
+flutter test integration_test/regression/
 ```
 
 ### Linting

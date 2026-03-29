@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:moustra/models/cell_edit_state.dart';
 
 class PaginatedResult<T> {
   final int count;
@@ -39,6 +40,23 @@ class PaginatedDataGrid<T> extends StatefulWidget {
   final String? searchPlaceholder;
   final void Function(T row)? onRowTap;
 
+  /// Edit field configurations — defines which columns are editable and how.
+  final Map<String, EditFieldConfig>? editFieldConfigs;
+
+  /// Called when a cell edit is committed (from modal or picker).
+  final Future<bool> Function(String rowId, String field, dynamic newValue)?
+      onCellEditCommit;
+
+  /// Called when an editable cell is tapped — opens the edit modal/picker.
+  /// Should handle showing the appropriate UI and calling onCellEditCommit.
+  final void Function(T row, String columnName)? onCellEditTap;
+
+  /// Extracts the row UUID from a row object.
+  final String Function(T row)? getRowId;
+
+  /// The primary column name — tapping it navigates to the detail page (same as onRowTap).
+  final String? primaryColumn;
+
   const PaginatedDataGrid({
     super.key,
     required this.columns,
@@ -52,6 +70,11 @@ class PaginatedDataGrid<T> extends StatefulWidget {
     this.onSortChanged,
     this.searchPlaceholder,
     this.onRowTap,
+    this.editFieldConfigs,
+    this.onCellEditCommit,
+    this.onCellEditTap,
+    this.getRowId,
+    this.primaryColumn,
   });
 
   @override
@@ -200,7 +223,9 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
             ),
           ),
         Expanded(
-          child: Stack(
+          child: widget.columns.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : Stack(
             children: [
               SfDataGrid(
                 source: widget.sourceBuilder(_rows),
@@ -209,6 +234,7 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
                 onCellTap: (details) {
                   final int ri = details.rowColumnIndex.rowIndex;
                   if (ri == 0) {
+                    // Header row — handle sorting
                     final int ci = details.rowColumnIndex.columnIndex;
                     if (ci < 0 || ci >= widget.columns.length) return;
                     final GridColumn col = widget.columns[ci];
@@ -224,7 +250,33 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
                     });
                     widget.onSortChanged?.call(name, _sortAscending);
                   } else if (ri > 0 && ri <= _rows.length) {
-                    widget.onRowTap?.call(_rows[ri - 1]);
+                    final row = _rows[ri - 1];
+                    final int ci = details.rowColumnIndex.columnIndex;
+                    if (ci >= 0 && ci < widget.columns.length) {
+                      final colName = widget.columns[ci].columnName;
+
+                      // Primary column tap → navigate to detail
+                      if (colName == widget.primaryColumn) {
+                        widget.onRowTap?.call(row);
+                        return;
+                      }
+
+                      // Editable column tap → open edit modal
+                      final config = widget.editFieldConfigs?[colName];
+                      if (config != null && widget.onCellEditTap != null) {
+                        widget.onCellEditTap!(row, colName);
+                        return;
+                      }
+
+                      // Non-editable, non-primary cell:
+                      // If inline editing is configured, do nothing (like web's blue border select)
+                      // If no inline editing configured, fall through to row tap for navigation
+                      if (widget.editFieldConfigs != null) {
+                        return;
+                      }
+                    }
+                    // No inline editing configured — navigate on any cell tap
+                    widget.onRowTap?.call(row);
                   }
                 },
                 onQueryRowHeight: (details) {

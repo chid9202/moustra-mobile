@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/cage_filter_config.dart';
 import 'package:moustra/constants/list_constants/cage_list_constants.dart';
+import 'package:moustra/constants/list_constants/common.dart' hide SortOrder;
 import 'package:moustra/constants/list_constants/cell_text.dart';
 import 'package:moustra/services/clients/cage_api.dart';
 import 'package:moustra/services/clients/event_api.dart';
@@ -11,7 +12,6 @@ import 'package:moustra/services/models/prepared_filter.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:moustra/helpers/util_helper.dart';
 import 'package:moustra/stores/profile_store.dart';
-import 'package:moustra/stores/setting_store.dart';
 import 'package:moustra/stores/table_setting_store.dart';
 import 'package:moustra/widgets/column_settings_sheet.dart';
 import 'package:moustra/widgets/filter_panel.dart';
@@ -21,6 +21,12 @@ import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:moustra/screens/barcode_scanner_screen.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/models/cell_edit_state.dart';
+import 'package:moustra/widgets/entity_picker_sheet.dart';
+import 'package:moustra/services/dtos/put_cage_dto.dart';
+import 'package:moustra/stores/strain_store.dart';
+import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
+import 'package:moustra/services/dtos/strain_dto.dart';
 
 class CagesListScreen extends StatefulWidget {
   const CagesListScreen({super.key});
@@ -35,6 +41,15 @@ class _CagesListScreenState extends State<CagesListScreen> {
   final Set<String> _selected = <String>{};
   bool _isEndingMode = false;
   bool _isEndingCages = false;
+
+  List<CageDto> _currentRows = [];
+
+  static final Map<String, EditFieldConfig> _editConfigs = {
+    'strain': const EditFieldConfig(
+      field: 'strain',
+      type: EditFieldType.autocomplete,
+    ),
+  };
 
   // Filter & Sort state
   List<FilterParam> _activeFilters = [];
@@ -171,12 +186,21 @@ class _CagesListScreenState extends State<CagesListScreen> {
           child: Stack(
             children: [
               Builder(builder: (context) {
-                final cageColumns = CageListColumn.getColumns(
-                  includeSelect: _isEndingMode,
-                  useEid: settingStore.value?.labSetting.useEid ?? false,
-                  settingFields: _tableSetting?.tableSettingFields.toList(),
+                final cageColumns = buildColumnsFromSettings(
+                  _tableSetting?.tableSettingFields.toList(),
+                  controlCols: _isEndingMode ? [
+                    GridColumn(
+                      columnName: 'select',
+                      width: 42,
+                      label: const Center(child: Text('')),
+                      allowSorting: false,
+                    ),
+                  ] : null,
                 );
                 return PaginatedDataGrid<CageDto>(
+                onRowTap: _isEndingMode ? null : (cage) {
+                  context.go('/cage/${cage.cageUuid}');
+                },
                 controller: _controller,
                 searchPlaceholder: 'Try "Search cage C-101"',
                 onSortChanged: (columnName, ascending) {
@@ -189,14 +213,22 @@ class _CagesListScreenState extends State<CagesListScreen> {
                   _controller.reload();
                 },
                 columns: cageColumns,
-                sourceBuilder: (rows) => _CageGridSource(
-                  records: rows,
-                  context: context,
-                  selected: _selected,
-                  onToggle: _onToggleSelected,
-                  isEndingMode: _isEndingMode,
-                  columns: cageColumns,
-                ),
+                editFieldConfigs: _isEndingMode ? null : _editConfigs,
+                getRowId: (c) => c.cageUuid,
+                primaryColumn: 'cage_tag',
+                onCellEditTap: _isEndingMode ? null : _onCellEditTap,
+                onCellEditCommit: _isEndingMode ? null : _onCellEditCommit,
+                sourceBuilder: (rows) {
+                  _currentRows = rows;
+                  return _CageGridSource(
+                    records: rows,
+                    context: context,
+                    selected: _selected,
+                    onToggle: _onToggleSelected,
+                    isEndingMode: _isEndingMode,
+                    columns: cageColumns,
+                  );
+                },
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
                     page: page,
@@ -306,6 +338,77 @@ class _CagesListScreenState extends State<CagesListScreen> {
         ),
       ],
     );
+  }
+
+  void _onCellEditTap(CageDto cage, String columnName) async {
+    if (_isEndingMode) return; // Don't allow editing in ending mode
+
+    final config = _editConfigs[columnName];
+    if (config == null) return;
+
+    if (columnName == 'strain') {
+      final strains = strainStore.value ?? [];
+      if (!mounted) return;
+
+      final selected = await showEntityPickerSheet<StrainStoreDto>(
+        context: context,
+        options: strains,
+        getLabel: (s) => s.strainName,
+        getKey: (s) => s.strainUuid,
+        title: 'Select Strain',
+        searchHint: 'Search strains...',
+      );
+
+      if (selected != null) {
+        _onCellEditCommit(cage.cageUuid, 'strain', selected);
+      }
+      return;
+    }
+  }
+
+  Future<bool> _onCellEditCommit(
+    String rowId, String field, dynamic newValue,
+  ) async {
+    final cage = _currentRows.firstWhere(
+      (c) => c.cageUuid == rowId,
+      orElse: () => throw StateError('Row not found: $rowId'),
+    );
+
+    try {
+      StrainSummaryDto? strain = cage.strain;
+
+      switch (field) {
+        case 'strain':
+          final strainStore = newValue as StrainStoreDto;
+          strain = strainStore.toStrainSummaryDto();
+          break;
+      }
+
+      await cageApi.putCage(
+        cage.cageUuid,
+        PutCageDto(
+          cageId: cage.cageId,
+          cageUuid: cage.cageUuid,
+          cageTag: cage.cageTag,
+          owner: cage.owner.toAccountStoreDto(),
+          strain: strain,
+          setUpDate: null,
+          comment: cage.comment,
+          barcode: cage.barcode,
+        ),
+      );
+
+      if (mounted) {
+        showAppSnackBar(context, 'Updated successfully', isSuccess: true);
+      }
+      _controller.reload();
+      return true;
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(context, 'Update failed: $e', isError: true);
+      }
+      return false;
+    }
   }
 
   void _onToggleSelected(String uuid, bool selected) {
@@ -504,20 +607,6 @@ class _CageGridSource extends DataGridSource {
               },
             ),
           );
-        case 'edit':
-          return Center(
-            child: Semantics(
-              label: 'Edit $cageTag',
-              button: true,
-              child: IconButton(
-                icon: const Icon(Icons.edit),
-                tooltip: 'Edit',
-                onPressed: () {
-                  context.go('/cage/$uuid');
-                },
-              ),
-            ),
-          );
         case 'cage_tag':
           return GestureDetector(
             onTap: () => context.go('/cage/$uuid'),
@@ -532,6 +621,13 @@ class _CageGridSource extends DataGridSource {
         case 'rack':
           return cellText(values[CageListColumn.rack.name]?.toString());
         default:
+          final col = CageListColumn.values.cast<CageListColumn?>().firstWhere(
+            (c) => c!.field == columnName,
+            orElse: () => null,
+          );
+          if (col != null) {
+            return cellText(values[col.name]?.toString());
+          }
           return cellText(values[columnName]?.toString());
       }
     }

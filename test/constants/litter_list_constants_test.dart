@@ -29,11 +29,6 @@ void main() {
         expect(LitterListColumn.select.field, 'select');
       });
 
-      test('edit column has correct field and label', () {
-        expect(LitterListColumn.edit.field, 'edit');
-        expect(LitterListColumn.edit.label, 'Edit');
-      });
-
       test('litterTag column has correct field and label', () {
         expect(LitterListColumn.litterTag.field, 'litter_tag');
         expect(LitterListColumn.litterTag.label, 'Litter Tag');
@@ -45,9 +40,9 @@ void main() {
     });
 
     group('getColumns', () {
-      test('should return 9 columns', () {
+      test('should return 8 columns', () {
         final columns = LitterListColumn.getColumns();
-        expect(columns.length, 9);
+        expect(columns.length, 8);
       });
 
       test('select column should be hidden by default', () {
@@ -64,14 +59,6 @@ void main() {
           (c) => c.columnName == LitterListColumn.select.field,
         );
         expect(selectColumn.visible, true);
-      });
-
-      test('edit column should not allow sorting', () {
-        final columns = LitterListColumn.getColumns();
-        final editColumn = columns.firstWhere(
-          (c) => c.columnName == LitterListColumn.edit.field,
-        );
-        expect(editColumn.allowSorting, false);
       });
 
       test('litterTag column should allow sorting', () {

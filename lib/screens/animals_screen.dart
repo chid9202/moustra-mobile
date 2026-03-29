@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/animal_filter_config.dart';
 import 'package:moustra/constants/list_constants/animal_list_constants.dart';
+import 'package:moustra/constants/list_constants/common.dart' hide SortOrder;
 import 'package:moustra/constants/list_constants/cell_text.dart';
 import 'package:moustra/constants/list_constants/cage_filter_config.dart';
 import 'package:moustra/services/clients/animal_api.dart';
@@ -19,6 +20,21 @@ import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra/services/clients/event_api.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/models/cell_edit_state.dart';
+import 'package:moustra/widgets/cell_edit_modal.dart';
+import 'package:moustra/widgets/entity_picker_sheet.dart';
+import 'package:moustra/stores/account_store.dart';
+import 'package:moustra/stores/strain_store.dart';
+import 'package:moustra/stores/animal_store.dart';
+import 'package:moustra/stores/cage_store.dart';
+import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
+import 'package:moustra/services/dtos/stores/account_store_dto.dart';
+import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
+import 'package:moustra/services/dtos/stores/cage_store_dto.dart';
+import 'package:moustra/constants/animal_constants.dart';
+import 'package:moustra/services/dtos/strain_dto.dart';
+import 'package:moustra/services/dtos/account_dto.dart';
+import 'package:moustra/services/dtos/cage_dto.dart';
 
 class AnimalsScreen extends StatefulWidget {
   const AnimalsScreen({super.key});
@@ -43,6 +59,44 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
 
   // Table settings
   TableSettingSLR? _tableSetting;
+
+  // Cached rows for edit lookups
+  List<AnimalDto> _currentRows = [];
+
+  static final Map<String, EditFieldConfig> _editConfigs = {
+    'strain': const EditFieldConfig(
+      field: 'strain',
+      type: EditFieldType.autocomplete,
+    ),
+    'owner': const EditFieldConfig(
+      field: 'owner',
+      type: EditFieldType.autocomplete,
+    ),
+    'sire': const EditFieldConfig(
+      field: 'sire',
+      type: EditFieldType.autocomplete,
+    ),
+    'cage_tag': const EditFieldConfig(
+      field: 'cage_tag',
+      type: EditFieldType.autocomplete,
+    ),
+    'sex': EditFieldConfig(
+      field: 'sex',
+      type: EditFieldType.select,
+      options: [
+        const SelectOption(value: 'M', label: 'Male'),
+        const SelectOption(value: 'F', label: 'Female'),
+      ],
+    ),
+    'date_of_birth': const EditFieldConfig(
+      field: 'date_of_birth',
+      type: EditFieldType.date,
+    ),
+    'wean_date': const EditFieldConfig(
+      field: 'wean_date',
+      type: EditFieldType.date,
+    ),
+  };
 
   @override
   void initState() {
@@ -107,6 +161,198 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     _controller.reload();
   }
 
+  void _onCellEditTap(AnimalDto animal, String columnName) async {
+    if (_isEndingMode) return;
+
+    final config = _editConfigs[columnName];
+    if (config == null) return;
+
+    // Autocomplete fields — entity picker sheets
+    if (columnName == 'strain') {
+      final strains = strainStore.value ?? [];
+      if (!mounted) return;
+      final selected = await showEntityPickerSheet<StrainStoreDto>(
+        context: context,
+        options: strains,
+        getLabel: (s) => s.strainName,
+        getKey: (s) => s.strainUuid,
+        title: 'Select Strain',
+        searchHint: 'Search strains...',
+      );
+      if (selected != null) {
+        _onCellEditCommit(animal.animalUuid, 'strain', selected);
+      }
+      return;
+    }
+
+    if (columnName == 'owner') {
+      final accounts = accountStore.value ?? [];
+      if (!mounted) return;
+      final selected = await showEntityPickerSheet<AccountStoreDto>(
+        context: context,
+        options: accounts,
+        getLabel: (a) {
+          final name = '${a.user.firstName} ${a.user.lastName}'.trim();
+          return name.isNotEmpty ? name : (a.user.email ?? '');
+        },
+        getKey: (a) => a.accountUuid,
+        title: 'Select Owner',
+        searchHint: 'Search users...',
+      );
+      if (selected != null) {
+        _onCellEditCommit(animal.animalUuid, 'owner', selected);
+      }
+      return;
+    }
+
+    if (columnName == 'sire') {
+      final animals = (animalStore.value ?? [])
+          .where((a) => a.sex == SexConstants.male)
+          .toList();
+      if (!mounted) return;
+      final selected = await showEntityPickerSheet<AnimalStoreDto>(
+        context: context,
+        options: animals,
+        getLabel: (a) => a.physicalTag ?? a.animalUuid,
+        getKey: (a) => a.animalUuid,
+        title: 'Select Sire',
+        searchHint: 'Search males...',
+      );
+      if (selected != null) {
+        _onCellEditCommit(animal.animalUuid, 'sire', selected);
+      }
+      return;
+    }
+
+    if (columnName == 'cage_tag') {
+      final cages = cageStore.value ?? [];
+      if (!mounted) return;
+      final selected = await showEntityPickerSheet<CageStoreDto>(
+        context: context,
+        options: cages,
+        getLabel: (c) => c.cageTag ?? '',
+        getKey: (c) => c.cageUuid,
+        title: 'Select Cage',
+        searchHint: 'Search cages...',
+      );
+      if (selected != null) {
+        _onCellEditCommit(animal.animalUuid, 'cage_tag', selected);
+      }
+      return;
+    }
+
+    // Select and date fields — cell edit modal
+    if (!mounted) return;
+
+    dynamic currentValue;
+    String fieldLabel = columnName;
+
+    switch (columnName) {
+      case 'sex':
+        currentValue = animal.sex;
+        fieldLabel = 'Sex';
+        break;
+      case 'date_of_birth':
+        currentValue = animal.dateOfBirth;
+        fieldLabel = 'Date of Birth';
+        break;
+      case 'wean_date':
+        currentValue = animal.weanDate;
+        fieldLabel = 'Wean Date';
+        break;
+    }
+
+    final result = await showCellEditModal(
+      context: context,
+      fieldLabel: fieldLabel,
+      config: config,
+      currentValue: currentValue,
+    );
+
+    if (result != null) {
+      _onCellEditCommit(animal.animalUuid, columnName, result);
+    }
+  }
+
+  Future<bool> _onCellEditCommit(
+    String rowId, String field, dynamic newValue,
+  ) async {
+    final animal = _currentRows.firstWhere(
+      (a) => a.animalUuid == rowId,
+      orElse: () => throw StateError('Row not found: $rowId'),
+    );
+
+    try {
+      // Start with current values
+      StrainSummaryDto? strain = animal.strain;
+      AccountDto? owner = animal.owner;
+      AnimalSummaryDto? sire = animal.sire;
+      CageSummaryDto? cage = animal.cage;
+      String? sex = animal.sex;
+      DateTime? dateOfBirth = animal.dateOfBirth;
+      DateTime? weanDate = animal.weanDate;
+
+      switch (field) {
+        case 'strain':
+          strain = (newValue as StrainStoreDto).toStrainSummaryDto();
+          break;
+        case 'owner':
+          owner = (newValue as AccountStoreDto).toAccountDto();
+          break;
+        case 'sire':
+          sire = (newValue as AnimalStoreDto).toAnimalSummaryDto();
+          break;
+        case 'cage_tag':
+          cage = (newValue as CageStoreDto).toCageSummaryDto();
+          break;
+        case 'sex':
+          sex = newValue?.toString();
+          break;
+        case 'date_of_birth':
+          if (newValue is DateTime) dateOfBirth = newValue;
+          break;
+        case 'wean_date':
+          if (newValue is DateTime) weanDate = newValue;
+          break;
+      }
+
+      await animalService.putAnimal(
+        animal.animalUuid,
+        AnimalDto(
+          eid: 0,
+          animalId: 0,
+          animalUuid: animal.animalUuid,
+          physicalTag: animal.physicalTag,
+          sex: sex,
+          strain: strain,
+          owner: owner,
+          sire: sire,
+          dam: animal.dam,
+          cage: cage,
+          dateOfBirth: dateOfBirth,
+          weanDate: weanDate,
+          genotypes: animal.genotypes,
+          endDate: animal.endDate,
+          endType: animal.endType,
+          endReason: animal.endReason,
+          endComment: animal.endComment,
+          comment: animal.comment,
+        ),
+      );
+
+      if (mounted) {
+        showAppSnackBar(context, 'Updated successfully', isSuccess: true);
+      }
+      _controller.reload();
+      return true;
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(context, 'Update failed: $e', isError: true);
+      }
+      return false;
+    }
+  }
+
   ListQueryParams _buildQueryParams({
     required int page,
     required int pageSize,
@@ -147,10 +393,16 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     );
   }
 
-  List<GridColumn> get _animalColumns => AnimalListColumn.getColumns(
-    includeSelect: _isEndingMode,
-    sortNotifier: _sortNotifier,
-    settingFields: _tableSetting?.tableSettingFields.toList(),
+  List<GridColumn> get _animalColumns => buildColumnsFromSettings(
+    _tableSetting?.tableSettingFields.toList(),
+    controlCols: _isEndingMode ? [
+      GridColumn(
+        columnName: 'select',
+        width: 42,
+        label: const Center(child: Text('')),
+        allowSorting: false,
+      ),
+    ] : null,
   );
 
   @override
@@ -187,6 +439,9 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
           child: Stack(
             children: [
               PaginatedDataGrid<AnimalDto>(
+                onRowTap: _isEndingMode ? null : (animal) {
+                  context.go('/animal/${animal.animalUuid}');
+                },
                 controller: _controller,
                 searchPlaceholder: 'Try "Search Animal in mating"',
                 onSortChanged: (columnName, ascending) {
@@ -201,14 +456,22 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   _controller.reload();
                 },
                 columns: _animalColumns,
-                sourceBuilder: (rows) => _AnimalGridSource(
-                  records: rows,
-                  selected: _selected,
-                  onToggle: _onToggleSelected,
-                  context: context,
-                  isEndingMode: _isEndingMode,
-                  columns: _animalColumns,
-                ),
+                editFieldConfigs: _isEndingMode ? null : _editConfigs,
+                getRowId: (a) => a.animalUuid,
+                primaryColumn: 'physical_tag',
+                onCellEditTap: _isEndingMode ? null : _onCellEditTap,
+                onCellEditCommit: _isEndingMode ? null : _onCellEditCommit,
+                sourceBuilder: (rows) {
+                  _currentRows = rows;
+                  return _AnimalGridSource(
+                    records: rows,
+                    selected: _selected,
+                    onToggle: _onToggleSelected,
+                    context: context,
+                    isEndingMode: _isEndingMode,
+                    columns: _animalColumns,
+                  );
+                },
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
                     page: page,

@@ -1,24 +1,22 @@
-import 'package:flutter/material.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/helpers/datetime_helper.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
 import 'package:moustra/helpers/strain_helper.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
-import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum StrainListColumn implements ListColumn<StrainDto> {
   select('', 'select'),
   edit('Edit', 'edit'),
-  strainName('Name', 'name'),
-  animals('Animals', 'animals'),
+  strainName('Name', 'strain_name'),
+  animals('Animals', 'number_of_animals'),
   color('Color', 'color'),
   owner('Owner', 'owner'),
   created('Created Date', 'created_date'),
   background('Background', 'background'),
   genotypes('Genotypes', 'genotypes'),
-  active('Active', 'active');
+  active('Active', 'is_active');
 
   const StrainListColumn(this.label, this.field);
   @override
@@ -27,73 +25,6 @@ enum StrainListColumn implements ListColumn<StrainDto> {
   final String field;
   @override
   String get enumName => name;
-
-  static List<GridColumn> getColumns({
-    List<TableSettingFieldSLR>? settingFields,
-  }) {
-    final columns = [
-      GridColumn(
-        columnName: StrainListColumn.select.field,
-        width: selectColumnWidth,
-        label: const SizedBox.shrink(),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: StrainListColumn.edit.field,
-        width: editColumnWidth,
-        label: Center(child: Text(StrainListColumn.edit.label)),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: StrainListColumn.strainName.field,
-        width: 240,
-        label: Center(child: Text(StrainListColumn.strainName.label)),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: StrainListColumn.animals.field,
-        width: 100,
-        label: Center(child: Text(StrainListColumn.animals.label)),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: StrainListColumn.color.field,
-        width: 80,
-        label: Center(child: Text(StrainListColumn.color.label)),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: StrainListColumn.owner.field,
-        width: ownerColumnWidth,
-        label: Center(child: Text(StrainListColumn.owner.label)),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: StrainListColumn.created.field,
-        width: 180,
-        label: Center(child: Text(StrainListColumn.created.label)),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: StrainListColumn.background.field,
-        width: 200,
-        label: Center(child: Text(StrainListColumn.background.label)),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: StrainListColumn.genotypes.field,
-        width: 200,
-        label: Center(child: Text(StrainListColumn.genotypes.label)),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: StrainListColumn.active.field,
-        width: 100,
-        label: Center(child: Text(StrainListColumn.active.label)),
-      ),
-    ];
-    return applyTableSettings(columns, settingFields);
-  }
 
   static DataGridRow getDataGridRow(StrainDto strain) {
     return DataGridRow(

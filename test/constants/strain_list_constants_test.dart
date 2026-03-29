@@ -22,11 +22,6 @@ void main() {
         expect(StrainListColumn.select.field, 'select');
       });
 
-      test('edit column has correct field and label', () {
-        expect(StrainListColumn.edit.field, 'edit');
-        expect(StrainListColumn.edit.label, 'Edit');
-      });
-
       test('strainName column has correct field and label', () {
         expect(StrainListColumn.strainName.field, 'name');
         expect(StrainListColumn.strainName.label, 'Name');
@@ -39,17 +34,9 @@ void main() {
     });
 
     group('getColumns', () {
-      test('should return 10 columns', () {
+      test('should return 9 columns', () {
         final columns = StrainListColumn.getColumns();
-        expect(columns.length, 10);
-      });
-
-      test('edit column should not allow sorting', () {
-        final columns = StrainListColumn.getColumns();
-        final editColumn = columns.firstWhere(
-          (c) => c.columnName == StrainListColumn.edit.field,
-        );
-        expect(editColumn.allowSorting, false);
+        expect(columns.length, 9);
       });
 
       test('strainName column should allow sorting', () {

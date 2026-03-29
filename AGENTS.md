@@ -127,7 +127,10 @@ test/
 └── test_helpers/             # Test utilities and mock data
 
 integration_test/
-├── app_test.dart             # Integration test entry point
+├── smoke/                    # Login + dashboard smoke tests
+├── regression/               # Flows + entity CRUD (API) regression
+├── debug/                    # Optional debug drivers
+├── helpers/                  # Shared env + login helpers
 └── robots/                   # Page object pattern robots
 ```
 
@@ -181,8 +184,11 @@ dart run build_runner build -d
 # Run specific test file
 flutter test test/path/to/test_file.dart
 
-# Run integration tests (requires device/emulator)
-flutter test integration_test/app_test.dart
+# Smoke integration tests (device/emulator + .env.test)
+flutter test integration_test/smoke/login_dashboard_smoke_test.dart
+
+# Regression integration tests
+flutter test integration_test/regression/
 ```
 
 ### Linting & Analysis

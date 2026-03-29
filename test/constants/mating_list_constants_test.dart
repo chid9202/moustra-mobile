@@ -21,11 +21,6 @@ void main() {
         expect(MatingListColumn.setUpDate.enumName, 'setUpDate');
       });
 
-      test('edit column has correct field and label', () {
-        expect(MatingListColumn.edit.field, 'edit');
-        expect(MatingListColumn.edit.label, 'Edit');
-      });
-
       test('matingTag column has correct field and label', () {
         expect(MatingListColumn.matingTag.field, 'mating_tag');
         expect(MatingListColumn.matingTag.label, 'Mating Tag');
@@ -38,17 +33,9 @@ void main() {
     });
 
     group('getColumns', () {
-      test('should return 12 columns', () {
+      test('should return 11 columns', () {
         final columns = MatingListColumn.getColumns();
-        expect(columns.length, 12);
-      });
-
-      test('edit column should not allow sorting', () {
-        final columns = MatingListColumn.getColumns();
-        final editColumn = columns.firstWhere(
-          (c) => c.columnName == MatingListColumn.edit.field,
-        );
-        expect(editColumn.allowSorting, false);
+        expect(columns.length, 11);
       });
 
       test('matingTag column should allow sorting', () {

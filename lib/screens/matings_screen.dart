@@ -4,14 +4,23 @@ import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/animal_constants.dart';
 import 'package:moustra/constants/list_constants/cell_text.dart';
 import 'package:moustra/constants/list_constants/mating_filter_config.dart';
+import 'package:moustra/constants/list_constants/common.dart' hide SortOrder;
 import 'package:moustra/constants/list_constants/mating_list_constants.dart';
+import 'package:moustra/models/cell_edit_state.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/clients/mating_api.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
+import 'package:moustra/services/dtos/put_mating_dto.dart';
 import 'package:moustra/services/models/list_query_params.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
+import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/stores/account_store.dart';
+import 'package:moustra/stores/strain_store.dart';
 import 'package:moustra/stores/table_setting_store.dart';
+import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
+import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/widgets/column_settings_sheet.dart';
+import 'package:moustra/widgets/entity_picker_sheet.dart';
 import 'package:moustra/widgets/filter_panel.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
 import 'package:moustra_api/moustra_api.dart';
@@ -35,6 +44,20 @@ class _MatingsScreenState extends State<MatingsScreen> {
 
   // Table settings
   TableSettingSLR? _tableSetting;
+
+  // Cached rows for edit lookups
+  List<MatingDto> _currentRows = [];
+
+  static final Map<String, EditFieldConfig> _editConfigs = {
+    'litter_strain': const EditFieldConfig(
+      field: 'litter_strain',
+      type: EditFieldType.autocomplete,
+    ),
+    'disbanded_by': const EditFieldConfig(
+      field: 'disbanded_by',
+      type: EditFieldType.autocomplete,
+    ),
+  };
 
   @override
   void initState() {
@@ -69,6 +92,115 @@ class _MatingsScreenState extends State<MatingsScreen> {
       _activeSort = MatingFilterConfig.defaultSort;
     });
     _controller.reload();
+  }
+
+  void _onCellEditTap(MatingDto mating, String columnName) async {
+    final config = _editConfigs[columnName];
+    if (config == null) return;
+
+    if (columnName == 'litter_strain') {
+      final strains = strainStore.value ?? [];
+      if (!mounted) return;
+
+      final selected = await showEntityPickerSheet<StrainStoreDto>(
+        context: context,
+        options: strains,
+        getLabel: (s) => s.strainName,
+        getKey: (s) => s.strainUuid,
+        title: 'Select Litter Strain',
+        searchHint: 'Search strains...',
+      );
+
+      if (selected != null) {
+        _onCellEditCommit(mating.matingUuid, 'litter_strain', selected);
+      }
+      return;
+    }
+
+    if (columnName == 'disbanded_by') {
+      final accounts = accountStore.value ?? [];
+      if (!mounted) return;
+
+      final selected = await showEntityPickerSheet<AccountStoreDto>(
+        context: context,
+        options: accounts,
+        getLabel: (a) {
+          final name = '${a.user.firstName} ${a.user.lastName}'.trim();
+          return name.isNotEmpty ? name : (a.user.email ?? '');
+        },
+        getKey: (a) => a.accountUuid,
+        title: 'Select Disbanded By',
+        searchHint: 'Search users...',
+      );
+
+      if (selected != null) {
+        _onCellEditCommit(mating.matingUuid, 'disbanded_by', selected);
+      }
+      return;
+    }
+  }
+
+  Future<bool> _onCellEditCommit(
+    String rowId, String field, dynamic newValue,
+  ) async {
+    final mating = _currentRows.firstWhere(
+      (m) => m.matingUuid == rowId,
+      orElse: () => throw StateError('Row not found: $rowId'),
+    );
+
+    try {
+      // Get current owner as AccountStoreDto
+      AccountStoreDto owner;
+      if (mating.owner != null) {
+        owner = mating.owner!.toAccountStoreDto();
+      } else {
+        throw StateError('Mating has no owner');
+      }
+
+      StrainStoreDto? litterStrain;
+      if (mating.litterStrain != null) {
+        litterStrain = await getStrainHook(mating.litterStrain!.strainUuid);
+      }
+      AccountStoreDto? disbandedBy;
+      if (mating.disbandedBy != null) {
+        disbandedBy = mating.disbandedBy!.toAccountStoreDto();
+      }
+
+      switch (field) {
+        case 'litter_strain':
+          litterStrain = newValue as StrainStoreDto;
+          break;
+        case 'disbanded_by':
+          disbandedBy = newValue as AccountStoreDto;
+          break;
+      }
+
+      await matingService.putMating(
+        mating.matingUuid,
+        PutMatingDto(
+          matingId: mating.matingId,
+          matingUuid: mating.matingUuid,
+          matingTag: mating.matingTag ?? '',
+          litterStrain: litterStrain,
+          setUpDate: mating.setUpDate ?? DateTime.now(),
+          owner: owner,
+          comment: mating.comment,
+          disbandedDate: mating.disbandedDate,
+          disbandedBy: disbandedBy,
+        ),
+      );
+
+      if (mounted) {
+        showAppSnackBar(context, 'Updated successfully', isSuccess: true);
+      }
+      _controller.reload();
+      return true;
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(context, 'Update failed: $e', isError: true);
+      }
+      return false;
+    }
   }
 
   ListQueryParams _buildQueryParams({
@@ -130,12 +262,20 @@ class _MatingsScreenState extends State<MatingsScreen> {
           child: Stack(
             children: [
               Builder(builder: (context) {
-                final matingColumns = MatingListColumn.getColumns(
-                  settingFields: _tableSetting?.tableSettingFields.toList(),
+                final matingColumns = buildColumnsFromSettings(
+                  _tableSetting?.tableSettingFields.toList(),
                 );
                 return PaginatedDataGrid<MatingDto>(
+                onRowTap: (mating) {
+                  context.go('/mating/${mating.matingUuid}');
+                },
                 controller: _controller,
                 searchPlaceholder: 'Try "Search mating M-42"',
+                editFieldConfigs: _editConfigs,
+                getRowId: (m) => m.matingUuid,
+                primaryColumn: 'mating_tag',
+                onCellEditTap: _onCellEditTap,
+                onCellEditCommit: _onCellEditCommit,
                 onSortChanged: (columnName, ascending) {
                   setState(() {
                     _activeSort = SortParam(
@@ -146,8 +286,10 @@ class _MatingsScreenState extends State<MatingsScreen> {
                   _controller.reload();
                 },
                 columns: matingColumns,
-                sourceBuilder: (rows) =>
-                    _MatingGridSource(records: rows, context: context, columns: matingColumns),
+                sourceBuilder: (rows) {
+                  _currentRows = rows;
+                  return _MatingGridSource(records: rows, context: context, columns: matingColumns);
+                },
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
                     page: page,
@@ -248,20 +390,6 @@ class _MatingGridSource extends DataGridSource {
 
     Widget buildCell(String columnName) {
       switch (columnName) {
-        case 'edit':
-          return Center(
-            child: Semantics(
-              label: 'Edit $matingTag',
-              button: true,
-              child: IconButton(
-                icon: const Icon(Icons.edit),
-                tooltip: 'Edit',
-                onPressed: () {
-                  context.go('/mating/$uuid');
-                },
-              ),
-            ),
-          );
         case 'mating_tag':
           return GestureDetector(
             onTap: () => context.go('/mating/$uuid'),
@@ -272,6 +400,13 @@ class _MatingGridSource extends DataGridSource {
         case 'female_genotypes':
           return cellTextList(asList(values[MatingListColumn.femaleGenotypes.name]));
         default:
+          final col = MatingListColumn.values.cast<MatingListColumn?>().firstWhere(
+            (c) => c!.field == columnName,
+            orElse: () => null,
+          );
+          if (col != null) {
+            return cellText(values[col.name]?.toString());
+          }
           return cellText(values[columnName]?.toString());
       }
     }

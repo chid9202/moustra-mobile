@@ -515,19 +515,11 @@ reportError(
 
 ### Integration Test Example
 
-Location: `integration_test/app_test.dart`
+Location: `integration_test/smoke/login_dashboard_smoke_test.dart` (uses `pumpAppAndSignIn` from `integration_test/helpers/integration_test_helpers.dart`).
 
 ```dart
 testWidgets('successful login navigates to dashboard', (tester) async {
-  await tester.pumpWidget(const App());
-  await tester.pumpAndSettle();
-
-  final loginRobot = LoginRobot(tester);
-  await loginRobot.enterEmail(email);
-  await loginRobot.enterPassword(password);
-  await loginRobot.tapSignIn();
-  await tester.pumpAndSettle(const Duration(seconds: 15));
-
+  await pumpAppAndSignIn(tester);
   final dashboardRobot = DashboardRobot(tester);
   await dashboardRobot.verifyDashboardLoaded();
 });

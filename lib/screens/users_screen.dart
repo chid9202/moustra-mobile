@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/constants/list_constants/user_list_constants.dart';
 import 'package:moustra/services/dtos/user_list_dto.dart';
 import 'package:moustra/services/clients/users_api.dart';
@@ -87,10 +88,13 @@ class _UsersScreenState extends State<UsersScreen> {
         ),
         Expanded(
           child: Builder(builder: (context) {
-            final columns = UserListColumn.getColumns(
-              settingFields: _tableSetting?.tableSettingFields.toList(),
+            final columns = buildColumnsFromSettings(
+              _tableSetting?.tableSettingFields.toList(),
             );
             return PaginatedDataGrid<UserListDto>(
+            onRowTap: (user) {
+              context.go('/user/${user.accountUuid}');
+            },
             controller: _controller,
             onSortChanged: (columnName, ascending) {
               _controller.reload();
@@ -140,21 +144,6 @@ class _UserGridSource extends DataGridSource {
 
     Widget buildCell(String columnName) {
       switch (columnName) {
-        case 'accountId':
-          return Center(
-            child: IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit User',
-              onPressed: () {
-                final String accountUuid = records
-                    .where(
-                        (user) => user.accountId == values['accountId'] as int?)
-                    .first
-                    .accountUuid;
-                context.go('/user/$accountUuid');
-              },
-            ),
-          );
         case 'name':
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),

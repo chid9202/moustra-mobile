@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:moustra/constants/animal_constants.dart';
 import 'package:moustra/constants/list_constants/common.dart';
 import 'package:moustra/helpers/datetime_helper.dart';
@@ -6,7 +5,6 @@ import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/mating_dto.dart';
 import 'package:moustra/helpers/account_helper.dart';
 import 'package:moustra/helpers/genotype_helper.dart';
-import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum MatingListColumn implements ListColumn<MatingDto> {
@@ -20,9 +18,10 @@ enum MatingListColumn implements ListColumn<MatingDto> {
   femaleTag('Female Tag', 'female_tag'),
   femaleGenotypes('Female Genotypes', 'female_genotypes'),
   setUpDate('Set Up Date', 'set_up_date'),
-  disbandedDate('Disbanded Date', 'disbanded_date'),
   owner('Owner', 'owner'),
-  created('Created Date', 'created_date');
+  created('Created Date', 'created_date'),
+  disbandedDate('Disbanded Date', 'disbanded_date'),
+  disbandedBy('Disbanded By', 'disbanded_by');
 
   const MatingListColumn(this.label, this.field);
   @override
@@ -31,92 +30,6 @@ enum MatingListColumn implements ListColumn<MatingDto> {
   final String field;
   @override
   String get enumName => name;
-
-  static List<GridColumn> getColumns({
-    List<TableSettingFieldSLR>? settingFields,
-  }) {
-    final columns = [
-      GridColumn(
-        columnName: MatingListColumn.edit.field,
-        width: editColumnWidth,
-        label: Center(child: Text(MatingListColumn.edit.label)),
-        allowSorting: false,
-      ),
-      // GridColumn(
-      //   columnName: MatingListColumn.eid.field,
-      //   width: eidColumnWidth,
-      //   label: Center(child: Text(MatingListColumn.eid.label)),
-      //   allowSorting: false,
-      // ),
-      GridColumn(
-        columnName: MatingListColumn.matingTag.field,
-        width: 140,
-        label: Center(child: Text(MatingListColumn.matingTag.label)),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: MatingListColumn.cageTag.field,
-        width: 140,
-        label: Center(child: Text(MatingListColumn.cageTag.label)),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: MatingListColumn.litterStrain.field,
-        width: 200,
-        label: Center(child: Text(MatingListColumn.litterStrain.label)),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: MatingListColumn.maleTag.field,
-        width: 140,
-        label: Center(child: Text(MatingListColumn.maleTag.label)),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: MatingListColumn.maleGenotypes.field,
-        width: 260,
-        label: Center(child: Text(MatingListColumn.maleGenotypes.label)),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: MatingListColumn.femaleTag.field,
-        width: 140,
-        label: Center(child: Text(MatingListColumn.femaleTag.label)),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: MatingListColumn.femaleGenotypes.field,
-        width: 260,
-        label: Center(child: Text(MatingListColumn.femaleGenotypes.label)),
-        allowSorting: false,
-      ),
-      GridColumn(
-        columnName: MatingListColumn.setUpDate.field,
-        width: 140,
-        label: Center(child: Text(MatingListColumn.setUpDate.label)),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: MatingListColumn.disbandedDate.field,
-        width: 160,
-        label: Center(child: Text(MatingListColumn.disbandedDate.label)),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: MatingListColumn.owner.field,
-        width: ownerColumnWidth,
-        label: Center(child: Text(MatingListColumn.owner.label)),
-        allowSorting: true,
-      ),
-      GridColumn(
-        columnName: MatingListColumn.created.field,
-        width: 180,
-        label: Center(child: Text(MatingListColumn.created.label)),
-        allowSorting: true,
-      ),
-    ];
-    return applyTableSettings(columns, settingFields);
-  }
 
   static DataGridRow getDataGridRow(MatingDto m) {
     // final int eid = (m.eid ?? 0);
@@ -186,16 +99,20 @@ enum MatingListColumn implements ListColumn<MatingDto> {
           value: setUpDate,
         ),
         DataGridCell<String>(
-          columnName: MatingListColumn.disbandedDate.name,
-          value: disbandedDate,
-        ),
-        DataGridCell<String>(
           columnName: MatingListColumn.owner.name,
           value: owner,
         ),
         DataGridCell<String>(
           columnName: MatingListColumn.created.name,
           value: created,
+        ),
+        DataGridCell<String>(
+          columnName: MatingListColumn.disbandedDate.name,
+          value: disbandedDate,
+        ),
+        DataGridCell<String>(
+          columnName: MatingListColumn.disbandedBy.name,
+          value: AccountHelper.getOwnerName(m.disbandedBy),
         ),
       ],
     );

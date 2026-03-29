@@ -3,12 +3,16 @@ import 'package:moustra/services/clients/event_api.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/cell_text.dart';
 import 'package:moustra/constants/list_constants/strain_filter_config.dart';
+import 'package:moustra/constants/list_constants/common.dart' hide SortOrder;
 import 'package:moustra/constants/list_constants/strain_list_constants.dart';
+import 'package:moustra/models/cell_edit_state.dart';
 import 'package:moustra/services/dtos/strain_dto.dart';
 import 'package:moustra/services/clients/strain_api.dart';
 import 'package:moustra/services/models/list_query_params.dart';
 import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/widgets/color_picker.dart';
+import 'package:moustra/widgets/cell_edit_modal.dart';
+import 'package:moustra/widgets/entity_picker_sheet.dart';
 import 'package:moustra/stores/table_setting_store.dart';
 import 'package:moustra/widgets/column_settings_sheet.dart';
 import 'package:moustra/widgets/filter_panel.dart';
@@ -17,6 +21,8 @@ import 'package:moustra_api/moustra_api.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/stores/account_store.dart';
+import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 
 class StrainsScreen extends StatefulWidget {
   const StrainsScreen({super.key});
@@ -37,6 +43,33 @@ class _StrainsScreenState extends State<StrainsScreen> {
 
   // Table settings
   TableSettingSLR? _tableSetting;
+
+  // Edit field configurations for inline editing
+  static final Map<String, EditFieldConfig> _editConfigs = {
+    'name': const EditFieldConfig(
+      field: 'name',
+      type: EditFieldType.text,
+      validate: _validateStrainName,
+    ),
+    'owner': const EditFieldConfig(
+      field: 'owner',
+      type: EditFieldType.autocomplete,
+    ),
+    'active': const EditFieldConfig(
+      field: 'active',
+      type: EditFieldType.boolean,
+    ),
+  };
+
+  static String? _validateStrainName(dynamic value) {
+    final name = value?.toString() ?? '';
+    if (name.trim().isEmpty) return 'Strain name is required';
+    if (name.length > 100) return 'Strain name must be 100 characters or less';
+    return null;
+  }
+
+  // Cached rows for edit lookups
+  List<StrainDto> _currentRows = [];
 
   @override
   void initState() {
@@ -78,6 +111,128 @@ class _StrainsScreenState extends State<StrainsScreen> {
       _activeSort = preset.sort;
     });
     _controller.reload();
+  }
+
+  void _onCellEditTap(StrainDto strain, String columnName) async {
+    final config = _editConfigs[columnName];
+    if (config == null) return;
+
+    if (config.type == EditFieldType.autocomplete && columnName == 'owner') {
+      // Owner uses entity picker bottom sheet
+      final accounts = accountStore.value ?? [];
+      if (!mounted) return;
+
+      final selected = await showEntityPickerSheet<AccountStoreDto>(
+        context: context,
+        options: accounts,
+        getLabel: (a) {
+          final name = '${a.user.firstName} ${a.user.lastName}'.trim();
+          return name.isNotEmpty ? name : (a.user.email ?? '');
+        },
+        getKey: (a) => a.accountUuid,
+        title: 'Select Owner',
+        searchHint: 'Search users...',
+      );
+
+      if (selected != null) {
+        _onCellEditCommit(strain.strainUuid, 'owner', selected);
+      }
+      return;
+    }
+
+    // Text, boolean, select, date — use cell edit modal
+    if (!mounted) return;
+
+    dynamic currentValue;
+    String fieldLabel = columnName;
+
+    switch (columnName) {
+      case 'name':
+        currentValue = strain.strainName;
+        fieldLabel = 'Strain Name';
+        break;
+      case 'active':
+        currentValue = strain.isActive;
+        fieldLabel = 'Active';
+        break;
+    }
+
+    final result = await showCellEditModal(
+      context: context,
+      fieldLabel: fieldLabel,
+      config: config,
+      currentValue: currentValue,
+    );
+
+    if (result != null) {
+      _onCellEditCommit(strain.strainUuid, columnName, result);
+    }
+  }
+
+  Future<bool> _onCellEditCommit(
+    String rowId, String field, dynamic newValue,
+  ) async {
+    final strain = _currentRows.firstWhere(
+      (s) => s.strainUuid == rowId,
+      orElse: () => throw StateError('Row not found: $rowId'),
+    );
+
+    // Validate
+    final config = _editConfigs[field];
+    if (config?.validate != null) {
+      final error = config!.validate!(newValue);
+      if (error != null) {
+        if (mounted) showAppSnackBar(context, error, isError: true);
+        return false;
+      }
+    }
+
+    try {
+      // Build the updated DTO
+      AccountStoreDto owner = await getAccountHook(strain.owner.accountUuid) ??
+          (throw StateError('Owner account not found'));
+      String strainName = strain.strainName;
+      bool? isActive = strain.isActive;
+
+      switch (field) {
+        case 'name':
+          strainName = newValue.toString();
+          break;
+        case 'owner':
+          owner = newValue as AccountStoreDto;
+          break;
+        case 'active':
+          isActive = newValue as bool;
+          break;
+      }
+
+      await strainService.putStrain(
+        strain.strainUuid,
+        PutStrainDto(
+          strainId: strain.strainId,
+          strainUuid: strain.strainUuid,
+          strainName: strainName,
+          owner: owner,
+          color: strain.color ?? '',
+          comment: strain.comment,
+          backgrounds: strain.backgrounds
+              .map((b) => b.toBackgroundStoreDto())
+              .toList(),
+          isActive: isActive,
+        ),
+      );
+
+      if (mounted) {
+        showAppSnackBar(context, 'Updated successfully', isSuccess: true);
+      }
+      _controller.reload();
+      return true;
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(context, 'Update failed: $e', isError: true);
+      }
+      return false;
+    }
   }
 
   ListQueryParams _buildQueryParams({
@@ -149,12 +304,20 @@ class _StrainsScreenState extends State<StrainsScreen> {
           child: Stack(
             children: [
               Builder(builder: (context) {
-                final strainColumns = StrainListColumn.getColumns(
-                  settingFields: _tableSetting?.tableSettingFields.toList(),
+                final strainColumns = buildColumnsFromSettings(
+                  _tableSetting?.tableSettingFields.toList(),
                 );
                 return PaginatedDataGrid<StrainDto>(
+                onRowTap: (strain) {
+                  context.go('/strain/${strain.strainUuid}');
+                },
                 controller: _controller,
                 searchPlaceholder: 'Try "Search strain B6"',
+                editFieldConfigs: _editConfigs,
+                getRowId: (strain) => strain.strainUuid,
+                primaryColumn: 'name',
+                onCellEditTap: _onCellEditTap,
+                onCellEditCommit: _onCellEditCommit,
                 onSortChanged: (columnName, ascending) {
                   setState(() {
                     _activeSort = SortParam(
@@ -165,13 +328,16 @@ class _StrainsScreenState extends State<StrainsScreen> {
                   _controller.reload();
                 },
                 columns: strainColumns,
-                sourceBuilder: (rows) => _StrainGridSource(
-                  records: rows,
-                  selected: _selected,
-                  onToggle: _onToggleSelected,
-                  context: context,
-                  columns: strainColumns,
-                ),
+                sourceBuilder: (rows) {
+                  _currentRows = rows;
+                  return _StrainGridSource(
+                    records: rows,
+                    selected: _selected,
+                    onToggle: _onToggleSelected,
+                    context: context,
+                    columns: strainColumns,
+                  );
+                },
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
                     page: page,
@@ -313,25 +479,8 @@ class _StrainGridSource extends DataGridSource {
               },
             ),
           );
-        case 'edit':
-          return Center(
-            child: Semantics(
-              label: 'Edit $strainName',
-              button: true,
-              child: IconButton(
-                icon: const Icon(Icons.edit),
-                tooltip: 'Edit',
-                onPressed: () {
-                  context.go('/strain/$uuid');
-                },
-              ),
-            ),
-          );
         case 'name':
-          return GestureDetector(
-            onTap: () => context.go('/strain/$uuid'),
-            child: cellText(strainName),
-          );
+          return cellText(strainName);
         case 'animals':
           return cellText('${values[StrainListColumn.animals.name] ?? ''}', textAlign: Alignment.center);
         case 'color':
@@ -346,6 +495,13 @@ class _StrainGridSource extends DataGridSource {
             ),
           );
         default:
+          final col = StrainListColumn.values.cast<StrainListColumn?>().firstWhere(
+            (c) => c!.field == columnName,
+            orElse: () => null,
+          );
+          if (col != null) {
+            return cellText(values[col.name]?.toString());
+          }
           return cellText(values[columnName]?.toString());
       }
     }

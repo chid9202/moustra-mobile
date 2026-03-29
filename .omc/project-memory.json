@@ -1,0 +1,458 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1774745801297,
+  "projectRoot": "/Users/daehanchi/Dev/moustra-mobile",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "assets",
+      "docs",
+      "lib",
+      "scripts",
+      "test"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "android": {
+      "path": "android",
+      "purpose": null,
+      "fileCount": 15,
+      "lastAccessed": 1774745801292,
+      "keyFiles": [
+        "Gemfile",
+        "Gemfile.lock",
+        "android-secret.json",
+        "build.gradle.kts",
+        "gradle.properties"
+      ]
+    },
+    "assets": {
+      "path": "assets",
+      "purpose": "Static assets",
+      "fileCount": 1,
+      "lastAccessed": 1774745801292,
+      "keyFiles": []
+    },
+    "build": {
+      "path": "build",
+      "purpose": "Build output",
+      "fileCount": 2,
+      "lastAccessed": 1774745801293,
+      "keyFiles": [
+        "1acc0a8127890cc5e9c9356750e3c00b.cache.dill.track.dill",
+        "b9dbe592fc2ae558329e0a126bb30b5a.cache.dill.track.dill"
+      ]
+    },
+    "coverage": {
+      "path": "coverage",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1774745801293,
+      "keyFiles": [
+        "clients.info",
+        "lcov.info"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 4,
+      "lastAccessed": 1774745801293,
+      "keyFiles": [
+        "FEATURE-PARITY.md",
+        "MOBILE-FLOWS.md",
+        "MOBILE_INLINE_EDIT_TESTING_PLAN.md",
+        "PERSISTENT-LOGIN.md"
+      ]
+    },
+    "integration_test": {
+      "path": "integration_test",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1774745801294,
+      "keyFiles": []
+    },
+    "ios": {
+      "path": "ios",
+      "purpose": null,
+      "fileCount": 7,
+      "lastAccessed": 1774745801294,
+      "keyFiles": [
+        "ExportOptions.plist",
+        "Gemfile",
+        "Gemfile.lock",
+        "Podfile",
+        "Podfile.lock"
+      ]
+    },
+    "lib": {
+      "path": "lib",
+      "purpose": "Library code",
+      "fileCount": 2,
+      "lastAccessed": 1774745801294,
+      "keyFiles": [
+        "main.dart"
+      ]
+    },
+    "linux": {
+      "path": "linux",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1774745801294,
+      "keyFiles": [
+        "CMakeLists.txt"
+      ]
+    },
+    "macos": {
+      "path": "macos",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1774745801294,
+      "keyFiles": [
+        "Podfile"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 5,
+      "lastAccessed": 1774745801294,
+      "keyFiles": [
+        "deploy-android.sh",
+        "deploy-common.sh",
+        "deploy-ios.sh",
+        "deploy.sh",
+        "generate_api.sh"
+      ]
+    },
+    "test": {
+      "path": "test",
+      "purpose": "Test files",
+      "fileCount": 3,
+      "lastAccessed": 1774745801294,
+      "keyFiles": [
+        "README.md",
+        "test_runner.dart",
+        "widget_test.dart"
+      ]
+    },
+    "web": {
+      "path": "web",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1774745801294,
+      "keyFiles": [
+        "favicon.png",
+        "index.html",
+        "manifest.json"
+      ]
+    },
+    "windows": {
+      "path": "windows",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1774745801295,
+      "keyFiles": [
+        "CMakeLists.txt"
+      ]
+    },
+    "android/app": {
+      "path": "android/app",
+      "purpose": "Application code",
+      "fileCount": 3,
+      "lastAccessed": 1774745801295,
+      "keyFiles": [
+        "build.gradle.kts",
+        "proguard-rules.pro"
+      ]
+    },
+    "build/app": {
+      "path": "build/app",
+      "purpose": "Application code",
+      "fileCount": 0,
+      "lastAccessed": 1774745801295,
+      "keyFiles": []
+    },
+    "integration_test/helpers": {
+      "path": "integration_test/helpers",
+      "purpose": "Helper functions",
+      "fileCount": 1,
+      "lastAccessed": 1774745801295,
+      "keyFiles": [
+        "integration_test_helpers.dart"
+      ]
+    },
+    "lib/api": {
+      "path": "lib/api",
+      "purpose": "API routes",
+      "fileCount": 0,
+      "lastAccessed": 1774745801295,
+      "keyFiles": []
+    },
+    "lib/app": {
+      "path": "lib/app",
+      "purpose": "Application code",
+      "fileCount": 4,
+      "lastAccessed": 1774745801295,
+      "keyFiles": [
+        "app.dart",
+        "mui_color.dart",
+        "router.dart"
+      ]
+    },
+    "lib/config": {
+      "path": "lib/config",
+      "purpose": "Configuration files",
+      "fileCount": 3,
+      "lastAccessed": 1774745801295,
+      "keyFiles": [
+        "api_config.dart",
+        "constants.dart",
+        "env.dart"
+      ]
+    },
+    "lib/helpers": {
+      "path": "lib/helpers",
+      "purpose": "Helper functions",
+      "fileCount": 11,
+      "lastAccessed": 1774745801296,
+      "keyFiles": [
+        "account_helper.dart",
+        "animal_helper.dart",
+        "datetime_helper.dart"
+      ]
+    },
+    "lib/models": {
+      "path": "lib/models",
+      "purpose": "Data models",
+      "fileCount": 1,
+      "lastAccessed": 1774745801296,
+      "keyFiles": [
+        "cell_edit_state.dart"
+      ]
+    },
+    "lib/services": {
+      "path": "lib/services",
+      "purpose": "Business logic services",
+      "fileCount": 7,
+      "lastAccessed": 1774745801296,
+      "keyFiles": [
+        "auth_service.dart",
+        "connectivity_service.dart",
+        "error_context_service.dart"
+      ]
+    },
+    "test/helpers": {
+      "path": "test/helpers",
+      "purpose": "Helper functions",
+      "fileCount": 9,
+      "lastAccessed": 1774745801296,
+      "keyFiles": [
+        "account_helper_test.dart",
+        "animal_helper_test.dart",
+        "datetime_helper_test.dart"
+      ]
+    },
+    "test/services": {
+      "path": "test/services",
+      "purpose": "Business logic services",
+      "fileCount": 7,
+      "lastAccessed": 1774745801297,
+      "keyFiles": [
+        "auth_service_test.dart",
+        "connectivity_service_test.dart",
+        "error_context_service_test.dart"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "lib/screens/plug_events_screen.dart",
+      "accessCount": 21,
+      "lastAccessed": 1774748537071,
+      "type": "file"
+    },
+    {
+      "path": "lib/widgets/filter_panel.dart",
+      "accessCount": 14,
+      "lastAccessed": 1774798129276,
+      "type": "directory"
+    },
+    {
+      "path": "lib/widgets/paginated_datagrid.dart",
+      "accessCount": 12,
+      "lastAccessed": 1774798123998,
+      "type": "file"
+    },
+    {
+      "path": "lib/widgets/app_menu.dart",
+      "accessCount": 7,
+      "lastAccessed": 1774748028366,
+      "type": "file"
+    },
+    {
+      "path": "lib/app/router.dart",
+      "accessCount": 6,
+      "lastAccessed": 1774747244083,
+      "type": "file"
+    },
+    {
+      "path": "lib",
+      "accessCount": 6,
+      "lastAccessed": 1774748496757,
+      "type": "directory"
+    },
+    {
+      "path": "lib/constants/list_constants/plug_event_list_constants.dart",
+      "accessCount": 4,
+      "lastAccessed": 1774748490298,
+      "type": "file"
+    },
+    {
+      "path": "lib/constants/list_constants/common.dart",
+      "accessCount": 4,
+      "lastAccessed": 1774748627168,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/animals_screen.dart",
+      "accessCount": 4,
+      "lastAccessed": 1774797867774,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/users_screen.dart",
+      "accessCount": 3,
+      "lastAccessed": 1774746964231,
+      "type": "file"
+    },
+    {
+      "path": "lib/widgets/cages_grid_floating_bar.dart",
+      "accessCount": 3,
+      "lastAccessed": 1774746965717,
+      "type": "file"
+    },
+    {
+      "path": "lib/constants/list_constants/animal_list_constants.dart",
+      "accessCount": 2,
+      "lastAccessed": 1774745909749,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens",
+      "accessCount": 2,
+      "lastAccessed": 1774746471886,
+      "type": "directory"
+    },
+    {
+      "path": "lib/constants/list_constants/plug_event_filter_config.dart",
+      "accessCount": 2,
+      "lastAccessed": 1774748391869,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/strains_screen.dart",
+      "accessCount": 2,
+      "lastAccessed": 1774748516633,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/cages_list_screen.dart",
+      "accessCount": 1,
+      "lastAccessed": 1774745862439,
+      "type": "file"
+    },
+    {
+      "path": "lib/constants/list_constants/cage_list_constants.dart",
+      "accessCount": 1,
+      "lastAccessed": 1774745865947,
+      "type": "file"
+    },
+    {
+      "path": "lib/constants/list_constants",
+      "accessCount": 1,
+      "lastAccessed": 1774746149709,
+      "type": "directory"
+    },
+    {
+      "path": "lib/constants/list_constants/cell_text.dart",
+      "accessCount": 1,
+      "lastAccessed": 1774746149804,
+      "type": "file"
+    },
+    {
+      "path": "ios",
+      "accessCount": 1,
+      "lastAccessed": 1774746179369,
+      "type": "directory"
+    },
+    {
+      "path": "lib/main.dart",
+      "accessCount": 1,
+      "lastAccessed": 1774746186944,
+      "type": "file"
+    },
+    {
+      "path": "lib/widgets/app_bar.dart",
+      "accessCount": 1,
+      "lastAccessed": 1774746231928,
+      "type": "file"
+    },
+    {
+      "path": "lib/screens/cages_grid_screen.dart",
+      "accessCount": 1,
+      "lastAccessed": 1774746625359,
+      "type": "file"
+    },
+    {
+      "path": "lib/constants/cages_grid_constants.dart",
+      "accessCount": 1,
+      "lastAccessed": 1774746640448,
+      "type": "file"
+    },
+    {
+      "path": "lib/app/app.dart",
+      "accessCount": 1,
+      "lastAccessed": 1774746871597,
+      "type": "file"
+    },
+    {
+      "path": "lib/services/models/prepared_filter.dart",
+      "accessCount": 1,
+      "lastAccessed": 1774748381681,
+      "type": "file"
+    },
+    {
+      "path": "lib/constants/list_constants/strain_filter_config.dart",
+      "accessCount": 1,
+      "lastAccessed": 1774748381980,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

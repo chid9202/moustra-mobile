@@ -32,8 +32,16 @@ test/
     └── test_widgets.dart     # Widget test wrappers
 
 integration_test/
-├── app_test.dart             # Main integration test file
-└── robots/                   # Page object pattern
+├── smoke/                    # Fast checks (login + dashboard)
+│   └── login_dashboard_smoke_test.dart
+├── regression/               # Flow + API CRUD coverage
+│   ├── entity_crud_regression_test.dart
+│   ├── column_settings_regression_test.dart
+│   └── ...
+├── debug/                    # Ad-hoc diagnostics (not CI gates)
+├── helpers/
+│   └── integration_test_helpers.dart
+└── robots/                   # Page objects
     ├── login_robot.dart
     └── dashboard_robot.dart
 ```
@@ -74,8 +82,11 @@ flutter test --coverage
 # Verbose output
 flutter test --reporter expanded
 
-# Integration tests (requires device)
-flutter test integration_test/app_test.dart
+# Smoke integration tests (requires device/emulator + .env.test)
+flutter test integration_test/smoke/login_dashboard_smoke_test.dart
+
+# Full regression suite (longer; includes API CRUD)
+flutter test integration_test/regression/
 ```
 
 ## Unit Testing
@@ -341,53 +352,25 @@ class AnimalRobot {
 ### Integration Test
 
 ```dart
-// integration_test/app_test.dart
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// integration_test/smoke/login_dashboard_smoke_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:moustra/app/app.dart';
-import 'package:moustra/services/auth_service.dart';
 
-import 'robots/login_robot.dart';
-import 'robots/dashboard_robot.dart';
-import 'robots/animal_robot.dart';
+import '../helpers/integration_test_helpers.dart';
+import '../robots/dashboard_robot.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
-    await dotenv.load(fileName: '.env.test');
-    await authService.init();
+    await loadIntegrationTestEnv();
   });
 
-  group('Animal Management Flow', () {
-    testWidgets('can create new animal', (tester) async {
-      await tester.pumpWidget(const App());
-      await tester.pumpAndSettle();
-
-      // Login
-      final loginRobot = LoginRobot(tester);
-      await loginRobot.login(
-        dotenv.env['TEST_EMAIL']!,
-        dotenv.env['TEST_PASSWORD']!,
-      );
-      await tester.pumpAndSettle(const Duration(seconds: 10));
-
-      // Navigate to animals
+  group('Smoke: Login and Dashboard', () {
+    testWidgets('successful login navigates to dashboard', (tester) async {
+      await pumpAppAndSignIn(tester);
       final dashboardRobot = DashboardRobot(tester);
-      await dashboardRobot.navigateToAnimals();
-      await tester.pumpAndSettle();
-
-      // Create animal
-      final animalRobot = AnimalRobot(tester);
-      await animalRobot.verifyAnimalListDisplayed();
-      await animalRobot.tapAddAnimal();
-      await animalRobot.enterTag('TEST001');
-      await animalRobot.tapSave();
-      await tester.pumpAndSettle(const Duration(seconds: 5));
-
-      // Verify
-      await animalRobot.verifyAnimalInList('TEST001');
+      await dashboardRobot.verifyDashboardLoaded();
     });
   });
 }

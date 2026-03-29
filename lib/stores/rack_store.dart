@@ -20,12 +20,11 @@ Future<RackStoreDto> useRackStore() async {
         ? _matrix4ToList(savedMatrix)
         : null;
 
-    rackApi.getRack().then((value) {
-      rackStore.value = RackStoreDto(
-        rackData: value,
-        transformationMatrix: savedMatrixList,
-      );
-    });
+    final value = await rackApi.getRack();
+    rackStore.value = RackStoreDto(
+      rackData: value,
+      transformationMatrix: savedMatrixList,
+    );
   } else {
     // If store exists, preserve existing transformation matrix when reloading
     final existingMatrix = rackStore.value?.transformationMatrix;

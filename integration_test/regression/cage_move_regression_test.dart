@@ -9,7 +9,7 @@ import 'package:moustra/services/dtos/stores/rack_store_dto.dart';
 import 'package:moustra/stores/rack_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'robots/login_robot.dart';
+import '../robots/login_robot.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

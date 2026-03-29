@@ -6,7 +6,7 @@ void main() {
     group('getColumns', () {
       test('should return all columns with default parameters', () {
         final columns = CageListColumn.getColumns();
-        expect(columns.length, 13);
+        expect(columns.length, 12);
       });
 
       test('select column should be hidden by default', () {
@@ -49,14 +49,6 @@ void main() {
         expect(eidColumn.visible, false);
       });
 
-      test('edit column should always be visible', () {
-        final columns = CageListColumn.getColumns();
-        final editColumn = columns.firstWhere(
-          (c) => c.columnName == CageListColumn.edit.field,
-        );
-        expect(editColumn.visible, true);
-      });
-
       test(
         'both select and EID visibility can be controlled independently',
         () {
@@ -96,14 +88,6 @@ void main() {
           (c) => c.columnName == CageListColumn.eid.field,
         );
         expect(eidColumn.allowSorting, false);
-      });
-
-      test('edit column should not allow sorting', () {
-        final columns = CageListColumn.getColumns();
-        final editColumn = columns.firstWhere(
-          (c) => c.columnName == CageListColumn.edit.field,
-        );
-        expect(editColumn.allowSorting, false);
       });
 
       test('rack column should be present and not allow sorting', () {

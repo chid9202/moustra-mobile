@@ -9,7 +9,7 @@ import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/services/clients/table_setting_service.dart';
 import 'package:moustra/stores/table_setting_store.dart';
 
-import 'robots/login_robot.dart';
+import '../robots/login_robot.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
