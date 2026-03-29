@@ -614,7 +614,7 @@ class _CageGridSource extends DataGridSource {
           );
         case 'num':
           return cellText('${values[CageListColumn.numberOfAnimals.name] ?? ''}', textAlign: Alignment.center);
-        case 'tags':
+        case 'animal_tags':
           return cellTextList((values[CageListColumn.animalTags.name] as List<String>?) ?? []);
         case 'genotypes':
           return cellTextList((values[CageListColumn.genotypes.name] as List<String>?) ?? []);
@@ -626,7 +626,9 @@ class _CageGridSource extends DataGridSource {
             orElse: () => null,
           );
           if (col != null) {
-            return cellText(values[col.name]?.toString());
+            final v = values[col.name];
+            if (v is List<String>) return cellTextList(v);
+            return cellText(v?.toString());
           }
           return cellText(values[columnName]?.toString());
       }

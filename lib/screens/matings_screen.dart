@@ -405,7 +405,9 @@ class _MatingGridSource extends DataGridSource {
             orElse: () => null,
           );
           if (col != null) {
-            return cellText(values[col.name]?.toString());
+            final v = values[col.name];
+            if (v is List<String>) return cellTextList(v);
+            return cellText(v?.toString());
           }
           return cellText(values[columnName]?.toString());
       }
