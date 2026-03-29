@@ -84,7 +84,7 @@ final GoRouter appRouter = GoRouter(
         child: Scaffold(
           appBar: const MoustraAppBar(),
           drawer: AppMenu(),
-          body: SafeArea(child: child),
+          body: child,
         ),
       ),
       routes: [
