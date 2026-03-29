@@ -1,7 +1,39 @@
 import 'package:moustra/services/models/list_query_params.dart';
+import 'package:moustra/services/models/prepared_filter.dart';
 
 /// Filter and sort configuration for the Plug Events list page
 class PlugEventFilterConfig {
+  /// Prepared filter presets (replaces the separate ChoiceChip tabs)
+  static const List<PreparedFilter> preparedFilters = [
+    PreparedFilter(
+      name: 'Active',
+      filters: [
+        FilterParam(
+          field: 'outcome',
+          operator: FilterOperators.isEmpty,
+          value: '',
+        ),
+      ],
+      sort: SortParam(field: 'plug_date', order: SortOrder.desc),
+    ),
+    PreparedFilter(
+      name: 'Completed',
+      filters: [
+        FilterParam(
+          field: 'outcome',
+          operator: FilterOperators.isNotEmpty,
+          value: '',
+        ),
+      ],
+      sort: SortParam(field: 'plug_date', order: SortOrder.desc),
+    ),
+    PreparedFilter(
+      name: 'All',
+      filters: [],
+      sort: SortParam(field: 'created_date', order: SortOrder.desc),
+    ),
+  ];
+
   /// Available filterable fields for Plug Events endpoint
   static const List<FilterFieldDefinition> filterFields = [
     FilterFieldDefinition(

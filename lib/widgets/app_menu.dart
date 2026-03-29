@@ -153,66 +153,154 @@ class AppMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentPath = GoRouterState.of(context).uri.path;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
+    // In landscape, only apply left safe area when the notch (Dynamic Island)
+    // is on the left side (head facing left). The home indicator on the
+    // opposite side creates a smaller inset we can ignore for the drawer.
+    final padding = MediaQuery.of(context).padding;
+    final notchOnLeft = isLandscape && padding.left > padding.right;
 
     return Drawer(
-      child: Column(
-        children: [
-          // Header with lab info
-          _buildHeader(context),
-
-          // Main menu with collapsible groups
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                // Collapsible groups
-                ..._menuGroups.map(
-                  (group) => _buildMenuGroup(
-                    context: context,
-                    group: group,
-                    currentPath: currentPath,
-                  ),
-                ),
-
-                const Divider(height: 1),
-
-                // Insights (flat item)
-                _buildMenuItem(
-                  context: context,
-                  item: _insightsItem,
-                  isActive: _isActive(_insightsItem.route, currentPath),
-                ),
-              ],
-            ),
-          ),
-
-          // Bottom section with divider
-          const Divider(height: 1),
-
-          // Bottom utility items
-          ..._bottomItems.map(
-            (item) => _buildMenuItem(
-              context: context,
-              item: item,
-              isActive: _isActive(item.route, currentPath),
-            ),
-          ),
-
-          // Logout
-          Semantics(
-            label: 'Logout',
-            button: true,
-            child: ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Logout', style: TextStyle(color: Colors.red)),
-              onTap: () => _handleLogout(context),
-            ),
-          ),
-
-          // Bottom padding for safe area
-          SizedBox(height: MediaQuery.of(context).padding.bottom),
-        ],
+      child: SafeArea(
+        left: notchOnLeft,
+        right: false,
+        child: isLandscape
+            ? _buildLandscapeLayout(context, currentPath)
+            : _buildPortraitLayout(context, currentPath),
       ),
+    );
+  }
+
+  Widget _buildPortraitLayout(BuildContext context, String currentPath) {
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        // Header with lab info
+        _buildHeader(context),
+
+        // All menu groups
+        ..._menuGroups.map(
+          (group) => _buildMenuGroup(
+            context: context,
+            group: group,
+            currentPath: currentPath,
+          ),
+        ),
+        const Divider(height: 1),
+        _buildMenuItem(
+          context: context,
+          item: _insightsItem,
+          isActive: _isActive(_insightsItem.route, currentPath),
+        ),
+        const Divider(height: 1),
+
+        // Bottom items inline
+        ..._bottomItems.map(
+          (item) => _buildMenuItem(
+            context: context,
+            item: item,
+            isActive: _isActive(item.route, currentPath),
+          ),
+        ),
+        Semantics(
+          label: 'Logout',
+          button: true,
+          child: ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text('Logout', style: TextStyle(color: Colors.red)),
+            onTap: () => _handleLogout(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLandscapeLayout(BuildContext context, String currentPath) {
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        // Compact header
+        _buildCompactHeader(context),
+        const Divider(height: 1),
+
+        // All menu groups
+        ..._menuGroups.map(
+          (group) => _buildMenuGroup(
+            context: context,
+            group: group,
+            currentPath: currentPath,
+          ),
+        ),
+        const Divider(height: 1),
+        _buildMenuItem(
+          context: context,
+          item: _insightsItem,
+          isActive: _isActive(_insightsItem.route, currentPath),
+        ),
+        const Divider(height: 1),
+
+        // Bottom items inline
+        ..._bottomItems.map(
+          (item) => _buildMenuItem(
+            context: context,
+            item: item,
+            isActive: _isActive(item.route, currentPath),
+          ),
+        ),
+        Semantics(
+          label: 'Logout',
+          button: true,
+          child: ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text('Logout', style: TextStyle(color: Colors.red)),
+            onTap: () => _handleLogout(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactHeader(BuildContext context) {
+    return ValueListenableBuilder<ProfileResponseDto?>(
+      valueListenable: profileState,
+      builder: (context, profile, _) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Image.asset(
+                'assets/icons/app_icon.png',
+                height: 32,
+                width: 32,
+                semanticLabel: 'Moustra logo',
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      UtilHelper.getDisplayLabName(
+                        profile?.labName ?? 'Moustra',
+                      ),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (profile != null)
+                      Text(
+                        '${profile.firstName} ${profile.lastName}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

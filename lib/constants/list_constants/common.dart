@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:moustra_api/moustra_api.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
@@ -21,65 +22,31 @@ const double ownerColumnWidth = 160;
 /// Columns that are controlled by the screen, not by table settings.
 const Set<String> controlColumns = {'select', 'edit'};
 
-/// Apply table setting fields to a list of GridColumns.
-/// Filters by visibility and reorders by fieldOrder.
-/// Control columns (select, edit, edit_stripe) are always kept as-is.
-List<GridColumn> applyTableSettings(
-  List<GridColumn> columns,
-  List<TableSettingFieldSLR>? settingFields,
-) {
-  if (settingFields == null || settingFields.isEmpty) return columns;
+/// Build GridColumns directly from table setting fields.
+/// Columns are ordered by fieldOrder and visibility is applied.
+/// Optional [controlCols] are prepended (e.g., select checkbox).
+List<GridColumn> buildColumnsFromSettings(
+  List<TableSettingFieldSLR>? settingFields, {
+  List<GridColumn>? controlCols,
+}) {
+  if (settingFields == null || settingFields.isEmpty) return [];
 
-  // Separate control columns and data columns
-  final controlCols = <GridColumn>[];
-  final dataCols = <GridColumn>[];
-  for (final col in columns) {
-    if (controlColumns.contains(col.columnName)) {
-      controlCols.add(col);
-    } else {
-      dataCols.add(col);
-    }
+  final sorted = settingFields.toList()
+    ..sort((a, b) => a.fieldOrder.compareTo(b.fieldOrder));
+
+  final columns = sorted.map((sf) {
+    return GridColumn(
+      columnName: sf.fieldName,
+      width: double.tryParse(sf.fieldWidth) ?? 150,
+      label: Center(child: Text(sf.fieldLabel)),
+      visible: sf.fieldVisible,
+      allowSorting: sf.fieldSortable == 'true',
+    );
+  }).toList();
+
+  if (controlCols != null && controlCols.isNotEmpty) {
+    return [...controlCols, ...columns];
   }
 
-  // Build a map of field_name -> setting
-  final settingsMap = <String, TableSettingFieldSLR>{};
-  for (final sf in settingFields) {
-    settingsMap[sf.fieldName] = sf;
-  }
-
-  // Apply visibility (via GridColumn.visible) and collect with order.
-  // We keep ALL columns so that buildRow cell count matches column count.
-  final ordered = <(int, GridColumn)>[];
-  for (final col in dataCols) {
-    final sf = settingsMap[col.columnName];
-    if (sf != null) {
-      // Rebuild column with visibility from settings
-      final rebuilt = GridColumn(
-        columnName: col.columnName,
-        label: col.label,
-        visible: sf.fieldVisible,
-        width: col.width,
-        minimumWidth: col.minimumWidth,
-        maximumWidth: col.maximumWidth,
-        allowSorting: col.allowSorting,
-        allowFiltering: col.allowFiltering,
-        allowEditing: col.allowEditing,
-        autoFitPadding: col.autoFitPadding,
-        columnWidthMode: col.columnWidthMode,
-        filterPopupMenuOptions: col.filterPopupMenuOptions,
-        sortIconPosition: col.sortIconPosition,
-        filterIconPosition: col.filterIconPosition,
-        filterIconPadding: col.filterIconPadding,
-      );
-      ordered.add((sf.fieldOrder, rebuilt));
-    } else {
-      // Column not in settings — keep visible, put at end
-      ordered.add((999, col));
-    }
-  }
-
-  // Sort by fieldOrder
-  ordered.sort((a, b) => a.$1.compareTo(b.$1));
-
-  return [...controlCols, ...ordered.map((e) => e.$2)];
+  return columns;
 }

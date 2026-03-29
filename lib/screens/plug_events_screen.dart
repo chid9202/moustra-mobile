@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moustra/constants/list_constants/cell_text.dart';
 import 'package:moustra/constants/list_constants/plug_event_filter_config.dart';
+import 'package:moustra/constants/list_constants/common.dart' hide SortOrder;
 import 'package:moustra/constants/list_constants/plug_event_list_constants.dart';
+import 'package:moustra/models/cell_edit_state.dart';
 import 'package:moustra/services/clients/plug_api.dart';
 import 'package:moustra/services/dtos/plug_event_dto.dart';
+import 'package:moustra/services/dtos/put_plug_event_dto.dart';
 import 'package:moustra/services/models/list_query_params.dart';
 import 'package:moustra/stores/table_setting_store.dart';
+import 'package:moustra/widgets/cell_edit_modal.dart';
 import 'package:moustra/widgets/column_settings_sheet.dart';
 import 'package:moustra/widgets/filter_panel.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
@@ -14,8 +18,7 @@ import 'package:moustra_api/moustra_api.dart';
 import 'package:moustra/widgets/paginated_datagrid.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/services/clients/event_api.dart';
-
-enum _PreparedTab { active, completed, all }
+import 'package:moustra/helpers/snackbar_helper.dart';
 
 class PlugEventsScreen extends StatefulWidget {
   const PlugEventsScreen({super.key});
@@ -28,13 +31,23 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
   final PaginatedGridController _controller = PaginatedGridController();
   final MovableFabMenuController _fabController = MovableFabMenuController();
 
-  _PreparedTab _selectedTab = _PreparedTab.active;
-  List<FilterParam> _activeFilters = [];
-  String? _activeName;
-  SortParam? _activeSort = const SortParam(
-    field: 'plug_date',
-    order: SortOrder.desc,
-  );
+  // Start with "Active" preset (index 0)
+  int _selectedPresetIndex = 0;
+  List<FilterParam> _activeFilters = PlugEventFilterConfig.preparedFilters[0].filters;
+  SortParam? _activeSort = PlugEventFilterConfig.preparedFilters[0].sort;
+
+  List<PlugEventDto> _currentRows = [];
+
+  static final Map<String, EditFieldConfig> _editConfigs = {
+    'plug_date': const EditFieldConfig(
+      field: 'plug_date',
+      type: EditFieldType.date,
+    ),
+    'target_eday': const EditFieldConfig(
+      field: 'target_eday',
+      type: EditFieldType.text,
+    ),
+  };
 
   // Table settings
   TableSettingSLR? _tableSetting;
@@ -43,7 +56,6 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
   void initState() {
     super.initState();
     eventApi.trackEvent('view_plug_events');
-    _applyTabFilters(_selectedTab);
     _loadTableSetting();
   }
 
@@ -54,48 +66,12 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
     }
   }
 
-  void _applyTabFilters(_PreparedTab tab) {
-    switch (tab) {
-      case _PreparedTab.active:
-        _activeName = 'active';
-        _activeFilters = [
-          FilterParam(
-            field: 'outcome',
-            operator: FilterOperators.isEmpty,
-            value: '',
-          ),
-        ];
-        _activeSort = const SortParam(
-          field: 'plug_date',
-          order: SortOrder.desc,
-        );
-        break;
-      case _PreparedTab.completed:
-        _activeName = 'completed';
-        _activeFilters = [
-          FilterParam(
-            field: 'outcome',
-            operator: FilterOperators.isNotEmpty,
-            value: '',
-          ),
-        ];
-        _activeSort = const SortParam(
-          field: 'plug_date',
-          order: SortOrder.desc,
-        );
-        break;
-      case _PreparedTab.all:
-        _activeName = 'all';
-        _activeFilters = [];
-        _activeSort = PlugEventFilterConfig.defaultSort;
-        break;
-    }
-  }
-
-  void _onTabChanged(_PreparedTab tab) {
+  void _onPresetSelected(int index) {
+    final preset = PlugEventFilterConfig.preparedFilters[index];
     setState(() {
-      _selectedTab = tab;
-      _applyTabFilters(tab);
+      _selectedPresetIndex = index;
+      _activeFilters = List.from(preset.filters);
+      _activeSort = preset.sort;
     });
     _controller.reload();
   }
@@ -104,15 +80,14 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
     setState(() {
       _activeFilters = filters;
       _activeSort = sort;
+      _selectedPresetIndex = -1;
     });
     _controller.reload();
   }
 
   void _onFiltersClear() {
-    setState(() {
-      _applyTabFilters(_selectedTab);
-    });
-    _controller.reload();
+    // Reset to "Active" preset
+    _onPresetSelected(0);
   }
 
   ListQueryParams _buildQueryParams({
@@ -140,42 +115,96 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
       pageSize: pageSize,
       filters: filters,
       sorts: sorts,
-      name: _activeName,
     );
+  }
+
+  void _onCellEditTap(PlugEventDto plugEvent, String columnName) async {
+    final config = _editConfigs[columnName];
+    if (config == null) return;
+
+    if (!mounted) return;
+
+    dynamic currentValue;
+    String fieldLabel = columnName;
+
+    switch (columnName) {
+      case 'plug_date':
+        currentValue = plugEvent.plugDate;
+        fieldLabel = 'Plug Date';
+        break;
+      case 'target_eday':
+        currentValue = plugEvent.targetEday?.toString();
+        fieldLabel = 'Target E-Day';
+        break;
+    }
+
+    final result = await showCellEditModal(
+      context: context,
+      fieldLabel: fieldLabel,
+      config: config,
+      currentValue: currentValue,
+    );
+
+    if (result != null) {
+      _onCellEditCommit(plugEvent.plugEventUuid, columnName, result);
+    }
+  }
+
+  Future<bool> _onCellEditCommit(
+    String rowId, String field, dynamic newValue,
+  ) async {
+    final plugEvent = _currentRows.firstWhere(
+      (p) => p.plugEventUuid == rowId,
+      orElse: () => throw StateError('Row not found: $rowId'),
+    );
+
+    try {
+      String? comment = plugEvent.comment;
+      String? plugDate = plugEvent.plugDate;
+      int? targetEday = plugEvent.targetEday?.toInt();
+      String? male = plugEvent.male?.animalUuid;
+
+      switch (field) {
+        case 'plug_date':
+          // Date comes as DateTime from date picker
+          if (newValue is DateTime) {
+            plugDate = '${newValue.year}-${newValue.month.toString().padLeft(2, '0')}-${newValue.day.toString().padLeft(2, '0')}';
+          } else {
+            plugDate = newValue?.toString();
+          }
+          break;
+        case 'target_eday':
+          targetEday = int.tryParse(newValue.toString());
+          break;
+      }
+
+      await plugService.updatePlugEvent(
+        plugEvent.plugEventUuid,
+        PutPlugEventDto(
+          comment: comment,
+          plugDate: plugDate,
+          targetEday: targetEday,
+          male: male,
+        ),
+      );
+
+      if (mounted) {
+        showAppSnackBar(context, 'Updated successfully', isSuccess: true);
+      }
+      _controller.reload();
+      return true;
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(context, 'Update failed: $e', isError: true);
+      }
+      return false;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Prepared filter tabs
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                ChoiceChip(
-                  label: const Text('Active'),
-                  selected: _selectedTab == _PreparedTab.active,
-                  onSelected: (_) => _onTabChanged(_PreparedTab.active),
-                ),
-                const SizedBox(width: 8),
-                ChoiceChip(
-                  label: const Text('Completed'),
-                  selected: _selectedTab == _PreparedTab.completed,
-                  onSelected: (_) => _onTabChanged(_PreparedTab.completed),
-                ),
-                const SizedBox(width: 8),
-                ChoiceChip(
-                  label: const Text('All'),
-                  selected: _selectedTab == _PreparedTab.all,
-                  onSelected: (_) => _onTabChanged(_PreparedTab.all),
-                ),
-              ],
-            ),
-          ),
-        ),
         FilterPanel(
           filterFields: PlugEventFilterConfig.filterFields,
           sortFields: PlugEventFilterConfig.sortFields,
@@ -183,6 +212,9 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
           initialSort: _activeSort,
           onApply: _onFiltersApplied,
           onClear: _onFiltersClear,
+          preparedFilters: PlugEventFilterConfig.preparedFilters,
+          selectedPresetIndex: _selectedPresetIndex,
+          onPresetSelected: _onPresetSelected,
           onColumnSettingsTap: _tableSetting != null
               ? () => showColumnSettingsSheet(
                     context: context,
@@ -202,10 +234,13 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
           child: Stack(
             children: [
               Builder(builder: (context) {
-                final plugColumns = PlugEventListColumn.getColumns(
-                  settingFields: _tableSetting?.tableSettingFields.toList(),
+                final plugColumns = buildColumnsFromSettings(
+                  _tableSetting?.tableSettingFields.toList(),
                 );
                 return PaginatedDataGrid<PlugEventDto>(
+                onRowTap: (plugEvent) {
+                  context.go('/plug-event/${plugEvent.plugEventUuid}');
+                },
                 controller: _controller,
                 searchPlaceholder: 'Search by female tag...',
                 onSortChanged: (columnName, ascending) {
@@ -218,8 +253,15 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
                   _controller.reload();
                 },
                 columns: plugColumns,
-                sourceBuilder: (rows) =>
-                    _PlugEventGridSource(records: rows, context: context, columns: plugColumns),
+                editFieldConfigs: _editConfigs,
+                getRowId: (p) => p.plugEventUuid,
+                primaryColumn: 'eid',
+                onCellEditTap: _onCellEditTap,
+                onCellEditCommit: _onCellEditCommit,
+                sourceBuilder: (rows) {
+                  _currentRows = rows;
+                  return _PlugEventGridSource(records: rows, context: context, columns: plugColumns);
+                },
                 fetchPage: (page, pageSize) async {
                   final params = _buildQueryParams(
                     page: page,
@@ -299,29 +341,22 @@ class _PlugEventGridSource extends DataGridSource {
     final Map<String, Object?> values = {
       for (final cell in row.getCells()) cell.columnName: cell.value,
     };
-    final String uuid = (values[PlugEventListColumn.edit.name] as String?) ?? '';
     final String currentEday = (values[PlugEventListColumn.currentEday.name] as String?) ?? '';
     final String targetEday = (values[PlugEventListColumn.targetEday.name] as String?) ?? '';
 
     Widget buildCell(String columnName) {
       switch (columnName) {
-        case 'edit':
-          return Center(
-            child: Semantics(
-              label: 'View Plug Event',
-              button: true,
-              child: IconButton(
-                icon: const Icon(Icons.visibility),
-                tooltip: 'View',
-                onPressed: () {
-                  context.go('/plug-event/$uuid');
-                },
-              ),
-            ),
-          );
         case 'current_eday':
           return _edayCellText(currentEday, targetEday);
         default:
+          // GridColumn uses .field (snake_case), DataGridCell uses .name (camelCase)
+          final col = PlugEventListColumn.values.cast<PlugEventListColumn?>().firstWhere(
+            (c) => c!.field == columnName,
+            orElse: () => null,
+          );
+          if (col != null) {
+            return cellText(values[col.name]?.toString());
+          }
           return cellText(values[columnName]?.toString());
       }
     }
