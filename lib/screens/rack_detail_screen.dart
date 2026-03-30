@@ -171,14 +171,24 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final appBar = AppBar(
+      leading: IconButton(
+        onPressed: () => context.pop(),
+        icon: const Icon(Icons.arrow_back),
+      ),
+      title: Text(_rack?.rackName ?? 'Rack'),
+    );
+
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        appBar: appBar,
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_error != null || _rack == null) {
       return Scaffold(
+        appBar: appBar,
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -252,6 +262,7 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
     });
 
     return Scaffold(
+      appBar: appBar,
       body: RefreshIndicator(
         onRefresh: _fetchRack,
         child: CustomScrollView(
