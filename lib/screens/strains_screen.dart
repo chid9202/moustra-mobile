@@ -298,6 +298,8 @@ class _StrainsScreenState extends State<StrainsScreen> {
                     },
                   )
               : null,
+          searchPlaceholder: 'Try "Search strain B6"',
+          onSearchSubmitted: (term) => _controller.search(term),
         ),
         const Divider(height: 1),
         Expanded(
@@ -312,7 +314,6 @@ class _StrainsScreenState extends State<StrainsScreen> {
                   context.go('/strain/${strain.strainUuid}');
                 },
                 controller: _controller,
-                searchPlaceholder: 'Try "Search strain B6"',
                 editFieldConfigs: _editConfigs,
                 getRowId: (strain) => strain.strainUuid,
                 primaryColumn: 'name',

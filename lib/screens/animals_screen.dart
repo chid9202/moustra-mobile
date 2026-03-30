@@ -433,6 +433,8 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                     },
                   )
               : null,
+          searchPlaceholder: 'Try "Search Animal in mating"',
+          onSearchSubmitted: (term) => _controller.search(term),
         ),
         const Divider(height: 1),
         Expanded(
@@ -443,7 +445,6 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   context.go('/animal/${animal.animalUuid}');
                 },
                 controller: _controller,
-                searchPlaceholder: 'Try "Search Animal in mating"',
                 onSortChanged: (columnName, ascending) {
                   final sort = SortParam(
                     field: columnName,

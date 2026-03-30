@@ -256,6 +256,8 @@ class _MatingsScreenState extends State<MatingsScreen> {
                     },
                   )
               : null,
+          searchPlaceholder: 'Try "Search mating M-42"',
+          onSearchSubmitted: (term) => _controller.search(term),
         ),
         const Divider(height: 1),
         Expanded(
@@ -270,7 +272,6 @@ class _MatingsScreenState extends State<MatingsScreen> {
                   context.go('/mating/${mating.matingUuid}');
                 },
                 controller: _controller,
-                searchPlaceholder: 'Try "Search mating M-42"',
                 editFieldConfigs: _editConfigs,
                 getRowId: (m) => m.matingUuid,
                 primaryColumn: 'mating_tag',

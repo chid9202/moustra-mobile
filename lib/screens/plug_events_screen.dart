@@ -228,6 +228,8 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
                     },
                   )
               : null,
+          searchPlaceholder: 'Search by female tag...',
+          onSearchSubmitted: (term) => _controller.search(term),
         ),
         const Divider(height: 1),
         Expanded(
@@ -242,7 +244,6 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
                   context.go('/plug-event/${plugEvent.plugEventUuid}');
                 },
                 controller: _controller,
-                searchPlaceholder: 'Search by female tag...',
                 onSortChanged: (columnName, ascending) {
                   setState(() {
                     _activeSort = SortParam(

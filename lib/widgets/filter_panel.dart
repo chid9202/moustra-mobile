@@ -14,6 +14,8 @@ class FilterPanel extends StatefulWidget {
   final int selectedPresetIndex;
   final ValueChanged<int>? onPresetSelected;
   final VoidCallback? onColumnSettingsTap;
+  final String? searchPlaceholder;
+  final void Function(String term)? onSearchSubmitted;
 
   const FilterPanel({
     super.key,
@@ -27,6 +29,8 @@ class FilterPanel extends StatefulWidget {
     this.selectedPresetIndex = -1,
     this.onPresetSelected,
     this.onColumnSettingsTap,
+    this.searchPlaceholder,
+    this.onSearchSubmitted,
   });
 
   @override
@@ -34,15 +38,21 @@ class FilterPanel extends StatefulWidget {
 }
 
 class _FilterPanelState extends State<FilterPanel> {
-  bool _isExpanded = false;
   late List<_FilterRow> _filterRows;
   String? _sortField;
   SortOrder _sortOrder = SortOrder.desc;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _initializeFromProps();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -183,250 +193,299 @@ class _FilterPanelState extends State<FilterPanel> {
     widget.onClear?.call();
   }
 
-  String? _sortSummary() {
-    if (widget.initialSort == null) return null;
-    final label = widget.sortFields
-            .where((f) => f.field == widget.initialSort!.field)
-            .firstOrNull
-            ?.label ??
-        widget.initialSort!.field;
-    final arrow = widget.initialSort!.order == SortOrder.asc ? '↑' : '↓';
-    return '$arrow $label';
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasFilters = _filterRows.isNotEmpty;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header row with toggle
-        InkWell(
-          onTap: () => setState(() => _isExpanded = !_isExpanded),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Row(
-              children: [
-                Flexible(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (widget.onColumnSettingsTap != null) ...[
-                          ActionChip(
-                            avatar: const Icon(Icons.view_column, size: 16),
-                            label: const Text(
-                              'Columns',
-                              style: TextStyle(fontSize: 12),
-                            ),
-                            onPressed: widget.onColumnSettingsTap,
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                          ),
-                        ],
-                        const SizedBox(width: 8),
-                        Icon(
-                          _isExpanded ? Icons.filter_list_off : Icons.filter_list,
-                          size: 20,
-                          color: hasFilters ? theme.colorScheme.primary : null,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Filters & Sort',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: hasFilters ? theme.colorScheme.primary : null,
-                          ),
-                        ),
-                        if (hasFilters) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              '${_filterRows.length}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: theme.colorScheme.onPrimaryContainer,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Row(
+        children: [
+          // Search bar
+          if (widget.onSearchSubmitted != null)
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                onSubmitted: (_) =>
+                    widget.onSearchSubmitted!(_searchController.text),
+                decoration: InputDecoration(
+                  hintText: widget.searchPlaceholder ?? 'Search',
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 5,
                   ),
                 ),
-                const SizedBox(width: 4),
-                Icon(
-                  _isExpanded ? Icons.expand_less : Icons.expand_more,
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // Sort summary (collapsed only)
-        if (!_isExpanded && _sortSummary() != null)
-          Padding(
-            padding: const EdgeInsets.only(left: 16, bottom: 4),
-            child: Text(
-              _sortSummary()!,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-          ),
-
-        // Expandable filter content
-        if (_isExpanded) ...[
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Prepared filter presets
-                if (widget.preparedFilters.isNotEmpty) ...[
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: List.generate(
-                        widget.preparedFilters.length,
-                        (index) {
-                          final preset = widget.preparedFilters[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: ChoiceChip(
-                              label: Text(preset.name),
-                              selected: widget.selectedPresetIndex == index,
-                              onSelected: (selected) {
-                                if (selected) {
-                                  widget.onPresetSelected?.call(index);
-                                }
-                              },
-                            ),
-                          );
-                        },
-                      ),
+          if (widget.onSearchSubmitted != null)
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () =>
+                  widget.onSearchSubmitted!(_searchController.text),
+              tooltip: 'Search',
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              padding: EdgeInsets.zero,
+            ),
+          const SizedBox(width: 4),
+          // Filter toggle button — opens bottom sheet
+          InkWell(
+            onTap: () => _showFilterSheet(context),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.filter_list,
+                    size: 20,
+                    color: hasFilters ? theme.colorScheme.primary : null,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Filters & Sort',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: hasFilters ? theme.colorScheme.primary : null,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                ],
-
-                // Sort row
-                _buildSortRow(theme),
-
-                // Filter rows
-                if (_filterRows.isNotEmpty) ...[
-                  Text('Filters', style: theme.textTheme.titleSmall),
-                  const SizedBox(height: 2),
-                  ..._filterRows.asMap().entries.map((entry) {
-                    return _buildFilterRow(entry.key, entry.value, theme);
-                  }),
-                ],
-
-                // Add filter and action buttons row
-                Row(
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: _getAvailableFields().isNotEmpty
-                          ? _addFilter
-                          : null,
-                      icon: const Icon(Icons.add, size: 18),
-                      label: Text(
-                        _getAvailableFields().isNotEmpty
-                            ? 'Add Filter'
-                            : 'All filters added',
+                  if (hasFilters) ...[
+                    const SizedBox(width: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 1,
                       ),
-                    ),
-                    const Spacer(),
-                    if (hasFilters)
-                      TextButton(
-                        onPressed: _clearAll,
-                        child: const Text('Clear All'),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    const SizedBox(width: 8),
-                    FilledButton(
-                      onPressed: _applyFilters,
-                      child: const Text('Apply'),
+                      child: Text(
+                        '${_filterRows.length}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: theme.colorScheme.onPrimaryContainer,
+                        ),
+                      ),
                     ),
                   ],
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
-      ],
+      ),
     );
   }
 
-  Widget _buildSortRow(ThemeData theme) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Sort by: ', style: theme.textTheme.titleSmall),
-            const SizedBox(width: 8),
-            IntrinsicWidth(
-              child: DropdownButtonFormField<String>(
-                initialValue: _sortField,
-                isDense: true,
-                decoration: const InputDecoration(
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  border: OutlineInputBorder(),
-                ),
-                items: widget.sortFields.map((f) {
-                  return DropdownMenuItem(value: f.field, child: Text(f.label));
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _sortField = value;
-                  });
-                },
+  void _showFilterSheet(BuildContext context) {
+    final theme = Theme.of(context);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final hasFilters = _filterRows.isNotEmpty;
+
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Drag handle
+                      Center(
+                        child: Container(
+                          width: 32,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+
+                      // Column settings
+                      if (widget.onColumnSettingsTap != null) ...[
+                        ActionChip(
+                          avatar: const Icon(Icons.view_column, size: 16),
+                          label: const Text(
+                            'Columns',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            widget.onColumnSettingsTap!();
+                          },
+                          visualDensity: VisualDensity.compact,
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 4),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+
+                      // Saved view presets
+                      if (widget.preparedFilters.isNotEmpty) ...[
+                        DropdownButtonFormField<int>(
+                          initialValue: widget.selectedPresetIndex >= 0
+                              ? widget.selectedPresetIndex
+                              : null,
+                          isDense: true,
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            border: OutlineInputBorder(),
+                            labelText: 'Saved View',
+                          ),
+                          items: List.generate(
+                            widget.preparedFilters.length,
+                            (index) => DropdownMenuItem(
+                              value: index,
+                              child: Text(
+                                  widget.preparedFilters[index].name),
+                            ),
+                          ),
+                          onChanged: (index) {
+                            if (index != null) {
+                              widget.onPresetSelected?.call(index);
+                              Navigator.pop(context);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+
+                      // Sort row
+                      _buildSortRow(theme, setSheetState),
+
+                      // Filter rows
+                      if (_filterRows.isNotEmpty) ...[
+                        Text('Filters',
+                            style: theme.textTheme.titleSmall),
+                        const SizedBox(height: 2),
+                        ..._filterRows.asMap().entries.map((entry) {
+                          return _buildFilterRow(
+                            entry.key,
+                            entry.value,
+                            theme,
+                            setSheetState,
+                          );
+                        }),
+                      ],
+
+                      // Add filter and action buttons row
+                      Row(
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed:
+                                _getAvailableFields().isNotEmpty
+                                    ? () {
+                                        _addFilter();
+                                        setSheetState(() {});
+                                      }
+                                    : null,
+                            icon: const Icon(Icons.add, size: 18),
+                            label: Text(
+                              _getAvailableFields().isNotEmpty
+                                  ? 'Add Filter'
+                                  : 'All filters added',
+                            ),
+                          ),
+                          const Spacer(),
+                          if (hasFilters)
+                            TextButton(
+                              onPressed: () {
+                                _clearAll();
+                                Navigator.pop(context);
+                              },
+                              child: const Text('Clear All'),
+                            ),
+                          const SizedBox(width: 8),
+                          FilledButton(
+                            onPressed: () {
+                              _applyFilters();
+                              Navigator.pop(context);
+                            },
+                            child: const Text('Apply'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSortRow(ThemeData theme, [StateSetter? setSheetState]) {
+    return Row(
+      children: [
+        Expanded(
+          child: DropdownButtonFormField<String>(
+            initialValue: _sortField,
+            isDense: true,
+            decoration: const InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(),
+              labelText: 'Sort by',
             ),
-          ],
+            items: widget.sortFields.map((f) {
+              return DropdownMenuItem(value: f.field, child: Text(f.label));
+            }).toList(),
+            onChanged: (value) {
+              setState(() => _sortField = value);
+              setSheetState?.call(() {});
+            },
+          ),
         ),
+        const SizedBox(width: 8),
         SegmentedButton<SortOrder>(
+          showSelectedIcon: false,
           segments: const [
             ButtonSegment(
               value: SortOrder.asc,
-              icon: Icon(Icons.arrow_upward, size: 16),
-              label: Text('Asc'),
+              icon: Icon(Icons.arrow_upward, size: 18),
             ),
             ButtonSegment(
               value: SortOrder.desc,
-              icon: Icon(Icons.arrow_downward, size: 16),
-              label: Text('Desc'),
+              icon: Icon(Icons.arrow_downward, size: 18),
             ),
           ],
           selected: {_sortOrder},
           onSelectionChanged: (selection) {
-            setState(() {
-              _sortOrder = selection.first;
-            });
+            setState(() => _sortOrder = selection.first);
+            setSheetState?.call(() {});
           },
         ),
       ],
     );
   }
 
-  Widget _buildFilterRow(int index, _FilterRow row, ThemeData theme) {
+  Widget _buildFilterRow(int index, _FilterRow row, ThemeData theme, [StateSetter? setSheetState]) {
     final fieldDef = row.selectedField;
     final operators = fieldDef?.operators ?? [];
     final isSelectType = fieldDef?.type == FilterFieldType.select;
@@ -447,134 +506,144 @@ class _FilterPanelState extends State<FilterPanel> {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Field dropdown
-          Expanded(
-            flex: 2,
-            child: DropdownButtonFormField<FilterFieldDefinition>(
-              initialValue: row.selectedField,
-              isDense: true,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                border: OutlineInputBorder(),
-                hintText: 'Field',
-              ),
-              items: dropdownFields.map((f) {
-                return DropdownMenuItem(
-                  value: f,
-                  child: Text(f.label, overflow: TextOverflow.ellipsis),
-                );
-              }).toList(),
-              onChanged: (value) => _updateFilterField(index, value),
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Operator dropdown
-          Expanded(
-            flex: 2,
-            child: DropdownButtonFormField<String>(
-              initialValue: operators.contains(row.selectedOperator)
-                  ? row.selectedOperator
-                  : null,
-              isDense: true,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                border: OutlineInputBorder(),
-                hintText: 'Operator',
-              ),
-              items: operators.map((op) {
-                return DropdownMenuItem(
-                  value: op,
-                  child: Text(
-                    FilterOperators.getLabel(op),
-                    overflow: TextOverflow.ellipsis,
+          // Row 1: Field + Operator + Remove button
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<FilterFieldDefinition>(
+                  initialValue: row.selectedField,
+                  isDense: true,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    border: OutlineInputBorder(),
+                    hintText: 'Field',
                   ),
-                );
-              }).toList(),
-              onChanged: (value) => _updateFilterOperator(index, value),
+                  items: dropdownFields.map((f) {
+                    return DropdownMenuItem(
+                      value: f,
+                      child: Text(f.label, overflow: TextOverflow.ellipsis),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    _updateFilterField(index, value);
+                    setSheetState?.call(() {});
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  initialValue: operators.contains(row.selectedOperator)
+                      ? row.selectedOperator
+                      : null,
+                  isDense: true,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    border: OutlineInputBorder(),
+                    hintText: 'Operator',
+                  ),
+                  items: operators.map((op) {
+                    return DropdownMenuItem(
+                      value: op,
+                      child: Text(
+                        FilterOperators.getLabel(op),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    _updateFilterOperator(index, value);
+                    setSheetState?.call(() {});
+                  },
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, size: 20),
+                onPressed: () {
+                  _removeFilter(index);
+                  setSheetState?.call(() {});
+                },
+                tooltip: 'Remove filter',
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
+            ],
+          ),
+          // Row 2: Value input (full width, only if operator requires a value)
+          if (requiresValue)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: isSelectType && fieldDef?.selectOptions != null
+                  ? DropdownButtonFormField<String>(
+                      initialValue:
+                          fieldDef!.selectOptions!.any(
+                            (o) => o.value == row.value,
+                          )
+                          ? row.value
+                          : null,
+                      isDense: true,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        border: OutlineInputBorder(),
+                        hintText: 'Value',
+                      ),
+                      items: fieldDef.selectOptions!.map((o) {
+                        return DropdownMenuItem(
+                          value: o.value,
+                          child: Text(o.label),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          _updateFilterValue(index, value);
+                          setSheetState?.call(() {});
+                        }
+                      },
+                    )
+                  : isDateType
+                  ? _DatePickerField(
+                      value: row.value,
+                      onChanged: (value) {
+                        _updateFilterValue(index, value);
+                        setSheetState?.call(() {});
+                      },
+                    )
+                  : TextFormField(
+                      initialValue: row.value,
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        border: OutlineInputBorder(),
+                        hintText: 'Value',
+                      ),
+                      onChanged: (value) {
+                        _updateFilterValue(index, value);
+                        setSheetState?.call(() {});
+                      },
+                    ),
             ),
-          ),
-          const SizedBox(width: 8),
-
-          // Value input (varies by field type)
-          Expanded(
-            flex: 2,
-            child: requiresValue
-                ? isSelectType && fieldDef?.selectOptions != null
-                      ? DropdownButtonFormField<String>(
-                          initialValue:
-                              fieldDef!.selectOptions!.any(
-                                (o) => o.value == row.value,
-                              )
-                              ? row.value
-                              : null,
-                          isDense: true,
-                          isExpanded: true,
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            border: OutlineInputBorder(),
-                            hintText: 'Value',
-                          ),
-                          items: fieldDef.selectOptions!.map((o) {
-                            return DropdownMenuItem(
-                              value: o.value,
-                              child: Text(o.label),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              _updateFilterValue(index, value);
-                            }
-                          },
-                        )
-                      : isDateType
-                      ? _DatePickerField(
-                          value: row.value,
-                          onChanged: (value) =>
-                              _updateFilterValue(index, value),
-                        )
-                      : TextFormField(
-                          initialValue: row.value,
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            border: OutlineInputBorder(),
-                            hintText: 'Value',
-                          ),
-                          onChanged: (value) =>
-                              _updateFilterValue(index, value),
-                        )
-                : const SizedBox.shrink(),
-          ),
-          const SizedBox(width: 8),
-
-          // Remove button
-          IconButton(
-            icon: const Icon(Icons.close, size: 20),
-            onPressed: () => _removeFilter(index),
-            tooltip: 'Remove filter',
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-          ),
+          if (index < _filterRows.length - 1)
+            const Divider(height: 16),
         ],
       ),
     );

@@ -156,6 +156,8 @@ class _LittersScreenState extends State<LittersScreen> {
                     },
                   )
               : null,
+          searchPlaceholder: 'Try "Search litter LTR-001"',
+          onSearchSubmitted: (term) => _controller.search(term),
         ),
         const Divider(height: 1),
         Expanded(
@@ -166,7 +168,6 @@ class _LittersScreenState extends State<LittersScreen> {
                   context.go('/litter/${litter.litterUuid}');
                 },
                 controller: _controller,
-                searchPlaceholder: 'Try "Search litter LTR-001"',
                 onSortChanged: (columnName, ascending) {
                   setState(() {
                     _activeSort = SortParam(

@@ -180,6 +180,8 @@ class _CagesListScreenState extends State<CagesListScreen> {
                     },
                   )
               : null,
+          searchPlaceholder: 'Try "Search cage C-101"',
+          onSearchSubmitted: (term) => _controller.search(term),
         ),
         const Divider(height: 1),
         Expanded(
@@ -202,7 +204,6 @@ class _CagesListScreenState extends State<CagesListScreen> {
                   context.go('/cage/${cage.cageUuid}');
                 },
                 controller: _controller,
-                searchPlaceholder: 'Try "Search cage C-101"',
                 onSortChanged: (columnName, ascending) {
                   setState(() {
                     _activeSort = SortParam(
