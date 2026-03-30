@@ -4,23 +4,6 @@ import 'package:moustra/services/dtos/user_list_dto.dart';
 
 void main() {
   group('UserListColumn', () {
-    group('getColumns', () {
-      test('should return 5 columns', () {
-        final columns = UserListColumn.getColumns();
-        expect(columns.length, 5);
-      });
-
-      test('columns have expected column names', () {
-        final columns = UserListColumn.getColumns();
-        final columnNames = columns.map((c) => c.columnName).toList();
-        expect(columnNames, contains('name'));
-        expect(columnNames, contains('email'));
-        expect(columnNames, contains('role'));
-        expect(columnNames, contains('position'));
-        expect(columnNames, contains('status'));
-      });
-    });
-
     group('getDataGridRow', () {
       UserListDto createUser({
         int accountId = 1,

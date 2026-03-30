@@ -17,7 +17,7 @@ class TableSettingService {
   TableSettingSLR _parseTableSetting(Map<String, dynamic> json) {
     final fields = (json['tableSettingFields'] ?? json['table_setting_fields'] ?? []) as List<dynamic>;
     final parsedFields = fields
-        .map((f) => _parseField(f as Map<String, dynamic>))
+        .map((f) => _parseField(Map<String, dynamic>.from(f as Map)))
         .toList();
 
     return (TableSettingSLRBuilder()
@@ -62,16 +62,12 @@ class TableSettingService {
     try {
       final res = await dioApiClient.get('/table-setting/$name');
       debugPrint('[TableSetting] GET $name → ${res.statusCode}, data type: ${res.data?.runtimeType}');
-      if (res.statusCode == 200 && res.data is Map<String, dynamic>) {
-        final data = res.data as Map<String, dynamic>;
-        debugPrint('[TableSetting] Keys: ${data.keys.toList()}');
-        final fields = data['table_setting_fields'];
-        debugPrint('[TableSetting] fields type: ${fields?.runtimeType}, count: ${fields is List ? fields.length : "N/A"}');
-        if (fields is List && fields.isNotEmpty) {
-          debugPrint('[TableSetting] first field keys: ${(fields[0] as Map).keys.toList()}');
-          debugPrint('[TableSetting] first field: ${fields[0]}');
+      if (res.statusCode == 200 && res.data is Map) {
+        final data = Map<String, dynamic>.from(res.data as Map);
+        // Validate required keys before parsing
+        if (data.containsKey('tableSettingId') || data.containsKey('table_setting_id')) {
+          return _parseTableSetting(data);
         }
-        return _parseTableSetting(data);
       }
       debugPrint('[TableSetting] GET $name → ${res.statusCode}, falling back to refresh');
       return await _refreshAndGet(baseName);
@@ -91,16 +87,25 @@ class TableSettingService {
     final name = _mobileName(baseName);
     try {
       final refreshRes = await dioApiClient.post('/table-setting/$name/refresh');
-      if (refreshRes.statusCode == 200 && refreshRes.data is Map<String, dynamic>) {
-        debugPrint('[TableSetting] REFRESH $name → 200');
-        return _parseTableSetting(refreshRes.data as Map<String, dynamic>);
+      if (refreshRes.statusCode == 200 && refreshRes.data is Map) {
+        final data = Map<String, dynamic>.from(refreshRes.data as Map);
+        if (data.containsKey('tableSettingId') || data.containsKey('table_setting_id')) {
+          debugPrint('[TableSetting] REFRESH $name → 200');
+          return _parseTableSetting(data);
+        }
       }
     } catch (e) {
       debugPrint('[TableSetting] REFRESH $name failed: $e');
     }
     // Fallback: GET after refresh
     final res = await dioApiClient.get('/table-setting/$name');
-    return _parseTableSetting(res.data as Map<String, dynamic>);
+    if (res.data is Map) {
+      final data = Map<String, dynamic>.from(res.data as Map);
+      if (data.containsKey('tableSettingId') || data.containsKey('table_setting_id')) {
+        return _parseTableSetting(data);
+      }
+    }
+    throw StateError('Failed to load table setting for $name: invalid response');
   }
 
   /// PUT table setting using Dio directly with JSON body.

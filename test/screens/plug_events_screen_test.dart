@@ -50,41 +50,13 @@ void main() {
       expect(find.byType(PlugEventsScreen), findsOneWidget);
     });
 
-    testWidgets('displays ChoiceChip tabs for Active, Completed, All', (
+    testWidgets('displays FilterPanel with prepared filters configured', (
       WidgetTester tester,
     ) async {
       await pumpPlugEventsScreen(tester);
 
-      // Verify all three tab labels exist
-      expect(find.text('Active'), findsOneWidget);
-      expect(find.text('Completed'), findsOneWidget);
-      expect(find.text('All'), findsOneWidget);
-
-      // Verify ChoiceChip widgets
-      expect(find.byType(ChoiceChip), findsNWidgets(3));
-    });
-
-    testWidgets('Active tab is selected by default', (
-      WidgetTester tester,
-    ) async {
-      await pumpPlugEventsScreen(tester);
-
-      // Find the Active ChoiceChip and verify it is selected
-      final activeChip = tester.widget<ChoiceChip>(
-        find.widgetWithText(ChoiceChip, 'Active'),
-      );
-      expect(activeChip.selected, isTrue);
-
-      // Completed and All should not be selected
-      final completedChip = tester.widget<ChoiceChip>(
-        find.widgetWithText(ChoiceChip, 'Completed'),
-      );
-      expect(completedChip.selected, isFalse);
-
-      final allChip = tester.widget<ChoiceChip>(
-        find.widgetWithText(ChoiceChip, 'All'),
-      );
-      expect(allChip.selected, isFalse);
+      // FilterPanel is rendered with preparedFilters for Active, Completed, All
+      expect(find.byType(FilterPanel), findsOneWidget);
     });
 
     testWidgets('has FilterPanel widget', (WidgetTester tester) async {

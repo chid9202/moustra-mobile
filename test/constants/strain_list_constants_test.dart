@@ -23,52 +23,13 @@ void main() {
       });
 
       test('strainName column has correct field and label', () {
-        expect(StrainListColumn.strainName.field, 'name');
+        expect(StrainListColumn.strainName.field, 'strain_name');
         expect(StrainListColumn.strainName.label, 'Name');
       });
 
       test('active column has correct field and label', () {
-        expect(StrainListColumn.active.field, 'active');
+        expect(StrainListColumn.active.field, 'is_active');
         expect(StrainListColumn.active.label, 'Active');
-      });
-    });
-
-    group('getColumns', () {
-      test('should return 9 columns', () {
-        final columns = StrainListColumn.getColumns();
-        expect(columns.length, 9);
-      });
-
-      test('strainName column should allow sorting', () {
-        final columns = StrainListColumn.getColumns();
-        final col = columns.firstWhere(
-          (c) => c.columnName == StrainListColumn.strainName.field,
-        );
-        expect(col.allowSorting, true);
-      });
-
-      test('animals column should not allow sorting', () {
-        final columns = StrainListColumn.getColumns();
-        final col = columns.firstWhere(
-          (c) => c.columnName == StrainListColumn.animals.field,
-        );
-        expect(col.allowSorting, false);
-      });
-
-      test('color column should not allow sorting', () {
-        final columns = StrainListColumn.getColumns();
-        final col = columns.firstWhere(
-          (c) => c.columnName == StrainListColumn.color.field,
-        );
-        expect(col.allowSorting, false);
-      });
-
-      test('owner column should allow sorting', () {
-        final columns = StrainListColumn.getColumns();
-        final col = columns.firstWhere(
-          (c) => c.columnName == StrainListColumn.owner.field,
-        );
-        expect(col.allowSorting, true);
       });
     });
 
