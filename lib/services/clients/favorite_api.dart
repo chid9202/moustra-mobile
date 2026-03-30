@@ -4,12 +4,16 @@ import 'package:moustra/services/dtos/favorite_dto.dart';
 class FavoriteApi {
   static const String basePath = '/favorites';
 
+  final DioApiClient _client;
+
+  FavoriteApi([DioApiClient? client]) : _client = client ?? dioApiClient;
+
   Future<List<FavoriteDto>> getAll({String? type}) async {
     final query = <String, String>{};
     if (type != null) {
       query['type'] = type;
     }
-    final res = await dioApiClient.get(basePath, query: query);
+    final res = await _client.get(basePath, query: query);
     if (res.statusCode != 200) {
       throw Exception('Failed to get favorites: ${res.data}');
     }
@@ -23,7 +27,7 @@ class FavoriteApi {
     String objectType,
     String objectUuid,
   ) async {
-    final res = await dioApiClient.post(
+    final res = await _client.post(
       '$basePath/toggle/',
       body: {
         'object_type': objectType,
