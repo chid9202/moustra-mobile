@@ -38,7 +38,6 @@ class GeneratedApi {
   BackgroundApi get background => _api.getBackgroundApi();
   CageApi get cages => _api.getCageApi();
   DashboardApi get dashboard => _api.getDashboardApi();
-  EarMarkApi get earMarks => _api.getEarMarkApi();
   EndReasonApi get endReasons => _api.getEndReasonApi();
   EndTypeApi get endTypes => _api.getEndTypeApi();
   EventApi get events => _api.getEventApi();
