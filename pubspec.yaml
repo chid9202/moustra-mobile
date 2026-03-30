@@ -62,6 +62,7 @@ dependencies:
   dio: ^5.7.0
   moustra_api:
     path: lib/api/generated
+  syncfusion_flutter_core: ^32.2.9
 
 dev_dependencies:
   flutter_test:

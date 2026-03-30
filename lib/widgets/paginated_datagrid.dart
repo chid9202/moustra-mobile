@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:moustra/models/cell_edit_state.dart';
 
@@ -23,8 +24,14 @@ typedef FilterChanged<T> =
 
 class PaginatedGridController {
   VoidCallback? _reload;
-  void _attach(VoidCallback reload) => _reload = reload;
+  void Function(String term)? _search;
+  void _attach(VoidCallback reload, void Function(String term) search) {
+    _reload = reload;
+    _search = search;
+  }
+
   void reload() => _reload?.call();
+  void search(String term) => _search?.call(term);
 }
 
 class PaginatedDataGrid<T> extends StatefulWidget {
@@ -37,7 +44,6 @@ class PaginatedDataGrid<T> extends StatefulWidget {
   final RowHeightEstimator<T>? rowHeightEstimator;
   final FilterChanged<T>? onFilterChanged;
   final void Function(String columnName, bool ascending)? onSortChanged;
-  final String? searchPlaceholder;
   final void Function(T row)? onRowTap;
 
   /// Edit field configurations — defines which columns are editable and how.
@@ -68,7 +74,6 @@ class PaginatedDataGrid<T> extends StatefulWidget {
     this.rowHeightEstimator,
     this.onFilterChanged,
     this.onSortChanged,
-    this.searchPlaceholder,
     this.onRowTap,
     this.editFieldConfigs,
     this.onCellEditCommit,
@@ -89,7 +94,6 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
   bool _isLoading = true;
   String? _lastSortedColumn;
   bool _sortAscending = true;
-  bool _useAiSearch = true;
   String _searchTerm = '';
 
   @override
@@ -97,27 +101,25 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
     super.initState();
     _pageSize = widget.pageSize;
     _fetchAndSet(0);
-    widget.controller?._attach(() => _reload());
+    widget.controller?._attach(() => _reload(), _searchByTerm);
   }
 
   @override
   void dispose() {
-    widget.controller?._attach(() {});
+    widget.controller?._attach(() {}, (_) {});
     super.dispose();
   }
 
   Future<void> _reload() async => _fetchAndSet(_currentPage);
 
-  void _onFilterChanged(String value) {
-    setState(() {
-      _searchTerm = value;
-    });
+  void _searchByTerm(String term) {
+    _searchTerm = term;
+    _triggerSearch();
   }
 
   void _triggerSearch() {
     if (widget.onFilterChanged != null) {
-      // Only use AI search if there's a search term
-      final bool shouldUseAi = _useAiSearch && _searchTerm.trim().isNotEmpty;
+      final bool shouldUseAi = _searchTerm.trim().isNotEmpty;
 
       setState(() {
         _isLoading = true;
@@ -171,49 +173,6 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (widget.onFilterChanged != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    onChanged: _onFilterChanged,
-                    onSubmitted: (_) => _triggerSearch(),
-                    decoration: InputDecoration(
-                      hintText: widget.searchPlaceholder ?? 'Filter',
-                      border: const OutlineInputBorder(),
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 5,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                IconButton(
-                  icon: Icon(
-                    Icons.auto_awesome,
-                    color: _useAiSearch
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.grey,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _useAiSearch = !_useAiSearch;
-                    });
-                  },
-                  tooltip: _useAiSearch ? 'AI Search On' : 'AI Search Off',
-                ),
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: _triggerSearch,
-                  tooltip: 'Search',
-                ),
-              ],
-            ),
-          ),
         if (widget.topBar != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
@@ -227,9 +186,16 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
             ? const Center(child: CircularProgressIndicator())
             : Stack(
             children: [
-              SfDataGrid(
+              SfDataGridTheme(
+                data: const SfDataGridThemeData(
+                  gridLineColor: Color(0xFFE0E0E0),
+                  gridLineStrokeWidth: 1,
+                ),
+                child: SfDataGrid(
                 source: widget.sourceBuilder(_rows),
                 columns: widget.columns,
+                gridLinesVisibility: GridLinesVisibility.both,
+                headerGridLinesVisibility: GridLinesVisibility.both,
                 allowSorting: false,
                 onCellTap: (details) {
                   final int ri = details.rowColumnIndex.rowIndex;
@@ -290,6 +256,7 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
                   );
                   return base + (lines > 1 ? (lines - 1) * 20.0 : 0);
                 },
+              ),
               ),
               if (_isLoading)
                 Positioned(
