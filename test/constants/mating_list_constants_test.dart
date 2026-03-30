@@ -32,37 +32,6 @@ void main() {
       });
     });
 
-    group('getColumns', () {
-      test('should return 11 columns', () {
-        final columns = MatingListColumn.getColumns();
-        expect(columns.length, 11);
-      });
-
-      test('matingTag column should allow sorting', () {
-        final columns = MatingListColumn.getColumns();
-        final col = columns.firstWhere(
-          (c) => c.columnName == MatingListColumn.matingTag.field,
-        );
-        expect(col.allowSorting, true);
-      });
-
-      test('maleTag column should not allow sorting', () {
-        final columns = MatingListColumn.getColumns();
-        final col = columns.firstWhere(
-          (c) => c.columnName == MatingListColumn.maleTag.field,
-        );
-        expect(col.allowSorting, false);
-      });
-
-      test('femaleTag column should not allow sorting', () {
-        final columns = MatingListColumn.getColumns();
-        final col = columns.firstWhere(
-          (c) => c.columnName == MatingListColumn.femaleTag.field,
-        );
-        expect(col.allowSorting, false);
-      });
-    });
-
     group('getDataGridRow', () {
       test('produces correct number of cells with full data', () {
         final mating = MatingDto(
@@ -109,9 +78,9 @@ void main() {
         );
 
         final row = MatingListColumn.getDataGridRow(mating);
-        // 12 cells: edit, matingTag, cageTag, litterStrain, maleTag, maleGenotypes,
-        //           femaleTag, femaleGenotypes, setUpDate, disbandedDate, owner, created
-        expect(row.getCells().length, 12);
+        // 13 cells: edit, matingTag, cageTag, litterStrain, maleTag, maleGenotypes,
+        //           femaleTag, femaleGenotypes, setUpDate, owner, created, disbandedDate, disbandedBy
+        expect(row.getCells().length, 13);
       });
 
       test('produces correct number of cells with minimal data', () {
@@ -121,7 +90,7 @@ void main() {
         );
 
         final row = MatingListColumn.getDataGridRow(mating);
-        expect(row.getCells().length, 12);
+        expect(row.getCells().length, 13);
       });
 
       test('cell values are set correctly for key fields', () {

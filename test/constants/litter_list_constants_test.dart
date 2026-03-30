@@ -7,14 +7,10 @@ import 'package:moustra/services/dtos/strain_dto.dart';
 void main() {
   group('LitterListColumn', () {
     group('enum values', () {
-      test('all columns have non-empty field names except numberOfPups', () {
+      test('all columns have non-empty field names', () {
         for (final col in LitterListColumn.values) {
-          if (col == LitterListColumn.numberOfPups) {
-            // numberOfPups has an empty field name (computed column)
-            expect(col.field, isEmpty);
-          } else {
-            expect(col.field, isNotEmpty, reason: '${col.name} should have a non-empty field');
-          }
+          expect(col.field, isNotEmpty,
+              reason: '${col.name} should have a non-empty field');
         }
       });
 
@@ -34,47 +30,9 @@ void main() {
         expect(LitterListColumn.litterTag.label, 'Litter Tag');
       });
 
-      test('numberOfPups column has correct label', () {
+      test('numberOfPups column has correct field and label', () {
         expect(LitterListColumn.numberOfPups.label, 'Number of Pups');
-      });
-    });
-
-    group('getColumns', () {
-      test('should return 8 columns', () {
-        final columns = LitterListColumn.getColumns();
-        expect(columns.length, 8);
-      });
-
-      test('select column should be hidden by default', () {
-        final columns = LitterListColumn.getColumns();
-        final selectColumn = columns.firstWhere(
-          (c) => c.columnName == LitterListColumn.select.field,
-        );
-        expect(selectColumn.visible, false);
-      });
-
-      test('select column should be visible when includeSelect is true', () {
-        final columns = LitterListColumn.getColumns(includeSelect: true);
-        final selectColumn = columns.firstWhere(
-          (c) => c.columnName == LitterListColumn.select.field,
-        );
-        expect(selectColumn.visible, true);
-      });
-
-      test('litterTag column should allow sorting', () {
-        final columns = LitterListColumn.getColumns();
-        final col = columns.firstWhere(
-          (c) => c.columnName == LitterListColumn.litterTag.field,
-        );
-        expect(col.allowSorting, true);
-      });
-
-      test('numberOfPups column should not allow sorting', () {
-        final columns = LitterListColumn.getColumns();
-        final col = columns.firstWhere(
-          (c) => c.columnName == LitterListColumn.numberOfPups.field,
-        );
-        expect(col.allowSorting, false);
+        expect(LitterListColumn.numberOfPups.field, 'number_of_pups');
       });
     });
 
@@ -102,8 +60,8 @@ void main() {
         );
 
         final row = LitterListColumn.getDataGridRow(litter);
-        // 9 cells: select, edit, litterTag, strain, numberOfPups, wean, dob, owner, created
-        expect(row.getCells().length, 9);
+        // 11 cells: select, edit, litterTag, strain, numberOfPups, matingTag, wean, dob, owner, created, endDate
+        expect(row.getCells().length, 11);
       });
 
       test('produces correct number of cells with minimal data', () {
@@ -112,7 +70,7 @@ void main() {
         );
 
         final row = LitterListColumn.getDataGridRow(litter);
-        expect(row.getCells().length, 9);
+        expect(row.getCells().length, 11);
       });
 
       test('cell values are set correctly for key fields', () {
