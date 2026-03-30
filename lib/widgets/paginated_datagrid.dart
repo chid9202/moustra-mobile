@@ -55,7 +55,8 @@ class PaginatedDataGrid<T> extends StatefulWidget {
 
   /// Called when an editable cell is tapped — opens the edit modal/picker.
   /// Should handle showing the appropriate UI and calling onCellEditCommit.
-  final void Function(T row, String columnName)? onCellEditTap;
+  /// Returns a Future so the grid can track when editing completes.
+  final Future<void> Function(T row, String columnName)? onCellEditTap;
 
   /// Extracts the row UUID from a row object.
   final String Function(T row)? getRowId;
@@ -95,6 +96,10 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
   String? _lastSortedColumn;
   bool _sortAscending = true;
   String _searchTerm = '';
+
+  // Tracks which cell is currently being edited for highlighting
+  int? _editingRowIndex;
+  int? _editingColIndex;
 
   @override
   void initState() {
@@ -192,7 +197,13 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
                   gridLineStrokeWidth: 1,
                 ),
                 child: SfDataGrid(
-                source: widget.sourceBuilder(_rows),
+                source: _HighlightingDataGridSource(
+                  delegate: widget.sourceBuilder(_rows),
+                  highlightRowIndex: _editingRowIndex,
+                  highlightColIndex: _editingColIndex,
+                  highlightColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                  highlightBorderColor: Theme.of(context).colorScheme.primary,
+                ),
                 columns: widget.columns,
                 gridLinesVisibility: GridLinesVisibility.both,
                 headerGridLinesVisibility: GridLinesVisibility.both,
@@ -230,7 +241,18 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
                       // Editable column tap → open edit modal
                       final config = widget.editFieldConfigs?[colName];
                       if (config != null && widget.onCellEditTap != null) {
-                        widget.onCellEditTap!(row, colName);
+                        setState(() {
+                          _editingRowIndex = ri - 1;
+                          _editingColIndex = ci;
+                        });
+                        widget.onCellEditTap!(row, colName).whenComplete(() {
+                          if (mounted) {
+                            setState(() {
+                              _editingRowIndex = null;
+                              _editingColIndex = null;
+                            });
+                          }
+                        });
                         return;
                       }
 
@@ -295,5 +317,51 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
         ),
       ],
     );
+  }
+}
+
+/// Wraps a [DataGridSource] to highlight the currently-editing cell.
+class _HighlightingDataGridSource extends DataGridSource {
+  final DataGridSource delegate;
+  final int? highlightRowIndex;
+  final int? highlightColIndex;
+  final Color highlightColor;
+  final Color highlightBorderColor;
+
+  _HighlightingDataGridSource({
+    required this.delegate,
+    this.highlightRowIndex,
+    this.highlightColIndex,
+    required this.highlightColor,
+    required this.highlightBorderColor,
+  });
+
+  @override
+  List<DataGridRow> get rows => delegate.rows;
+
+  @override
+  DataGridRowAdapter? buildRow(DataGridRow row) {
+    final adapter = delegate.buildRow(row);
+    if (adapter == null ||
+        highlightRowIndex == null ||
+        highlightColIndex == null) {
+      return adapter;
+    }
+
+    final rowIndex = delegate.rows.indexOf(row);
+    if (rowIndex != highlightRowIndex ||
+        highlightColIndex! >= adapter.cells.length) {
+      return adapter;
+    }
+
+    final cells = List<Widget>.from(adapter.cells);
+    cells[highlightColIndex!] = Container(
+      decoration: BoxDecoration(
+        color: highlightColor,
+        border: Border.all(color: highlightBorderColor, width: 2),
+      ),
+      child: cells[highlightColIndex!],
+    );
+    return DataGridRowAdapter(cells: cells, color: adapter.color);
   }
 }

@@ -341,7 +341,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
     );
   }
 
-  void _onCellEditTap(CageDto cage, String columnName) async {
+  Future<void> _onCellEditTap(CageDto cage, String columnName) async {
     if (_isEndingMode) return; // Don't allow editing in ending mode
 
     final config = _editConfigs[columnName];

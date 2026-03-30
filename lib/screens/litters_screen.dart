@@ -284,7 +284,7 @@ class _LittersScreenState extends State<LittersScreen> {
     );
   }
 
-  void _onCellEditTap(LitterDto litter, String columnName) async {
+  Future<void> _onCellEditTap(LitterDto litter, String columnName) async {
     if (_isEndingMode) return;
 
     final config = _editConfigs[columnName];

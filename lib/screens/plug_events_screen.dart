@@ -118,7 +118,7 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
     );
   }
 
-  void _onCellEditTap(PlugEventDto plugEvent, String columnName) async {
+  Future<void> _onCellEditTap(PlugEventDto plugEvent, String columnName) async {
     final config = _editConfigs[columnName];
     if (config == null) return;
 

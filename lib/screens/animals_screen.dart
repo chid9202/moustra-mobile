@@ -161,7 +161,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     _controller.reload();
   }
 
-  void _onCellEditTap(AnimalDto animal, String columnName) async {
+  Future<void> _onCellEditTap(AnimalDto animal, String columnName) async {
     if (_isEndingMode) return;
 
     final config = _editConfigs[columnName];

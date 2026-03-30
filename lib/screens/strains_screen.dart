@@ -113,7 +113,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
     _controller.reload();
   }
 
-  void _onCellEditTap(StrainDto strain, String columnName) async {
+  Future<void> _onCellEditTap(StrainDto strain, String columnName) async {
     final config = _editConfigs[columnName];
     if (config == null) return;
 

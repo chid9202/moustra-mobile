@@ -94,7 +94,7 @@ class _MatingsScreenState extends State<MatingsScreen> {
     _controller.reload();
   }
 
-  void _onCellEditTap(MatingDto mating, String columnName) async {
+  Future<void> _onCellEditTap(MatingDto mating, String columnName) async {
     final config = _editConfigs[columnName];
     if (config == null) return;
 
