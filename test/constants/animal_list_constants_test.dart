@@ -35,6 +35,11 @@ void main() {
         expect(AnimalListColumn.status.field, 'status');
         expect(AnimalListColumn.status.label, 'Status');
       });
+
+      test('tailDate column has correct field and label', () {
+        expect(AnimalListColumn.tailDate.field, 'tail_date');
+        expect(AnimalListColumn.tailDate.label, 'Tail Date');
+      });
     });
 
     group('getDataGridRow', () {
@@ -79,8 +84,8 @@ void main() {
         );
 
         final row = AnimalListColumn.getDataGridRow(animal);
-        // 15 cells: select, physicalTag, sex, dob, genotypes, endDate, status, age, wean, cage, strain, sire, dam, owner, created
-        expect(row.getCells().length, 15);
+        // 16 cells: select, physicalTag, sex, dob, genotypes, endDate, status, age, wean, cage, strain, sire, dam, owner, created, tailDate
+        expect(row.getCells().length, 16);
       });
 
       test(
@@ -93,7 +98,7 @@ void main() {
         );
 
         final row = AnimalListColumn.getDataGridRow(animal);
-        expect(row.getCells().length, 15);
+        expect(row.getCells().length, 16);
       });
 
       test('cell values are set correctly for key fields', () {

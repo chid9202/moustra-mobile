@@ -167,6 +167,19 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
 
   Future<void> _postLogin(ProfileRequestDto request) async {
     debugPrint('[LoginScreen] _postLogin called for ${request.email}');
+    // main.dart already ran setupSession() after silent token restore — same work
+    // as below. Skip duplicate auth/callback + store API bursts.
+    final cached = profileState.value;
+    final sessionEmail = authService.user?.email ?? '';
+    if (cached?.accountUuid != null &&
+        sessionEmail.isNotEmpty &&
+        cached!.email == sessionEmail) {
+      debugPrint(
+        '[LoginScreen] Profile already loaded (setupSession), skipping duplicate fetch',
+      );
+      await _navigateAfterPostLogin();
+      return;
+    }
     try {
       debugPrint('[LoginScreen] Calling profileService.getProfile at ${Env.apiBaseUrl}...');
       final profile = await profileService.getProfile(request);
@@ -183,21 +196,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
       useBackgroundStore();
       useSettingStore();
 
-      if (mounted) {
-        // Give time to process the autofill save request before navigating
-        await Future.delayed(const Duration(milliseconds: 300));
-        if (mounted) {
-          _postLoginInProgress = false;
-          setState(() {
-            _loading = false;
-          });
-          if (profileState.value?.onboarded == true) {
-            context.go('/cage/grid');
-          } else {
-            context.go('/onboarding');
-          }
-        }
-      }
+      await _navigateAfterPostLogin();
     } catch (e) {
       debugPrint('Post-login error: $e');
       _postLoginInProgress = false;
@@ -213,6 +212,21 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
           _error = 'Unable to load your profile. Please try again.\n$errorMessage';
         });
       }
+    }
+  }
+
+  Future<void> _navigateAfterPostLogin() async {
+    if (!mounted) return;
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+    _postLoginInProgress = false;
+    setState(() {
+      _loading = false;
+    });
+    if (profileState.value?.onboarded == true) {
+      context.go('/cage/grid');
+    } else {
+      context.go('/onboarding');
     }
   }
 

@@ -54,6 +54,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
   StrainStoreDto? _selectedStrain;
   DateTime? _selectedDateOfBirth;
   DateTime? _selectedWeanDate;
+  DateTime? _selectedTailDate;
   AccountStoreDto? _selectedOwner;
   CageStoreDto? _selectedCage;
   AnimalStoreDto? _selectedSire;
@@ -117,6 +118,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
           _selectedStrain = loadedStrain;
           _selectedDateOfBirth = animal.dateOfBirth;
           _selectedWeanDate = animal.weanDate;
+          _selectedTailDate = animal.tailDate;
           _selectedOwner = loadedOwner;
           _selectedCage = loadedCage;
           _selectedSire = loadedSire;
@@ -169,6 +171,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
             strain: _selectedStrain?.toStrainSummaryDto(),
             dateOfBirth: _selectedDateOfBirth,
             weanDate: _selectedWeanDate,
+            tailDate: _selectedTailDate,
             cage: _selectedCage?.toCageSummaryDto(),
             owner: _selectedOwner?.toAccountDto(),
             sire: _selectedSire?.toAnimalSummaryDto(),
@@ -317,6 +320,19 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                   });
                 },
                 labelText: 'Wean Date',
+              ),
+
+              const SizedBox(height: 16),
+
+              // Tail Date
+              SelectDate(
+                selectedDate: _selectedTailDate,
+                onChanged: (date) {
+                  setState(() {
+                    _selectedTailDate = date;
+                  });
+                },
+                labelText: 'Tail Date',
               ),
 
               const SizedBox(height: 16),

@@ -253,5 +253,14 @@ void main() {
       // The matrix stores row-major: entry(3,0) is index 12
       expect(saved[12], 42.0);
     });
+
+    test('skips update when matrix is unchanged', () {
+      rackStore.value = RackStoreDto(rackData: RackDto());
+      final matrix = Matrix4.identity()..setEntry(3, 0, 7.0);
+      saveTransformationMatrix(matrix);
+      final afterFirst = rackStore.value;
+      saveTransformationMatrix(matrix);
+      expect(identical(rackStore.value, afterFirst), isTrue);
+    });
   });
 }

@@ -43,21 +43,32 @@ Future<RackStoreDto> useRackStore() async {
   return rackStore.value ?? RackStoreDto(rackData: RackDto());
 }
 
+bool _matrixListsEqual(List<double> a, List<double> b) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if ((a[i] - b[i]).abs() > 1e-6) return false;
+  }
+  return true;
+}
+
 void saveTransformationMatrix(Matrix4 matrix) {
   final currentStore = rackStore.value;
-  if (currentStore != null) {
-    // Convert Matrix4 to List<double> for serialization
-    final matrixList = _matrix4ToList(matrix);
+  if (currentStore == null) return;
 
-    // Save to in-memory store
-    rackStore.value = RackStoreDto(
-      rackData: currentStore.rackData,
-      transformationMatrix: matrixList,
-    );
-
-    // Save to SharedPreferences for persistence across app restarts
-    _saveTransformationMatrixToStorage(matrix);
+  final matrixList = _matrix4ToList(matrix);
+  final existing = currentStore.transformationMatrix;
+  if (existing != null &&
+      existing.length == 16 &&
+      _matrixListsEqual(existing, matrixList)) {
+    return;
   }
+
+  rackStore.value = RackStoreDto(
+    rackData: currentStore.rackData,
+    transformationMatrix: matrixList,
+  );
+
+  _saveTransformationMatrixToStorage(matrix);
 }
 
 List<double> _matrix4ToList(Matrix4 matrix) {

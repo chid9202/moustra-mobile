@@ -140,12 +140,11 @@
     "scripts": {
       "path": "scripts",
       "purpose": "Build/utility scripts",
-      "fileCount": 5,
+      "fileCount": 4,
       "lastAccessed": 1774745801294,
       "keyFiles": [
         "deploy-android.sh",
         "deploy-common.sh",
-        "deploy-ios.sh",
         "deploy.sh",
         "generate_api.sh"
       ]

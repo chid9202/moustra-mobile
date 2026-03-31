@@ -37,6 +37,13 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   Timer? _rebuildTimer;
   double _currentZoomLevel = CagesGridConstants.defaultZoomLevel;
 
+  /// Refetch when returning to this tab; shell navigation may reuse [State]
+  /// without calling [initState] again (e.g. Cages → Racks in the drawer).
+  GoRouter? _router;
+  VoidCallback? _shellLocationListener;
+  String? _lastKnownLocationForRefetch;
+  bool _shellRouteDelegatePrimed = false;
+
   // Search state
   String _searchQuery = '';
   String _searchType = CagesGridConstants.searchTypeAnimalTag;
@@ -53,39 +60,65 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     eventApi.trackEvent('view_cage_grid');
     _transformationController.addListener(_onTransformationChanged);
     _initializeScreen();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _attachShellLocationListener();
+    });
+  }
+
+  void _attachShellLocationListener() {
+    if (!mounted) return;
+    final router = GoRouter.maybeOf(context);
+    if (router == null) return;
+    _detachShellLocationListener();
+    _router = router;
+    _shellRouteDelegatePrimed = false;
+    _lastKnownLocationForRefetch = null;
+    _shellLocationListener = _onShellLocationChanged;
+    router.routerDelegate.addListener(_shellLocationListener!);
+  }
+
+  void _detachShellLocationListener() {
+    if (_router != null && _shellLocationListener != null) {
+      _router!.routerDelegate.removeListener(_shellLocationListener!);
+    }
+    _router = null;
+    _shellLocationListener = null;
+  }
+
+  void _onShellLocationChanged() {
+    if (!mounted || _router == null) return;
+    final path = _router!.state.uri.path;
+    // First notification syncs state only — avoids a second rack fetch right
+    // after [initState] (delegate often fires once when the listener attaches).
+    if (!_shellRouteDelegatePrimed) {
+      _shellRouteDelegatePrimed = true;
+      _lastKnownLocationForRefetch = path;
+      return;
+    }
+    final previous = _lastKnownLocationForRefetch;
+    _lastKnownLocationForRefetch = path;
+    if (path == '/cage/grid' && previous != '/cage/grid') {
+      _initializeScreen();
+    }
   }
 
   Future<void> _initializeScreen() async {
-    // Load rack data first
-    await useRackStore();
-    // Set initial selected rack from current data
-    if (rackStore.value != null) {
-      final rackData = rackStore.value!.rackData;
-      if (rackData.racks != null && rackData.racks!.isNotEmpty) {
-        final currentRackUuid = rackData.rackUuid;
-        if (currentRackUuid != null) {
-          setState(() {
-            _selectedRack = rackData.racks!.firstWhere(
-              (r) => r.rackUuid == currentRackUuid,
-              orElse: () => rackData.racks!.first,
-            );
-          });
-        } else {
-          setState(() {
-            _selectedRack = rackData.racks!.first;
-          });
-        }
-      }
-    }
-    // Then restore saved position after data is loaded
+    final preservedMatrix = rackStore.value?.transformationMatrix;
+    final rackUuid = rackStore.value?.rackData.rackUuid;
+    await _loadRackData(
+      rackUuid: rackUuid,
+      preservedMatrix: preservedMatrix,
+      silent: true,
+    );
     await _restoreSavedPosition();
   }
 
   Future<void> _loadRackData({
     String? rackUuid,
     List<double>? preservedMatrix,
+    bool silent = false,
   }) async {
-    if (mounted) {
+    if (!silent && mounted) {
       setState(() {
         _isLoadingRack = true;
       });
@@ -154,6 +187,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
 
   @override
   void dispose() {
+    _detachShellLocationListener();
     _transformationController.removeListener(_onTransformationChanged);
     _saveMatrixTimer?.cancel();
     _rebuildTimer?.cancel();

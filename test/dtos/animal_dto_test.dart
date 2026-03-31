@@ -27,6 +27,7 @@ void main() {
         ],
         'weanDate': '2023-02-01',
         'endDate': '2023-12-01',
+        'tail_date': '2023-03-15',
         'owner': {
           'accountId': 1,
           'accountUuid': 'account-uuid',
@@ -69,6 +70,7 @@ void main() {
       expect(animalDto.genotypes?.first.gene?.geneName, 'Gene1');
       expect(animalDto.weanDate, DateTime(2023, 2, 1));
       expect(animalDto.endDate, DateTime(2023, 12, 1));
+      expect(animalDto.tailDate, DateTime(2023, 3, 15));
       expect(animalDto.owner?.accountId, 1);
       expect(animalDto.cage?.cageTag, 'C001');
       expect(animalDto.strain?.strainName, 'C57BL/6');
@@ -97,6 +99,7 @@ void main() {
       expect(animalDto.genotypes, []);
       expect(animalDto.weanDate, null);
       expect(animalDto.endDate, null);
+      expect(animalDto.tailDate, null);
       expect(animalDto.owner, null);
       expect(animalDto.cage, null);
       expect(animalDto.strain, null);
@@ -117,6 +120,7 @@ void main() {
         dateOfBirth: DateTime(2023, 1, 1),
         sex: 'male',
         comment: 'Test comment',
+        tailDate: DateTime(2023, 3, 15),
       );
 
       // Act
@@ -130,6 +134,7 @@ void main() {
       expect(json['dateOfBirth'], '2023-01-01T00:00:00.000');
       expect(json['sex'], 'male');
       expect(json['comment'], 'Test comment');
+      expect(json['tail_date'], '2023-03-15');
     });
 
     test('should handle null optional fields in JSON', () {
@@ -144,6 +149,7 @@ void main() {
         'genotypes': null,
         'weanDate': null,
         'endDate': null,
+        'tail_date': null,
         'owner': null,
         'cage': null,
         'strain': null,
@@ -167,6 +173,7 @@ void main() {
       expect(animalDto.genotypes, []);
       expect(animalDto.weanDate, null);
       expect(animalDto.endDate, null);
+      expect(animalDto.tailDate, null);
       expect(animalDto.owner, null);
       expect(animalDto.cage, null);
       expect(animalDto.strain, null);

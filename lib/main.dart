@@ -67,6 +67,8 @@ Future<void> main() async {
       await initThemeStore();
       await authService.init();
 
+      // Hydrate profile + stores before first frame. LoginScreen._postLogin skips
+      // duplicate getProfile/store calls when profile is already set.
       if (authService.isLoggedIn) {
         try {
           await setupSession();

@@ -15,6 +15,20 @@ part 'animal_dto.g.dart';
 double? _safeDouble(dynamic v) => v == null ? null : (v is num ? v.toDouble() : double.tryParse(v.toString()));
 int? _safeInt(dynamic v) => v == null ? null : (v is num ? v.toInt() : int.tryParse(v.toString()));
 
+/// API expects `YYYY-MM-DD` for [tail_date]; ISO-8601 with time is rejected.
+DateTime? _animalApiDateOnlyFromJson(dynamic json) {
+  if (json == null) return null;
+  return DateTime.parse(json as String);
+}
+
+String? _animalApiDateOnlyToJson(DateTime? value) {
+  if (value == null) return null;
+  final y = value.year.toString().padLeft(4, '0');
+  final m = value.month.toString().padLeft(2, '0');
+  final d = value.day.toString().padLeft(2, '0');
+  return '$y-$m-$d';
+}
+
 @JsonSerializable(explicitToJson: true)
 class AnimalDto {
   final int eid;
@@ -25,6 +39,12 @@ class AnimalDto {
   final String? sex;
   final List<GenotypeDto>? genotypes;
   final DateTime? weanDate;
+  @JsonKey(
+    name: 'tail_date',
+    fromJson: _animalApiDateOnlyFromJson,
+    toJson: _animalApiDateOnlyToJson,
+  )
+  final DateTime? tailDate;
   final DateTime? endDate;
   final EndTypeSummaryDto? endType;
   final EndReasonSummaryDto? endReason;
@@ -50,6 +70,7 @@ class AnimalDto {
     this.sex,
     this.genotypes = const [],
     this.weanDate,
+    this.tailDate,
     this.endDate,
     this.endType,
     this.endReason,

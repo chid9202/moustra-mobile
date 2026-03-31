@@ -15,6 +15,7 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
   dob('Date of Birth', 'date_of_birth'),
   age('Age', 'age'),
   wean('Wean Date', 'wean_date'),
+  tailDate('Tail Date', 'tail_date'),
   cage('Cage Tag', 'cage_tag'),
   strain('Strain', 'strain'),
   genotypes('Genotypes', 'genotypes'),
@@ -71,6 +72,10 @@ enum AnimalListColumn implements ListColumn<AnimalDto> {
         DataGridCell<String>(
           columnName: AnimalListColumn.wean.name,
           value: DateTimeHelper.formatDate(a.weanDate),
+        ),
+        DataGridCell<String>(
+          columnName: AnimalListColumn.tailDate.name,
+          value: DateTimeHelper.formatDate(a.tailDate),
         ),
         DataGridCell<String>(
           columnName: AnimalListColumn.cage.name,

@@ -23,6 +23,7 @@ AnimalDto _$AnimalDtoFromJson(Map<String, dynamic> json) => AnimalDto(
   weanDate: json['weanDate'] == null
       ? null
       : DateTime.parse(json['weanDate'] as String),
+  tailDate: _animalApiDateOnlyFromJson(json['tail_date']),
   endDate: json['endDate'] == null
       ? null
       : DateTime.parse(json['endDate'] as String),
@@ -77,6 +78,7 @@ Map<String, dynamic> _$AnimalDtoToJson(AnimalDto instance) => <String, dynamic>{
   'sex': instance.sex,
   'genotypes': instance.genotypes?.map((e) => e.toJson()).toList(),
   'weanDate': instance.weanDate?.toIso8601String(),
+  'tail_date': _animalApiDateOnlyToJson(instance.tailDate),
   'endDate': instance.endDate?.toIso8601String(),
   'endType': instance.endType?.toJson(),
   'endReason': instance.endReason?.toJson(),
