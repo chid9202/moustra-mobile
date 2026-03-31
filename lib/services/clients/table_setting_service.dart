@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:moustra/services/clients/dio_api_client.dart';
-import 'package:moustra/services/clients/generated_api.dart';
 import 'package:moustra_api/moustra_api.dart';
 import 'package:built_collection/built_collection.dart';
 
@@ -15,17 +14,24 @@ class TableSettingService {
   /// Parse a TableSettingSLR from a raw JSON map.
   /// Supports both camelCase (Dio default) and snake_case keys.
   TableSettingSLR _parseTableSetting(Map<String, dynamic> json) {
-    final fields = (json['tableSettingFields'] ?? json['table_setting_fields'] ?? []) as List<dynamic>;
+    final fields =
+        (json['tableSettingFields'] ?? json['table_setting_fields'] ?? [])
+            as List<dynamic>;
     final parsedFields = fields
         .map((f) => _parseField(Map<String, dynamic>.from(f as Map)))
         .toList();
 
     return (TableSettingSLRBuilder()
-          ..tableSettingId = (json['tableSettingId'] ?? json['table_setting_id']) as int
-          ..tableSettingUuid = (json['tableSettingUuid'] ?? json['table_setting_uuid']) as String
-          ..tableSettingName = (json['tableSettingName'] ?? json['table_setting_name']) as String
+          ..tableSettingId =
+              (json['tableSettingId'] ?? json['table_setting_id']) as int
+          ..tableSettingUuid =
+              (json['tableSettingUuid'] ?? json['table_setting_uuid']) as String
+          ..tableSettingName =
+              (json['tableSettingName'] ?? json['table_setting_name']) as String
           ..owner = (json['owner']) as int?
-          ..updatedDate = DateTime.parse((json['updatedDate'] ?? json['updated_date']) as String)
+          ..updatedDate = DateTime.parse(
+            (json['updatedDate'] ?? json['updated_date']) as String,
+          )
           ..tableSettingFields = ListBuilder<TableSettingFieldSLR>(parsedFields)
           ..pageSize = (json['pageSize'] ?? json['page_size']) as int?)
         .build();
@@ -33,19 +39,29 @@ class TableSettingService {
 
   TableSettingFieldSLR _parseField(Map<String, dynamic> f) {
     return (TableSettingFieldSLRBuilder()
-          ..tableSettingFieldId = (f['tableSettingFieldId'] ?? f['table_setting_field_id']) as int
-          ..tableSettingFieldUuid = (f['tableSettingFieldUuid'] ?? f['table_setting_field_uuid']) as String
+          ..tableSettingFieldId =
+              (f['tableSettingFieldId'] ?? f['table_setting_field_id']) as int
+          ..tableSettingFieldUuid =
+              (f['tableSettingFieldUuid'] ?? f['table_setting_field_uuid'])
+                  as String
           ..fieldName = (f['fieldName'] ?? f['field_name']) as String
           ..fieldLabel = (f['fieldLabel'] ?? f['field_label']) as String
           ..fieldType = (f['fieldType'] ?? f['field_type']) as String
           ..fieldOrder = (f['fieldOrder'] ?? f['field_order']) as int
           ..fieldVisible = (f['fieldVisible'] ?? f['field_visible']) as bool
-          ..fieldFilterable = (f['fieldFilterable'] ?? f['field_filterable'])?.toString()
-          ..fieldSortable = (f['fieldSortable'] ?? f['field_sortable'])?.toString()
+          ..fieldFilterable = (f['fieldFilterable'] ?? f['field_filterable'])
+              ?.toString()
+          ..fieldSortable = (f['fieldSortable'] ?? f['field_sortable'])
+              ?.toString()
           ..fieldWidth = (f['fieldWidth'] ?? f['field_width'])?.toString()
-          ..updatedDate = DateTime.parse((f['updatedDate'] ?? f['updated_date']) as String)
-          ..fieldEditable = (f['fieldEditable'] ?? f['field_editable'])?.toString()
-          ..fieldValueOptions = _encodeValueOptions(f['fieldValueOptions'] ?? f['field_value_options']))
+          ..updatedDate = DateTime.parse(
+            (f['updatedDate'] ?? f['updated_date']) as String,
+          )
+          ..fieldEditable = (f['fieldEditable'] ?? f['field_editable'])
+              ?.toString()
+          ..fieldValueOptions = _encodeValueOptions(
+            f['fieldValueOptions'] ?? f['field_value_options'],
+          ))
         .build();
   }
 
@@ -61,15 +77,20 @@ class TableSettingService {
     final name = _mobileName(baseName);
     try {
       final res = await dioApiClient.get('/table-setting/$name');
-      debugPrint('[TableSetting] GET $name → ${res.statusCode}, data type: ${res.data?.runtimeType}');
+      debugPrint(
+        '[TableSetting] GET $name → ${res.statusCode}, data type: ${res.data?.runtimeType}',
+      );
       if (res.statusCode == 200 && res.data is Map) {
         final data = Map<String, dynamic>.from(res.data as Map);
         // Validate required keys before parsing
-        if (data.containsKey('tableSettingId') || data.containsKey('table_setting_id')) {
+        if (data.containsKey('tableSettingId') ||
+            data.containsKey('table_setting_id')) {
           return _parseTableSetting(data);
         }
       }
-      debugPrint('[TableSetting] GET $name → ${res.statusCode}, falling back to refresh');
+      debugPrint(
+        '[TableSetting] GET $name → ${res.statusCode}, falling back to refresh',
+      );
       return await _refreshAndGet(baseName);
     } catch (e, stack) {
       debugPrint('[TableSetting] GET $name failed: $e');
@@ -86,10 +107,13 @@ class TableSettingService {
   Future<TableSettingSLR> _refreshAndGet(String baseName) async {
     final name = _mobileName(baseName);
     try {
-      final refreshRes = await dioApiClient.post('/table-setting/$name/refresh');
+      final refreshRes = await dioApiClient.post(
+        '/table-setting/$name/refresh',
+      );
       if (refreshRes.statusCode == 200 && refreshRes.data is Map) {
         final data = Map<String, dynamic>.from(refreshRes.data as Map);
-        if (data.containsKey('tableSettingId') || data.containsKey('table_setting_id')) {
+        if (data.containsKey('tableSettingId') ||
+            data.containsKey('table_setting_id')) {
           debugPrint('[TableSetting] REFRESH $name → 200');
           return _parseTableSetting(data);
         }
@@ -101,11 +125,14 @@ class TableSettingService {
     final res = await dioApiClient.get('/table-setting/$name');
     if (res.data is Map) {
       final data = Map<String, dynamic>.from(res.data as Map);
-      if (data.containsKey('tableSettingId') || data.containsKey('table_setting_id')) {
+      if (data.containsKey('tableSettingId') ||
+          data.containsKey('table_setting_id')) {
         return _parseTableSetting(data);
       }
     }
-    throw StateError('Failed to load table setting for $name: invalid response');
+    throw StateError(
+      'Failed to load table setting for $name: invalid response',
+    );
   }
 
   /// PUT table setting using Dio directly with JSON body.
@@ -114,21 +141,25 @@ class TableSettingService {
     TableSettingSLR setting,
   ) async {
     final name = _mobileName(baseName);
-    final fieldsJson = setting.tableSettingFields.map((f) => {
-      'table_setting_field_id': f.tableSettingFieldId,
-      'table_setting_field_uuid': f.tableSettingFieldUuid,
-      'field_name': f.fieldName,
-      'field_label': f.fieldLabel,
-      'field_type': f.fieldType,
-      'field_order': f.fieldOrder,
-      'field_visible': f.fieldVisible,
-      'field_filterable': f.fieldFilterable,
-      'field_sortable': f.fieldSortable,
-      'field_width': f.fieldWidth,
-      'updated_date': f.updatedDate.toIso8601String(),
-      'field_editable': f.fieldEditable,
-      'field_value_options': f.fieldValueOptions,
-    }).toList();
+    final fieldsJson = setting.tableSettingFields
+        .map(
+          (f) => {
+            'table_setting_field_id': f.tableSettingFieldId,
+            'table_setting_field_uuid': f.tableSettingFieldUuid,
+            'field_name': f.fieldName,
+            'field_label': f.fieldLabel,
+            'field_type': f.fieldType,
+            'field_order': f.fieldOrder,
+            'field_visible': f.fieldVisible,
+            'field_filterable': f.fieldFilterable,
+            'field_sortable': f.fieldSortable,
+            'field_width': f.fieldWidth,
+            'updated_date': f.updatedDate.toIso8601String(),
+            'field_editable': f.fieldEditable,
+            'field_value_options': f.fieldValueOptions,
+          },
+        )
+        .toList();
 
     final body = {
       'table_setting_id': setting.tableSettingId,
@@ -140,10 +171,7 @@ class TableSettingService {
       if (setting.pageSize != null) 'page_size': setting.pageSize,
     };
 
-    final res = await dioApiClient.put(
-      '/table-setting/$name',
-      body: body,
-    );
+    final res = await dioApiClient.put('/table-setting/$name', body: body);
     if (res.statusCode != 200) {
       throw Exception('Failed to update table setting: ${res.data}');
     }

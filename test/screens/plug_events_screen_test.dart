@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/screens/plug_events_screen.dart';
 import 'package:moustra/widgets/filter_panel.dart';
 import 'package:moustra/widgets/movable_fab_menu.dart';
-import 'package:moustra/widgets/paginated_datagrid.dart';
 import '../test_helpers/test_helpers.dart';
 
 /// Helper to pump the PlugEventsScreen and ignore async API errors
@@ -14,10 +13,7 @@ import '../test_helpers/test_helpers.dart';
 Future<void> pumpPlugEventsScreen(WidgetTester tester) async {
   await runZonedGuarded(
     () async {
-      await TestHelpers.pumpWidgetWithTheme(
-        tester,
-        const PlugEventsScreen(),
-      );
+      await TestHelpers.pumpWidgetWithTheme(tester, const PlugEventsScreen());
       await tester.pump();
     },
     (error, stack) {
@@ -72,7 +68,8 @@ void main() {
       // so use byWidgetPredicate to match regardless of type parameter.
       expect(
         find.byWidgetPredicate(
-          (widget) => widget.runtimeType.toString().startsWith('PaginatedDataGrid'),
+          (widget) =>
+              widget.runtimeType.toString().startsWith('PaginatedDataGrid'),
         ),
         findsOneWidget,
       );

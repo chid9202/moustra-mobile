@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/widgets/cage/cage_detailed_view.dart';

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:moustra/services/dtos/account_dto.dart';
 import 'package:moustra/services/dtos/stores/account_store_dto.dart';
 import 'package:moustra/stores/account_store.dart';
 import 'package:moustra/widgets/shared/select_owner.dart';
@@ -30,10 +29,7 @@ void main() {
     testWidgets('renders with Owner label', (WidgetTester tester) async {
       await TestHelpers.pumpWidgetWithTheme(
         tester,
-        SelectOwner(
-          selectedOwner: null,
-          onChanged: (owner) {},
-        ),
+        SelectOwner(selectedOwner: null, onChanged: (owner) {}),
       );
 
       expect(find.text('Owner'), findsOneWidget);
@@ -44,13 +40,13 @@ void main() {
     ) async {
       await TestHelpers.pumpWidgetWithTheme(
         tester,
-        SelectOwner(
-          selectedOwner: null,
-          onChanged: (owner) {},
-        ),
+        SelectOwner(selectedOwner: null, onChanged: (owner) {}),
       );
 
-      expect(find.byType(DropdownButtonFormField<AccountStoreDto>), findsOneWidget);
+      expect(
+        find.byType(DropdownButtonFormField<AccountStoreDto>),
+        findsOneWidget,
+      );
     });
 
     testWidgets('renders with OutlineInputBorder decoration', (
@@ -58,10 +54,7 @@ void main() {
     ) async {
       await TestHelpers.pumpWidgetWithTheme(
         tester,
-        SelectOwner(
-          selectedOwner: null,
-          onChanged: (owner) {},
-        ),
+        SelectOwner(selectedOwner: null, onChanged: (owner) {}),
       );
 
       expect(find.byType(SelectOwner), findsOneWidget);
@@ -72,10 +65,7 @@ void main() {
     ) async {
       await TestHelpers.pumpWidgetWithTheme(
         tester,
-        SelectOwner(
-          selectedOwner: null,
-          onChanged: (owner) {},
-        ),
+        SelectOwner(selectedOwner: null, onChanged: (owner) {}),
       );
 
       // Wait for accounts to load

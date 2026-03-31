@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import 'package:fl_chart/fl_chart.dart';
@@ -52,8 +50,11 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
     final ageData = (selected['ageData'] as List<dynamic>? ?? <dynamic>[])
         .cast<Map<String, dynamic>>();
     final sorted = List<Map<String, dynamic>>.from(ageData)
-      ..sort((a, b) =>
-          ((a['sortOrder'] as int?) ?? 0).compareTo((b['sortOrder'] as int?) ?? 0));
+      ..sort(
+        (a, b) => ((a['sortOrder'] as int?) ?? 0).compareTo(
+          (b['sortOrder'] as int?) ?? 0,
+        ),
+      );
     return sorted;
   }
 
@@ -125,39 +126,42 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
           fitInsideVertically: true,
           fitInsideHorizontally: true,
           getTooltipColor: (group) => const Color(0xFF2D3142),
-          tooltipPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          tooltipPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
           tooltipMargin: 8,
-          getTooltipItem: (
-            BarChartGroupData group,
-            int groupIndex,
-            BarChartRodData rod,
-            int rodIndex,
-          ) {
-            final count = rod.toY;
-            final label = groupIndex < ageData.length
-                ? (ageData[groupIndex]['ageBucket'] ?? '').toString()
-                : '';
-            return BarTooltipItem(
-              '${count.toStringAsFixed(0)}'
-              ' ${count == 1 ? 'mouse' : 'mice'}\n',
-              const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-              children: <TextSpan>[
-                TextSpan(
-                  text: label,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
+          getTooltipItem:
+              (
+                BarChartGroupData group,
+                int groupIndex,
+                BarChartRodData rod,
+                int rodIndex,
+              ) {
+                final count = rod.toY;
+                final label = groupIndex < ageData.length
+                    ? (ageData[groupIndex]['ageBucket'] ?? '').toString()
+                    : '';
+                return BarTooltipItem(
+                  '${count.toStringAsFixed(0)}'
+                  ' ${count == 1 ? 'mouse' : 'mice'}\n',
+                  const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
-                ),
-              ],
-            );
-          },
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: label,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                );
+              },
         ),
       );
 
@@ -185,8 +189,7 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
           axisNameSize: 20,
           axisNameWidget: Padding(
             padding: const EdgeInsets.fromLTRB(48, 0, 0, 0),
-            child:
-                Align(alignment: Alignment.centerLeft, child: Text('Age')),
+            child: Align(alignment: Alignment.centerLeft, child: Text('Age')),
           ),
           sideTitles: SideTitles(
             showTitles: true,
@@ -204,20 +207,18 @@ class _MouseCountByAgeState extends State<MouseCountByAge> {
             },
           ),
         ),
-        rightTitles:
-            const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        topTitles:
-            const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       );
 
   FlBorderData get borderData => FlBorderData(
-        show: true,
-        border:
-            const Border(bottom: BorderSide(color: Colors.black, width: 1)),
-      );
+    show: true,
+    border: const Border(bottom: BorderSide(color: Colors.black, width: 1)),
+  );
 
-  List<BarChartGroupData> _buildBarGroups(
-      List<Map<String, dynamic>> ageData) {
+  List<BarChartGroupData> _buildBarGroups(List<Map<String, dynamic>> ageData) {
     return List.generate(ageData.length, (i) {
       final count = (ageData[i]['count'] as int?) ?? 0;
       return BarChartGroupData(

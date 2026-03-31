@@ -125,7 +125,11 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
       await _fetchRack(silent: true);
     } catch (e) {
       if (mounted) {
-        showAppSnackBar(context, 'Failed to update cage position', isError: true);
+        showAppSnackBar(
+          context,
+          'Failed to update cage position',
+          isError: true,
+        );
       }
     } finally {
       if (mounted) setState(() => _isMoving = false);
@@ -243,12 +247,14 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
           cmp = (a.cage.cageTag ?? '').compareTo(b.cage.cageTag ?? '');
           break;
         case 'strain':
-          cmp = (a.cage.strain?.strainName ?? '')
-              .compareTo(b.cage.strain?.strainName ?? '');
+          cmp = (a.cage.strain?.strainName ?? '').compareTo(
+            b.cage.strain?.strainName ?? '',
+          );
           break;
         case 'animals':
-          cmp = (a.cage.animals?.length ?? 0)
-              .compareTo(b.cage.animals?.length ?? 0);
+          cmp = (a.cage.animals?.length ?? 0).compareTo(
+            b.cage.animals?.length ?? 0,
+          );
           break;
         case 'status':
           cmp = (a.cage.status ?? '').compareTo(b.cage.status ?? '');
@@ -268,14 +274,10 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
         child: CustomScrollView(
           slivers: [
             // Header
-            SliverToBoxAdapter(
-              child: _buildHeader(rack, insights),
-            ),
+            SliverToBoxAdapter(child: _buildHeader(rack, insights)),
 
             // Insight cards
-            SliverToBoxAdapter(
-              child: _buildInsightCards(insights),
-            ),
+            SliverToBoxAdapter(child: _buildInsightCards(insights)),
 
             // Rack Snapshot
             SliverToBoxAdapter(
@@ -290,24 +292,22 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
 
             // Cage list header
             SliverToBoxAdapter(
-              child: _buildCageListHeader(cageRows.length, overflowCages.length),
+              child: _buildCageListHeader(
+                cageRows.length,
+                overflowCages.length,
+              ),
             ),
 
             // Cage list
             SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final cwp = cageRows[index];
-                  return _buildCageListTile(cwp);
-                },
-                childCount: cageRows.length,
-              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final cwp = cageRows[index];
+                return _buildCageListTile(cwp);
+              }, childCount: cageRows.length),
             ),
 
             // Bottom padding
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 32),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
       ),
@@ -329,16 +329,15 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
                   children: [
                     Text(
                       rack.rackName ?? 'Unnamed Rack',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${rack.rackWidth} × ${rack.rackHeight} rack · ${insights.totalPositions} positions',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -413,7 +412,8 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
               icon: Icons.attach_money,
               label: 'Weekly',
               value: '\$${insights.estimatedWeeklyCost.toStringAsFixed(0)}',
-              caption: '\$${estimatedCageCostPerDay.toStringAsFixed(2)}/cage/day',
+              caption:
+                  '\$${estimatedCageCostPerDay.toStringAsFixed(2)}/cage/day',
             ),
           ),
         ],
@@ -455,20 +455,18 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
                       children: [
                         Text(
                           'Rack Snapshot',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           _isArrangeMode
                               ? _selectedCageUuid != null
-                                  ? 'Tap a position to move, or another cage to swap'
-                                  : 'Select a cage to move'
+                                    ? 'Tap a position to move, or another cage to swap'
+                                    : 'Select a cage to move'
                               : 'Tap any cage to view details',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.grey[600],
-                              ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: Colors.grey[600]),
                         ),
                       ],
                     ),
@@ -492,9 +490,9 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
               if (_isArrangeMode && overflowCages.isNotEmpty) ...[
                 Text(
                   'Unpositioned (${overflowCages.length}) — select, then tap an empty cell',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 6),
                 SizedBox(
@@ -502,7 +500,7 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: overflowCages.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 6),
+                    separatorBuilder: (_, _) => const SizedBox(width: 6),
                     itemBuilder: (context, index) {
                       final cwp = overflowCages[index];
                       final isSelected = cwp.cage.cageUuid == _selectedCageUuid;
@@ -520,7 +518,8 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
                               : Colors.grey.shade400,
                         ),
                         visualDensity: VisualDensity.compact,
-                        onPressed: () => _handleOverflowCageTap(cwp.cage.cageUuid),
+                        onPressed: () =>
+                            _handleOverflowCageTap(cwp.cage.cageUuid),
                       );
                     },
                   ),
@@ -533,7 +532,9 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: SizedBox(
-                      width: rackWidth * 80.0 < MediaQuery.of(context).size.width - 48
+                      width:
+                          rackWidth * 80.0 <
+                              MediaQuery.of(context).size.width - 48
                           ? MediaQuery.of(context).size.width - 48
                           : rackWidth * 80.0,
                       child: GridView.builder(
@@ -554,9 +555,11 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
                           );
                           final cwp = cagesByPosition['$x-$y'];
                           final cage = cwp?.cage;
-                          final isSelected = cage != null &&
+                          final isSelected =
+                              cage != null &&
                               cage.cageUuid == _selectedCageUuid;
-                          final isValidTarget = _isArrangeMode &&
+                          final isValidTarget =
+                              _isArrangeMode &&
                               _selectedCageUuid != null &&
                               !isSelected;
 
@@ -570,11 +573,7 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
                             isArrangeMode: _isArrangeMode,
                             onTap: () {
                               if (_isArrangeMode) {
-                                _handleSnapshotCellTap(
-                                  cage?.cageUuid,
-                                  x,
-                                  y,
-                                );
+                                _handleSnapshotCellTap(cage?.cageUuid, x, y);
                               } else if (cage != null) {
                                 context.push('/cage/${cage.cageUuid}');
                               }
@@ -594,9 +593,7 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
                           color: Colors.white.withOpacity(0.6),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                        child: const Center(child: CircularProgressIndicator()),
                       ),
                     ),
                 ],
@@ -616,16 +613,16 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
         children: [
           Text(
             'Cages in Rack',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           Text(
             '$count cage${count == 1 ? '' : 's'} total${unpositionedCount > 0 ? ' · $unpositionedCount unpositioned' : ''}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           // Sort chips
@@ -687,7 +684,8 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
     final animalCount = cage.animals?.length ?? 0;
     final ownerName = getOwnerName(cage.owner);
     final rack = _rack;
-    final isPositioned = cwp.position != null &&
+    final isPositioned =
+        cwp.position != null &&
         rack != null &&
         cwp.position!.x < (rack.rackWidth ?? 1) &&
         cwp.position!.y < (rack.rackHeight ?? 1);
@@ -796,25 +794,25 @@ class _InsightCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: 2),
             Text(
               value,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             if (caption != null) ...[
               const SizedBox(height: 2),
               Text(
                 caption!,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.grey[500],
-                      fontSize: 10,
-                    ),
+                  color: Colors.grey[500],
+                  fontSize: 10,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -867,8 +865,9 @@ class _SnapshotCell extends StatelessWidget {
       borderColor = Colors.grey.shade300;
     }
 
-    final showTapFeedback =
-        isArrangeMode ? (isOccupied || _selectedCageUuidPresent) : isOccupied;
+    final showTapFeedback = isArrangeMode
+        ? (isOccupied || _selectedCageUuidPresent)
+        : isOccupied;
 
     return GestureDetector(
       onTap: (showTapFeedback || isValidTarget) ? onTap : null,
@@ -898,16 +897,13 @@ class _SnapshotCell extends StatelessWidget {
                 if (onUnset != null)
                   GestureDetector(
                     onTap: onUnset,
-                    child: Icon(
-                      Icons.close,
-                      size: 14,
-                      color: Colors.grey[400],
-                    ),
+                    child: Icon(Icons.close, size: 14, color: Colors.grey[400]),
                   ),
               ],
             ),
             Text(
-              cageTag ?? (isArrangeMode && isValidTarget ? 'Move here' : 'Empty'),
+              cageTag ??
+                  (isArrangeMode && isValidTarget ? 'Move here' : 'Empty'),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,

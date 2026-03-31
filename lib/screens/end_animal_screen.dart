@@ -121,7 +121,11 @@ class _EndAnimalScreenState extends State<EndAnimalScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(context, 'Failed to create end reason: $e', isError: true);
+      showAppSnackBar(
+        context,
+        'Failed to create end reason: $e',
+        isError: true,
+      );
     }
   }
 
@@ -190,9 +194,7 @@ class _EndAnimalScreenState extends State<EndAnimalScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (_error != null) {
       return Scaffold(
@@ -236,11 +238,13 @@ class _EndAnimalScreenState extends State<EndAnimalScreen> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _animals.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final animal = _animals[index];
                   return ListTile(
-                    title: Text(animal.physicalTag ?? 'Animal ${animal.animalId}'),
+                    title: Text(
+                      animal.physicalTag ?? 'Animal ${animal.animalId}',
+                    ),
                     subtitle: Text(
                       '${animal.sex ?? 'Unknown'} | ${animal.strain?.strainName ?? 'No strain'}',
                     ),

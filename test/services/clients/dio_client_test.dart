@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/services/clients/api_exceptions.dart';
@@ -25,9 +24,8 @@ class MockHttpClientAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-typedef MockHttpResponse = Future<ResponseBody> Function(
-  RequestOptions options,
-);
+typedef MockHttpResponse =
+    Future<ResponseBody> Function(RequestOptions options);
 
 void main() {
   late Dio dio;
@@ -56,17 +54,11 @@ void main() {
     });
 
     test('connectTimeout is 30 seconds', () {
-      expect(
-        dio.options.connectTimeout,
-        equals(const Duration(seconds: 30)),
-      );
+      expect(dio.options.connectTimeout, equals(const Duration(seconds: 30)));
     });
 
     test('receiveTimeout is 30 seconds', () {
-      expect(
-        dio.options.receiveTimeout,
-        equals(const Duration(seconds: 30)),
-      );
+      expect(dio.options.receiveTimeout, equals(const Duration(seconds: 30)));
     });
 
     test('Accept header is application/json', () {
@@ -75,179 +67,155 @@ void main() {
   });
 
   group('Request interceptor - connectivity check', () {
-    test(
-      'rejects with ApiNetworkException when offline',
-      () async {
-        connectivityService.isOnline.value = false;
+    test('rejects with ApiNetworkException when offline', () async {
+      connectivityService.isOnline.value = false;
 
-        mockAdapter.handler = (_) async => ResponseBody.fromString('', 200);
+      mockAdapter.handler = (_) async => ResponseBody.fromString('', 200);
 
-        try {
-          await dio.get('/test');
-          fail('Expected DioException to be thrown');
-        } on DioException catch (e) {
-          expect(e.error, isA<ApiNetworkException>());
-          expect(e.type, equals(DioExceptionType.connectionError));
-        }
-      },
-    );
+      try {
+        await dio.get('/test');
+        fail('Expected DioException to be thrown');
+      } on DioException catch (e) {
+        expect(e.error, isA<ApiNetworkException>());
+        expect(e.type, equals(DioExceptionType.connectionError));
+      }
+    });
 
-    test(
-      'allows requests when online',
-      () async {
-        connectivityService.isOnline.value = true;
+    test('allows requests when online', () async {
+      connectivityService.isOnline.value = true;
 
-        mockAdapter.handler = (_) async => ResponseBody.fromString(
+      mockAdapter.handler = (_) async => ResponseBody.fromString(
+        '{"ok": true}',
+        200,
+        headers: {
+          'content-type': ['application/json'],
+        },
+      );
+
+      final response = await dio.get('/test');
+      expect(response.statusCode, equals(200));
+    });
+  });
+
+  group('Request interceptor - auth token', () {
+    test('no Authorization header when accessToken is null', () async {
+      // Default state: authService.accessToken is null (no credentials set)
+      RequestOptions? capturedOptions;
+      mockAdapter.handler = (options) async {
+        capturedOptions = options;
+        return ResponseBody.fromString(
           '{"ok": true}',
           200,
           headers: {
             'content-type': ['application/json'],
           },
         );
+      };
 
-        final response = await dio.get('/test');
-        expect(response.statusCode, equals(200));
-      },
-    );
-  });
-
-  group('Request interceptor - auth token', () {
-    test(
-      'no Authorization header when accessToken is null',
-      () async {
-        // Default state: authService.accessToken is null (no credentials set)
-        RequestOptions? capturedOptions;
-        mockAdapter.handler = (options) async {
-          capturedOptions = options;
-          return ResponseBody.fromString(
-            '{"ok": true}',
-            200,
-            headers: {
-              'content-type': ['application/json'],
-            },
-          );
-        };
-
-        await dio.get('/test');
-        expect(capturedOptions, isNotNull);
-        expect(capturedOptions!.headers['Authorization'], isNull);
-      },
-    );
+      await dio.get('/test');
+      expect(capturedOptions, isNotNull);
+      expect(capturedOptions!.headers['Authorization'], isNull);
+    });
   });
 
   group('Error interceptor - timeout mapping', () {
-    test(
-      'connectionTimeout is mapped to ApiTimeoutException',
-      () async {
-        mockAdapter.handler = (options) async {
-          throw DioException(
-            requestOptions: options,
-            type: DioExceptionType.connectionTimeout,
-          );
-        };
+    test('connectionTimeout is mapped to ApiTimeoutException', () async {
+      mockAdapter.handler = (options) async {
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionTimeout,
+        );
+      };
 
-        try {
-          await dio.get('/test');
-          fail('Expected DioException to be thrown');
-        } on DioException catch (e) {
-          expect(e.error, isA<ApiTimeoutException>());
-          expect(e.type, equals(DioExceptionType.connectionTimeout));
-        }
-      },
-    );
+      try {
+        await dio.get('/test');
+        fail('Expected DioException to be thrown');
+      } on DioException catch (e) {
+        expect(e.error, isA<ApiTimeoutException>());
+        expect(e.type, equals(DioExceptionType.connectionTimeout));
+      }
+    });
 
-    test(
-      'receiveTimeout is mapped to ApiTimeoutException',
-      () async {
-        mockAdapter.handler = (options) async {
-          throw DioException(
-            requestOptions: options,
-            type: DioExceptionType.receiveTimeout,
-          );
-        };
+    test('receiveTimeout is mapped to ApiTimeoutException', () async {
+      mockAdapter.handler = (options) async {
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.receiveTimeout,
+        );
+      };
 
-        try {
-          await dio.get('/test');
-          fail('Expected DioException to be thrown');
-        } on DioException catch (e) {
-          expect(e.error, isA<ApiTimeoutException>());
-          expect(e.type, equals(DioExceptionType.receiveTimeout));
-        }
-      },
-    );
+      try {
+        await dio.get('/test');
+        fail('Expected DioException to be thrown');
+      } on DioException catch (e) {
+        expect(e.error, isA<ApiTimeoutException>());
+        expect(e.type, equals(DioExceptionType.receiveTimeout));
+      }
+    });
 
-    test(
-      'sendTimeout is mapped to ApiTimeoutException',
-      () async {
-        mockAdapter.handler = (options) async {
-          throw DioException(
-            requestOptions: options,
-            type: DioExceptionType.sendTimeout,
-          );
-        };
+    test('sendTimeout is mapped to ApiTimeoutException', () async {
+      mockAdapter.handler = (options) async {
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.sendTimeout,
+        );
+      };
 
-        try {
-          await dio.get('/test');
-          fail('Expected DioException to be thrown');
-        } on DioException catch (e) {
-          expect(e.error, isA<ApiTimeoutException>());
-          expect(e.type, equals(DioExceptionType.sendTimeout));
-        }
-      },
-    );
+      try {
+        await dio.get('/test');
+        fail('Expected DioException to be thrown');
+      } on DioException catch (e) {
+        expect(e.error, isA<ApiTimeoutException>());
+        expect(e.type, equals(DioExceptionType.sendTimeout));
+      }
+    });
   });
 
   group('Error interceptor - connection error mapping', () {
-    test(
-      'connectionError is mapped to ApiNetworkException',
-      () async {
-        mockAdapter.handler = (options) async {
-          throw DioException(
-            requestOptions: options,
-            type: DioExceptionType.connectionError,
-          );
-        };
+    test('connectionError is mapped to ApiNetworkException', () async {
+      mockAdapter.handler = (options) async {
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+        );
+      };
 
-        try {
-          await dio.get('/test');
-          fail('Expected DioException to be thrown');
-        } on DioException catch (e) {
-          expect(e.error, isA<ApiNetworkException>());
-          expect(e.type, equals(DioExceptionType.connectionError));
-          expect(
-            (e.error as ApiNetworkException).message,
-            equals('Network error: unable to connect'),
-          );
-        }
-      },
-    );
+      try {
+        await dio.get('/test');
+        fail('Expected DioException to be thrown');
+      } on DioException catch (e) {
+        expect(e.error, isA<ApiNetworkException>());
+        expect(e.type, equals(DioExceptionType.connectionError));
+        expect(
+          (e.error as ApiNetworkException).message,
+          equals('Network error: unable to connect'),
+        );
+      }
+    });
   });
 
   group('Error interceptor - HTTP status mapping', () {
-    test(
-      '401 response is mapped to ApiUnauthorizedException',
-      () async {
-        mockAdapter.handler = (options) async {
-          throw DioException(
+    test('401 response is mapped to ApiUnauthorizedException', () async {
+      mockAdapter.handler = (options) async {
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.badResponse,
+          response: Response(
             requestOptions: options,
-            type: DioExceptionType.badResponse,
-            response: Response(
-              requestOptions: options,
-              statusCode: 401,
-              data: 'Unauthorized',
-            ),
-          );
-        };
+            statusCode: 401,
+            data: 'Unauthorized',
+          ),
+        );
+      };
 
-        try {
-          await dio.get('/test');
-          fail('Expected DioException to be thrown');
-        } on DioException catch (e) {
-          expect(e.error, isA<ApiUnauthorizedException>());
-          expect(e.response?.statusCode, equals(401));
-        }
-      },
-    );
+      try {
+        await dio.get('/test');
+        fail('Expected DioException to be thrown');
+      } on DioException catch (e) {
+        expect(e.error, isA<ApiUnauthorizedException>());
+        expect(e.response?.statusCode, equals(401));
+      }
+    });
 
     test(
       '500 response is mapped to ApiException with status code and body',
@@ -277,62 +245,56 @@ void main() {
       },
     );
 
-    test(
-      '503 response is mapped to ApiException',
-      () async {
-        mockAdapter.handler = (options) async {
-          throw DioException(
+    test('503 response is mapped to ApiException', () async {
+      mockAdapter.handler = (options) async {
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.badResponse,
+          response: Response(
             requestOptions: options,
-            type: DioExceptionType.badResponse,
-            response: Response(
-              requestOptions: options,
-              statusCode: 503,
-              data: 'Service Unavailable',
-            ),
-          );
-        };
+            statusCode: 503,
+            data: 'Service Unavailable',
+          ),
+        );
+      };
 
-        try {
-          await dio.get('/test');
-          fail('Expected DioException to be thrown');
-        } on DioException catch (e) {
-          expect(e.error, isA<ApiException>());
-          final apiError = e.error as ApiException;
-          expect(apiError.statusCode, equals(503));
-          expect(apiError.message, equals('Server error (503)'));
-        }
-      },
-    );
+      try {
+        await dio.get('/test');
+        fail('Expected DioException to be thrown');
+      } on DioException catch (e) {
+        expect(e.error, isA<ApiException>());
+        final apiError = e.error as ApiException;
+        expect(apiError.statusCode, equals(503));
+        expect(apiError.message, equals('Server error (503)'));
+      }
+    });
 
-    test(
-      '400 response passes through without interception',
-      () async {
-        mockAdapter.handler = (options) async {
-          throw DioException(
+    test('400 response passes through without interception', () async {
+      mockAdapter.handler = (options) async {
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.badResponse,
+          response: Response(
             requestOptions: options,
-            type: DioExceptionType.badResponse,
-            response: Response(
-              requestOptions: options,
-              statusCode: 400,
-              data: 'Bad Request',
-            ),
-          );
-        };
+            statusCode: 400,
+            data: 'Bad Request',
+          ),
+        );
+      };
 
-        try {
-          await dio.get('/test');
-          fail('Expected DioException to be thrown');
-        } on DioException catch (e) {
-          // 400 should pass through: the error field should NOT be
-          // one of our custom API exceptions.
-          expect(e.error, isNot(isA<ApiNetworkException>()));
-          expect(e.error, isNot(isA<ApiTimeoutException>()));
-          expect(e.error, isNot(isA<ApiUnauthorizedException>()));
-          // The original DioException type is preserved
-          expect(e.type, equals(DioExceptionType.badResponse));
-          expect(e.response?.statusCode, equals(400));
-        }
-      },
-    );
+      try {
+        await dio.get('/test');
+        fail('Expected DioException to be thrown');
+      } on DioException catch (e) {
+        // 400 should pass through: the error field should NOT be
+        // one of our custom API exceptions.
+        expect(e.error, isNot(isA<ApiNetworkException>()));
+        expect(e.error, isNot(isA<ApiTimeoutException>()));
+        expect(e.error, isNot(isA<ApiUnauthorizedException>()));
+        // The original DioException type is preserved
+        expect(e.type, equals(DioExceptionType.badResponse));
+        expect(e.response?.statusCode, equals(400));
+      }
+    });
   });
 }

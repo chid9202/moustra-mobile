@@ -6,7 +6,6 @@ import 'package:moustra/screens/dashboard/breeding_performance_card.dart';
 import 'package:moustra/screens/dashboard/animals_to_wean.dart';
 import 'package:moustra/screens/dashboard/cage_utilization_card.dart';
 import 'package:moustra/screens/dashboard/compliance_tab.dart';
-import 'package:moustra/screens/dashboard/data_by_account.dart';
 import 'package:moustra/services/dtos/dashboard_dto.dart';
 import 'package:moustra/screens/dashboard/mice_by_sex.dart';
 import 'package:moustra/screens/dashboard/mice_count_by_age.dart';
@@ -39,9 +38,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           TabBar(
             tabs: [
-              Semantics(label: 'Overview Tab', child: const Tab(text: 'Overview')),
-              Semantics(label: 'Compliance Tab', child: const Tab(text: 'Compliance')),
-              Semantics(label: 'Reports Tab', child: const Tab(text: 'Reports')),
+              Semantics(
+                label: 'Overview Tab',
+                child: const Tab(text: 'Overview'),
+              ),
+              Semantics(
+                label: 'Compliance Tab',
+                child: const Tab(text: 'Compliance'),
+              ),
+              Semantics(
+                label: 'Reports Tab',
+                child: const Tab(text: 'Reports'),
+              ),
             ],
           ),
           Expanded(
@@ -152,7 +160,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 20),
+          Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.red.shade700,
+            size: 20,
+          ),
           const SizedBox(width: 8),
           Text(
             '$violationCount cage(s) in violation',
@@ -205,8 +217,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
         }
         final data = snapshot.data ?? <String, dynamic>{};
-        final Map<String, dynamic> accounts =
-            (data['accounts'] as Map<String, dynamic>? ?? <String, dynamic>{});
         final List<dynamic> animalsSexRatio =
             (data['animalsSexRatio'] as List<dynamic>? ?? <dynamic>[]);
         final List<dynamic> animalsToWean =
@@ -276,7 +286,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               // 5. Breeding Performance
               Builder(
                 builder: (context) {
-                  final bpJson = data['breedingPerformance'] as Map<String, dynamic>?;
+                  final bpJson =
+                      data['breedingPerformance'] as Map<String, dynamic>?;
                   final bp = bpJson != null
                       ? BreedingPerformanceDto.fromJson(bpJson)
                       : null;
@@ -347,7 +358,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 builder: (context) {
                   final raList = data['recentActivity'] as List<dynamic>? ?? [];
                   final activities = raList
-                      .map((e) => RecentActivityDto.fromJson(e as Map<String, dynamic>))
+                      .map(
+                        (e) => RecentActivityDto.fromJson(
+                          e as Map<String, dynamic>,
+                        ),
+                      )
                       .toList();
                   return Card(
                     elevation: 2,

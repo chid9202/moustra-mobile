@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/services/dtos/post_litter_dto.dart';
-import 'package:moustra/services/dtos/stores/strain_store_dto.dart';
 
 void main() {
   group('PostLitterDto', () {
@@ -65,13 +64,6 @@ void main() {
     });
 
     test('toJson transforms strain to UUID', () {
-      final strain = StrainStoreDto(
-        strainId: 1,
-        strainUuid: 'strain-uuid-1',
-        strainName: 'C57BL/6',
-        genotypes: [],
-      );
-
       final json = {
         'mating': 'mating-uuid-1',
         'numberOfMale': 3,

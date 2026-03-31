@@ -11,7 +11,8 @@ class BreedingPerformanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bp = breedingPerformance;
 
-    final isEmpty = bp == null ||
+    final isEmpty =
+        bp == null ||
         (bp.averageLitterSize == null &&
             bp.matingSuccessRate == null &&
             bp.medianTimeToFirstLitter == null &&
@@ -25,7 +26,7 @@ class BreedingPerformanceCard extends StatelessWidget {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
-        if (isEmpty) _buildEmptyState() else _buildContent(bp!),
+        if (isEmpty) _buildEmptyState() else _buildContent(bp),
       ],
     );
   }
@@ -40,10 +41,7 @@ class BreedingPerformanceCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'No breeding data yet',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
           ],
         ),
@@ -166,8 +164,18 @@ class BreedingPerformanceCard extends StatelessWidget {
     final monthNum = int.tryParse(parts[1]);
     if (monthNum == null || monthNum < 1 || monthNum > 12) return month;
     const names = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return names[monthNum - 1];
   }
@@ -193,10 +201,8 @@ class BreedingPerformanceCard extends StatelessWidget {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            getDrawingHorizontalLine: (value) => FlLine(
-              color: Colors.grey.shade200,
-              strokeWidth: 1,
-            ),
+            getDrawingHorizontalLine: (value) =>
+                FlLine(color: Colors.grey.shade200, strokeWidth: 1),
           ),
           titlesData: FlTitlesData(
             leftTitles: AxisTitles(

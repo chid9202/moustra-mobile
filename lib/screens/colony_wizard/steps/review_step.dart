@@ -293,7 +293,7 @@ class _ReviewStepState extends State<ReviewStep> {
               ),
             ),
           const SizedBox(height: 8),
-          ..._cages.take(5).map((c) => Text(c.cageTag ?? 'Unnamed')),
+          ..._cages.take(5).map((c) => Text(c.cageTag)),
         ],
       ],
     );

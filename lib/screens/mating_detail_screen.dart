@@ -27,7 +27,6 @@ import 'package:moustra/services/dtos/note_entity_type.dart';
 import 'package:moustra/stores/profile_store.dart';
 import 'package:moustra/services/dtos/account_dto.dart';
 import 'package:intl/intl.dart';
-import 'package:moustra/services/dtos/litter_dto.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
 
 class MatingDetailScreen extends StatefulWidget {
@@ -244,7 +243,11 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
       );
       if (!mounted) return;
       eventApi.trackEvent('end_mating');
-      showAppSnackBar(context, 'Mating disbanded successfully!', isSuccess: true);
+      showAppSnackBar(
+        context,
+        'Mating disbanded successfully!',
+        isSuccess: true,
+      );
       if (widget.fromCageGrid) {
         context.go('/cage/grid');
       } else {
@@ -277,7 +280,11 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
           await refreshAnimalStore();
           await refreshCageStore();
           await refreshStrainStore();
-          showAppSnackBar(context, 'Mating created successfully!', isSuccess: true);
+          showAppSnackBar(
+            context,
+            'Mating created successfully!',
+            isSuccess: true,
+          );
         } else {
           final matingData = _matingData!;
           await MatingApi().putMating(
@@ -297,7 +304,11 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
           await refreshCageStore();
           await refreshStrainStore();
           eventApi.trackEvent('update_mating');
-          showAppSnackBar(context, 'Mating updated successfully!', isSuccess: true);
+          showAppSnackBar(
+            context,
+            'Mating updated successfully!',
+            isSuccess: true,
+          );
         }
         // Navigate back to the appropriate page based on where we came from
         if (widget.fromCageGrid) {
@@ -358,39 +369,44 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
             _buildSectionHeader('Parents', animals.length),
             const SizedBox(height: 8),
             if (animals.isEmpty)
-              const Text('No parents assigned', style: TextStyle(color: Colors.grey))
+              const Text(
+                'No parents assigned',
+                style: TextStyle(color: Colors.grey),
+              )
             else
-              ...animals.map((animal) => ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: animal.sex == SexConstants.male
-                          ? Colors.blue.withValues(alpha: 0.1)
-                          : Colors.pink.withValues(alpha: 0.1),
-                      child: Text(
-                        animal.sex == SexConstants.male ? 'M' : 'F',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: animal.sex == SexConstants.male
-                              ? Colors.blue
-                              : Colors.pink,
-                        ),
+              ...animals.map(
+                (animal) => ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: animal.sex == SexConstants.male
+                        ? Colors.blue.withValues(alpha: 0.1)
+                        : Colors.pink.withValues(alpha: 0.1),
+                    child: Text(
+                      animal.sex == SexConstants.male ? 'M' : 'F',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: animal.sex == SexConstants.male
+                            ? Colors.blue
+                            : Colors.pink,
                       ),
                     ),
-                    title: Text(
-                      animal.physicalTag ?? 'Unknown',
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    subtitle: Text(
-                      '${animal.sex == SexConstants.male ? "Sire" : "Dam"}'
-                      '${animal.dateOfBirth != null ? ' • DOB: ${DateFormat('yyyy-MM-dd').format(animal.dateOfBirth!)}' : ''}',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    trailing: const Icon(Icons.chevron_right, size: 18),
-                    onTap: () => context.go('/animal/${animal.animalUuid}'),
-                  )),
+                  ),
+                  title: Text(
+                    animal.physicalTag ?? 'Unknown',
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: Text(
+                    '${animal.sex == SexConstants.male ? "Sire" : "Dam"}'
+                    '${animal.dateOfBirth != null ? ' • DOB: ${DateFormat('yyyy-MM-dd').format(animal.dateOfBirth!)}' : ''}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, size: 18),
+                  onTap: () => context.go('/animal/${animal.animalUuid}'),
+                ),
+              ),
           ],
         ),
       ),
@@ -409,11 +425,18 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
             _buildSectionHeader('Litters', litters.length),
             const SizedBox(height: 8),
             if (litters.isEmpty)
-              const Text('No litters recorded', style: TextStyle(color: Colors.grey))
+              const Text(
+                'No litters recorded',
+                style: TextStyle(color: Colors.grey),
+              )
             else
               ...litters.map((litter) {
-                final males = litter.animals.where((a) => a.sex == SexConstants.male).length;
-                final females = litter.animals.where((a) => a.sex == SexConstants.female).length;
+                final males = litter.animals
+                    .where((a) => a.sex == SexConstants.male)
+                    .length;
+                final females = litter.animals
+                    .where((a) => a.sex == SexConstants.female)
+                    .length;
                 return ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
@@ -466,7 +489,10 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
             _buildSectionHeader('Plug Events', plugEvents.length),
             const SizedBox(height: 8),
             if (plugEvents.isEmpty)
-              const Text('No plug events recorded', style: TextStyle(color: Colors.grey))
+              const Text(
+                'No plug events recorded',
+                style: TextStyle(color: Colors.grey),
+              )
             else
               ...plugEvents.map((pe) {
                 final edayColor = _edayColor(pe.currentEday, pe.targetEday);
@@ -480,13 +506,18 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
                   subtitle: Row(
                     children: [
                       Text(
-                        pe.plugDate.length >= 10 ? pe.plugDate.substring(0, 10) : pe.plugDate,
+                        pe.plugDate.length >= 10
+                            ? pe.plugDate.substring(0, 10)
+                            : pe.plugDate,
                         style: const TextStyle(fontSize: 12),
                       ),
                       if (pe.currentEday != null) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: edayColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
@@ -504,13 +535,19 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
                       if (pe.outcome != null && pe.outcome!.isNotEmpty) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.grey.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            pe.outcome!.split('_').map((w) => w[0].toUpperCase() + w.substring(1)).join(' '),
+                            pe.outcome!
+                                .split('_')
+                                .map((w) => w[0].toUpperCase() + w.substring(1))
+                                .join(' '),
                             style: const TextStyle(
                               color: Colors.grey,
                               fontSize: 11,
@@ -530,7 +567,8 @@ class _MatingDetailScreenState extends State<MatingDetailScreen> {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => context.go('/plug-event/new?mating=${_matingUuid}'),
+                  onPressed: () =>
+                      context.go('/plug-event/new?mating=$_matingUuid'),
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text('Record Plug'),
                 ),

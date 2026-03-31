@@ -84,7 +84,11 @@ class _LabSettingsTabState extends State<LabSettingsTab> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        showAppSnackBar(context, 'Error loading lab settings: $e', isError: true);
+        showAppSnackBar(
+          context,
+          'Error loading lab settings: $e',
+          isError: true,
+        );
       }
     }
   }
@@ -105,9 +109,9 @@ class _LabSettingsTabState extends State<LabSettingsTab> {
           accountId: _selectedOwner!.accountId,
           accountUuid: _selectedOwner!.accountUuid,
           user: LabSettingUserDto(
-            email: _selectedOwner!.user?.email ?? '',
-            firstName: _selectedOwner!.user?.firstName ?? '',
-            lastName: _selectedOwner!.user?.lastName ?? '',
+            email: _selectedOwner!.user.email ?? '',
+            firstName: _selectedOwner!.user.firstName,
+            lastName: _selectedOwner!.user.lastName,
             isActive: _selectedOwner!.isActive ?? true,
           ),
           status: existingOwner?.status ?? 'Active',
@@ -147,11 +151,19 @@ class _LabSettingsTabState extends State<LabSettingsTab> {
       await refreshSettingStore();
 
       if (mounted) {
-        showAppSnackBar(context, 'Lab settings saved successfully', isSuccess: true);
+        showAppSnackBar(
+          context,
+          'Lab settings saved successfully',
+          isSuccess: true,
+        );
       }
     } catch (e) {
       if (mounted) {
-        showAppSnackBar(context, 'Error saving lab settings: $e', isError: true);
+        showAppSnackBar(
+          context,
+          'Error saving lab settings: $e',
+          isError: true,
+        );
       }
     } finally {
       if (mounted) {

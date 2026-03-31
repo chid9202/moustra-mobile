@@ -75,7 +75,6 @@ class _AnimalListItemState extends State<AnimalListItem> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final sexColor = _getSexColor(widget.animal.sex);
     final sexIcon = _getSexIcon(widget.animal.sex);
 
