@@ -8624,80 +8624,6 @@ components:
       - strainId
       - strainName
       - strainUuid
-    AnimalWithoutCageSLR:
-      type: object
-      properties:
-        animalId:
-          type: integer
-          readOnly: true
-        animalUuid:
-          type: string
-          format: uuid
-          readOnly: true
-        physicalTag:
-          type: string
-          nullable: true
-          maxLength: 100
-        dateOfBirth:
-          type: string
-          format: date
-        genotypes:
-          type: array
-          items:
-            $ref: '#/components/schemas/AnimalGeneSLR'
-        owner:
-          $ref: '#/components/schemas/AnimalOwnerSLR'
-        cage:
-          allOf:
-          - $ref: '#/components/schemas/AnimalCageSLR'
-          nullable: true
-        endDate:
-          type: string
-          format: date
-          nullable: true
-        endType:
-          allOf:
-          - $ref: '#/components/schemas/CoreAnimalEndType'
-          nullable: true
-        endReason:
-          allOf:
-          - $ref: '#/components/schemas/CoreAnimalEndReason'
-          nullable: true
-        endComment:
-          type: string
-          nullable: true
-        litter:
-          $ref: '#/components/schemas/AnimalLitterSLR'
-        strain:
-          $ref: '#/components/schemas/AnimalStrainSLR'
-        weanDate:
-          type: string
-          format: date
-          nullable: true
-        sex:
-          type: string
-          nullable: true
-          maxLength: 1
-        comment:
-          type: string
-          nullable: true
-        createdDate:
-          type: string
-          format: date-time
-          readOnly: true
-        updatedDate:
-          type: string
-          format: date-time
-      required:
-      - animalId
-      - animalUuid
-      - createdDate
-      - dateOfBirth
-      - genotypes
-      - litter
-      - owner
-      - strain
-      - updatedDate
     AuthCallbackRequest:
       type: object
       properties:
@@ -9014,58 +8940,6 @@ components:
       - name
       - owner
       - updatedDate
-    CageListViewAnimalSLR:
-      type: object
-      properties:
-        animalId:
-          type: integer
-          readOnly: true
-        animalUuid:
-          type: string
-          format: uuid
-          readOnly: true
-        physicalTag:
-          type: string
-          nullable: true
-          maxLength: 100
-        dateOfBirth:
-          type: string
-          format: date
-        genotypes:
-          type: array
-          items:
-            $ref: '#/components/schemas/AnimalGeneSLR'
-        owner:
-          $ref: '#/components/schemas/AnimalOwnerSLR'
-        strain:
-          $ref: '#/components/schemas/AnimalStrainSLR'
-        weanDate:
-          type: string
-          format: date
-          nullable: true
-        sex:
-          type: string
-          nullable: true
-          maxLength: 1
-        comment:
-          type: string
-          nullable: true
-        createdDate:
-          type: string
-          format: date-time
-          readOnly: true
-        updatedDate:
-          type: string
-          format: date-time
-      required:
-      - animalId
-      - animalUuid
-      - createdDate
-      - dateOfBirth
-      - genotypes
-      - owner
-      - strain
-      - updatedDate
     CageListViewSLR:
       type: object
       properties:
@@ -9097,9 +8971,7 @@ components:
           readOnly: true
           nullable: true
         animals:
-          type: array
-          items:
-            $ref: '#/components/schemas/CageListViewAnimalSLR'
+          type: string
           readOnly: true
         order:
           type: integer
@@ -9185,9 +9057,7 @@ components:
           readOnly: true
           nullable: true
         animals:
-          type: array
-          items:
-            $ref: '#/components/schemas/AnimalWithoutCageSLR'
+          type: string
           readOnly: true
         mating:
           allOf:
@@ -11915,6 +11785,21 @@ components:
           type: string
         message:
           type: string
+        severity:
+          type: string
+          default: ''
+        category:
+          type: string
+          default: ''
+        appVersion:
+          type: string
+          default: ''
+        deviceInfo:
+          type: string
+          default: ''
+        environment:
+          type: string
+          default: ''
       required:
       - message
       - subject
