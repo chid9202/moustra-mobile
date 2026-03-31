@@ -46,6 +46,20 @@ verify_production_env() {
   echo "✅ .env.production verified"
 }
 
+print_ios_xcode_deploy_reminder() {
+  echo -e "\n${GREEN}━━━ iOS: use Xcode to build and upload ━━━${NC}"
+  echo "There is no iOS CLI deploy script. After prepare, ship iOS from Xcode:"
+  echo ""
+  echo "  1. From the repo root, bake production env into the Flutter build:"
+  echo "       flutter build ios --release --dart-define=ENV_FILENAME=.env.production --no-codesign"
+  echo "  2. Open ios/Runner.xcworkspace in Xcode."
+  echo "  3. Product → Archive (builds and signs the app)."
+  echo "  4. In Organizer, click Distribute App."
+  echo "  5. Xcode uploads the build to App Store Connect."
+  echo ""
+  echo "Details: DEPLOYMENT.md"
+}
+
 parse_pubspec_version() {
   local raw
   raw=$(grep '^version:' pubspec.yaml | sed 's/^version: *//' | tr -d ' ' | tr -d '\r')

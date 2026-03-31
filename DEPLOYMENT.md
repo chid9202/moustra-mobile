@@ -11,12 +11,11 @@ The release process is split into three actions:
    - Commits the bump on `main`
    - Optionally tags the release commit
 2. `candidate`
-   - Builds the app from the current working tree using the version in `pubspec.yaml`
-   - Uploads iOS to TestFlight
-   - Uploads Android to the selected Google Play track
+   - **iOS:** Verifies `.env.production` and reminds you to archive and upload from Xcode (see **iOS: Xcode** below). Running `./scripts/deploy.sh candidate --platform ios` runs tests (unless skipped) and prints the checklist; it does not produce an IPA.
+   - **Android:** Builds the app from the current working tree using the version in `pubspec.yaml` and uploads to the selected Google Play track
 3. `promote`
    - Reuses an existing uploaded build
-   - Submits iOS for App Store review
+   - Submits iOS for App Store review (Fastlane from `ios/`)
    - Promotes Android between Play tracks without rebuilding
 
 This is simpler than the previous flow because deployment no longer creates `release/*` branches or mutates git state while uploading to the stores.
@@ -24,8 +23,8 @@ This is simpler than the previous flow because deployment no longer creates `rel
 ```mermaid
 flowchart TD
     A["main branch"] --> B["prepare<br/>bump pubspec.yaml<br/>commit and optional tag"]
-    B --> C["candidate<br/>build from committed version"]
-    C --> D["iOS: upload to TestFlight"]
+    B --> C["candidate"]
+    C --> D["iOS: verify env + Xcode Archive → Distribute App → App Store Connect"]
     C --> E["Android: upload to internal/beta/production"]
     D --> F["promote<br/>submit existing iOS build for App Store review"]
     E --> G["promote<br/>advance existing Android release between Play tracks"]
@@ -43,14 +42,17 @@ Run all release actions from the project root:
 ./scripts/deploy.sh promote --platform both --android-to production --ios-build 47
 ```
 
-### Platform Scripts
-
-Use these when you only need one platform:
+For **iOS-only** candidate (tests + env check + Xcode reminder):
 
 ```bash
-./scripts/deploy-ios.sh candidate
-./scripts/deploy-ios.sh promote --build 47
+./scripts/deploy.sh candidate --platform ios
+```
 
+### Platform Scripts
+
+Use Android-only scripts when you only need Play uploads:
+
+```bash
 ./scripts/deploy-android.sh candidate --track internal
 ./scripts/deploy-android.sh promote --to production
 ```
@@ -90,20 +92,32 @@ Examples:
 
 ## Candidate Uploads
 
-Candidate uploads build from the current working tree using the version already set in `pubspec.yaml`.
+### iOS: Xcode
 
-### iOS
+Ship iOS with a single flow in Xcode after `prepare` has set the version in `pubspec.yaml`.
+
+**Why run Flutter from the terminal first:** Release builds must compile with `ENV_FILENAME=.env.production` so the app loads production config. The default Dart compile uses `.env`. Run this once before archiving:
 
 ```bash
-./scripts/deploy.sh candidate --platform ios
+flutter build ios --release --dart-define=ENV_FILENAME=.env.production --no-codesign
 ```
 
-This will:
+Then:
 
-1. Verify `.env.production`
-2. Build Flutter iOS in release mode
-3. Archive the IPA with Fastlane
-4. Upload the IPA to TestFlight
+1. **Product → Archive** — builds and signs the app.
+2. In the **Organizer** window, click **Distribute App**.
+3. Follow the assistant; Xcode uploads the build to **App Store Connect** (TestFlight / App Store).
+4. Done — one flow, all in Xcode.
+
+Open the workspace (not the bare project):
+
+```bash
+open ios/Runner.xcworkspace
+```
+
+**Optional:** If you prefer not to use Organizer, you can export an IPA and upload with **Transporter** (Mac App Store).
+
+**Automation helper:** `./scripts/deploy.sh candidate --platform ios` (or `--platform both`) runs `flutter test` (unless `--skip-tests`), verifies `.env.production`, and prints this checklist. It does not invoke Xcode for you.
 
 ### Android
 
@@ -144,6 +158,8 @@ Promotions do not rebuild the app and do not bump the version.
 
 If `--ios-build` is omitted, Fastlane uses the build number from `pubspec.yaml`.
 
+You can also submit the uploaded build for review from [App Store Connect](https://appstoreconnect.apple.com).
+
 ### Android
 
 ```bash
@@ -166,7 +182,7 @@ If `--ios-build` is omitted, Fastlane uses the build number from `pubspec.yaml`.
 
 - Xcode with command line tools
 - Apple Developer account access
-- Valid signing configuration on the machine
+- Valid signing configuration on the machine (team, certificates, provisioning)
 
 ### Android
 
@@ -182,6 +198,8 @@ cd ios && bundle install
 cd android && bundle install
 ```
 
+Fastlane is used for **iOS promote** (submit for review) and **Android** candidate/promote flows.
+
 ## Troubleshooting
 
 ### Dirty Working Tree
@@ -192,9 +210,9 @@ cd android && bundle install
 
 If App Store Connect says the version train is closed or the version must be higher, run a new `prepare` with `patch`, `minor`, or `major` instead of another build-only bump.
 
-### iOS Upload Is Slow Or Fails
+### iOS Upload Fails From Xcode
 
-The upload script retries Fastlane uploads and falls back to `xcrun altool`. Network instability to Apple’s CDN is the common cause.
+Use a stable network; retry **Distribute App** from Organizer. If Xcode’s upload keeps failing, export the IPA and use **Transporter**, or check [Apple System Status](https://developer.apple.com/system-status/).
 
 ### Android Uploaded The Wrong Artifact
 

@@ -70,7 +70,8 @@ run_candidate() {
   fi
 
   if [[ "$platform" == "ios" || "$platform" == "both" ]]; then
-    ./scripts/deploy-ios.sh candidate
+    verify_production_env
+    print_ios_xcode_deploy_reminder
   fi
 
   if [[ "$platform" == "android" || "$platform" == "both" ]]; then
@@ -130,11 +131,13 @@ run_promote() {
   esac
 
   if [[ "$platform" == "ios" || "$platform" == "both" ]]; then
+    echo -e "\n${GREEN}━━━ Promoting iOS build to App Store review (Fastlane) ━━━${NC}"
     if [[ -n "$ios_build" ]]; then
-      ./scripts/deploy-ios.sh promote --build "$ios_build"
+      (cd ios && bundle exec fastlane promote build:"$ios_build")
     else
-      ./scripts/deploy-ios.sh promote
+      (cd ios && bundle exec fastlane promote)
     fi
+    echo -e "\n${GREEN}✅ iOS promotion submitted.${NC}"
   fi
 
   if [[ "$platform" == "android" || "$platform" == "both" ]]; then
