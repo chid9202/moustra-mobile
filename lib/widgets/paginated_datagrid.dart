@@ -44,6 +44,9 @@ class PaginatedDataGrid<T> extends StatefulWidget {
   final RowHeightEstimator<T>? rowHeightEstimator;
   final FilterChanged<T>? onFilterChanged;
   final void Function(String columnName, bool ascending)? onSortChanged;
+  final VoidCallback? onSortCleared;
+  final String? activeSortColumn;
+  final bool activeSortAscending;
   final void Function(T row)? onRowTap;
 
   /// Edit field configurations — defines which columns are editable and how.
@@ -74,6 +77,9 @@ class PaginatedDataGrid<T> extends StatefulWidget {
     this.rowHeightEstimator,
     this.onFilterChanged,
     this.onSortChanged,
+    this.onSortCleared,
+    this.activeSortColumn,
+    this.activeSortAscending = true,
     this.onRowTap,
     this.editFieldConfigs,
     this.onCellEditCommit,
@@ -92,16 +98,28 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
   late int _pageSize;
   int _totalCount = 0;
   bool _isLoading = true;
-  String? _lastSortedColumn;
-  bool _sortAscending = true;
+  String? _sortedColumn;
+  bool? _isSortAscending;
   String _searchTerm = '';
 
   @override
   void initState() {
     super.initState();
     _pageSize = widget.pageSize;
+    _sortedColumn = widget.activeSortColumn;
+    _isSortAscending = widget.activeSortColumn != null ? widget.activeSortAscending : null;
     _fetchAndSet(0);
     widget.controller?._attach(() => _reload(), _searchByTerm);
+  }
+
+  @override
+  void didUpdateWidget(PaginatedDataGrid<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.activeSortColumn != oldWidget.activeSortColumn ||
+        widget.activeSortAscending != oldWidget.activeSortAscending) {
+      _sortedColumn = widget.activeSortColumn;
+      _isSortAscending = widget.activeSortColumn != null ? widget.activeSortAscending : null;
+    }
   }
 
   @override
@@ -206,15 +224,25 @@ class _PaginatedDataGridState<T> extends State<PaginatedDataGrid<T>> {
                     final GridColumn col = widget.columns[ci];
                     if (col.allowSorting != true) return;
                     final String name = col.columnName;
-                    setState(() {
-                      if (_lastSortedColumn == name) {
-                        _sortAscending = !_sortAscending;
+                    if (_sortedColumn == name) {
+                      if (_isSortAscending == true) {
+                        // asc → desc
+                        setState(() { _isSortAscending = false; });
+                        widget.onSortChanged?.call(name, false);
+                      } else if (widget.onSortCleared != null) {
+                        // desc → unset (only if caller supports it)
+                        setState(() { _sortedColumn = null; _isSortAscending = null; });
+                        widget.onSortCleared!();
                       } else {
-                        _lastSortedColumn = name;
-                        _sortAscending = true;
+                        // desc → asc (fallback: original behavior for screens without unset)
+                        setState(() { _isSortAscending = true; });
+                        widget.onSortChanged?.call(name, true);
                       }
-                    });
-                    widget.onSortChanged?.call(name, _sortAscending);
+                    } else {
+                      // New column → start asc
+                      setState(() { _sortedColumn = name; _isSortAscending = true; });
+                      widget.onSortChanged?.call(name, true);
+                    }
                   } else if (ri > 0 && ri <= _rows.length) {
                     final row = _rows[ri - 1];
                     final int ci = details.rowColumnIndex.columnIndex;

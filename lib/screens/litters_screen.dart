@@ -121,6 +121,8 @@ class _LittersScreenState extends State<LittersScreen> {
 
   List<GridColumn> get _litterColumns => buildColumnsFromSettings(
     _tableSetting?.tableSettingFields.toList(),
+    activeSortField: _activeSort?.field,
+    activeSortAscending: _activeSort?.order == SortOrder.asc,
     controlCols: _isEndingMode ? [
       GridColumn(
         columnName: 'select',
@@ -168,6 +170,8 @@ class _LittersScreenState extends State<LittersScreen> {
                   context.go('/litter/${litter.litterUuid}');
                 },
                 controller: _controller,
+                activeSortColumn: _activeSort?.field,
+                activeSortAscending: _activeSort?.order == SortOrder.asc,
                 onSortChanged: (columnName, ascending) {
                   setState(() {
                     _activeSort = SortParam(
@@ -175,6 +179,10 @@ class _LittersScreenState extends State<LittersScreen> {
                       order: ascending ? SortOrder.asc : SortOrder.desc,
                     );
                   });
+                  _controller.reload();
+                },
+                onSortCleared: () {
+                  setState(() { _activeSort = null; });
                   _controller.reload();
                 },
                 columns: _litterColumns,

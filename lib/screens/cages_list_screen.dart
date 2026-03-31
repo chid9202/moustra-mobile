@@ -190,6 +190,8 @@ class _CagesListScreenState extends State<CagesListScreen> {
               Builder(builder: (context) {
                 final cageColumns = buildColumnsFromSettings(
                   _tableSetting?.tableSettingFields.toList(),
+                  activeSortField: _activeSort?.field,
+                  activeSortAscending: _activeSort?.order == SortOrder.asc,
                   controlCols: _isEndingMode ? [
                     GridColumn(
                       columnName: 'select',
@@ -204,13 +206,20 @@ class _CagesListScreenState extends State<CagesListScreen> {
                   context.go('/cage/${cage.cageUuid}');
                 },
                 controller: _controller,
+                activeSortColumn: _activeSort?.field,
+                activeSortAscending: _activeSort?.order == SortOrder.asc,
                 onSortChanged: (columnName, ascending) {
                   setState(() {
                     _activeSort = SortParam(
                       field: columnName,
                       order: ascending ? SortOrder.asc : SortOrder.desc,
                     );
+                    _selectedPresetIndex = -1;
                   });
+                  _controller.reload();
+                },
+                onSortCleared: () {
+                  setState(() { _activeSort = null; _selectedPresetIndex = -1; });
                   _controller.reload();
                 },
                 columns: cageColumns,

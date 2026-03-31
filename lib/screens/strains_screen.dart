@@ -308,6 +308,8 @@ class _StrainsScreenState extends State<StrainsScreen> {
               Builder(builder: (context) {
                 final strainColumns = buildColumnsFromSettings(
                   _tableSetting?.tableSettingFields.toList(),
+                  activeSortField: _activeSort?.field,
+                  activeSortAscending: _activeSort?.order == SortOrder.asc,
                 );
                 return PaginatedDataGrid<StrainDto>(
                 onRowTap: (strain) {
@@ -319,13 +321,20 @@ class _StrainsScreenState extends State<StrainsScreen> {
                 primaryColumn: 'name',
                 onCellEditTap: _onCellEditTap,
                 onCellEditCommit: _onCellEditCommit,
+                activeSortColumn: _activeSort?.field,
+                activeSortAscending: _activeSort?.order == SortOrder.asc,
                 onSortChanged: (columnName, ascending) {
                   setState(() {
                     _activeSort = SortParam(
                       field: columnName,
                       order: ascending ? SortOrder.asc : SortOrder.desc,
                     );
+                    _selectedPresetIndex = -1;
                   });
+                  _controller.reload();
+                },
+                onSortCleared: () {
+                  setState(() { _activeSort = null; _selectedPresetIndex = -1; });
                   _controller.reload();
                 },
                 columns: strainColumns,
