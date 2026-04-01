@@ -395,6 +395,8 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
 
   List<GridColumn> get _animalColumns => buildColumnsFromSettings(
     _tableSetting?.tableSettingFields.toList(),
+    activeSortField: _activeSort?.field,
+    activeSortAscending: _activeSort?.order == SortOrder.asc,
     controlCols: _isEndingMode ? [
       GridColumn(
         columnName: 'select',
@@ -445,6 +447,8 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   context.go('/animal/${animal.animalUuid}');
                 },
                 controller: _controller,
+                activeSortColumn: _activeSort?.field,
+                activeSortAscending: _activeSort?.order == SortOrder.asc,
                 onSortChanged: (columnName, ascending) {
                   final sort = SortParam(
                     field: columnName,
@@ -452,8 +456,21 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   );
                   setState(() {
                     _activeSort = sort;
+                    _sortNotifier.value = sort;
+                    _selectedPresetIndex = PreparedFilter.findMatchingPreset(
+                      AnimalFilterConfig.preparedFilters,
+                      _activeFilters,
+                      sort,
+                    );
                   });
-                  _sortNotifier.value = sort;
+                  _controller.reload();
+                },
+                onSortCleared: () {
+                  setState(() {
+                    _activeSort = null;
+                    _sortNotifier.value = null;
+                    _selectedPresetIndex = -1;
+                  });
                   _controller.reload();
                 },
                 columns: _animalColumns,

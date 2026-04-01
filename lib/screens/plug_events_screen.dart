@@ -238,19 +238,28 @@ class _PlugEventsScreenState extends State<PlugEventsScreen> {
               Builder(builder: (context) {
                 final plugColumns = buildColumnsFromSettings(
                   _tableSetting?.tableSettingFields.toList(),
+                  activeSortField: _activeSort?.field,
+                  activeSortAscending: _activeSort?.order == SortOrder.asc,
                 );
                 return PaginatedDataGrid<PlugEventDto>(
                 onRowTap: (plugEvent) {
                   context.go('/plug-event/${plugEvent.plugEventUuid}');
                 },
                 controller: _controller,
+                activeSortColumn: _activeSort?.field,
+                activeSortAscending: _activeSort?.order == SortOrder.asc,
                 onSortChanged: (columnName, ascending) {
                   setState(() {
                     _activeSort = SortParam(
                       field: columnName,
                       order: ascending ? SortOrder.asc : SortOrder.desc,
                     );
+                    _selectedPresetIndex = -1;
                   });
+                  _controller.reload();
+                },
+                onSortCleared: () {
+                  setState(() { _activeSort = null; _selectedPresetIndex = -1; });
                   _controller.reload();
                 },
                 columns: plugColumns,

@@ -61,6 +61,17 @@ class _FilterPanelState extends State<FilterPanel> {
     if (widget.selectedPresetIndex != oldWidget.selectedPresetIndex &&
         widget.selectedPresetIndex >= 0) {
       _initializeFromProps();
+    } else if (widget.initialSort != oldWidget.initialSort) {
+      // Sort changed externally (e.g. column header click) — sync only sort state
+      setState(() {
+        if (widget.initialSort != null) {
+          _sortField = widget.initialSort!.field;
+          _sortOrder = widget.initialSort!.order;
+        } else if (widget.sortFields.isNotEmpty) {
+          _sortField = widget.sortFields.first.field;
+          _sortOrder = SortOrder.desc;
+        }
+      });
     }
   }
 
@@ -193,10 +204,19 @@ class _FilterPanelState extends State<FilterPanel> {
     widget.onClear?.call();
   }
 
+  String? _sortFieldLabel() {
+    if (_sortField == null) return null;
+    for (final f in widget.sortFields) {
+      if (f.field == _sortField) return f.label;
+    }
+    return _sortField;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasFilters = _filterRows.isNotEmpty;
+    final sortLabel = _sortFieldLabel();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -270,6 +290,16 @@ class _FilterPanelState extends State<FilterPanel> {
                           fontSize: 11,
                           color: theme.colorScheme.onPrimaryContainer,
                         ),
+                      ),
+                    ),
+                  ],
+                  if (sortLabel != null) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      '${_sortOrder == SortOrder.asc ? '↑' : '↓'} $sortLabel',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                     ),
                   ],

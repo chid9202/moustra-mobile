@@ -266,6 +266,8 @@ class _MatingsScreenState extends State<MatingsScreen> {
               Builder(builder: (context) {
                 final matingColumns = buildColumnsFromSettings(
                   _tableSetting?.tableSettingFields.toList(),
+                  activeSortField: _activeSort?.field,
+                  activeSortAscending: _activeSort?.order == SortOrder.asc,
                 );
                 return PaginatedDataGrid<MatingDto>(
                 onRowTap: (mating) {
@@ -277,6 +279,8 @@ class _MatingsScreenState extends State<MatingsScreen> {
                 primaryColumn: 'mating_tag',
                 onCellEditTap: _onCellEditTap,
                 onCellEditCommit: _onCellEditCommit,
+                activeSortColumn: _activeSort?.field,
+                activeSortAscending: _activeSort?.order == SortOrder.asc,
                 onSortChanged: (columnName, ascending) {
                   setState(() {
                     _activeSort = SortParam(
@@ -284,6 +288,10 @@ class _MatingsScreenState extends State<MatingsScreen> {
                       order: ascending ? SortOrder.asc : SortOrder.desc,
                     );
                   });
+                  _controller.reload();
+                },
+                onSortCleared: () {
+                  setState(() { _activeSort = null; });
                   _controller.reload();
                 },
                 columns: matingColumns,
