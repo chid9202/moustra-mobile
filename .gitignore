@@ -220,3 +220,5 @@ android/fastlane/Preview.html
 
 # Generated OpenAPI client (regenerate with ./scripts/generate_api.sh)
 lib/api/generated/
+
+.omc/
