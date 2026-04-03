@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
+
 import 'package:moustra/helpers/animal_helper.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/stores/animal_store_dto.dart';
@@ -84,8 +84,10 @@ void main() {
           sex: 'Male',
           dateOfBirth: dob,
         );
-        expect(AnimalHelper.getAnimalOptionLabel(animal),
-            'TAG-001 / Male / 03/15/2024');
+        expect(
+          AnimalHelper.getAnimalOptionLabel(animal),
+          'TAG-001 / Male / 03/15/2024',
+        );
       });
 
       test('uses N/A for missing physicalTag', () {
@@ -124,16 +126,14 @@ void main() {
           sex: 'Male',
           dateOfBirth: null,
         );
-        expect(AnimalHelper.getAnimalOptionLabel(animal),
-            'TAG-001 / Male / N/A');
+        expect(
+          AnimalHelper.getAnimalOptionLabel(animal),
+          'TAG-001 / Male / N/A',
+        );
       });
 
       test('all fields missing returns N/A for each', () {
-        final animal = AnimalStoreDto(
-          eid: 1,
-          animalId: 1,
-          animalUuid: 'uuid1',
-        );
+        final animal = AnimalStoreDto(eid: 1, animalId: 1, animalUuid: 'uuid1');
         expect(AnimalHelper.getAnimalOptionLabel(animal), 'N/A / N/A / N/A');
       });
     });
@@ -180,11 +180,7 @@ void main() {
       });
 
       test('returns false when both weanDate and dateOfBirth are null', () {
-        final animal = AnimalStoreDto(
-          eid: 1,
-          animalId: 1,
-          animalUuid: 'uuid1',
-        );
+        final animal = AnimalStoreDto(eid: 1, animalId: 1, animalUuid: 'uuid1');
         expect(AnimalHelper.isMature(animal), false);
       });
 

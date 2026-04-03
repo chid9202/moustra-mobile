@@ -1,22 +1,15 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/screens/favorites_screen.dart';
 import '../test_helpers/test_helpers.dart';
 
 Future<void> pumpFavoritesScreen(WidgetTester tester) async {
-  await runZonedGuarded(
-    () async {
-      await TestHelpers.pumpWidgetWithTheme(
-        tester,
-        const FavoritesScreen(),
-      );
-      await tester.pump();
-    },
-    (error, stack) {},
-  );
+  await runZonedGuarded(() async {
+    await TestHelpers.pumpWidgetWithTheme(tester, const FavoritesScreen());
+    await tester.pump();
+  }, (error, stack) {});
 }
 
 void main() {

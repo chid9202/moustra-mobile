@@ -158,8 +158,16 @@ void main() {
   group('HasBothSexes Logic', () {
     test('returns true when both male and female exist', () {
       final animals = [
-        TempAnimalData(physicalTag: 'M1', sex: 'M', dateOfBirth: DateTime.now()),
-        TempAnimalData(physicalTag: 'F1', sex: 'F', dateOfBirth: DateTime.now()),
+        TempAnimalData(
+          physicalTag: 'M1',
+          sex: 'M',
+          dateOfBirth: DateTime.now(),
+        ),
+        TempAnimalData(
+          physicalTag: 'F1',
+          sex: 'F',
+          dateOfBirth: DateTime.now(),
+        ),
       ];
 
       final maleCount = animals.where((a) => a.sex == 'M').length;
@@ -171,8 +179,16 @@ void main() {
 
     test('returns false when only males exist', () {
       final animals = [
-        TempAnimalData(physicalTag: 'M1', sex: 'M', dateOfBirth: DateTime.now()),
-        TempAnimalData(physicalTag: 'M2', sex: 'M', dateOfBirth: DateTime.now()),
+        TempAnimalData(
+          physicalTag: 'M1',
+          sex: 'M',
+          dateOfBirth: DateTime.now(),
+        ),
+        TempAnimalData(
+          physicalTag: 'M2',
+          sex: 'M',
+          dateOfBirth: DateTime.now(),
+        ),
       ];
 
       final maleCount = animals.where((a) => a.sex == 'M').length;
@@ -184,8 +200,16 @@ void main() {
 
     test('returns false when only females exist', () {
       final animals = [
-        TempAnimalData(physicalTag: 'F1', sex: 'F', dateOfBirth: DateTime.now()),
-        TempAnimalData(physicalTag: 'F2', sex: 'F', dateOfBirth: DateTime.now()),
+        TempAnimalData(
+          physicalTag: 'F1',
+          sex: 'F',
+          dateOfBirth: DateTime.now(),
+        ),
+        TempAnimalData(
+          physicalTag: 'F2',
+          sex: 'F',
+          dateOfBirth: DateTime.now(),
+        ),
       ];
 
       final maleCount = animals.where((a) => a.sex == 'M').length;
@@ -197,7 +221,11 @@ void main() {
 
     test('excludes litter pups from count', () {
       final animals = [
-        TempAnimalData(physicalTag: 'M1', sex: 'M', dateOfBirth: DateTime.now()),
+        TempAnimalData(
+          physicalTag: 'M1',
+          sex: 'M',
+          dateOfBirth: DateTime.now(),
+        ),
         TempAnimalData(
           physicalTag: 'F1',
           sex: 'F',
@@ -274,7 +302,8 @@ void main() {
       );
 
       final parentCount = animals.where((a) => !a.isLitterPup).length;
-      final exceedsCapacity = parentCount > ColonyWizardConstants.maxMicePerCage;
+      final exceedsCapacity =
+          parentCount > ColonyWizardConstants.maxMicePerCage;
 
       expect(exceedsCapacity, isFalse);
     });
@@ -290,7 +319,8 @@ void main() {
       );
 
       final parentCount = animals.where((a) => !a.isLitterPup).length;
-      final exceedsCapacity = parentCount > ColonyWizardConstants.maxMicePerCage;
+      final exceedsCapacity =
+          parentCount > ColonyWizardConstants.maxMicePerCage;
 
       expect(exceedsCapacity, isFalse);
     });
@@ -306,7 +336,8 @@ void main() {
       );
 
       final parentCount = animals.where((a) => !a.isLitterPup).length;
-      final exceedsCapacity = parentCount > ColonyWizardConstants.maxMicePerCage;
+      final exceedsCapacity =
+          parentCount > ColonyWizardConstants.maxMicePerCage;
 
       expect(exceedsCapacity, isTrue);
     });
@@ -331,7 +362,8 @@ void main() {
       ];
 
       final parentCount = animals.where((a) => !a.isLitterPup).length;
-      final exceedsCapacity = parentCount > ColonyWizardConstants.maxMicePerCage;
+      final exceedsCapacity =
+          parentCount > ColonyWizardConstants.maxMicePerCage;
 
       expect(exceedsCapacity, isFalse); // Pup doesn't count
     });
@@ -401,7 +433,9 @@ void main() {
     test('should NOT generate tag when existing mating has tag', () {
       final matingTagTouched = false;
       final isEditMode = true;
-      final existingMating = {'matingTag': 'Existing Tag'}; // Simulated existing mating
+      final existingMating = {
+        'matingTag': 'Existing Tag',
+      }; // Simulated existing mating
 
       final hasExistingMating = isEditMode && existingMating != null;
       final shouldGenerate = !matingTagTouched && !hasExistingMating;
