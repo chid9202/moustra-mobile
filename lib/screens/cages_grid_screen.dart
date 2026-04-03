@@ -170,6 +170,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     });
     await _loadRackData(rackUuid: rack.rackUuid);
     // Reset view position (zoom and pan) to default when switching racks
+    if (!mounted) return;
     _resetViewPosition();
   }
 
@@ -232,6 +233,8 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
   Future<void> _restoreSavedPosition() async {
     // First try to load from SharedPreferences (persisted across app restarts)
     Matrix4? savedMatrix = await getSavedTransformationMatrixFromStorage();
+
+    if (!mounted) return;
 
     // Fall back to in-memory store if SharedPreferences has no data
     savedMatrix ??= getSavedTransformationMatrix();
