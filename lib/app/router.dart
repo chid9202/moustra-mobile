@@ -66,7 +66,15 @@ final GoRouter appRouter = GoRouter(
         return '/login';
       },
     ),
-    GoRoute(path: '/', redirect: (context, state) => '/login'),
+    GoRoute(
+      path: '/',
+      redirect: (context, state) {
+        if (authService.isLoggedIn && profileState.value?.accountUuid != null) {
+          return '/cage/grid';
+        }
+        return '/login';
+      },
+    ),
     // Colony Wizard - full screen without app shell
     GoRoute(
       path: '/colony-wizard',
