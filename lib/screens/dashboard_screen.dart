@@ -115,7 +115,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 8,
       crossAxisSpacing: 8,
-      childAspectRatio: 1.8,
+      childAspectRatio: 1.6,
       children: [
         _buildColonySummaryCard(
           icon: Icons.pets,
