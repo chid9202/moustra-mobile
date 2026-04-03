@@ -13,11 +13,17 @@ class SelectSex extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
         // const Text('Sex', style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         SegmentedButton<String>(
+          selectedIcon: const Icon(Icons.check, size: 14),
+          style: const ButtonStyle(
+            visualDensity: VisualDensity.compact,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
           segments: const [
             ButtonSegment<String>(value: SexConstants.male, label: Text('M')),
             ButtonSegment<String>(value: SexConstants.female, label: Text('F')),
