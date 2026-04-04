@@ -221,6 +221,35 @@ class _SelectGeneState extends State<SelectGene> {
                         actions: [
                           TextButton(
                             onPressed: () {
+                              // Auto-flush any pending gene+allele selection
+                              if (tempSelectedGene != null &&
+                                  tempSelectedAlleles.isNotEmpty) {
+                                int order = tempSelectedGenotypes.length + 1;
+                                for (final allele in tempSelectedAlleles) {
+                                  final newGenotype = GenotypeDto(
+                                    gene: GeneDto(
+                                      geneId: tempSelectedGene!.geneId,
+                                      geneUuid: tempSelectedGene!.geneUuid,
+                                      geneName: tempSelectedGene!.geneName,
+                                    ),
+                                    allele: AlleleDto(
+                                      alleleId: allele.alleleId,
+                                      alleleUuid: allele.alleleUuid,
+                                      alleleName: allele.alleleName,
+                                    ),
+                                    order: order++,
+                                  );
+                                  if (!tempSelectedGenotypes.any(
+                                    (g) =>
+                                        g.gene?.geneUuid ==
+                                            newGenotype.gene?.geneUuid &&
+                                        g.allele?.alleleUuid ==
+                                            newGenotype.allele?.alleleUuid,
+                                  )) {
+                                    tempSelectedGenotypes.insert(0, newGenotype);
+                                  }
+                                }
+                              }
                               widget.onGenotypesChanged(tempSelectedGenotypes);
                               Navigator.of(context).pop(true);
                             },
