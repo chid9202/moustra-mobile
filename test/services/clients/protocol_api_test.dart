@@ -102,11 +102,21 @@ class TestableProtocolApi {
 
   Future<ComplianceSummaryDto> getComplianceSummary() async {
     final res = await apiClient.get('$basePath/compliance/summary');
+    if (res.statusCode != null && res.statusCode! >= 400) {
+      throw Exception(
+        'Failed to load compliance summary: ${res.statusCode} ${res.data}',
+      );
+    }
     return ComplianceSummaryDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<List<ProtocolAlertDto>> getAlerts() async {
-    final res = await apiClient.get('$basePath/alerts');
+    final res = await apiClient.get('$basePath/alert');
+    if (res.statusCode != null && res.statusCode! >= 400) {
+      throw Exception(
+        'Failed to load alerts: ${res.statusCode} ${res.data}',
+      );
+    }
     final List<dynamic> data = res.data as List<dynamic>;
     return data
         .whereType<Map<String, dynamic>>()
@@ -116,7 +126,7 @@ class TestableProtocolApi {
 
   Future<void> acknowledgeAlert(String alertUuid) async {
     final res = await apiClient.post(
-      '$basePath/alerts/$alertUuid/acknowledge',
+      '$basePath/alert/$alertUuid/acknowledge',
     );
     if (res.statusCode != 200 && res.statusCode != 204) {
       throw Exception('Failed to acknowledge alert: ${res.data}');
@@ -517,7 +527,7 @@ void main() {
 
         await api.acknowledgeAlert('alert-1');
 
-        verify(mockApiClient.post('/protocol/alerts/alert-1/acknowledge',
+        verify(mockApiClient.post('/protocol/alert/alert-1/acknowledge',
                 body: anyNamed('body'), query: anyNamed('query')))
             .called(1);
       });

@@ -166,12 +166,22 @@ class ProtocolApi {
   /// Get compliance summary
   Future<ComplianceSummaryDto> getComplianceSummary() async {
     final res = await dioApiClient.get('$basePath/compliance/summary');
+    if (res.statusCode != null && res.statusCode! >= 400) {
+      throw Exception(
+        'Failed to load compliance summary: ${res.statusCode} ${res.data}',
+      );
+    }
     return ComplianceSummaryDto.fromJson(res.data as Map<String, dynamic>);
   }
 
   /// Get active alerts
   Future<List<ProtocolAlertDto>> getAlerts() async {
-    final res = await dioApiClient.get('$basePath/alerts');
+    final res = await dioApiClient.get('$basePath/alert');
+    if (res.statusCode != null && res.statusCode! >= 400) {
+      throw Exception(
+        'Failed to load alerts: ${res.statusCode} ${res.data}',
+      );
+    }
     final List<dynamic> data = res.data as List<dynamic>;
     return data
         .whereType<Map<String, dynamic>>()
@@ -182,7 +192,7 @@ class ProtocolApi {
   /// Acknowledge an alert
   Future<void> acknowledgeAlert(String alertUuid) async {
     final res = await dioApiClient.post(
-      '$basePath/alerts/$alertUuid/acknowledge',
+      '$basePath/alert/$alertUuid/acknowledge',
     );
     if (res.statusCode != 200 && res.statusCode != 204) {
       throw Exception('Failed to acknowledge alert: ${res.data}');
