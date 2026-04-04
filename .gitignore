@@ -222,3 +222,6 @@ android/fastlane/Preview.html
 lib/api/generated/
 
 .omc/
+
+# Local dev notes
+.notes/
