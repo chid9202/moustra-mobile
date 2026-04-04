@@ -28,7 +28,7 @@ import 'package:moustra/widgets/note/note_list.dart';
 import 'package:moustra/services/dtos/note_entity_type.dart';
 import 'package:moustra/services/clients/event_api.dart';
 import 'package:moustra/widgets/attachment/attachment_list.dart';
-import 'package:moustra/widgets/family_tree_widget.dart';
+import 'package:moustra/widgets/family_tree_v2_widget.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
@@ -45,7 +45,9 @@ class AnimalDetailScreen extends StatefulWidget {
   State<AnimalDetailScreen> createState() => _AnimalDetailScreenState();
 }
 
-class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
+class _AnimalDetailScreenState extends State<AnimalDetailScreen>
+    with SingleTickerProviderStateMixin {
+  TabController? _tabController;
   final _formKey = GlobalKey<FormState>();
   final _physicalTagController = TextEditingController();
   final _commentController = TextEditingController();
@@ -128,6 +130,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
           _selectedGenotypes = animal.genotypes ?? [];
           eventApi.trackEvent('view_animal');
         });
+        _initTabController();
       }
     } catch (e) {
       debugPrint('Error loading animal: $e');
@@ -138,8 +141,18 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
     }
   }
 
+  void _initTabController() {
+    final isExisting = _animalUuid != null && _animalUuid != 'new';
+    if (!isExisting) return;
+    final tabCount = _animalData?.sex == 'F' ? 4 : 3;
+    if (_tabController?.length == tabCount) return;
+    _tabController?.dispose();
+    _tabController = TabController(length: tabCount, vsync: this);
+  }
+
   @override
   void dispose() {
+    _tabController?.dispose();
     _physicalTagController.dispose();
     _commentController.dispose();
     super.dispose();
@@ -222,11 +235,13 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
     if (_animalUuid != null && !_animalDataLoaded) {
       return const Center(child: CircularProgressIndicator());
     }
+
+    final isExisting = _animalUuid != null && _animalUuid != 'new';
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            // Navigate back to the appropriate page based on where we came from
             if (widget.fromProtocol != null) {
               context.pop();
             } else if (widget.fromCageGrid) {
@@ -238,291 +253,202 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
           icon: const Icon(Icons.arrow_back),
         ),
         title: Text(
-          _animalUuid == null || _animalUuid == 'new'
-              ? 'Create Animal'
-              : 'Edit Animal',
+          isExisting ? 'Edit Animal' : 'Create Animal',
         ),
+        bottom: isExisting && _tabController != null
+            ? TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabs: [
+                  const Tab(text: 'Details'),
+                  const Tab(text: 'Lineage'),
+                  const Tab(text: 'History'),
+                  if (_animalData?.sex == 'F') const Tab(text: 'Plug Events'),
+                ],
+              )
+            : null,
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Physical Tag Field
-              Semantics(
-                label: 'Physical Tag',
-                textField: true,
-                child: TextFormField(
-                  controller: _physicalTagController,
-                  decoration: const InputDecoration(
-                    labelText: 'Physical Tag',
-                    hintText: 'Enter physical tag',
-                    border: OutlineInputBorder(),
-                  ),
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => _saveAnimal(),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a physical tag';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Sex Selection
-              SelectSex(
-                selectedSex: _selectedSex,
-                onChanged: (sex) {
-                  setState(() {
-                    _selectedSex = sex;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              // Strain Selection
-              SelectStrain(
-                selectedStrain: _selectedStrain,
-                onChanged: (strain) {
-                  setState(() {
-                    _selectedStrain = strain;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              // Date of Birth
-              SelectDate(
-                selectedDate: _selectedDateOfBirth,
-                onChanged: (date) {
-                  setState(() {
-                    _selectedDateOfBirth = date;
-                  });
-                },
-                labelText: 'Date of Birth',
-              ),
-
-              const SizedBox(height: 16),
-
-              // Wean Date
-              SelectDate(
-                selectedDate: _selectedWeanDate,
-                onChanged: (date) {
-                  setState(() {
-                    _selectedWeanDate = date;
-                  });
-                },
-                labelText: 'Wean Date',
-              ),
-
-              const SizedBox(height: 16),
-
-              // Tail Date
-              SelectDate(
-                selectedDate: _selectedTailDate,
-                onChanged: (date) {
-                  setState(() {
-                    _selectedTailDate = date;
-                  });
-                },
-                labelText: 'Tail Date',
-              ),
-
-              const SizedBox(height: 16),
-
-              // Genotype Selection
-              SelectGene(
-                selectedGenotypes: _selectedGenotypes,
-                onGenotypesChanged: (genotypes) {
-                  setState(() {
-                    _selectedGenotypes = genotypes;
-                  });
-                },
-                label: 'Genotype',
-                placeholderText: 'Select Genotype',
-              ),
-
-              const SizedBox(height: 16),
-
-              // Owner Select Field
-              SelectOwner(
-                selectedOwner: _selectedOwner,
-                onChanged: (owner) {
-                  setState(() {
-                    _selectedOwner = owner;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              // Cage Selection
-              SelectCage(
-                selectedCage: _selectedCage,
-                onChanged: (cage) {
-                  setState(() {
-                    _selectedCage = cage;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Sire Selection
-              SelectAnimal(
-                selectedAnimal: _selectedSire,
-                onChanged: (animal) {
-                  setState(() {
-                    _selectedSire = animal;
-                  });
-                },
-                label: 'Sire',
-                placeholderText: 'Select Sire',
-              ),
-
-              const SizedBox(height: 16),
-
-              // Dam Selection
-              MultiSelectAnimal(
-                selectedAnimals: _selectedDam,
-                onChanged: (items) {
-                  setState(() {
-                    _selectedDam = items;
-                  });
-                },
-                label: 'Dam',
-                placeholderText: 'Select Dam',
-              ),
-
-              const SizedBox(height: 16),
-
-              // Comment Field
-              // HIDDEN: Comment field hidden - use Note instead
-
-              // End Information (read-only, shown only for ended animals)
-              if (_animalData?.endDate != null) ...[
-                const Divider(height: 32),
-                const Text(
-                  'End Information',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                _readOnlyField('End Date', _formatDate(_animalData!.endDate)),
-                if (_animalData!.endType != null)
-                  _readOnlyField('End Type', _animalData!.endType!.endTypeName),
-                if (_animalData!.endReason != null)
-                  _readOnlyField(
-                    'End Reason',
-                    _animalData!.endReason!.endReasonName,
-                  ),
-                if (_animalData!.endComment != null &&
-                    _animalData!.endComment!.isNotEmpty)
-                  _readOnlyField('End Comment', _animalData!.endComment!),
+      body: isExisting && _tabController != null
+          ? TabBarView(
+              controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                _buildDetailsTab(),
+                _buildLineageTab(),
+                _buildHistoryTab(),
+                if (_animalData?.sex == 'F') _buildPlugEventsTab(),
               ],
+            )
+          : _buildDetailsTab(),
+    );
+  }
 
-              const SizedBox(height: 32),
-
-              // Notes Section
-              if (_animalUuid != null && _animalUuid != 'new')
-                NoteList(
-                  entityUuid: _animalUuid,
-                  entityType: NoteEntityType.animal,
-                  initialNotes: _animalData?.notes,
+  Widget _buildDetailsTab() {
+    final isExisting = _animalUuid != null && _animalUuid != 'new';
+    return Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Semantics(
+              label: 'Physical Tag',
+              textField: true,
+              child: TextFormField(
+                controller: _physicalTagController,
+                decoration: const InputDecoration(
+                  labelText: 'Physical Tag',
+                  hintText: 'Enter physical tag',
+                  border: OutlineInputBorder(),
                 ),
-
-              const SizedBox(height: 16),
-
-              // Attachments Section
-              if (_animalUuid != null && _animalUuid != 'new')
-                AttachmentList(animalUuid: _animalUuid),
-
-              const SizedBox(height: 16),
-
-              // Family Tree Button
-              if (_animalUuid != null && _animalUuid != 'new')
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showFamilyTree(context),
-                    icon: const Icon(Icons.account_tree),
-                    label: const Text('View Family Tree'),
-                  ),
-                ),
-
-              const SizedBox(height: 16),
-
-              // Related data sections (only for existing animals)
-              if (_animalUuid != null && _animalUuid != 'new') ...[
-                _buildMatingHistorySection(),
-                const SizedBox(height: 16),
-                if (_animalData?.sex == 'F') _buildPlugEventHistorySection(),
-                if (_animalData?.sex == 'F') const SizedBox(height: 16),
-              ],
-
-              // Save Button
-              Semantics(
-                label: 'Save Animal',
-                button: true,
-                child: SizedBox(
-                  width: double.infinity,
-                  child: MoustraButtonPrimary(
-                    onPressed: _saveAnimal,
-                    label: 'Save Animal',
-                  ),
-                ),
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _saveAnimal(),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter a physical tag';
+                  }
+                  return null;
+                },
               ),
+            ),
+            const SizedBox(height: 16),
+            SelectSex(
+              selectedSex: _selectedSex,
+              onChanged: (sex) => setState(() => _selectedSex = sex),
+            ),
+            const SizedBox(height: 16),
+            SelectStrain(
+              selectedStrain: _selectedStrain,
+              onChanged: (strain) => setState(() => _selectedStrain = strain),
+            ),
+            const SizedBox(height: 16),
+            SelectDate(
+              selectedDate: _selectedDateOfBirth,
+              onChanged: (date) => setState(() => _selectedDateOfBirth = date),
+              labelText: 'Date of Birth',
+            ),
+            const SizedBox(height: 16),
+            SelectDate(
+              selectedDate: _selectedWeanDate,
+              onChanged: (date) => setState(() => _selectedWeanDate = date),
+              labelText: 'Wean Date',
+            ),
+            const SizedBox(height: 16),
+            SelectDate(
+              selectedDate: _selectedTailDate,
+              onChanged: (date) => setState(() => _selectedTailDate = date),
+              labelText: 'Tail Date',
+            ),
+            const SizedBox(height: 16),
+            SelectGene(
+              selectedGenotypes: _selectedGenotypes,
+              onGenotypesChanged: (genotypes) =>
+                  setState(() => _selectedGenotypes = genotypes),
+              label: 'Genotype',
+              placeholderText: 'Select Genotype',
+            ),
+            const SizedBox(height: 16),
+            SelectOwner(
+              selectedOwner: _selectedOwner,
+              onChanged: (owner) => setState(() => _selectedOwner = owner),
+            ),
+            const SizedBox(height: 16),
+            SelectCage(
+              selectedCage: _selectedCage,
+              onChanged: (cage) => setState(() => _selectedCage = cage),
+            ),
+            const SizedBox(height: 16),
+            SelectAnimal(
+              selectedAnimal: _selectedSire,
+              onChanged: (animal) => setState(() => _selectedSire = animal),
+              label: 'Sire',
+              placeholderText: 'Select Sire',
+            ),
+            const SizedBox(height: 16),
+            MultiSelectAnimal(
+              selectedAnimals: _selectedDam,
+              onChanged: (items) => setState(() => _selectedDam = items),
+              label: 'Dam',
+              placeholderText: 'Select Dam',
+            ),
+            const SizedBox(height: 16),
+
+            // End Information (read-only, shown only for ended animals)
+            if (_animalData?.endDate != null) ...[
+              const Divider(height: 32),
+              const Text(
+                'End Information',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              _readOnlyField('End Date', _formatDate(_animalData!.endDate)),
+              if (_animalData!.endType != null)
+                _readOnlyField('End Type', _animalData!.endType!.endTypeName),
+              if (_animalData!.endReason != null)
+                _readOnlyField(
+                  'End Reason',
+                  _animalData!.endReason!.endReasonName,
+                ),
+              if (_animalData!.endComment != null &&
+                  _animalData!.endComment!.isNotEmpty)
+                _readOnlyField('End Comment', _animalData!.endComment!),
             ],
-          ),
+
+            const SizedBox(height: 32),
+
+            // Notes Section
+            if (isExisting)
+              NoteList(
+                entityUuid: _animalUuid,
+                entityType: NoteEntityType.animal,
+                initialNotes: _animalData?.notes,
+              ),
+
+            const SizedBox(height: 16),
+
+            // Attachments Section
+            if (isExisting) AttachmentList(animalUuid: _animalUuid),
+
+            const SizedBox(height: 16),
+
+            // Save Button
+            Semantics(
+              label: 'Save Animal',
+              button: true,
+              child: SizedBox(
+                width: double.infinity,
+                child: MoustraButtonPrimary(
+                  onPressed: _saveAnimal,
+                  label: 'Save Animal',
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void _showFamilyTree(BuildContext context) {
+  Widget _buildLineageTab() {
     final uuid = _animalUuid;
-    if (uuid == null) return;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.4,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Family Tree',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(child: FamilyTreeWidget(animalUuid: uuid)),
-          ],
-        ),
-      ),
+    if (uuid == null) {
+      return const Center(child: Text('No lineage data'));
+    }
+    return FamilyTreeV2Widget(animalUuid: uuid);
+  }
+
+  Widget _buildHistoryTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: _buildMatingHistorySection(),
+    );
+  }
+
+  Widget _buildPlugEventsTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: _buildPlugEventHistorySection(),
     );
   }
 

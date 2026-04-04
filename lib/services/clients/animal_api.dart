@@ -1,11 +1,15 @@
+import 'package:moustra/config/env.dart';
+import 'package:moustra/services/clients/api_exceptions.dart';
 import 'package:moustra/services/clients/dio_api_client.dart';
 import 'package:moustra/services/dtos/animal_dto.dart';
 import 'package:moustra/services/dtos/end_animals_dto.dart';
 import 'package:moustra/services/dtos/family_tree_dto.dart';
+import 'package:moustra/services/dtos/family_tree_v2_dto.dart';
 import 'package:moustra/services/dtos/paginated_response_dto.dart';
 import 'package:moustra/services/dtos/rack_dto.dart';
 import 'package:moustra/services/models/list_query_params.dart';
 import 'package:moustra/services/utils/safe_json_converter.dart';
+import 'package:moustra/stores/profile_store.dart';
 
 class AnimalApi {
   static const String basePath = '/animal';
@@ -183,6 +187,19 @@ class AnimalApi {
     final res = await dioApiClient.get('$basePath/$animalUuid/family-tree');
     final json = res.data as Map<String, dynamic>;
     return FamilyTreeDto.fromJson(json);
+  }
+
+  /// Get the V2 recursive family tree for an animal
+  Future<FamilyTreeNodeDto> getAnimalFamilyTreeV2(String animalUuid) async {
+    final accountUuid = profileState.value?.accountUuid;
+    final v2Base = Env.apiBaseUrlV2;
+    final url = '$v2Base/account/$accountUuid/animal/$animalUuid/family-tree';
+    final res = await dioApiClient.dio.get(url);
+    if (res.statusCode == 404) {
+      throw ApiException(statusCode: 404, message: 'Animal not found');
+    }
+    final json = res.data as Map<String, dynamic>;
+    return FamilyTreeNodeDto.fromJson(json);
   }
 
   /// Batch update animals with a PATCH request.

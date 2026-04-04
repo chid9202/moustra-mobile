@@ -26,6 +26,8 @@ class Env {
   static bool get isProduction =>
       dotenv.get('ENVIRONMENT', fallback: 'staging') == 'production';
 
+  static String get apiBaseUrlV2 => apiBaseUrl.replaceFirst('/api/v1', '/api/v2');
+
   static String get stripePublishableKey => dotenv.get(
     'STRIPE_PUBLISHABLE_KEY',
     fallback: 'pk_test_51PIvHGBTQzyOpQxGIhQW4v9Immup8mx9JvEA93NHzN1RgzHlvudJ9f01I2IyOW9yun3hnkCSHvStm6HMY59jwdWQ007vdoMnot',
