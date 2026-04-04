@@ -149,6 +149,7 @@ class DioApiClient {
     String path, {
     Object? body,
     Map<String, String>? query,
+    Duration? receiveTimeout,
   }) {
     final fullPath = _buildPath(path);
     return _wrap(
@@ -156,7 +157,10 @@ class DioApiClient {
         fullPath,
         data: body,
         queryParameters: query,
-        options: Options(contentType: 'application/json'),
+        options: Options(
+          contentType: 'application/json',
+          receiveTimeout: receiveTimeout,
+        ),
       ),
     );
   }

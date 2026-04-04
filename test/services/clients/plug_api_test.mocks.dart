@@ -171,13 +171,14 @@ class MockDioApiClient extends _i1.Mock implements _i3.DioApiClient {
     String? path, {
     Object? body,
     Map<String, String>? query,
+    Duration? receiveTimeout,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#put, [path], {#body: body, #query: query}),
+            Invocation.method(#put, [path], {#body: body, #query: query, #receiveTimeout: receiveTimeout}),
             returnValue: _i4.Future<_i2.Response<dynamic>>.value(
               _FakeResponse_1<dynamic>(
                 this,
-                Invocation.method(#put, [path], {#body: body, #query: query}),
+                Invocation.method(#put, [path], {#body: body, #query: query, #receiveTimeout: receiveTimeout}),
               ),
             ),
           )
@@ -188,13 +189,14 @@ class MockDioApiClient extends _i1.Mock implements _i3.DioApiClient {
     String? path, {
     Object? body,
     Map<String, String>? query,
+    Duration? receiveTimeout,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#patch, [path], {#body: body, #query: query}),
+            Invocation.method(#patch, [path], {#body: body, #query: query, #receiveTimeout: receiveTimeout}),
             returnValue: _i4.Future<_i2.Response<dynamic>>.value(
               _FakeResponse_1<dynamic>(
                 this,
-                Invocation.method(#patch, [path], {#body: body, #query: query}),
+                Invocation.method(#patch, [path], {#body: body, #query: query, #receiveTimeout: receiveTimeout}),
               ),
             ),
           )

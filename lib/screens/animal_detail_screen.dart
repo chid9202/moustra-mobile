@@ -30,6 +30,7 @@ import 'package:moustra/services/clients/event_api.dart';
 import 'package:moustra/widgets/attachment/attachment_list.dart';
 import 'package:moustra/widgets/family_tree_v2_widget.dart';
 import 'package:moustra/helpers/snackbar_helper.dart';
+import 'package:moustra/services/clients/api_exceptions.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
   final bool fromCageGrid;
@@ -63,6 +64,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
   List<AnimalStoreDto> _selectedDam = [];
   AnimalDto? _animalData;
   bool _animalDataLoaded = false;
+  bool _isSaving = false;
   List<GenotypeDto> _selectedGenotypes = [];
 
   // Get the animal UUID from the route parameters
@@ -160,6 +162,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
 
   void _saveAnimal() async {
     if (_formKey.currentState!.validate() && _animalData != null) {
+      setState(() => _isSaving = true);
       try {
         final animalUuid = _animalUuid;
         if (animalUuid == null) {
@@ -220,9 +223,29 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
         } else {
           context.go('/animal');
         }
+      } on ApiTimeoutException {
+        if (mounted) {
+          showAppSnackBar(
+            context,
+            'Still saving… the server is taking longer than usual. '
+            'Your changes may have been saved — check back in a moment.',
+            isError: true,
+          );
+          if (widget.fromProtocol != null) {
+            context.pop();
+          } else if (widget.fromCageGrid) {
+            context.go('/cage/grid');
+          } else {
+            context.go('/animal');
+          }
+        }
       } catch (e) {
         debugPrint('Error saving animal: $e - ${e.toString()}');
-        showAppSnackBar(context, 'Error saving animal: $e', isError: true);
+        if (mounted) {
+          showAppSnackBar(context, 'Error saving animal: $e', isError: true);
+        }
+      } finally {
+        if (mounted) setState(() => _isSaving = false);
       }
     }
   }
@@ -416,12 +439,11 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
             Semantics(
               label: 'Save Animal',
               button: true,
-              child: SizedBox(
-                width: double.infinity,
-                child: MoustraButtonPrimary(
-                  onPressed: _saveAnimal,
-                  label: 'Save Animal',
-                ),
+              child: MoustraButtonPrimary(
+                onPressed: _saveAnimal,
+                label: 'Save Animal',
+                isLoading: _isSaving,
+                fullWidth: true,
               ),
             ),
           ],

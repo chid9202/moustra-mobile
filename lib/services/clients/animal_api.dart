@@ -71,7 +71,11 @@ class AnimalApi {
   }
 
   Future<AnimalDto> putAnimal(String animalUuid, AnimalDto payload) async {
-    final res = await dioApiClient.put('$basePath/$animalUuid', body: payload);
+    final res = await dioApiClient.put(
+      '$basePath/$animalUuid',
+      body: payload,
+      receiveTimeout: const Duration(seconds: 90),
+    );
 
     if (res.statusCode != 200) {
       throw Exception('Failed to update animal ${res.data}');
