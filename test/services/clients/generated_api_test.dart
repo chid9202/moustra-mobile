@@ -4,12 +4,12 @@ import 'package:moustra/services/clients/generated_api.dart';
 import 'package:moustra/services/dtos/profile_dto.dart';
 import 'package:moustra/stores/profile_store.dart';
 
-void main() {
+Future<void> main() async {
   setUpAll(() async {
     try {
       await dotenv.load(fileName: '.env');
     } catch (_) {
-      await dotenv.loadFromString(envString: '', isOptional: true);
+      dotenv.loadFromString(envString: '', isOptional: true);
     }
   });
 

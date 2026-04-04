@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/screens/users_screen.dart';
@@ -8,16 +7,10 @@ import 'package:moustra/widgets/shared/button.dart';
 import '../test_helpers/test_helpers.dart';
 
 Future<void> pumpUsersScreen(WidgetTester tester) async {
-  await runZonedGuarded(
-    () async {
-      await TestHelpers.pumpWidgetWithTheme(
-        tester,
-        const UsersScreen(),
-      );
-      await tester.pump();
-    },
-    (error, stack) {},
-  );
+  await runZonedGuarded(() async {
+    await TestHelpers.pumpWidgetWithTheme(tester, const UsersScreen());
+    await tester.pump();
+  }, (error, stack) {});
 }
 
 void main() {

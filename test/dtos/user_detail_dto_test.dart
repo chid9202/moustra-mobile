@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moustra/services/dtos/user_detail_dto.dart';
-import 'package:moustra/services/dtos/user_list_dto.dart';
 
 void main() {
   final userJson = {
@@ -16,11 +15,7 @@ void main() {
     'animalCreationTour': true,
   };
 
-  final labJson = {
-    'labId': 1,
-    'labUuid': 'lab-uuid-1',
-    'labName': 'Mouse Lab',
-  };
+  final labJson = {'labId': 1, 'labUuid': 'lab-uuid-1', 'labName': 'Mouse Lab'};
 
   group('UserDetailDto', () {
     test('fromJson with complete data', () {
@@ -118,10 +113,7 @@ void main() {
     });
 
     test('fromJson with minimal data', () {
-      final json = {
-        'role': 'member',
-        'isActive': false,
-      };
+      final json = {'role': 'member', 'isActive': false};
 
       final dto = PutUserDetailDto.fromJson(json);
 
