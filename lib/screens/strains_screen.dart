@@ -189,7 +189,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
 
     try {
       // Build the updated DTO
-      AccountStoreDto owner = await getAccountHook(strain.owner.accountUuid) ??
+      AccountStoreDto owner = await getAccountHook(strain.owner?.accountUuid) ??
           (throw StateError('Owner account not found'));
       String strainName = strain.strainName;
       bool? isActive = strain.isActive;
