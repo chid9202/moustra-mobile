@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -30,7 +31,8 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
   bool _isLoading = false;
   bool _isStreaming = false;
   bool _isLoadingHistory = true;
-  StreamSubscription<String>? _streamSubscription;
+  String? _toolStatus;
+  StreamSubscription<AiStreamEvent>? _streamSubscription;
 
   @override
   void initState() {
@@ -100,6 +102,7 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
     setState(() {
       _messages.clear();
       _inputController.clear();
+      _toolStatus = null;
     });
   }
 
@@ -135,6 +138,7 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
       ));
       _isLoading = true;
       _isStreaming = true;
+      _toolStatus = null;
     });
     _scrollToBottom();
 
@@ -143,33 +147,58 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
       final buffer = StringBuffer();
 
       _streamSubscription = stream.listen(
-        (chunk) {
-          buffer.write(chunk);
-          setState(() {
-            _isLoading = false;
-            // Replace last assistant message or add new one
-            if (_messages.isNotEmpty && _messages.last.role == 'assistant' &&
-                _messages.last.chatUuid == null) {
-              _messages[_messages.length - 1] = AiChatMessageDto(
-                role: 'assistant',
-                content: buffer.toString(),
-                createdAt: DateTime.now().toIso8601String(),
-              );
-            } else {
-              _messages.add(AiChatMessageDto(
-                role: 'assistant',
-                content: buffer.toString(),
-                createdAt: DateTime.now().toIso8601String(),
-              ));
-            }
-          });
-          _scrollToBottom();
+        (event) {
+          switch (event) {
+            case AiTokenEvent():
+              buffer.write(event.token);
+              setState(() {
+                _isLoading = false;
+                _toolStatus = null;
+                // Replace last assistant message or add new one
+                if (_messages.isNotEmpty &&
+                    _messages.last.role == 'assistant' &&
+                    _messages.last.chatUuid == null &&
+                    _messages.last.action == null) {
+                  _messages[_messages.length - 1] = AiChatMessageDto(
+                    role: 'assistant',
+                    content: buffer.toString(),
+                    createdAt: DateTime.now().toIso8601String(),
+                  );
+                } else {
+                  _messages.add(AiChatMessageDto(
+                    role: 'assistant',
+                    content: buffer.toString(),
+                    createdAt: DateTime.now().toIso8601String(),
+                  ));
+                }
+              });
+              _scrollToBottom();
+
+            case AiActionEvent():
+              setState(() {
+                _isLoading = false;
+                _toolStatus = null;
+                _messages.add(AiChatMessageDto(
+                  role: 'assistant',
+                  content: event.action.description,
+                  createdAt: DateTime.now().toIso8601String(),
+                  action: event.action,
+                ));
+              });
+              _scrollToBottom();
+
+            case AiToolStatusEvent():
+              setState(() {
+                _toolStatus = event.status;
+              });
+          }
         },
         onDone: () {
           if (mounted) {
             setState(() {
               _isLoading = false;
               _isStreaming = false;
+              _toolStatus = null;
             });
           }
         },
@@ -179,6 +208,7 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
             setState(() {
               _isLoading = false;
               _isStreaming = false;
+              _toolStatus = null;
             });
             showAppSnackBar(context, 'Error: $error', isError: true);
           }
@@ -190,10 +220,82 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
         setState(() {
           _isLoading = false;
           _isStreaming = false;
+          _toolStatus = null;
         });
         showAppSnackBar(context, 'Error: $e', isError: true);
       }
     }
+  }
+
+  Future<void> _handleConfirmAction(int messageIndex) async {
+    final message = _messages[messageIndex];
+    final action = message.action;
+    if (action == null) return;
+
+    // Update to loading state
+    setState(() {
+      _messages[messageIndex] = AiChatMessageDto(
+        role: 'assistant',
+        content: '${action.description}\n\nExecuting...',
+        createdAt: message.createdAt,
+        action: action,
+      );
+    });
+
+    try {
+      final result = await aiApi.executeAction(action);
+
+      if (mounted) {
+        setState(() {
+          _messages[messageIndex] = AiChatMessageDto(
+            role: 'assistant',
+            content: '${action.description}\n\nAction completed successfully.',
+            createdAt: message.createdAt,
+            chatUuid: message.chatUuid,
+          );
+        });
+      }
+
+      // Send result back to AI for continuation
+      try {
+        await aiApi.sendActionResult(
+          actionId: action.id,
+          success: true,
+          result: result,
+        );
+      } catch (e) {
+        debugPrint('Error sending action result: $e');
+      }
+    } catch (e) {
+      debugPrint('Error executing action: $e');
+      if (mounted) {
+        final errorMsg = e.toString().replaceFirst('Exception: ', '');
+        setState(() {
+          _messages[messageIndex] = AiChatMessageDto(
+            role: 'assistant',
+            content: '${action.description}\n\nFailed: $errorMsg',
+            createdAt: message.createdAt,
+            action: action,
+          );
+        });
+        showAppSnackBar(context, 'Action failed', isError: true);
+      }
+    }
+  }
+
+  void _handleCancelAction(int messageIndex) {
+    final message = _messages[messageIndex];
+    final action = message.action;
+    if (action == null) return;
+
+    setState(() {
+      _messages[messageIndex] = AiChatMessageDto(
+        role: 'assistant',
+        content: '${action.description}\n\nCancelled.',
+        createdAt: message.createdAt,
+        chatUuid: message.chatUuid,
+      );
+    });
   }
 
   Future<void> _submitFeedback(String chatUuid, bool isPositive) async {
@@ -236,9 +338,16 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
               : ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.all(16),
-                  itemCount: _messages.length + (_isLoading ? 1 : 0),
+                  itemCount: _messages.length +
+                      (_isLoading ? 1 : 0) +
+                      (_toolStatus != null ? 1 : 0),
                   itemBuilder: (context, index) {
-                    if (index == _messages.length) {
+                    // Tool status indicator
+                    if (_toolStatus != null && index == _messages.length) {
+                      return _buildToolStatus(_toolStatus!);
+                    }
+                    // Loading spinner
+                    if (index >= _messages.length) {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.all(16),
@@ -246,12 +355,232 @@ class _CheeseAiScreenState extends State<CheeseAiScreen> {
                         ),
                       );
                     }
-                    return _buildMessage(_messages[index]);
+                    final message = _messages[index];
+                    if (message.action != null) {
+                      return _buildActionCard(message, index);
+                    }
+                    return _buildMessage(message);
                   },
                 ),
         ),
         _buildInputBar(),
       ],
+    );
+  }
+
+  Widget _buildToolStatus(String status) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 14,
+            height: 14,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            status,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionCard(AiChatMessageDto message, int index) {
+    final action = message.action!;
+    final theme = Theme.of(context);
+    final isCompleted = message.content.contains('completed successfully');
+    final isCancelled = message.content.contains('Cancelled');
+    final isFailed = message.content.contains('Failed:');
+    final isExecuting = message.content.contains('Executing...');
+    final isPending = !isCompleted && !isCancelled && !isFailed && !isExecuting;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: isCompleted
+              ? Colors.green
+              : isFailed
+                  ? Colors.red
+                  : theme.colorScheme.outline.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Type + entity chips
+            Row(
+              children: [
+                _buildChip(
+                  action.type,
+                  action.type == 'create'
+                      ? Colors.green
+                      : action.type == 'update'
+                          ? Colors.blue
+                          : Colors.red,
+                ),
+                const SizedBox(width: 6),
+                _buildChip(action.entity, theme.colorScheme.primary),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Description
+            Text(
+              action.description,
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w500),
+            ),
+            // Payload preview (only when pending)
+            if (isPending && action.payload.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: _getDisplayPayload(action).entries.map((e) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 1),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            e.key,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.6),
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              e.value is Map || e.value is List
+                                  ? jsonEncode(e.value)
+                                  : '${e.value}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.end,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+            // Status messages
+            if (isCompleted)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle_outline,
+                        color: Colors.green, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Action completed successfully',
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: Colors.green),
+                    ),
+                  ],
+                ),
+              ),
+            if (isFailed)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline,
+                        color: Colors.red, size: 16),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        message.content
+                            .split('Failed: ')
+                            .last,
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (isCancelled)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Action cancelled',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
+            if (isExecuting)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
+            // Confirm / Cancel buttons
+            if (isPending)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    OutlinedButton(
+                      onPressed: () => _handleCancelAction(index),
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: () => _handleConfirmAction(index),
+                      child: const Text('Confirm'),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Map<String, dynamic> _getDisplayPayload(AiActionProposalDto action) {
+    // Unwrap animals array for display
+    if (action.entity == 'animal' && action.payload.containsKey('animals')) {
+      final animals = action.payload['animals'];
+      if (animals is List && animals.isNotEmpty) {
+        return Map<String, dynamic>.from(animals[0] as Map);
+      }
+    }
+    return action.payload;
+  }
+
+  Widget _buildChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600),
+      ),
     );
   }
 

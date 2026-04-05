@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:moustra/helpers/note_helper.dart';
 import 'package:moustra/services/dtos/note_dto.dart';
+import 'package:moustra/widgets/note/mention_input.dart';
+import 'package:moustra/widgets/note/mention_text.dart';
 
 class SingleNote extends StatefulWidget {
   final NoteDto note;
@@ -100,23 +102,22 @@ class _SingleNoteState extends State<SingleNote> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: widget.isEditing
-                      ? TextField(
-                          controller: _editController,
+                      ? MentionInput(
+                          value: widget.editingContent,
                           onChanged: widget.onEditingContentChange,
-                          maxLines: null,
+                          maxLines: 3,
+                          autofocus: true,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             contentPadding: EdgeInsets.all(8),
                           ),
-                          autofocus: true,
                         )
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              widget.note.content,
+                            MentionText(
+                              content: widget.note.content,
                               style: Theme.of(context).textTheme.bodyMedium,
-                              overflow: TextOverflow.visible,
                             ),
                             const SizedBox(height: 8),
                             Row(

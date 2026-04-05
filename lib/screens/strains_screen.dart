@@ -318,7 +318,7 @@ class _StrainsScreenState extends State<StrainsScreen> {
                 controller: _controller,
                 editFieldConfigs: _editConfigs,
                 getRowId: (strain) => strain.strainUuid,
-                primaryColumn: 'name',
+                primaryColumn: 'strain_name',
                 onCellEditTap: _onCellEditTap,
                 onCellEditCommit: _onCellEditCommit,
                 activeSortColumn: _activeSort?.field,

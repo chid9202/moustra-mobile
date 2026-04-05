@@ -13,13 +13,17 @@ UserDetailDto _$UserDetailDtoFromJson(Map<String, dynamic> json) =>
       user: UserDto.fromJson(json['user'] as Map<String, dynamic>),
       status: json['status'] as String,
       role: json['role'] as String,
-      isActive: json['isActive'] as bool,
+      isActive: json['isActive'] as bool? ?? false,
       position: json['position'] as String?,
-      accountSetting: AccountSettingDto.fromJson(
-        json['accountSetting'] as Map<String, dynamic>,
-      ),
-      onboarded: json['onboarded'] as bool,
-      lab: LabDto.fromJson(json['lab'] as Map<String, dynamic>),
+      accountSetting: json['accountSetting'] == null
+          ? null
+          : AccountSettingDto.fromJson(
+              json['accountSetting'] as Map<String, dynamic>,
+            ),
+      onboarded: json['onboarded'] as bool? ?? false,
+      lab: json['lab'] == null
+          ? null
+          : LabDto.fromJson(json['lab'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$UserDetailDtoToJson(UserDetailDto instance) =>
@@ -31,9 +35,9 @@ Map<String, dynamic> _$UserDetailDtoToJson(UserDetailDto instance) =>
       'role': instance.role,
       'isActive': instance.isActive,
       'position': instance.position,
-      'accountSetting': instance.accountSetting.toJson(),
+      'accountSetting': instance.accountSetting?.toJson(),
       'onboarded': instance.onboarded,
-      'lab': instance.lab.toJson(),
+      'lab': instance.lab?.toJson(),
     };
 
 PutUserDetailDto _$PutUserDetailDtoFromJson(Map<String, dynamic> json) =>

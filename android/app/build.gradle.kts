@@ -42,6 +42,8 @@ android {
         println(manifestPlaceholders["auth0Domain"])
 
         applicationId = "com.moustra.app"
+        testInstrumentationRunner = "pl.leancode.patrol.PatrolJUnitRunner"
+        testInstrumentationRunnerArguments["clearPackageData"] = "true"
         
         // Disable native debug symbols to avoid stripping issues
         ndk {
@@ -88,6 +90,11 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+        animationsDisabled = true
+    }
     
     packaging {
         jniLibs {
@@ -130,4 +137,11 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    androidTestImplementation("androidx.test:runner:1.5.1")
+    androidTestImplementation("androidx.test:rules:1.2.0")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestUtil("androidx.test:orchestrator:1.5.1")
 }

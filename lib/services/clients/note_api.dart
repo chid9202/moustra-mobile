@@ -8,10 +8,11 @@ class NoteApi {
   Future<NoteDto> createNote(
     String entityUuid,
     NoteEntityType entityType,
-    String content,
-  ) async {
+    String content, {
+    Map<String, dynamic>? metadata,
+  }) async {
     final path = '/${entityType.value}/$entityUuid/note';
-    final payload = PostNoteDto(content: content);
+    final payload = PostNoteDto(content: content, metadata: metadata);
     final res = await dioApiClient.post(path, body: payload);
     if (res.statusCode != 200 && res.statusCode != 201) {
       throw Exception('Failed to create note: ${res.data}');
@@ -23,10 +24,11 @@ class NoteApi {
     String entityUuid,
     NoteEntityType entityType,
     String noteUuid,
-    String content,
-  ) async {
+    String content, {
+    Map<String, dynamic>? metadata,
+  }) async {
     final path = '/${entityType.value}/$entityUuid/note/$noteUuid';
-    final payload = PutNoteDto(content: content);
+    final payload = PutNoteDto(content: content, metadata: metadata);
     final res = await dioApiClient.put(path, body: payload);
     if (res.statusCode != 200) {
       throw Exception('Failed to update note: ${res.data}');

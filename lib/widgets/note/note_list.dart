@@ -4,6 +4,7 @@ import 'package:moustra/helpers/snackbar_helper.dart';
 import 'package:moustra/services/clients/note_api.dart';
 import 'package:moustra/services/dtos/note_dto.dart';
 import 'package:moustra/services/dtos/note_entity_type.dart';
+import 'package:moustra/widgets/note/mention_input.dart';
 import 'package:moustra/widgets/note/single_note.dart';
 
 class NoteList extends StatefulWidget {
@@ -32,11 +33,11 @@ class _NoteListState extends State<NoteList> {
   final ValueNotifier<List<NoteDto>> _notesNotifier =
       ValueNotifier<List<NoteDto>>([]);
   final ScrollController _scrollController = ScrollController();
-  final TextEditingController _addNoteController = TextEditingController();
   bool _showAddForm = false;
   bool _isLoading = false;
   String? _editingNoteUuid;
   String _editingContent = '';
+  String _addNoteContent = '';
 
   @override
   void initState() {
@@ -44,17 +45,12 @@ class _NoteListState extends State<NoteList> {
     if (widget.initialNotes != null) {
       _notesNotifier.value = _sortNotesByDate(widget.initialNotes!);
     }
-    // Listen to text changes to update button state
-    _addNoteController.addListener(() {
-      setState(() {});
-    });
   }
 
   @override
   void dispose() {
     _notesNotifier.dispose();
     _scrollController.dispose();
-    _addNoteController.dispose();
     super.dispose();
   }
 
@@ -65,7 +61,7 @@ class _NoteListState extends State<NoteList> {
   }
 
   Future<void> _addNote() async {
-    if (widget.entityUuid == null || _addNoteController.text.trim().isEmpty) {
+    if (widget.entityUuid == null || _addNoteContent.trim().isEmpty) {
       return;
     }
 
@@ -74,17 +70,21 @@ class _NoteListState extends State<NoteList> {
     });
 
     try {
+      final content = _addNoteContent.trim();
+      final metadata = NoteHelper.buildMentionMetadata(content);
+
       final note = await noteApi.createNote(
         widget.entityUuid!,
         widget.entityType,
-        _addNoteController.text.trim(),
+        content,
+        metadata: metadata,
       );
 
       final updatedNotes = [note, ..._notesNotifier.value];
       _notesNotifier.value = _sortNotesByDate(updatedNotes);
 
-      _addNoteController.clear();
       setState(() {
+        _addNoteContent = '';
         _showAddForm = false;
       });
 
@@ -144,11 +144,15 @@ class _NoteListState extends State<NoteList> {
     });
 
     try {
+      final editContent = _editingContent.trim();
+      final editMetadata = NoteHelper.buildMentionMetadata(editContent);
+
       final updatedNote = await noteApi.updateNote(
         widget.entityUuid!,
         widget.entityType,
         _editingNoteUuid!,
-        _editingContent.trim(),
+        editContent,
+        metadata: editMetadata,
       );
 
       final updatedNotes = _notesNotifier.value.map((note) {
@@ -260,12 +264,13 @@ class _NoteListState extends State<NoteList> {
 
         // Add Note Form
         if (_showAddForm) ...[
-          TextField(
-            controller: _addNoteController,
-            decoration: const InputDecoration(
-              hintText: 'Enter note content...',
-              border: OutlineInputBorder(),
-            ),
+          MentionInput(
+            value: _addNoteContent,
+            onChanged: (value) {
+              setState(() {
+                _addNoteContent = value;
+              });
+            },
             maxLines: 4,
             enabled: !_isLoading,
           ),
@@ -279,7 +284,7 @@ class _NoteListState extends State<NoteList> {
                     : () {
                         setState(() {
                           _showAddForm = false;
-                          _addNoteController.clear();
+                          _addNoteContent = '';
                         });
                       },
                 child: const Text('Cancel'),
@@ -288,7 +293,7 @@ class _NoteListState extends State<NoteList> {
               ElevatedButton(
                 onPressed: _isLoading ||
                         widget.entityUuid == null ||
-                        _addNoteController.text.trim().isEmpty
+                        _addNoteContent.trim().isEmpty
                     ? null
                     : _addNote,
                 child: _isLoading

@@ -41,9 +41,57 @@ class AiApi {
     return AiChatHistoryItemDto.fromJson(res.data as Map<String, dynamic>);
   }
 
-  /// SSE streaming — kept on package:http because Dio doesn't natively
-  /// support server-sent events with the same ease.
-  Stream<String> streamChat(String prompt) async* {
+  /// Execute an action proposal by calling the specified endpoint.
+  Future<Map<String, dynamic>> executeAction(
+      AiActionProposalDto action) async {
+    final method = action.method.toUpperCase();
+    final endpoint = action.endpoint;
+
+    switch (method) {
+      case 'POST':
+        final res = await dioApiClient.post(endpoint, body: action.payload);
+        return res.data is Map<String, dynamic>
+            ? res.data as Map<String, dynamic>
+            : {};
+      case 'PUT':
+        final res = await dioApiClient.put(endpoint, body: action.payload);
+        return res.data is Map<String, dynamic>
+            ? res.data as Map<String, dynamic>
+            : {};
+      case 'PATCH':
+        final res = await dioApiClient.patch(endpoint, body: action.payload);
+        return res.data is Map<String, dynamic>
+            ? res.data as Map<String, dynamic>
+            : {};
+      case 'DELETE':
+        final res = await dioApiClient.delete(endpoint);
+        return res.data is Map<String, dynamic>
+            ? res.data as Map<String, dynamic>
+            : {};
+      default:
+        throw Exception('Unsupported HTTP method: $method');
+    }
+  }
+
+  /// Send action result back to AI for multi-step workflow continuation.
+  Future<void> sendActionResult({
+    required String actionId,
+    required bool success,
+    Map<String, dynamic>? result,
+    String? error,
+    String? sessionId,
+  }) async {
+    await dioApiClient.post('/ai/action-result', body: {
+      'action_id': actionId,
+      'success': success,
+      'result': result,
+      'error': error,
+      'session_id': sessionId,
+    });
+  }
+
+  /// SSE streaming — returns typed events instead of raw strings.
+  Stream<AiStreamEvent> streamChat(String prompt) async* {
     final token = authService.accessToken;
     final accountUuid = profileState.value?.accountUuid;
     if (token == null || accountUuid == null) {
@@ -55,47 +103,64 @@ class AiApi {
       '${ApiConfig.baseUrl}/account/$accountUuid/ai/stream?prompt=$encodedPrompt&token=$token',
     );
 
-    final request = http.Request('GET', uri);
-    final response = await http.Client().send(request);
+    final client = http.Client();
+    try {
+      final request = http.Request('GET', uri);
+      final response = await client.send(request);
 
-    if (response.statusCode != 200) {
-      throw Exception('SSE connection failed: ${response.statusCode}');
-    }
+      if (response.statusCode != 200) {
+        throw Exception('SSE connection failed: ${response.statusCode}');
+      }
 
-    await for (final chunk in response.stream.transform(utf8.decoder)) {
-      for (final line in chunk.split('\n')) {
-        if (!line.startsWith('data: ')) continue;
-        try {
-          final data = jsonDecode(line.substring(6)) as Map<String, dynamic>;
+      await for (final chunk in response.stream.transform(utf8.decoder)) {
+        for (final line in chunk.split('\n')) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            final data =
+                jsonDecode(line.substring(6)) as Map<String, dynamic>;
 
-          if (data['status'] == 'connected') continue;
-          if (data['status'] == 'done') return;
-          if (data['error'] != null) {
-            throw Exception(data['error'].toString());
-          }
+            if (data['status'] == 'connected') continue;
+            if (data['status'] == 'done') return;
+            if (data['error'] != null) {
+              throw Exception(data['error'].toString());
+            }
 
-          // V2: token-by-token streaming
-          final token = data['token'];
-          if (token != null) {
-            yield token as String;
+            // Action proposal
+            final action = data['action'];
+            if (action != null) {
+              yield AiActionEvent(
+                AiActionProposalDto.fromJson(action as Map<String, dynamic>),
+              );
+              continue;
+            }
+
+            // Tool status
+            final toolStatus = data['tool_status'];
+            if (toolStatus != null) {
+              yield AiToolStatusEvent(toolStatus as String);
+              continue;
+            }
+
+            // V2: token-by-token streaming
+            final tokenValue = data['token'];
+            if (tokenValue != null) {
+              yield AiTokenEvent(tokenValue as String);
+              continue;
+            }
+
+            // V1 legacy: full content in one event
+            final content = data['content'];
+            if (content != null) {
+              yield AiTokenEvent(content as String);
+            }
+          } on FormatException {
+            // Partial SSE line, not valid JSON yet — skip
             continue;
           }
-
-          // V1 legacy: full content in one event
-          final content = data['content'];
-          if (content != null) {
-            yield content as String;
-          }
-        } catch (e) {
-          if (e is Exception &&
-              e.toString().contains('SSE') == false &&
-              e.toString().contains('Error') == false) {
-            // JSON parse error on partial line, skip
-            continue;
-          }
-          rethrow;
         }
       }
+    } finally {
+      client.close();
     }
   }
 }

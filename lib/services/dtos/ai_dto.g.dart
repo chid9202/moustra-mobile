@@ -12,6 +12,11 @@ AiChatMessageDto _$AiChatMessageDtoFromJson(Map<String, dynamic> json) =>
       content: json['content'] as String,
       createdAt: json['createdAt'] as String?,
       chatUuid: json['chatUuid'] as String?,
+      action: json['action'] == null
+          ? null
+          : AiActionProposalDto.fromJson(
+              json['action'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$AiChatMessageDtoToJson(AiChatMessageDto instance) =>
@@ -20,6 +25,7 @@ Map<String, dynamic> _$AiChatMessageDtoToJson(AiChatMessageDto instance) =>
       'content': instance.content,
       'createdAt': instance.createdAt,
       'chatUuid': instance.chatUuid,
+      'action': instance.action?.toJson(),
     };
 
 AiChatHistoryItemDto _$AiChatHistoryItemDtoFromJson(
@@ -46,4 +52,27 @@ Map<String, dynamic> _$AiChatHistoryItemDtoToJson(
   'assistantId': instance.assistantId,
   'createdAt': instance.createdAt,
   'updatedAt': instance.updatedAt,
+};
+
+AiActionProposalDto _$AiActionProposalDtoFromJson(Map<String, dynamic> json) =>
+    AiActionProposalDto(
+      id: json['id'] as String,
+      type: json['type'] as String,
+      entity: json['entity'] as String,
+      description: json['description'] as String,
+      endpoint: json['endpoint'] as String,
+      method: json['method'] as String,
+      payload: json['payload'] as Map<String, dynamic>,
+    );
+
+Map<String, dynamic> _$AiActionProposalDtoToJson(
+  AiActionProposalDto instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'entity': instance.entity,
+  'description': instance.description,
+  'endpoint': instance.endpoint,
+  'method': instance.method,
+  'payload': instance.payload,
 };

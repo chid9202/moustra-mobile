@@ -110,6 +110,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
       preservedMatrix: preservedMatrix,
       silent: true,
     );
+    if (!mounted) return;
     await _restoreSavedPosition();
   }
 
@@ -169,6 +170,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
       _selectedRack = rack;
     });
     await _loadRackData(rackUuid: rack.rackUuid);
+    if (!mounted) return;
     // Reset view position (zoom and pan) to default when switching racks
     if (!mounted) return;
     _resetViewPosition();
@@ -203,6 +205,7 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
     _saveMatrixTimer = Timer(
       const Duration(milliseconds: CagesGridConstants.saveMatrixTimerMs),
       () {
+        if (!mounted) return;
         saveTransformationMatrix(_transformationController.value);
       },
     );
@@ -215,16 +218,15 @@ class _CagesGridScreenState extends State<CagesGridScreen> {
         milliseconds: 200,
       ), // Increased from 50ms for better performance
       () {
-        if (mounted) {
-          final currentZoomLevel = UtilHelper.getScaleFromMatrix(
-            _transformationController.value,
-          );
-          // Only rebuild if zoom level changed significantly (for floating bar display)
-          if ((currentZoomLevel - _currentZoomLevel).abs() > 0.05) {
-            setState(() {
-              _currentZoomLevel = currentZoomLevel;
-            });
-          }
+        if (!mounted) return;
+        final currentZoomLevel = UtilHelper.getScaleFromMatrix(
+          _transformationController.value,
+        );
+        // Only rebuild if zoom level changed significantly (for floating bar display)
+        if ((currentZoomLevel - _currentZoomLevel).abs() > 0.05) {
+          setState(() {
+            _currentZoomLevel = currentZoomLevel;
+          });
         }
       },
     );

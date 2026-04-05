@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:moustra/services/dtos/account_dto.dart';
+import 'package:moustra/services/dtos/stores/account_store_dto.dart';
+import 'package:moustra/stores/account_store.dart';
 
 class NoteHelper {
   static String getCreatorName(AccountDto? account) {
@@ -44,6 +46,34 @@ class NoteHelper {
 
   static String formatNoteDate(DateTime date) {
     return DateFormat('MMM d, yyyy, hh:mm a').format(date);
+  }
+
+  static final _mentionRegex = RegExp(
+    r'@\[([^\]]+)\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)',
+    caseSensitive: false,
+  );
+
+  /// Extract unique account UUIDs from @[Name](uuid) mentions in content.
+  static List<String> extractMentionUuids(String content) {
+    final uuids = <String>{};
+    for (final match in _mentionRegex.allMatches(content)) {
+      uuids.add(match.group(2)!);
+    }
+    return uuids.toList();
+  }
+
+  /// Build metadata map with mentions if any exist in the content.
+  static Map<String, dynamic>? buildMentionMetadata(String content) {
+    final uuids = extractMentionUuids(content);
+    if (uuids.isEmpty) return null;
+    return {'mentions': uuids};
+  }
+
+  /// Look up an account by UUID from the account store.
+  static AccountStoreDto? getAccountByUuid(String uuid) {
+    return accountStore.value
+        ?.where((a) => a.accountUuid == uuid)
+        .firstOrNull;
   }
 
   static String extractErrorMessage(dynamic error) {

@@ -107,12 +107,12 @@ final GoRouter appRouter = GoRouter(
               const MaterialPage(child: StrainsScreen()),
         ),
         GoRoute(
-          path: '/strain/:strainUuid',
+          path: '/strain/new',
           pageBuilder: (context, state) =>
               const MaterialPage(child: StrainDetailScreen()),
         ),
         GoRoute(
-          path: '/strain/new',
+          path: '/strain/:strainUuid',
           pageBuilder: (context, state) =>
               const MaterialPage(child: StrainDetailScreen()),
         ),

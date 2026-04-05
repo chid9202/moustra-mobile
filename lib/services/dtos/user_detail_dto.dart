@@ -12,9 +12,9 @@ class UserDetailDto {
   final String role;
   final bool isActive;
   final String? position;
-  final AccountSettingDto accountSetting;
+  final AccountSettingDto? accountSetting;
   final bool onboarded;
-  final LabDto lab;
+  final LabDto? lab;
 
   UserDetailDto({
     required this.accountId,
@@ -22,11 +22,11 @@ class UserDetailDto {
     required this.user,
     required this.status,
     required this.role,
-    required this.isActive,
+    this.isActive = false,
     this.position,
-    required this.accountSetting,
-    required this.onboarded,
-    required this.lab,
+    this.accountSetting,
+    this.onboarded = false,
+    this.lab,
   });
 
   factory UserDetailDto.fromJson(Map<String, dynamic> json) =>
