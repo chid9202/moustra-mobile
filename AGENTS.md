@@ -304,6 +304,36 @@ ValueListenableBuilder<List<AnimalStoreDto>?>(
 
 ## API Patterns
 
+### OpenAPI-Generated Models vs Hand-Written DTOs
+
+The app has two model layers:
+
+1. **OpenAPI-generated models** in `lib/api/generated/lib/src/model/` — auto-generated from `openapi.yml`, uses `built_value`. These are the **source of truth** for field nullability.
+2. **Hand-written DTOs** in `lib/services/dtos/` — uses `json_annotation`/`json_serializable`. Used by all API clients in `lib/services/clients/`.
+
+**CRITICAL RULE:** When creating or modifying a hand-written DTO, you MUST cross-reference the corresponding OpenAPI-generated model to ensure field nullability matches. If the OpenAPI model declares a field as nullable (`bool?`, `int?`, `String?`), the hand-written DTO MUST also declare it as nullable or provide a sensible default.
+
+**Why:** The API can return `null` for any field marked nullable in the OpenAPI spec. A non-nullable field in the DTO (e.g., `final bool isActive;`) will crash at runtime with `type 'Null' is not a subtype of type 'bool' in type cast` when the API returns `null`.
+
+**How to check:**
+1. Find the generated model: `lib/api/generated/lib/src/model/<entity>_slr.dart`
+2. Look for `bool?`, `int?`, or nullable wrappers like `FullType.nullable(bool)`
+3. Make the hand-written DTO field nullable or add a default value
+
+**Example — correct nullable handling:**
+```dart
+@JsonSerializable()
+class EntityDto {
+  final bool isActive;      // Use default if API may return null
+  final AccountDto? owner;  // Nullable if OpenAPI says nullable
+
+  EntityDto({
+    this.isActive = false,  // Default for nullable bools
+    this.owner,             // Optional for nullable objects
+  });
+}
+```
+
 ### DTO Structure
 
 All DTOs must use json_serializable:
@@ -712,6 +742,21 @@ Android supports App Links for `app.moustra.com`:
 iOS uses custom URL scheme:
 ```xml
 <string>com.moustra.app</string>
+```
+
+### Route Registration Order (go_router)
+
+**CRITICAL:** When registering routes with go_router, specific paths MUST come before parameterized paths. Otherwise, `/entity/new` matches `/:entityUuid` with `entityUuid='new'`.
+
+```dart
+// CORRECT order:
+GoRoute(path: '/strain/new', ...),       // Specific first
+GoRoute(path: '/strain/:strainUuid', ...), // Parameterized second
+GoRoute(path: '/strain', ...),            // List last
+
+// WRONG order — /strain/new will never match:
+GoRoute(path: '/strain/:strainUuid', ...), // Catches "new" as a UUID!
+GoRoute(path: '/strain/new', ...),         // Never reached
 ```
 
 ### Screen Navigation Pattern
