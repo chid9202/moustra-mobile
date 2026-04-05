@@ -7,7 +7,7 @@ part of 'animal_dto.dart';
 // **************************************************************************
 
 AnimalDto _$AnimalDtoFromJson(Map<String, dynamic> json) => AnimalDto(
-  eid: (json['eid'] as num).toInt(),
+  eid: (json['eid'] as num?)?.toInt(),
   animalId: (json['animalId'] as num).toInt(),
   animalUuid: json['animalUuid'] as String,
   physicalTag: json['physicalTag'] as String?,

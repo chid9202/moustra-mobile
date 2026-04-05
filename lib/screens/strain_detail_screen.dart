@@ -91,13 +91,13 @@ class _StrainDetailScreenState extends State<StrainDetailScreen> {
           }
 
           // Set owner
-          _selectedOwner = strain.owner.toAccountStoreDto();
+          _selectedOwner = strain.owner?.toAccountStoreDto();
 
           // Set backgrounds
           _selectedBackgrounds = strain.backgrounds
               .map((e) => e.toBackgroundStoreDto())
               .toList();
-          _genotypes = List.from(strain.genotypes);
+          _genotypes = List.from(strain.genotypes ?? []);
           _isActive = strain.isActive;
           _strainData = strain;
           _strainDataLoaded = true;

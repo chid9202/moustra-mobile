@@ -9,7 +9,7 @@ class PutCageDto {
   final int cageId;
   final String cageUuid;
   final String cageTag;
-  final AccountStoreDto owner;
+  final AccountStoreDto? owner;
   final StrainSummaryDto? strain;
   final DateTime? setUpDate;
   final String? comment;
@@ -19,7 +19,7 @@ class PutCageDto {
     required this.cageId,
     required this.cageUuid,
     required this.cageTag,
-    required this.owner,
+    this.owner,
     this.strain,
     this.setUpDate,
     this.comment,

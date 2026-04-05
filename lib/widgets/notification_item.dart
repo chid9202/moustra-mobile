@@ -64,7 +64,7 @@ class NotificationItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            DateTimeHelper.formatRelativeTime(notification.createdAt),
+            notification.createdAt != null ? DateTimeHelper.formatRelativeTime(notification.createdAt!) : '',
             style: Theme.of(context).textTheme.bodySmall,
           ),
           if (!notification.isRead)

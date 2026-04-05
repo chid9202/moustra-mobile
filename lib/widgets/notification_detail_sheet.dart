@@ -47,7 +47,7 @@ class NotificationDetailSheet extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                DateTimeHelper.formatRelativeTime(notification.createdAt),
+                notification.createdAt != null ? DateTimeHelper.formatRelativeTime(notification.createdAt!) : '',
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall

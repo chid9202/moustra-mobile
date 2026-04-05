@@ -10,13 +10,17 @@ StrainDto _$StrainDtoFromJson(Map<String, dynamic> json) => StrainDto(
   strainId: (json['strainId'] as num).toInt(),
   strainUuid: json['strainUuid'] as String,
   strainName: json['strainName'] as String,
-  owner: AccountDto.fromJson(json['owner'] as Map<String, dynamic>),
+  owner: json['owner'] == null
+      ? null
+      : AccountDto.fromJson(json['owner'] as Map<String, dynamic>),
   weanAge: (json['weanAge'] as num?)?.toInt(),
   tagPrefix: json['tagPrefix'] as String?,
   comment: json['comment'] as String?,
-  createdDate: DateTime.parse(json['createdDate'] as String),
-  genotypes: (json['genotypes'] as List<dynamic>)
-      .map((e) => GenotypeDto.fromJson(e as Map<String, dynamic>))
+  createdDate: json['createdDate'] == null
+      ? null
+      : DateTime.parse(json['createdDate'] as String),
+  genotypes: (json['genotypes'] as List<dynamic>?)
+      ?.map((e) => GenotypeDto.fromJson(e as Map<String, dynamic>))
       .toList(),
   color: json['color'] as String?,
   numberOfAnimals: (json['numberOfAnimals'] as num?)?.toInt() ?? 0,
@@ -32,12 +36,12 @@ Map<String, dynamic> _$StrainDtoToJson(StrainDto instance) => <String, dynamic>{
   'strainId': instance.strainId,
   'strainUuid': instance.strainUuid,
   'strainName': instance.strainName,
-  'owner': instance.owner.toJson(),
+  'owner': instance.owner?.toJson(),
   'weanAge': instance.weanAge,
   'tagPrefix': instance.tagPrefix,
   'comment': instance.comment,
-  'createdDate': instance.createdDate.toIso8601String(),
-  'genotypes': instance.genotypes.map((e) => e.toJson()).toList(),
+  'createdDate': instance.createdDate?.toIso8601String(),
+  'genotypes': instance.genotypes?.map((e) => e.toJson()).toList(),
   'color': instance.color,
   'numberOfAnimals': instance.numberOfAnimals,
   'backgrounds': instance.backgrounds.map((e) => e.toJson()).toList(),

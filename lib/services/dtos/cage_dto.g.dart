@@ -11,7 +11,9 @@ CageDto _$CageDtoFromJson(Map<String, dynamic> json) => CageDto(
   cageId: (json['cageId'] as num).toInt(),
   cageTag: json['cageTag'] as String,
   cageUuid: json['cageUuid'] as String,
-  owner: AccountDto.fromJson(json['owner'] as Map<String, dynamic>),
+  owner: json['owner'] == null
+      ? null
+      : AccountDto.fromJson(json['owner'] as Map<String, dynamic>),
   strain: json['strain'] == null
       ? null
       : StrainSummaryDto.fromJson(json['strain'] as Map<String, dynamic>),
@@ -48,7 +50,7 @@ Map<String, dynamic> _$CageDtoToJson(CageDto instance) => <String, dynamic>{
   'cageId': instance.cageId,
   'cageTag': instance.cageTag,
   'cageUuid': instance.cageUuid,
-  'owner': instance.owner.toJson(),
+  'owner': instance.owner?.toJson(),
   'strain': instance.strain?.toJson(),
   'animals': instance.animals.map((e) => e.toJson()).toList(),
   'order': instance.order,

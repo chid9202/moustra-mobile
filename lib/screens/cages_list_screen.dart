@@ -400,7 +400,7 @@ class _CagesListScreenState extends State<CagesListScreen> {
           cageId: cage.cageId,
           cageUuid: cage.cageUuid,
           cageTag: cage.cageTag,
-          owner: cage.owner.toAccountStoreDto(),
+          owner: cage.owner?.toAccountStoreDto(),
           strain: strain,
           setUpDate: null,
           comment: cage.comment,

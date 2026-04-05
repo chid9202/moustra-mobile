@@ -12,7 +12,7 @@ class NotificationDto {
   final String? link;
   final Map<String, dynamic>? metadata;
   final bool isRead;
-  final DateTime createdAt;
+  final DateTime? createdAt;
 
   NotificationDto({
     required this.notificationUuid,
@@ -21,8 +21,8 @@ class NotificationDto {
     required this.message,
     this.link,
     this.metadata,
-    required this.isRead,
-    required this.createdAt,
+    this.isRead = false,
+    this.createdAt,
   });
 
   List<FieldChangeDto> get changes {

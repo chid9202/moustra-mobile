@@ -186,7 +186,7 @@ class _CageDetailScreenState extends State<CageDetailScreen> {
                 )
               : null;
           _selectedSetUpDate = cage.createdDate;
-          _selectedOwner = cage.owner.toAccountStoreDto();
+          _selectedOwner = cage.owner?.toAccountStoreDto();
           _cageData = cage;
           _cageDataLoaded = true;
         });

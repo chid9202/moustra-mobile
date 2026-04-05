@@ -14,8 +14,10 @@ NotificationDto _$NotificationDtoFromJson(Map<String, dynamic> json) =>
       message: json['message'] as String,
       link: json['link'] as String?,
       metadata: json['metadata'] as Map<String, dynamic>?,
-      isRead: json['isRead'] as bool,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      isRead: json['isRead'] as bool? ?? false,
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
     );
 
 Map<String, dynamic> _$NotificationDtoToJson(NotificationDto instance) =>
@@ -27,5 +29,5 @@ Map<String, dynamic> _$NotificationDtoToJson(NotificationDto instance) =>
       'link': instance.link,
       'metadata': instance.metadata,
       'isRead': instance.isRead,
-      'createdAt': instance.createdAt.toIso8601String(),
+      'createdAt': instance.createdAt?.toIso8601String(),
     };

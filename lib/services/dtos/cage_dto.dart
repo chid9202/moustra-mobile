@@ -14,7 +14,7 @@ class CageDto {
   final int cageId;
   final String cageTag;
   final String cageUuid;
-  final AccountDto owner;
+  final AccountDto? owner;
   final StrainSummaryDto? strain;
   final List<AnimalSummaryDto> animals;
   final int? order;
@@ -34,7 +34,7 @@ class CageDto {
     required this.cageId,
     required this.cageTag,
     required this.cageUuid,
-    required this.owner,
+    this.owner,
     this.strain,
     this.animals = const [],
     this.order = 0,

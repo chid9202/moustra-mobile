@@ -11,12 +11,12 @@ class StrainDto {
   final int strainId;
   final String strainUuid;
   final String strainName;
-  final AccountDto owner;
+  final AccountDto? owner;
   final int? weanAge;
   final String? tagPrefix;
   final String? comment;
-  final DateTime createdDate;
-  final List<GenotypeDto> genotypes;
+  final DateTime? createdDate;
+  final List<GenotypeDto>? genotypes;
   final String? color;
   final int numberOfAnimals;
   final List<StrainBackgroundDto> backgrounds;
@@ -27,12 +27,12 @@ class StrainDto {
     required this.strainId,
     required this.strainUuid,
     required this.strainName,
-    required this.owner,
+    this.owner,
     this.weanAge,
     this.tagPrefix,
     this.comment,
-    required this.createdDate,
-    required this.genotypes,
+    this.createdDate,
+    this.genotypes,
     this.color,
     this.numberOfAnimals = 0,
     this.backgrounds = const [],

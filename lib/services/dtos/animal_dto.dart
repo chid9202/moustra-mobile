@@ -31,7 +31,7 @@ String? _animalApiDateOnlyToJson(DateTime? value) {
 
 @JsonSerializable(explicitToJson: true)
 class AnimalDto {
-  final int eid;
+  final int? eid;
   final int animalId;
   final String animalUuid;
   final String? physicalTag;
@@ -62,7 +62,7 @@ class AnimalDto {
   final List<AnimalPlugEventDto>? plugEvents;
 
   AnimalDto({
-    required this.eid,
+    this.eid,
     required this.animalId,
     required this.animalUuid,
     this.physicalTag,
