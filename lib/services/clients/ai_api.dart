@@ -74,6 +74,14 @@ class AiApi {
             throw Exception(data['error'].toString());
           }
 
+          // V2: token-by-token streaming
+          final token = data['token'];
+          if (token != null) {
+            yield token as String;
+            continue;
+          }
+
+          // V1 legacy: full content in one event
           final content = data['content'];
           if (content != null) {
             yield content as String;
