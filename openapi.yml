@@ -144,6 +144,27 @@ paths:
           description: No response body
         '404':
           description: No response body
+  /api/v1/account/{account_uuid}/ai/action-result:
+    post:
+      operationId: v1_account_ai_action_result_create
+      description: |-
+        Receives the result of a confirmed action execution.
+        Feeds it back into the AI conversation so it can propose the next step.
+        Returns a new SSE stream with the AI's next response.
+      parameters:
+      - in: path
+        name: account_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/v1/account/{account_uuid}/ai/chat/{chat_uuid}/feedback:
     put:
       operationId: v1_account_ai_chat_feedback_update
@@ -4667,6 +4688,31 @@ paths:
           description: No response body
         '400':
           description: No response body
+  /api/v1/account/{account_uuid}/mentions/search:
+    get:
+      operationId: v1_account_mentions_search_retrieve
+      description: Search lab members for @mention typeahead.
+      summary: Search lab members for @mention
+      parameters:
+      - in: path
+        name: account_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Account UUID
+        required: true
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Search query (matches first name, last name, or email)
+      tags:
+      - Mention
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/v1/account/{account_uuid}/notification:
     get:
       operationId: v1_account_notification_list
@@ -7758,6 +7804,20 @@ paths:
               schema:
                 type: object
           description: ''
+  /api/v1/email/track/{tracker_uuid}/pixel.png:
+    get:
+      operationId: v1_email_track_pixel.png_retrieve
+      parameters:
+      - in: path
+        name: tracker_uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      responses:
+        '200':
+          description: No response body
   /api/v1/error:
     get:
       operationId: v1_error_retrieve
@@ -7969,6 +8029,38 @@ paths:
       - {}
       responses:
         '200':
+          description: No response body
+  /api/v2/account/{account_uuid}/animal/{animal_uuid}/family-tree:
+    get:
+      operationId: v2_account_animal_family_tree_retrieve
+      summary: Get animal family tree v2
+      parameters:
+      - in: path
+        name: account_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Account UUID
+        required: true
+      - in: path
+        name: animal_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Animal UUID
+        required: true
+      tags:
+      - Animal
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyTreeV2SLR'
+          description: ''
+        '404':
           description: No response body
 components:
   schemas:
@@ -9771,11 +9863,17 @@ components:
           nullable: true
           maxLength: 100
         strain:
-          $ref: '#/components/schemas/SimpleStrainSLR'
+          allOf:
+          - $ref: '#/components/schemas/SimpleStrainSLR'
+          nullable: true
         cage:
-          $ref: '#/components/schemas/SimpleCageSLR'
+          allOf:
+          - $ref: '#/components/schemas/SimpleCageSLR'
+          nullable: true
         owner:
-          $ref: '#/components/schemas/AnimalOwnerSLR'
+          allOf:
+          - $ref: '#/components/schemas/AnimalOwnerSLR'
+          nullable: true
         genotypes:
           type: array
           items:
@@ -9784,9 +9882,7 @@ components:
       required:
       - animalId
       - animalUuid
-      - cage
       - genotypes
-      - strain
     FamilyTreeGenerationSLR:
       type: object
       properties:
@@ -9802,7 +9898,9 @@ components:
           format: date
           nullable: true
         mating:
-          $ref: '#/components/schemas/FamilyTreeMatingSLR'
+          allOf:
+          - $ref: '#/components/schemas/FamilyTreeMatingSLR'
+          nullable: true
         owner:
           allOf:
           - $ref: '#/components/schemas/AccountSLR'
@@ -9829,7 +9927,6 @@ components:
       - dateOfBirth
       - litterTag
       - litterUuid
-      - mating
     FamilyTreeMatingSLR:
       type: object
       properties:
@@ -9842,7 +9939,9 @@ components:
           nullable: true
           maxLength: 100
         litterStrain:
-          $ref: '#/components/schemas/SimpleStrainSLR'
+          allOf:
+          - $ref: '#/components/schemas/SimpleStrainSLR'
+          nullable: true
         animals:
           type: array
           items:
@@ -9850,7 +9949,6 @@ components:
           readOnly: true
       required:
       - animals
-      - litterStrain
       - matingUuid
     FamilyTreeSLR:
       type: object
@@ -9866,6 +9964,31 @@ components:
       required:
       - children
       - parent
+    FamilyTreeV2SLR:
+      type: object
+      properties:
+        animal:
+          $ref: '#/components/schemas/FamilyTreeAnimalSLR'
+        birthLitter:
+          allOf:
+          - $ref: '#/components/schemas/FamilyTreeGenerationSLR'
+          nullable: true
+        offspringLitters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyTreeGenerationSLR'
+        parents:
+          type: string
+          readOnly: true
+        children:
+          type: string
+          readOnly: true
+      required:
+      - animal
+      - birthLitter
+      - children
+      - offspringLitters
+      - parents
     FeedbackSLR:
       type: object
       properties:
@@ -10537,8 +10660,7 @@ components:
           readOnly: true
         content:
           type: string
-        metadata:
-          readOnly: true
+        metadata: {}
         createdBy:
           allOf:
           - $ref: '#/components/schemas/AccountSLR'
@@ -10556,7 +10678,6 @@ components:
       - content
       - createdBy
       - createdDate
-      - metadata
       - noteUuid
       - updatedDate
     Notification:
@@ -12706,6 +12827,10 @@ components:
           format: uuid
           nullable: true
         mating:
+          type: string
+          format: uuid
+          nullable: true
+        litter:
           type: string
           format: uuid
           nullable: true
